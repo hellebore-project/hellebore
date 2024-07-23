@@ -1,0 +1,75 @@
+@startuml Language
+
+''' Classes
+
+class Language {
+    integer id
+    text name
+}
+
+enum WordType {
+    ROOT_WORD
+    ARTICLE
+    PREPOSITION
+    CONJUNCTION
+    PRONOUN
+    NOUN
+    ADJECTIVE
+    ADVERB
+    VERB
+}
+
+enum GrammaticalNumber {
+    SINGULAR
+    DUAL
+    TRIAL
+    QUADRAL
+    QUINTAL
+    PAUCAL
+    GREATER_PAUCAL
+    PLURAL
+    GREATER_PLURAL
+    GREATEST_PLURAL
+}
+
+enum GrammaticalGender {
+    MASCULINE
+    FEMININE
+    NEUTRAL
+}
+
+enum GrammaticalPerson {
+    FIRST
+    SECOND
+    THIRD
+}
+
+enum VerbForm {
+    INFINITIVE
+    FINITE
+}
+
+enum VerbTense {
+    PAST
+    PRESENT
+    FUTURE
+}
+
+class Word {
+    integer id
+    text spelling
+    integer language_id
+    WordType word_type
+    GrammaticalNumber number
+    GrammaticalPerson person
+    GrammaticalGender gender
+    VerbForm verb_form
+    VerbTense verb_tense
+    json translations
+}
+
+''' Relationships
+
+Language "1" *-- "*" Word
+
+@enduml
