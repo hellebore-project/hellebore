@@ -1,7 +1,7 @@
 {
   "build": {
-    "beforeDevCommand": "pnpm fe-dev",
-    "beforeBuildCommand": "pnpm fe-build",
+    "beforeDevCommand": "pnpm dev:fe",
+    "beforeBuildCommand": "pnpm build:fe",
     "devPath": "http://localhost:1420",
     "distDir": "../dist"
   },
@@ -20,8 +20,7 @@
     "windows": [
       {
         "title": "Fantasy Log",
-        "width": 800,
-        "height": 600
+        "maximized": true
       }
     ],
     "security": {

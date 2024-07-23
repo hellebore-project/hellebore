@@ -4,18 +4,23 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev:fe": "vite",
+    "build:fe": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri",
-    "fe-dev": "vite",
-    "fe-build": "tsc && vite build",
-    "fe-preview": "vite preview",
-    "app-dev": "tauri dev"
+    "dev:app": "env-cmd tauri dev",
+    "generate:entities": "sea-orm-cli generate entity -l -o src-tauri/entity/src",
+    "typecheck": "tsc --noEmit",
+    "lint": "pnpm run lint:eslint && pnpm run lint:stylelint",
+    "lint:eslint": "eslint . --ext .ts,.tsx --cache",
+    "lint:stylelint": "stylelint '**/*.css' --cache",
+    "prettier": "prettier --check \"**/*.{ts,tsx}\"",
+    "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
+    "prepare": "husky"
   },
   "dependencies": {
+    "@mantine/core": "^7.11.2",
+    "@mantine/hooks": "^7.11.2",
     "@tauri-apps/api": "^1",
-    "purecss": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -24,7 +29,20 @@
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "^4.2.1",
+    "env-cmd": "^10.1.0",
+    "eslint": "^9.7.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.1.1",
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.3",
+    "stylelint": "^16.7.0",
+    "stylelint-config-standard": "^36.0.1",
     "typescript": "^5.2.2",
     "vite": "^5.3.1"
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix",
+    "*.css": "stylelint --fix",
+    "*.{js,css,md}": "prettier --write"
   }
 }
