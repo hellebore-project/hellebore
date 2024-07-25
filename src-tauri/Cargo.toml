@@ -8,17 +8,22 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace]
-members = ["."]
+members = [".", "entity", "migration"]
 
 [build-dependencies]
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = ["shell-open"] }
+entity = { path = "./entity" }
+migration = { path = "./migration" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sea-orm = { version = "0.12", features = ["sqlx-sqlite", "runtime-tokio-native-tls", "macros", "with-json"] }
+tauri = { version = "1", features = ["shell-open"] }
 tokio = { version = "1.38.1", features = ["full"] }
+
+[dev-dependencies]
+sea-orm-cli = "0.12.15"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
