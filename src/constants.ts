@@ -1,0 +1,6 @@
+export enum ViewKey {
+    HOME = "HOME",
+    ARTICLE = "ARTICLE",
+    ARTICLE_EDITOR = "ARTICLE_EDITOR",
+    ARTICLE_LIST = "ARTICLE_LIST",
+}

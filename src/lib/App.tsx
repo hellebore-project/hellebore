@@ -1,13 +1,18 @@
-import { useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
 import '@mantine/core/styles.css';
 import { MantineProvider, AppShell, Burger } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { useState } from "react";
 
-interface HeaderArgs {
-    burgerOpen: boolean;
-    burgerToggle: () => void;
-}
+import { ViewKey } from '../constants';
+import Home from './views/Home';
+import { ContentPaneArgs, HeaderArgs } from './models/args';
+
+const VIEW_MAPPING = {
+    [ViewKey.HOME]: Home,
+    [ViewKey.ARTICLE]: Home,
+    [ViewKey.ARTICLE_EDITOR]: Home,
+    [ViewKey.ARTICLE_LIST]: Home,
+};
 
 function Header({ burgerOpen, burgerToggle }: HeaderArgs) {
     return (
@@ -20,42 +25,17 @@ function Header({ burgerOpen, burgerToggle }: HeaderArgs) {
     );
 }
 
-function Navbar() {
+function Sidebar() {
     return "";
 }
 
-function ContentPane() {
-    const [greetMsg, setGreetMsg] = useState("");
-    const [name, setName] = useState("");
-
-    async function greet() {
-        // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-        setGreetMsg(await invoke("greet", { name }));
-    }
-
-    return (
-        <div className="container">
-            <h1>Home</h1>
-            <form
-                className="row"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    greet();
-                }}
-            >
-                <input
-                    id="greet-input"
-                    onChange={(e) => setName(e.currentTarget.value)}
-                    placeholder="Enter a name..."
-                />
-                <button type="submit">Greet</button>
-            </form>
-            <p>{greetMsg}</p>
-        </div>
-    );
+function ContentPane({ viewKey, ...rest }: ContentPaneArgs) {
+    const component = VIEW_MAPPING[viewKey];
+    return component(rest);
 }
 
 function App() {
+    const [viewKey, setView] = useState(ViewKey.HOME);
     const [navBarOpen, navBarHandlers] = useDisclosure();
     return (
         <MantineProvider defaultColorScheme="dark">
@@ -76,11 +56,11 @@ function App() {
                 </AppShell.Header>
 
                 <AppShell.Navbar p="md">
-                    <Navbar/>
+                    <Sidebar/>
                 </AppShell.Navbar>
 
                 <AppShell.Main>
-                    <ContentPane/>
+                    <ContentPane viewKey={viewKey} setView={setView} />
                 </AppShell.Main>
             </AppShell>
         </MantineProvider>
