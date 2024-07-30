@@ -1,0 +1,69 @@
+import { Burger, Flex } from "@mantine/core";
+
+import MenuButton from "../shared/menu-button";
+import MenuDropdown from "../shared/menu-dropdown";
+import { EntityType } from "../entities";
+import { observer } from "mobx-react-lite";
+import { getService } from "../services";
+
+function renderSideBarToggleButton() {
+    const service = getService();
+    return (
+        <Burger
+            opened={service.view.sideBarOpen}
+            onClick={service.view.toggleSideBar}
+            hiddenFrom="sm"
+            size="sm"
+        />
+    );
+}
+
+const SideBarToggleButton = observer(renderSideBarToggleButton);
+
+function renderHeader() {
+    const service = getService();
+    return (
+        <Flex
+            mih={50}
+            gap="md"
+            justify="flex-start"
+            align="center"
+            direction="row"
+            wrap="nowrap"
+            style={{ paddingLeft: 15 }}
+        >
+            <SideBarToggleButton />
+            <MenuButton label="Home" onClick={() => service.view.openHome()} />
+            <MenuDropdown
+                label="Encyclopedia"
+                items={[
+                    {
+                        label: "New Article",
+                        onClick: () => service.view.openArticleCreator(),
+                    },
+                ]}
+            />
+            <MenuDropdown
+                label="Dictionary"
+                items={[
+                    {
+                        label: "New Language",
+                        onClick: () =>
+                            service.view.openArticleCreator(
+                                EntityType.LANGUAGE,
+                            ),
+                    },
+                    {
+                        label: "New Word",
+                        onClick: () =>
+                            service.view.openArticleCreator(EntityType.WORD),
+                    },
+                ]}
+            />
+        </Flex>
+    );
+}
+
+const Header = observer(renderHeader);
+
+export default Header;

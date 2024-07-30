@@ -1,70 +1,39 @@
-import '@mantine/core/styles.css';
-import { MantineProvider, AppShell, Burger } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { useState } from "react";
+import "@mantine/core/styles.css";
+import { AppShell } from "@mantine/core";
+import { observer } from "mobx-react-lite";
 
-import { ViewKey } from '../constants';
-import Home from './views/Home';
-import { ContentPaneArgs, HeaderArgs } from './models/args';
+import Header from "./layout/header";
+import SideBar from "./layout/sidebar";
+import Main from "./layout/main";
+import { getService } from "./services";
 
-const VIEW_MAPPING = {
-    [ViewKey.HOME]: Home,
-    [ViewKey.ARTICLE]: Home,
-    [ViewKey.ARTICLE_EDITOR]: Home,
-    [ViewKey.ARTICLE_LIST]: Home,
-};
-
-function Header({ burgerOpen, burgerToggle }: HeaderArgs) {
+function renderApp() {
+    const service = getService();
     return (
-        <Burger
-            opened={burgerOpen}
-            onClick={burgerToggle}
-            hiddenFrom="sm"
-            size="sm"
-        />
+        <AppShell
+            header={{ height: { base: 50 } }}
+            navbar={{
+                width: 300,
+                breakpoint: "sm",
+                collapsed: { mobile: !service.view.sideBarOpen },
+            }}
+            padding="md"
+        >
+            <AppShell.Header>
+                <Header />
+            </AppShell.Header>
+
+            <AppShell.Navbar p="md">
+                <SideBar />
+            </AppShell.Navbar>
+
+            <AppShell.Main>
+                <Main />
+            </AppShell.Main>
+        </AppShell>
     );
 }
 
-function Sidebar() {
-    return "";
-}
-
-function ContentPane({ viewKey, ...rest }: ContentPaneArgs) {
-    const component = VIEW_MAPPING[viewKey];
-    return component(rest);
-}
-
-function App() {
-    const [viewKey, setView] = useState(ViewKey.HOME);
-    const [navBarOpen, navBarHandlers] = useDisclosure();
-    return (
-        <MantineProvider defaultColorScheme="dark">
-            <AppShell
-                header={{ height: 60 }}
-                navbar={{
-                    width: 300,
-                    breakpoint: 'sm',
-                    collapsed: { mobile: !navBarOpen },
-                }}
-                padding="md"
-            >
-                <AppShell.Header>
-                    <Header
-                        burgerOpen={navBarOpen}
-                        burgerToggle={navBarHandlers.toggle}
-                    />
-                </AppShell.Header>
-
-                <AppShell.Navbar p="md">
-                    <Sidebar/>
-                </AppShell.Navbar>
-
-                <AppShell.Main>
-                    <ContentPane viewKey={viewKey} setView={setView} />
-                </AppShell.Main>
-            </AppShell>
-        </MantineProvider>
-    );
-}
+const App = observer(renderApp);
 
 export default App;
