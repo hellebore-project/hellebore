@@ -35,7 +35,14 @@ DATABASE_URL="sqlite://src-tauri/data/db.sqlite?mode=ro"
 pnpm dev:app
 ```
 
+### Entity Generation
+
+After running the migrations, run the following command:
+
+```sh
+pnpm generate:entities
+```
+
 ## Useful Links
 
 -   [Tauri-SeaORM Example](https://github.com/jthinking/tauri-seaorm-template/tree/main)
--   [CSS Frameworks](https://github.com/troxler/awesome-css-frameworks)

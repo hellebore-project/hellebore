@@ -5,14 +5,15 @@ pub async fn insert_language(
     db: &DbConn,
     name: &str,
 ) -> Result<language::Model, DbErr> {
-    language::ActiveModel {
+    let new_entity = language::ActiveModel {
         name: Set(name.to_string()),
         ..Default::default()
+    };
+    let result = new_entity.save(db).await;
+    match result {
+        Ok(created_entity) => created_entity.try_into_model(),
+        Err(_e) => Err(DbErr::RecordNotInserted),
     }
-        .save(db)
-        .await
-        .expect("Failed to insert a new language")
-        .try_into_model()
 }
 
 pub async fn update_language(
@@ -20,16 +21,20 @@ pub async fn update_language(
     id: i32,
     name: &str,
 ) -> Result<language::Model, DbErr> {
-    let language: language::ActiveModel = get_language(db, id).await?
-        .ok_or(DbErr::RecordNotFound("Language not found.".to_owned()))
-        .map(Into::into)?;
-
-    language::ActiveModel {
-        id: language.id,
+    let result = get_language(db, id).await;
+    let existing_entity = match result {
+        Ok(entity) => entity,
+        Err(_e) => return Err(_e),
+    };
+    let existing_entity = match existing_entity {
+        Some(entity) => entity,
+        None => return Err(DbErr::RecordNotFound("Language not found.".to_owned())),
+    };
+    let updated_entity = language::ActiveModel {
+        id: Unchanged(existing_entity.id),
         name: Set(name.to_string()),
-    }
-    .update(db)
-    .await
+    };
+    updated_entity.update(db).await
 }
 
 pub async fn get_language(db: &DbConn, id: i32) -> Result<Option<language::Model>, DbErr> {
@@ -46,9 +51,14 @@ pub async fn get_languages(db: &DbConn) -> Result<Vec<language::Model>, DbErr> {
 }
 
 pub async fn delete_language(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-    let language: language::ActiveModel = get_language(db, id).await?
-        .ok_or(DbErr::RecordNotFound("Language not found.".to_owned()))
-        .map(Into::into)?;
-
-    language.delete(db).await
+    let result = get_language(db, id).await;
+    let existing_entity = match result {
+        Ok(entity) => entity,
+        Err(_e) => return Err(_e),
+    };
+    let existing_entity = match existing_entity {
+        Some(entity) => entity,
+        None => return Err(DbErr::RecordNotFound("Language not found.".to_owned())),
+    };
+    existing_entity.delete(db).await
 }

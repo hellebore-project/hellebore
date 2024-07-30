@@ -8,11 +8,11 @@
     "build:fe": "tsc && vite build",
     "preview": "vite preview",
     "dev:app": "env-cmd tauri dev",
-    "generate:entities": "sea-orm-cli generate entity -l -o src-tauri/entity/src",
+    "generate:entities": "sea-orm-cli generate entity -l --with-serde -o src-tauri/entity/src",
     "typecheck": "tsc --noEmit",
     "lint": "pnpm run lint:eslint && pnpm run lint:stylelint",
-    "lint:eslint": "eslint . --ext .ts,.tsx --cache",
-    "lint:stylelint": "stylelint '**/*.css' --cache",
+    "lint:eslint": "eslint .",
+    "lint:stylelint": "stylelint **/*.css",
     "prettier": "prettier --check \"**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "prepare": "husky"
@@ -29,6 +29,8 @@
     "@tiptap/starter-kit": "^2.5.5",
     "@tiptap/suggestion": "^2.5.5",
     "clsx": "^2.1.1",
+    "mobx": "^6.13.1",
+    "mobx-react-lite": "^4.0.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tippy.js": "^6.3.7"
@@ -50,8 +52,8 @@
     "vite": "^5.3.1"
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix",
+    "*.{ts,tsx}": "eslint --cache --fix",
     "*.css": "stylelint --fix",
-    "*.{js,css,md}": "prettier --write"
+    "*.{ts,tsx,css,md}": "prettier --write"
   }
 }
