@@ -1,9 +1,9 @@
-use sea_orm_migration::prelude::*;
+use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-const LANGUAGE_NAME_INDEX_NAME: &str = "language_name_index";
+const ARTICLE_TITLE_INDEX_NAME: &str = "article_title_index";
 
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
@@ -11,25 +11,20 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Language::Table)
+                    .table(Article::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(Language::Id)
-                            .integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(ColumnDef::new(Language::Name).string().unique_key().not_null())
+                    .col(pk_auto(Article::Id).not_null())
+                    .col(string_uniq(Article::Title).not_null())
+                    .col(string(Article::EntityType))
                     .to_owned(),
             )
             .await?;
         manager
             .create_index(
                 Index::create()
-                    .name(LANGUAGE_NAME_INDEX_NAME)
-                    .table(Language::Table)
-                    .col(Language::Name)
+                    .name(ARTICLE_TITLE_INDEX_NAME)
+                    .table(Article::Table)
+                    .col(Article::Title)
                     .to_owned()
             )
             .await?;
@@ -38,18 +33,19 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Language::Table).to_owned())
+            .drop_table(Table::drop().table(Article::Table).to_owned())
             .await?;
         manager
-            .drop_index(Index::drop().name(LANGUAGE_NAME_INDEX_NAME).to_owned())
+            .drop_index(Index::drop().name(ARTICLE_TITLE_INDEX_NAME).to_owned())
             .await?;
         Ok(())
     }
 }
 
 #[derive(DeriveIden)]
-enum Language {
+pub enum Article {
     Table,
     Id,
-    Name,
+    Title,
+    EntityType,
 }

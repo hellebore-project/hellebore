@@ -20,7 +20,9 @@
     "windows": [
       {
         "title": "Fantasy Log",
-        "maximized": true
+        "maximized": true,
+        "minWidth": 300,
+        "minHeight": 500
       }
     ],
     "security": {

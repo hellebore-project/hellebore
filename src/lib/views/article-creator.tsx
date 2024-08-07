@@ -2,25 +2,23 @@ import { Button, Container, Group } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import Dropdown from "../shared/dropdown";
-import { EntityType } from "../entities";
+import { EntityType } from "../interface/entities";
 import TextField from "../shared/text-field";
 import { getService } from "../services";
 
 function renderArticleCreator() {
     const service = getService();
 
-    const onSubmit: React.FormEventHandler<HTMLDivElement> = async (event) => {
+    const onSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
         event.preventDefault();
-        let entity = await service.view.articleCreator.submit();
-        if (entity) {
-            // TODO: open the article editor
-        }
+        let article = await service.view.articleCreator.submit();
+        if (article) service.view.openArticleEditor(article);
     };
 
     return (
-        <Container size="xs" onSubmit={onSubmit}>
+        <Container size="xs">
             <h1>Create a New Article</h1>
-            <form>
+            <form onSubmit={onSubmit}>
                 <Dropdown
                     label="Entity"
                     placeholder="Select an entity type (optional)"

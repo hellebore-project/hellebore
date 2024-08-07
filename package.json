@@ -8,7 +8,7 @@
     "build:fe": "tsc && vite build",
     "preview": "vite preview",
     "dev:app": "env-cmd tauri dev",
-    "generate:entities": "sea-orm-cli generate entity -l --with-serde -o src-tauri/entity/src",
+    "generate:entities": "sea-orm-cli generate entity -l --with-serde both -o src-tauri/entity/src",
     "typecheck": "tsc --noEmit",
     "lint": "pnpm run lint:eslint && pnpm run lint:stylelint",
     "lint:eslint": "eslint .",

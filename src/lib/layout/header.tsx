@@ -2,7 +2,7 @@ import { Burger, Flex } from "@mantine/core";
 
 import MenuButton from "../shared/menu-button";
 import MenuDropdown from "../shared/menu-dropdown";
-import { EntityType } from "../entities";
+import { EntityType } from "../interface/entities";
 import { observer } from "mobx-react-lite";
 import { getService } from "../services";
 
@@ -11,7 +11,7 @@ function renderSideBarToggleButton() {
     return (
         <Burger
             opened={service.view.sideBarOpen}
-            onClick={service.view.toggleSideBar}
+            onClick={() => service.view.toggleSideBar()}
             hiddenFrom="sm"
             size="sm"
         />

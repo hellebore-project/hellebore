@@ -1,5 +1,6 @@
 pub use sea_orm_migration::prelude::*;
 
+mod rev1;
 mod rev0;
 
 pub struct Migrator;
@@ -7,6 +8,9 @@ pub struct Migrator;
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
-        vec![Box::new(rev0::Migration)]
+        vec![
+            Box::new(rev0::Migration),
+            Box::new(rev1::Migration),
+        ]
     }
 }
