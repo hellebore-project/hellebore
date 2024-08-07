@@ -1,8 +1,9 @@
 import { TextInput, TextInputProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-export interface TextFieldSettings {
-    label: string;
+export interface TextFieldSettings extends TextInputProps {
+    variant?: string;
+    label?: string;
     placeholder?: string;
     getValue?: () => string;
     getError?: () => string | null;
@@ -10,11 +11,13 @@ export interface TextFieldSettings {
 }
 
 function renderTextField({
+    variant = "default",
     label,
     placeholder,
     getValue,
     getError,
     onChange,
+    ...rest
 }: TextFieldSettings) {
     const value = getValue ? getValue() : undefined;
     const error = getError ? getError() : null;
@@ -25,7 +28,10 @@ function renderTextField({
         value,
         placeholder,
         onChange,
+        ...rest,
     };
+    if (variant && variant != "default") props["variant"] = variant;
+    if (label) props["label"] = label;
     if (error) props["error"] = error;
 
     return <TextInput {...props} />;

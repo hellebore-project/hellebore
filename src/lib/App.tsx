@@ -1,4 +1,3 @@
-import "@mantine/core/styles.css";
 import { AppShell } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 

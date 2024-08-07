@@ -1,14 +1,16 @@
 import { observer } from "mobx-react-lite";
 
+import { getService } from "../services";
 import { ViewKey } from "../services/constants";
 import Home from "../views/home";
 import ArticleCreator from "../views/article-creator";
-import { getService } from "../services";
+import ArticleEditor from "../views/article-editor";
 
 function renderMain() {
     const service = getService();
     const viewKey = service.view.viewKey;
     if (viewKey === ViewKey.ARTICLE_CREATOR) return <ArticleCreator />;
+    if (viewKey === ViewKey.ARTICLE_EDITOR) return <ArticleEditor />;
     return <Home />;
 }
 
