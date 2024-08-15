@@ -3,17 +3,25 @@ use sea_orm::*;
 
 use crate::types::EntityType;
 
+#[derive(FromQueryResult)]
+pub struct ArticleItem {
+    pub id: i32,
+    pub title: String,
+    pub entity_type: Option<String>,
+}
+
 pub async fn insert(
     db: &DbConn,
     title: &str,
     entity_type: EntityType
 ) -> Result<article::Model, DbErr> {
     let new_entity = article::ActiveModel {
+        id: NotSet,
         title: Set(title.to_string()),
         entity_type: Set(entity_type.name()),
-        ..Default::default()
+        content: Set(String::from("")),
     };
-    match new_entity.save(db).await {
+    match new_entity.insert(db).await {
         Ok(created_entity) => created_entity.try_into_model(),
         Err(_e) => Err(DbErr::RecordNotInserted),
     }
@@ -23,6 +31,7 @@ pub async fn update(
     db: &DbConn,
     id: i32,
     title: &str,
+    content: &str,
 ) -> Result<article::Model, DbErr> {
     let Some(existing_entity) = get(db, id).await?
     else {
@@ -32,6 +41,7 @@ pub async fn update(
         id: Unchanged(existing_entity.id),
         title: Set(title.to_string()),
         entity_type: NotSet,
+        content: Set(content.to_string())
     };
     updated_entity.update(db).await
 }
@@ -57,9 +67,16 @@ pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<article::Mo
         .await
 }
 
-pub async fn get_all(db: &DbConn) -> Result<Vec<article::Model>, DbErr> {
+pub async fn get_all(db: &DbConn) -> Result<Vec<ArticleItem>, DbErr> {
     Article::find()
-        .order_by_asc(article::Column::Id)
+        .select_only()
+        .columns([
+            article::Column::Id,
+            article::Column::Title,
+            article::Column::EntityType
+        ])
+        .order_by_asc(article::Column::Title)
+        .into_model::<ArticleItem>()
         .all(db)
         .await
 }

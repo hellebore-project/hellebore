@@ -16,6 +16,7 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(Article::Id).not_null())
                     .col(string_uniq(Article::Title).not_null())
                     .col(string(Article::EntityType))
+                    .col(string(Article::Content))
                     .to_owned(),
             )
             .await?;
@@ -48,4 +49,5 @@ pub enum Article {
     Id,
     Title,
     EntityType,
+    Content,
 }

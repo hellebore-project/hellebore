@@ -25,7 +25,7 @@ function renderArticleEditor() {
                             event.currentTarget.value,
                         )
                     }
-                    styles={{ input: { fontSize: 34 } }}
+                    styles={{ input: { fontSize: 34, paddingBottom: 10 } }}
                 />
                 <Space h="lg" />
                 <RichTextEditor

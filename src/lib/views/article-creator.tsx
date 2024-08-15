@@ -11,8 +11,7 @@ function renderArticleCreator() {
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
         event.preventDefault();
-        let article = await service.view.articleCreator.submit();
-        if (article) service.view.openArticleEditor(article);
+        service.view.createArticle();
     };
 
     return (

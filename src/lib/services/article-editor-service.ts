@@ -4,7 +4,10 @@ import StarterKit from "@tiptap/starter-kit";
 
 import { Article, IdentifiedEntity, EntityType } from "../interface";
 
+const ARTICLE_ID_SENTINAL = -1;
+
 class ArticleEditorService {
+    id: number = ARTICLE_ID_SENTINAL;
     title: string = "";
     isTitleUnique: boolean = true;
     entityType: EntityType | null = null;
@@ -31,18 +34,19 @@ class ArticleEditorService {
 
     updateText(editor: Editor) {
         this.editor = editor;
-        console.log(this.editor.getJSON());
     }
 
     initialize<E extends IdentifiedEntity>(article: Article<E>) {
+        this.id = article.id;
         this.title = article.title;
         this.isTitleUnique = true;
-        this.entityType = article.entityType;
+        this.entityType = article.entity_type;
         this.entity = article.entity;
-        this.editor.commands.setContent(article?.text ?? "");
+        this.editor.commands.setContent(article?.content ?? "");
     }
 
     reset() {
+        this.id = ARTICLE_ID_SENTINAL;
         this.title = "";
         this.isTitleUnique = true;
         this.entityType = null;

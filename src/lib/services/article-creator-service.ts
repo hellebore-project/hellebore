@@ -1,7 +1,7 @@
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable } from "mobx";
 
 import { Article, IdentifiedEntity, EntityType } from "../interface";
-import { createLanguage } from "./data-service";
+import { createArticle } from "./data-service";
 
 class ArticleCreatorService {
     entityType: EntityType | null = null;
@@ -24,26 +24,30 @@ class ArticleCreatorService {
         this.isTitleUnique = isUnique;
     }
 
-    async submit(): Promise<Article<IdentifiedEntity> | null> {
-        let entity: Article<IdentifiedEntity> | null = null;
+    async createArticle(): Promise<Article<IdentifiedEntity> | null> {
+        let article: Article<IdentifiedEntity> | null = null;
 
-        console.log(this.entityType);
         try {
-            if (this.entityType === EntityType.LANGUAGE)
-                entity = await createLanguage({ name: this.title });
-            console.log(entity);
+            article = await createArticle(this.title, this.entityType);
         } catch (error) {
+            console.error(error);
             // if the BE request fails, assume that it's a UNIQUE constraint violation
-            runInAction(() => (this.isTitleUnique = false));
+            this.setIsTitleUnique(false);
             return null;
         }
 
         this.reset();
-        return entity;
+        return article;
     }
 
-    reset(entityType: EntityType | null = null) {
+    initialize(entityType: EntityType | null = null) {
         this.entityType = entityType;
+        this.title = "";
+        this.isTitleUnique = true;
+    }
+
+    reset() {
+        this.entityType = null;
         this.title = "";
         this.isTitleUnique = true;
     }
