@@ -1,8 +1,12 @@
 import { IdentifiedEntity, EntityType } from "./entities";
 
-export interface Article<E extends IdentifiedEntity> {
+export interface ArticleItem {
+    id: number;
     title: string;
-    text: string;
-    entityType: EntityType;
+    entity_type: EntityType;
+}
+
+export interface Article<E extends IdentifiedEntity> extends ArticleItem {
+    content: string | null;
     entity: E | null;
 }

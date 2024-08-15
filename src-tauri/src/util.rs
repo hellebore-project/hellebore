@@ -8,5 +8,6 @@ pub fn generate_article_response<E>(article: &Model, entity_type: Option<String>
         title: article.title.to_string(),
         entity_type,
         entity,
+        content: article.content.to_string(),
     }
 }

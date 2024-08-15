@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::types::EntityType;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ApiError {
     NotInserted { msg: String, table: EntityType },
     NotUpdated { msg: String, table: EntityType },

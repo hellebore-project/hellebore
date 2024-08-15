@@ -11,6 +11,7 @@ pub struct Model {
     #[sea_orm(unique)]
     pub title: String,
     pub entity_type: String,
+    pub content: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
