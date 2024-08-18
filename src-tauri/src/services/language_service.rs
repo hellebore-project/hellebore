@@ -2,17 +2,20 @@ use sea_orm::DatabaseConnection;
 
 use ::entity::article::Model;
 
-use crate::schema::article::ArticleSchema;
-use crate::schema::language::{IdentifiedLanguageSchema, LanguageDataSchema};
-use crate::database::article_manager;
-use crate::database::language_manager;
+use crate::database::{article_manager, language_manager};
 use crate::errors::ApiError;
+use crate::schema::{
+    article::{ArticleResponseSchema, ArticleUpdateSchema},
+    language::{IdentifiedLanguageSchema, LanguageDataSchema},
+    update::UpdateResponseSchema,
+};
+use crate::services::article_service;
 use crate::types::{ARTICLE, LANGUAGE};
 use crate::util;
 
 pub async fn create(
     database: &DatabaseConnection, language: LanguageDataSchema
-) -> Result<ArticleSchema<IdentifiedLanguageSchema>, ApiError> {
+) -> Result<ArticleResponseSchema<IdentifiedLanguageSchema>, ApiError> {
     let article = article_manager::insert(&database, &language.name, LANGUAGE)
         .await
         .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
@@ -24,17 +27,19 @@ pub async fn create(
 
 pub async fn update(
     database: &DatabaseConnection,
-    article: ArticleSchema<LanguageDataSchema>
-) -> Result<ArticleSchema<IdentifiedLanguageSchema>, ApiError> {
-    return article_manager::update(&database, article.id, &article.title, &article.content)
-        .await
-        .map(|a| generate_response(a))
-        .map_err(|e| ApiError::not_updated(e, ARTICLE));
+    article: ArticleUpdateSchema<LanguageDataSchema>
+) -> Result<UpdateResponseSchema<()>, ApiError> {
+    return article_service::update(
+        &database,
+        article.id,
+        article.title,
+        article.body
+    ).await;
 }
 
 pub async fn get(
     database: &DatabaseConnection, id: i32
-) -> Result<ArticleSchema<IdentifiedLanguageSchema>, ApiError> {
+) -> Result<ArticleResponseSchema<IdentifiedLanguageSchema>, ApiError> {
     let article = article_manager::get(&database, id)
         .await
         .map_err(|e| ApiError::not_found(e, ARTICLE))?;
@@ -58,10 +63,10 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     return Ok(());
 }
 
-fn generate_response(article: Model) -> ArticleSchema<IdentifiedLanguageSchema> {
+fn generate_response(article: Model) -> ArticleResponseSchema<IdentifiedLanguageSchema> {
     return util::generate_article_response(
         &article,
-        Some(LANGUAGE.name()),
+        LANGUAGE.code(),
         IdentifiedLanguageSchema {
             id: article.id,
             data: LanguageDataSchema { name: article.title.to_string() },

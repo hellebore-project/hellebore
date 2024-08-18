@@ -2,12 +2,13 @@ use ::entity::{article, article::Entity as Article};
 use sea_orm::*;
 
 use crate::types::EntityType;
+use crate::util;
 
 #[derive(FromQueryResult)]
 pub struct ArticleItem {
     pub id: i32,
+    pub entity_type: i8,
     pub title: String,
-    pub entity_type: Option<String>,
 }
 
 pub async fn insert(
@@ -18,8 +19,8 @@ pub async fn insert(
     let new_entity = article::ActiveModel {
         id: NotSet,
         title: Set(title.to_string()),
-        entity_type: Set(entity_type.name()),
-        content: Set(String::from("")),
+        entity_type: Set(entity_type.code()),
+        body: Set(String::from("")),
     };
     match new_entity.insert(db).await {
         Ok(created_entity) => created_entity.try_into_model(),
@@ -30,8 +31,8 @@ pub async fn insert(
 pub async fn update(
     db: &DbConn,
     id: i32,
-    title: &str,
-    content: &str,
+    title: Option<String>,
+    content: Option<String>,
 ) -> Result<article::Model, DbErr> {
     let Some(existing_entity) = get(db, id).await?
     else {
@@ -39,9 +40,9 @@ pub async fn update(
     };
     let updated_entity = article::ActiveModel {
         id: Unchanged(existing_entity.id),
-        title: Set(title.to_string()),
         entity_type: NotSet,
-        content: Set(content.to_string())
+        title: util::optional_string_to_active_value(title),
+        body: util::optional_string_to_active_value(content)
     };
     updated_entity.update(db).await
 }
@@ -50,8 +51,16 @@ pub async fn exists(db: &DbConn, id: i32) -> Result<bool, DbErr> {
     return Ok(get(db, id).await?.is_some());
 }
 
-pub async fn is_title_unique(db: &DbConn, title: &str) -> Result<bool, DbErr> {
-    return Ok(get_by_title(db, title).await?.is_none());
+pub async fn title_exists(db: &DbConn, title: &str) -> Result<bool, DbErr> {
+    return Ok(get_by_title(db, title).await?.is_some());
+}
+
+pub async fn is_title_unique_for_id(db: &DbConn, id: i32, title: &str) -> Result<bool, DbErr> {
+    let article = get_by_title(db, title).await?;
+    return match article {
+        Some(a) => Ok(a.id == id),
+        None => Ok(true),
+    };
 }
 
 pub async fn get(db: &DbConn, id: i32) -> Result<Option<article::Model>, DbErr> {

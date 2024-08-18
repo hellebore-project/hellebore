@@ -4,8 +4,8 @@ import { EntityType } from "../interface";
 import { compareStrings } from "../utils/string";
 
 export interface ArticleTreeNodeData extends TreeNodeData {
-    id?: number;
-    entityType?: EntityType | null;
+    entityType?: EntityType;
+    children?: ArticleTreeNodeData[];
 }
 
 export const compareTreeNodes = (a: TreeNodeData, b: TreeNodeData) =>

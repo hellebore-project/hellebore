@@ -1,6 +1,6 @@
 export enum EntityType {
-    LANGUAGE = "LANGUAGE",
-    WORD = "WORD",
+    LANGUAGE = 2,
+    WORD = 3,
 }
 
 export const ENTITY_TYPE_LABELS = {
@@ -9,3 +9,4 @@ export const ENTITY_TYPE_LABELS = {
 };
 
 export const ARTICLE_ENTITY_TYPES = [EntityType.LANGUAGE];
+export const ALL_ENTITY_TYPES = [...ARTICLE_ENTITY_TYPES, EntityType.WORD];

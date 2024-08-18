@@ -11,5 +11,5 @@ async fn create_language() {
     let article = language_service::create(&state.database, language).await;
     assert!(article.is_ok());
     let article = article.unwrap();
-    assert_eq!("French", article.entity.data.name);
+    assert_eq!("French", article.entity.unwrap().data.name);
 }

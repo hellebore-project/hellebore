@@ -48,7 +48,7 @@ function renderContentTree<N extends TreeNodeData>({
             renderNode={({ node, expanded, hasChildren, elementProps }) => {
                 const { onClick: _onClick, ...props } = elementProps;
                 const onClickWrapper = (event: React.MouseEvent) => {
-                    _onClick(event);
+                    if (node.children) _onClick(event);
                     onClick?.(node as N);
                 };
                 return (

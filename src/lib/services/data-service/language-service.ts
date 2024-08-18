@@ -1,30 +1,31 @@
 import { invoke } from "@tauri-apps/api/tauri";
 
 import {
-    Article,
-    IdentifiedEntity,
+    ArticleResponse,
+    ArticleUpdate,
+    Entity,
     IdentifiedLanguage,
     LanguageData,
+    UpdateResponse,
 } from "../../interface";
 
 export async function createLanguage(
     data: LanguageData,
-): Promise<Article<IdentifiedLanguage>> {
-    return invoke<Article<IdentifiedLanguage>>("create_language", {
+): Promise<ArticleResponse<IdentifiedLanguage>> {
+    return invoke<ArticleResponse<IdentifiedLanguage>>("create_language", {
         language: data,
     });
 }
 
 export async function updateLanguage(
-    article: Article<IdentifiedEntity>,
-): Promise<Article<IdentifiedLanguage>> {
-    return invoke<Article<IdentifiedLanguage>>("update_language", {
-        article: article,
-    });
+    article: ArticleUpdate<Entity>,
+): Promise<UpdateResponse<null>> {
+    console.log(article);
+    return invoke<UpdateResponse<null>>("update_language", { article });
 }
 
 export async function getLanguage(
     id: number,
-): Promise<Article<IdentifiedLanguage>> {
-    return invoke<Article<IdentifiedLanguage>>("get_language", { id });
+): Promise<ArticleResponse<IdentifiedLanguage>> {
+    return invoke<ArticleResponse<IdentifiedLanguage>>("get_language", { id });
 }

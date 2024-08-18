@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite";
 
 interface DropdownSettings {
     label: string;
-    items: string[];
+    data: ComboboxItem[];
     getValue?: () => any;
     onChange?: (value: string | null, option: ComboboxItem) => void;
     placeholder?: string;
@@ -11,7 +11,7 @@ interface DropdownSettings {
 
 function renderDropdown({
     label,
-    items,
+    data,
     getValue,
     onChange,
     placeholder = "Select a value",
@@ -21,7 +21,7 @@ function renderDropdown({
         <Select
             label={label}
             placeholder={placeholder}
-            data={items}
+            data={data}
             value={value}
             onChange={onChange}
             allowDeselect
