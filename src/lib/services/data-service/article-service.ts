@@ -1,10 +1,12 @@
 import { invoke } from "@tauri-apps/api/tauri";
 
 import {
-    Article,
-    ArticleItem,
+    ArticleResponse,
+    ArticleInfoResponse,
     EntityType,
-    IdentifiedEntity,
+    Entity,
+    ArticleUpdate,
+    UpdateResponse,
 } from "../../interface";
 import {
     createLanguage,
@@ -15,7 +17,7 @@ import {
 export async function createArticle(
     title: string,
     entityType: EntityType | null,
-): Promise<Article<IdentifiedEntity> | null> {
+): Promise<ArticleResponse<Entity> | null> {
     if (entityType === EntityType.LANGUAGE)
         return await createLanguage({ name: title });
     console.error(`Unabled to create articles with entity type ${entityType}.`);
@@ -23,8 +25,8 @@ export async function createArticle(
 }
 
 export async function updateArticle(
-    article: Article<IdentifiedEntity>,
-): Promise<Article<IdentifiedEntity> | null> {
+    article: ArticleUpdate<Entity>,
+): Promise<UpdateResponse<null> | null> {
     if (article.entity_type === EntityType.LANGUAGE)
         return await updateLanguage(article);
     console.error(
@@ -36,7 +38,7 @@ export async function updateArticle(
 export async function getArticle(
     id: number,
     entityType: EntityType | null | undefined,
-): Promise<Article<IdentifiedEntity> | null> {
+): Promise<ArticleResponse<Entity> | null> {
     if (entityType === EntityType.LANGUAGE) return await getLanguage(id);
     console.error(
         `Unabled to retrieve articles with entity type ${entityType}.`,
@@ -44,7 +46,7 @@ export async function getArticle(
     return null;
 }
 
-export async function getArticles(): Promise<ArticleItem[]> {
-    let response = invoke<ArticleItem[]>("get_articles");
+export async function getArticles(): Promise<ArticleInfoResponse[]> {
+    let response = invoke<ArticleInfoResponse[]>("get_articles");
     return response;
 }

@@ -7,12 +7,15 @@ import { ArticleTreeNodeData } from "../model";
 function renderArticleNavigator() {
     const service = getService();
     const onClickNode = (node: ArticleTreeNodeData) => {
-        if (node.id !== undefined)
-            service.view.openArticleEditorForId(node.id, node.entityType);
+        if (node.entityType !== undefined)
+            service.view.openArticleEditorForId(
+                Number(node.value),
+                node.entityType,
+            );
     };
     return (
         <ContentTree<ArticleTreeNodeData>
-            getData={() => service.view.navigation.getArticleNodes()}
+            getData={() => service.view.navigation.articleNodes}
             onClick={onClickNode}
         />
     );

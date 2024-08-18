@@ -1,10 +1,17 @@
-import { Button, Container, Group } from "@mantine/core";
+import { Button, ComboboxItem, Container, Group } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import Dropdown from "../shared/dropdown";
-import { EntityType } from "../interface/entities";
+import { ALL_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "../interface/entities";
 import TextField from "../shared/text-field";
 import { getService } from "../services";
+
+const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = ALL_ENTITY_TYPES.map(
+    (entityType) => ({
+        label: ENTITY_TYPE_LABELS[entityType],
+        value: entityType.toString(),
+    }),
+);
 
 function renderArticleCreator() {
     const service = getService();
@@ -21,11 +28,11 @@ function renderArticleCreator() {
                 <Dropdown
                     label="Entity"
                     placeholder="Select an entity type (optional)"
-                    items={Object.values(EntityType)}
+                    data={ENTITY_TYPE_DROPDOWN_DATA}
                     getValue={() => service.view.articleCreator.entityType}
                     onChange={(entityType) =>
                         service.view.articleCreator.setEntityType(
-                            entityType as EntityType,
+                            Number(entityType),
                         )
                     }
                 />

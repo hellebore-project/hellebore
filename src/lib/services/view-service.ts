@@ -1,10 +1,10 @@
 import { makeAutoObservable } from "mobx";
 
 import { ViewKey } from "./constants";
-import { EntityType, IdentifiedEntity } from "../interface/entities";
+import { EntityType, Entity } from "../interface/entities";
 import ArticleCreatorService from "./article-creator-service";
 import ArticleEditorService from "./article-editor-service";
-import { Article } from "../interface";
+import { ArticleResponse } from "../interface";
 import NavigationService from "./navigation-service";
 import { getArticle } from "./data-service";
 
@@ -23,9 +23,14 @@ class ViewService {
             navigation: false,
         };
         makeAutoObservable(this, overrides);
+
         this.articleCreator = new ArticleCreatorService();
         this.articleEditor = new ArticleEditorService();
         this.navigation = new NavigationService();
+
+        this.articleEditor.onChangeTitle = async (id, entityType, title) => {
+            if (title) this.navigation.updateArticleNode(id, entityType, title);
+        };
     }
 
     toggleSideBar() {
@@ -33,16 +38,19 @@ class ViewService {
     }
 
     openHome() {
+        this.cleanUp();
         this.viewKey = ViewKey.HOME;
         this.articleCreator;
     }
 
     openArticleCreator(entityType: EntityType | undefined = undefined) {
+        this.cleanUp();
         this.articleCreator.initialize(entityType);
         this.viewKey = ViewKey.ARTICLE_CREATOR;
     }
 
-    openArticleEditor(article: Article<IdentifiedEntity>) {
+    openArticleEditor(article: ArticleResponse<Entity>) {
+        this.cleanUp();
         this.articleEditor.initialize(article);
         this.viewKey = ViewKey.ARTICLE_EDITOR;
     }
@@ -57,7 +65,7 @@ class ViewService {
         )
             return; // the article is already open
 
-        let article: Article<IdentifiedEntity> | null = null;
+        let article: ArticleResponse<Entity> | null = null;
         try {
             article = await getArticle(id, entityType);
         } catch (error) {
@@ -73,6 +81,11 @@ class ViewService {
             this.navigation.addArticleNodes([article]);
             this.openArticleEditor(article);
         }
+    }
+
+    cleanUp() {
+        if (this.viewKey == ViewKey.ARTICLE_EDITOR)
+            this.articleEditor.cleanUp();
     }
 }
 

@@ -1,9 +1,9 @@
-import { IdentifiedEntity } from "./base";
+import { Entity } from "./base";
 
 export interface LanguageData {
     name: string;
 }
 
-export interface IdentifiedLanguage extends IdentifiedEntity {
+export interface IdentifiedLanguage extends Entity {
     data: LanguageData;
 }

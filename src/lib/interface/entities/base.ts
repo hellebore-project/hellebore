@@ -1,5 +1,3 @@
-export interface Entity {}
-
-export interface IdentifiedEntity extends Entity {
+export interface Entity {
     id: number;
 }

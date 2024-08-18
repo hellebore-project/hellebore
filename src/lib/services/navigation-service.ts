@@ -1,7 +1,7 @@
 import { TreeNodeData } from "@mantine/core";
 import { makeAutoObservable, toJS } from "mobx";
 
-import { ArticleItem, EntityType } from "../interface";
+import { ArticleInfoResponse, EntityType } from "../interface";
 import { getArticles } from "./data-service";
 import { ArticleTreeNodeData, compareTreeNodes } from "../model";
 
@@ -10,11 +10,11 @@ const ARTICLE_CATEGORY_LABELS: { [category: string]: string } = {
 };
 
 class NavigationService {
-    articleNodes: ArticleTreeNodeData[];
+    _articleNodes: ArticleTreeNodeData[];
 
     constructor() {
         makeAutoObservable(this);
-        this.articleNodes = [];
+        this._articleNodes = [];
 
         getArticles().then(
             (articles) => this.addArticleNodes(articles),
@@ -22,18 +22,17 @@ class NavigationService {
         );
     }
 
-    getArticleNodes() {
-        return toJS(this.articleNodes);
+    get articleNodes() {
+        return toJS(this._articleNodes);
     }
 
-    addArticleNodes(articles: ArticleItem[]) {
+    addArticleNodes(articles: ArticleInfoResponse[]) {
         const categories: { [name: string]: ArticleTreeNodeData } = {};
 
         for (let article of articles) {
             const articleNode: ArticleTreeNodeData = {
                 label: article.title,
                 value: article.id.toString(),
-                id: article.id,
                 entityType: article.entity_type,
             };
 
@@ -50,24 +49,37 @@ class NavigationService {
         for (let categoryNode of Object.values(categories))
             categoryNode.children?.sort(compareTreeNodes);
 
-        this.articleNodes.sort(compareTreeNodes);
+        this._articleNodes.sort(compareTreeNodes);
     }
 
-    getCategoryNode(value: string): TreeNodeData {
-        for (let node of this.articleNodes) {
-            if (node.value === value) return node;
+    updateArticleNode(id: number, type: EntityType, title: string) {
+        for (let categoryNode of this._articleNodes) {
+            if (categoryNode.value != type.toString()) continue;
+            for (let articleNode of categoryNode?.children ?? []) {
+                if (articleNode.value != id.toString()) continue;
+                articleNode.label = title;
+                break;
+            }
+            categoryNode.children?.sort(compareTreeNodes);
+            break;
         }
-        return this.addCategoryNode(value);
     }
 
-    addCategoryNode(value: string): TreeNodeData {
+    getCategoryNode(type: EntityType): TreeNodeData {
+        for (let node of this._articleNodes) {
+            if (node.value === type.toString()) return node;
+        }
+        return this.addCategoryNode(type);
+    }
+
+    addCategoryNode(type: EntityType): TreeNodeData {
         const newNode: TreeNodeData = {
-            label: ARTICLE_CATEGORY_LABELS[value],
-            value: value,
+            label: ARTICLE_CATEGORY_LABELS[type],
+            value: type.toString(),
             children: [],
         };
-        this.articleNodes.push(newNode);
-        return this.articleNodes[this.articleNodes.length - 1];
+        this._articleNodes.push(newNode);
+        return this._articleNodes[this._articleNodes.length - 1];
     }
 }
 

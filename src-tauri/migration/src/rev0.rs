@@ -14,9 +14,9 @@ impl MigrationTrait for Migration {
                     .table(Article::Table)
                     .if_not_exists()
                     .col(pk_auto(Article::Id).not_null())
+                    .col(tiny_unsigned(Article::EntityType))
                     .col(string_uniq(Article::Title).not_null())
-                    .col(string(Article::EntityType))
-                    .col(string(Article::Content))
+                    .col(string(Article::Body))
                     .to_owned(),
             )
             .await?;
@@ -47,7 +47,8 @@ impl MigrationTrait for Migration {
 pub enum Article {
     Table,
     Id,
-    Title,
+    #[sea_orm(rs_type = "u8")]
     EntityType,
-    Content,
+    Title,
+    Body,
 }
