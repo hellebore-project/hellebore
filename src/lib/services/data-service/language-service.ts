@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import {
     ArticleResponse,
     ArticleUpdate,
-    Entity,
+    ArticleData,
     IdentifiedLanguage,
     LanguageData,
     UpdateResponse,
@@ -18,7 +18,7 @@ export async function createLanguage(
 }
 
 export async function updateLanguage(
-    article: ArticleUpdate<Entity>,
+    article: ArticleUpdate<ArticleData>,
 ): Promise<UpdateResponse<null>> {
     console.log(article);
     return invoke<UpdateResponse<null>>("update_language", { article });

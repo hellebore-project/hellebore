@@ -4,7 +4,7 @@ import {
     ArticleResponse,
     ArticleInfoResponse,
     EntityType,
-    Entity,
+    ArticleData,
     ArticleUpdate,
     UpdateResponse,
 } from "../../interface";
@@ -17,7 +17,7 @@ import {
 export async function createArticle(
     title: string,
     entityType: EntityType | null,
-): Promise<ArticleResponse<Entity> | null> {
+): Promise<ArticleResponse<ArticleData> | null> {
     if (entityType === EntityType.LANGUAGE)
         return await createLanguage({ name: title });
     console.error(`Unabled to create articles with entity type ${entityType}.`);
@@ -25,7 +25,7 @@ export async function createArticle(
 }
 
 export async function updateArticle(
-    article: ArticleUpdate<Entity>,
+    article: ArticleUpdate<ArticleData>,
 ): Promise<UpdateResponse<null> | null> {
     if (article.entity_type === EntityType.LANGUAGE)
         return await updateLanguage(article);
@@ -38,7 +38,7 @@ export async function updateArticle(
 export async function getArticle(
     id: number,
     entityType: EntityType | null | undefined,
-): Promise<ArticleResponse<Entity> | null> {
+): Promise<ArticleResponse<ArticleData> | null> {
     if (entityType === EntityType.LANGUAGE) return await getLanguage(id);
     console.error(
         `Unabled to retrieve articles with entity type ${entityType}.`,

@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { ArticleResponse, Entity, EntityType } from "../interface";
+import { ArticleResponse, ArticleData, EntityType } from "../interface";
 import { createArticle } from "./data-service";
 
 class ArticleCreatorService {
@@ -24,8 +24,8 @@ class ArticleCreatorService {
         this.isTitleUnique = isUnique;
     }
 
-    async createArticle(): Promise<ArticleResponse<Entity> | null> {
-        let article: ArticleResponse<Entity> | null = null;
+    async createArticle(): Promise<ArticleResponse<ArticleData> | null> {
+        let article: ArticleResponse<ArticleData> | null = null;
 
         try {
             article = await createArticle(this.title, this.entityType);

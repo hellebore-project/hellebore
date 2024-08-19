@@ -5,7 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import {
     ApiError,
     ArticleResponse,
-    Entity,
+    ArticleData,
     EntityType,
     UpdateResponse,
 } from "../interface";
@@ -30,7 +30,7 @@ class ArticleEditorService {
     id: number = ARTICLE_ID_SENTINAL;
     title: string = "";
     entityType: EntityType | null = null;
-    entity: Entity | null = null;
+    entity: ArticleData | null = null;
     editor: Editor;
 
     synced: boolean = true;
@@ -73,13 +73,13 @@ class ArticleEditorService {
         }
     }
 
-    setEntity(entity: Entity | null) {
+    setEntity(entity: ArticleData | null) {
         this.entity = entity;
         this.entityChanged = true;
         this._onChange();
     }
 
-    initialize<E extends Entity>(article: ArticleResponse<E>) {
+    initialize<E extends ArticleData>(article: ArticleResponse<E>) {
         this.id = article.id;
         this.title = article.title;
         this.isTitleUnique = true;

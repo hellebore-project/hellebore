@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { ViewKey } from "./constants";
-import { EntityType, Entity } from "../interface/entities";
+import { EntityType, ArticleData } from "../interface";
 import ArticleCreatorService from "./article-creator-service";
 import ArticleEditorService from "./article-editor-service";
 import { ArticleResponse } from "../interface";
@@ -49,7 +49,7 @@ class ViewService {
         this.viewKey = ViewKey.ARTICLE_CREATOR;
     }
 
-    openArticleEditor(article: ArticleResponse<Entity>) {
+    openArticleEditor(article: ArticleResponse<ArticleData>) {
         this.cleanUp();
         this.articleEditor.initialize(article);
         this.viewKey = ViewKey.ARTICLE_EDITOR;
@@ -65,7 +65,7 @@ class ViewService {
         )
             return; // the article is already open
 
-        let article: ArticleResponse<Entity> | null = null;
+        let article: ArticleResponse<ArticleData> | null = null;
         try {
             article = await getArticle(id, entityType);
         } catch (error) {
