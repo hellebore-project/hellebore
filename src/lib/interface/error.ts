@@ -1,7 +1,7 @@
 export interface ApiErrorBody {
     msg: string;
-    entity: number;
+    entity: string;
     field?: string;
 }
 
-export type ApiError = { [type: string]: ApiError };
+export type ApiError = { [type: string]: ApiErrorBody };
