@@ -3,6 +3,7 @@ import { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
 import {
+    ApiError,
     ArticleResponse,
     Entity,
     EntityType,
@@ -64,7 +65,7 @@ class ArticleEditorService {
             this.title = title;
             this.titleChanged = true;
 
-            this.sync({
+            this._sync({
                 syncTitle: true,
                 syncEntity: false,
                 syncBody: false,
@@ -78,12 +79,6 @@ class ArticleEditorService {
         this._onChange();
     }
 
-    _updateEditor(editor: Editor) {
-        this.editor = editor;
-        this.bodyChanged = true;
-        this._onChange();
-    }
-
     initialize<E extends Entity>(article: ArticleResponse<E>) {
         this.id = article.id;
         this.title = article.title;
@@ -94,7 +89,30 @@ class ArticleEditorService {
         this.editor.commands.setContent(body);
     }
 
-    async syncDelay({
+    cleanUp() {
+        this._sync({
+            syncTitle: true,
+            syncEntity: true,
+            syncBody: true,
+        });
+    }
+
+    reset() {
+        this.id = ARTICLE_ID_SENTINAL;
+        this.title = "";
+        this.isTitleUnique = true;
+        this.entityType = null;
+        this.entity = null;
+        this.editor.commands.clearContent();
+    }
+
+    _updateEditor(editor: Editor) {
+        this.editor = editor;
+        this.bodyChanged = true;
+        this._onChange();
+    }
+
+    async _syncDelay({
         syncTitle = true,
         syncEntity = true,
         syncBody = true,
@@ -102,10 +120,10 @@ class ArticleEditorService {
         while (Date.now() - this.lastModified < UPDATE_DELAY_MILLISECONDS) {
             await new Promise((r) => setTimeout(r, UPDATE_DELAY_MILLISECONDS));
         }
-        return this.sync({ syncTitle, syncEntity, syncBody });
+        return this._sync({ syncTitle, syncEntity, syncBody });
     }
 
-    async sync({
+    async _sync({
         syncTitle = true,
         syncEntity = true,
         syncBody = true,
@@ -136,17 +154,15 @@ class ArticleEditorService {
             console.error("Failed to update article.");
             return null;
         }
-        console.log(response);
+
+        this._handleErrors(response.errors);
+
         this.synced = true;
         if (syncTitle) {
             this.titleChanged = false;
-            let updatedTitle: string | null;
-            if (response.errors.length == 0 && this.title)
+            let updatedTitle: string | null = null;
+            if (this.title != "" && this.isTitleUnique)
                 updatedTitle = this.title;
-            else {
-                // TODO: mark title as invalid
-                updatedTitle = null;
-            }
             this.onChangeTitle?.(
                 this.id,
                 this.entityType as EntityType,
@@ -159,28 +175,28 @@ class ArticleEditorService {
         return response;
     }
 
-    cleanUp() {
-        this.sync({
-            syncTitle: true,
-            syncEntity: true,
-            syncBody: true,
-        });
-    }
-
-    reset() {
-        this.id = ARTICLE_ID_SENTINAL;
-        this.title = "";
-        this.isTitleUnique = true;
-        this.entityType = null;
-        this.entity = null;
-        this.editor.commands.clearContent();
+    _handleErrors(errors: ApiError[]) {
+        let isTitleUnique = true;
+        for (let error of errors) {
+            console.log(error);
+            if ("FieldNotUpdated" in error) {
+                const { msg, entity, field } = error["FieldNotUpdated"];
+                if (
+                    msg == "Title is not unique." &&
+                    entity == "Article" &&
+                    field == "title"
+                )
+                    isTitleUnique = false;
+            }
+        }
+        this.isTitleUnique = isTitleUnique;
     }
 
     _onChange() {
         this.lastModified = Date.now();
         if (this.synced) {
             this.synced = false;
-            this.syncDelay({
+            this._syncDelay({
                 syncTitle: true,
                 syncEntity: true,
                 syncBody: true,

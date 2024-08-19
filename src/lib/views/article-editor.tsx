@@ -7,7 +7,11 @@ import RichTextEditor from "../shared/rich-text-editor";
 
 function renderArticleEditor() {
     const service = getService();
-
+    const getError = () => {
+        if (service.view.articleEditor.title == "") return "Empty title";
+        if (!service.view.articleEditor.isTitleUnique) return "Duplicate title";
+        return null;
+    };
     return (
         <Container>
             <form>
@@ -15,11 +19,7 @@ function renderArticleEditor() {
                     variant="unstyled"
                     placeholder="Enter a unique title"
                     getValue={() => service.view.articleEditor.title}
-                    getError={() =>
-                        service.view.articleEditor.isTitleUnique
-                            ? null
-                            : "Duplicate title"
-                    }
+                    getError={getError}
                     onChange={(event) =>
                         service.view.articleEditor.setTitle(
                             event.currentTarget.value,
