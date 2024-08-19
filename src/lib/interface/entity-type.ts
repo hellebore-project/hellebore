@@ -1,4 +1,6 @@
 export enum EntityType {
+    NONE = 0,
+    ARTICLE = 1,
     LANGUAGE = 2,
     WORD = 3,
 }

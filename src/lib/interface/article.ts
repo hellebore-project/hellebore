@@ -1,6 +1,7 @@
-import { Entity, EntityType } from "./entities";
+import { ArticleData } from "./article-data";
+import { EntityType } from "./entity-type";
 
-export interface ArticleUpdate<E extends Entity> {
+export interface ArticleUpdate<E extends ArticleData> {
     id: number;
     entity_type: EntityType;
     title: string | null;
@@ -14,7 +15,8 @@ export interface ArticleInfoResponse {
     title: string;
 }
 
-export interface ArticleResponse<E extends Entity> extends ArticleInfoResponse {
+export interface ArticleResponse<E extends ArticleData>
+    extends ArticleInfoResponse {
     entity: E;
     body: string;
 }
