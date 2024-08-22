@@ -18,7 +18,8 @@ class NavigationService {
 
         getArticles().then(
             (articles) => this.addArticleNodes(articles),
-            () => console.log("Failed to fetch all articles from the backend."),
+            () =>
+                console.error("Failed to fetch all articles from the backend."),
         );
     }
 

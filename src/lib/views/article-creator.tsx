@@ -1,8 +1,8 @@
 import { Button, ComboboxItem, Container, Group } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import Dropdown from "../shared/dropdown";
-import { ALL_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "../interface/entities";
+import { ALL_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "../interface";
+import SelectField from "../shared/select-field";
 import TextField from "../shared/text-field";
 import { getService } from "../services";
 
@@ -25,7 +25,7 @@ function renderArticleCreator() {
         <Container size="xs">
             <h1>Create a New Article</h1>
             <form onSubmit={onSubmit}>
-                <Dropdown
+                <SelectField
                     label="Entity"
                     placeholder="Select an entity type (optional)"
                     data={ENTITY_TYPE_DROPDOWN_DATA}

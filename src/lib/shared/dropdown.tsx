@@ -1,35 +1,64 @@
-import { Select, ComboboxItem } from "@mantine/core";
+import { Button, ButtonProps, ComboboxItem, Paper, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
+import { FunctionComponent, ReactElement } from "react";
 
-interface DropdownSettings {
+interface DropdownItemSettings extends ButtonProps {
     label: string;
-    data: ComboboxItem[];
-    getValue?: () => any;
-    onChange?: (value: string | null, option: ComboboxItem) => void;
-    placeholder?: string;
+    selected?: boolean;
+    onClick?: () => void;
 }
 
-function renderDropdown({
+export interface DropdownSettings {
+    data: ComboboxItem[];
+    getSelectedIndex: () => number | null;
+    confirm?: (item: ComboboxItem) => void;
+}
+
+export interface DropdownInterface extends FunctionComponent<DropdownSettings> {
+    onKeyDown: (event: KeyboardEvent) => boolean;
+}
+
+function renderDropdownItem({
     label,
-    data,
-    getValue,
-    onChange,
-    placeholder = "Select a value",
-}: DropdownSettings) {
-    const value = getValue ? getValue() : undefined;
+    selected = false,
+    ...rest
+}: DropdownItemSettings) {
+    let variant = selected ? "light" : "subtle";
     return (
-        <Select
-            label={label}
-            placeholder={placeholder}
-            data={data}
-            value={value}
-            onChange={onChange}
-            allowDeselect
-            clearable
-        />
+        <Button variant={variant} color="gray" radius="0" {...rest}>
+            <span>{label}</span>
+        </Button>
     );
 }
 
-const Dropdown = observer(renderDropdown);
+const DropdownItem = observer(renderDropdownItem);
 
-export default Dropdown;
+const renderDropdown = ({
+    data,
+    getSelectedIndex,
+    confirm,
+}: DropdownSettings) => {
+    const selectedIndex = getSelectedIndex() ?? 0;
+    let options: ReactElement[];
+    if (data.length)
+        options = data.map((item, index) => (
+            <DropdownItem
+                key={item.value}
+                label={item.label}
+                selected={index == selectedIndex}
+                onClick={() => confirm?.(item)}
+            />
+        ));
+    else
+        options = [
+            <DropdownItem key="null" label="No results" disabled={true} />,
+        ];
+
+    return (
+        <Paper>
+            <Stack gap={0}>{options}</Stack>
+        </Paper>
+    );
+};
+
+export const Dropdown = observer(renderDropdown) as DropdownInterface;
