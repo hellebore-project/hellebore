@@ -5,7 +5,7 @@ export enum EntityType {
     WORD = 3,
 }
 
-export const ENTITY_TYPE_LABELS = {
+export const ENTITY_TYPE_LABELS: { [entityType: number]: string } = {
     [EntityType.LANGUAGE]: "Language",
     [EntityType.WORD]: "Word",
 };

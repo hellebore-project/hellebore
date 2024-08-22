@@ -10,6 +10,7 @@ import {
     UpdateResponse,
 } from "../interface";
 import { updateArticle } from "./data-service";
+import { useReferenceExtension } from "../shared/rich-text-editor";
 
 const ARTICLE_ID_SENTINAL = -1;
 const UPDATE_DELAY_MILLISECONDS = 5000;
@@ -39,17 +40,13 @@ class ArticleEditorService {
     titleChanged: boolean = false;
     entityChanged: boolean = false;
     bodyChanged: boolean = false;
+    selectedRefIndex: number | null = null;
 
     onChangeTitle: TitleChangeHandler | null = null;
 
     constructor() {
         makeAutoObservable(this, { onChangeTitle: false });
-        this.editor = new Editor({
-            extensions: [StarterKit],
-            onUpdate: ({ editor }) => {
-                this._updateEditor(editor as Editor);
-            },
-        });
+        this.editor = this._buildEditor();
     }
 
     get entityData() {
@@ -79,6 +76,10 @@ class ArticleEditorService {
         this._onChange();
     }
 
+    setSelectedRefIndex(index: number | null) {
+        this.selectedRefIndex = index;
+    }
+
     initialize<E extends ArticleData>(article: ArticleResponse<E>) {
         this.id = article.id;
         this.title = article.title;
@@ -104,6 +105,20 @@ class ArticleEditorService {
         this.entityType = null;
         this.entity = null;
         this.editor.commands.clearContent();
+    }
+
+    _buildEditor() {
+        const Reference = useReferenceExtension({
+            getSelectedIndex: () => this.selectedRefIndex,
+            setSelectedIndex: (index) => this.setSelectedRefIndex(index),
+        });
+
+        return new Editor({
+            extensions: [StarterKit, Reference],
+            onUpdate: ({ editor }) => {
+                this._updateEditor(editor as Editor);
+            },
+        });
     }
 
     _updateEditor(editor: Editor) {
@@ -147,7 +162,7 @@ class ArticleEditorService {
             });
         } catch (error) {
             console.error("Failed to update article.");
-            console.log(error);
+            console.error(error);
             return null;
         }
         if (response == null) {
@@ -171,6 +186,7 @@ class ArticleEditorService {
         }
         if (syncEntity) this.entityChanged = false;
         if (syncBody) this.bodyChanged = false;
+        console.log(this.editor.getJSON());
 
         return response;
     }
@@ -178,7 +194,6 @@ class ArticleEditorService {
     _handleErrors(errors: ApiError[]) {
         let isTitleUnique = true;
         for (let error of errors) {
-            console.log(error);
             if ("FieldNotUpdated" in error) {
                 const { msg, entity, field } = error["FieldNotUpdated"];
                 if (
