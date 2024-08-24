@@ -9,6 +9,7 @@ import {
 import tippy from "tippy.js";
 
 import { Dropdown, DropdownSettings } from "../dropdown";
+import { Suggestion } from "../../interface";
 
 type QueryResult = string;
 
@@ -17,6 +18,7 @@ export interface QuerySettings {
 }
 
 export interface ReferenceExtensionSettings {
+    queryItems: (settings: QuerySettings) => any[];
     getSelectedIndex: () => number | null;
     setSelectedIndex: (value: any) => void;
 }
@@ -133,23 +135,16 @@ class ReferenceSuggestionRenderer {
         this.component.destroy();
     }
 
-    convertQueryResult(result: string[]): ComboboxItem[] {
-        return result.map((r) => ({ label: r, value: r }));
+    convertQueryResult(result: Suggestion[]): ComboboxItem[] {
+        return result;
     }
 }
 
 function generateSuggestionOptions(
+    queryItems: (settings: QuerySettings) => Suggestion[],
     getSelectedIndex: () => number | null,
     setSelectedIndex: (value: any) => void,
 ): Partial<SuggestionOptions> {
-    // TODO: make the query function into an arg
-    const queryItems = ({ query }: QuerySettings) => {
-        return ["A", "B", "C"]
-            .filter((item) =>
-                item.toLowerCase().startsWith(query.toLowerCase()),
-            )
-            .slice(0, 5);
-    };
     const renderer = new ReferenceSuggestionRenderer(
         getSelectedIndex,
         setSelectedIndex,
@@ -168,11 +163,13 @@ function generateSuggestionOptions(
 }
 
 export function useReferenceExtension({
+    queryItems,
     getSelectedIndex,
     setSelectedIndex,
 }: ReferenceExtensionSettings) {
     const settings: Partial<MentionOptions<QueryResult>> = {
         suggestion: generateSuggestionOptions(
+            queryItems,
             getSelectedIndex,
             setSelectedIndex,
         ),
