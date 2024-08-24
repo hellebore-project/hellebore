@@ -6,31 +6,37 @@ import ArticleCreatorService from "./article-creator-service";
 import ArticleEditorService from "./article-editor-service";
 import { ArticleResponse } from "../interface";
 import NavigationService from "./navigation-service";
-import { getArticle } from "./data-service";
+import { DataService } from "./data-service";
 
 class ViewService {
     viewKey: ViewKey = ViewKey.HOME;
     sideBarOpen: boolean = true;
 
+    data: DataService;
     articleCreator: ArticleCreatorService;
     articleEditor: ArticleEditorService;
     navigation: NavigationService;
 
-    constructor() {
+    constructor(dataService: DataService) {
         const overrides = {
+            data: false,
             articleCreator: false,
             articleEditor: false,
             navigation: false,
         };
         makeAutoObservable(this, overrides);
 
-        this.articleCreator = new ArticleCreatorService();
-        this.articleEditor = new ArticleEditorService();
+        this.data = dataService;
+        this.articleCreator = new ArticleCreatorService(dataService);
+        this.articleEditor = new ArticleEditorService(dataService);
         this.navigation = new NavigationService();
 
-        this.articleEditor.onChangeTitle = async (id, entityType, title) => {
-            if (title) this.navigation.updateArticleNode(id, entityType, title);
-        };
+        this.data.articles.onFetchedAll.push((infos) =>
+            this.navigation.setupArticleNodes(infos),
+        );
+        this.data.articles.onUpdated.push((articleUpdate) =>
+            this.navigation.updateArticleNode(articleUpdate),
+        );
     }
 
     toggleSideBar() {
@@ -65,20 +71,14 @@ class ViewService {
         )
             return; // the article is already open
 
-        let article: ArticleResponse<ArticleData> | null = null;
-        try {
-            article = await getArticle(id, entityType);
-        } catch (error) {
-            console.error(error);
-        }
-
+        const article = await this.data.articles.get(id, entityType);
         if (article) this.openArticleEditor(article);
     }
 
     async createArticle() {
         let article = await this.articleCreator.createArticle();
         if (article) {
-            this.navigation.addArticleNodes([article]);
+            this.navigation.addArticleNode(article);
             this.openArticleEditor(article);
         }
     }

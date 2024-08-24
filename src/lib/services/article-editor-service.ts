@@ -8,8 +8,10 @@ import {
     ArticleData,
     EntityType,
     UpdateResponse,
+    ArticleUpdateResponse,
+    Suggestion,
 } from "../interface";
-import { updateArticle } from "./data-service";
+import { DataService } from "./data-service";
 import { useReferenceExtension } from "../shared/rich-text-editor";
 
 const ARTICLE_ID_SENTINAL = -1;
@@ -42,10 +44,13 @@ class ArticleEditorService {
     bodyChanged: boolean = false;
     selectedRefIndex: number | null = null;
 
+    data: DataService;
+
     onChangeTitle: TitleChangeHandler | null = null;
 
-    constructor() {
-        makeAutoObservable(this, { onChangeTitle: false });
+    constructor(dataService: DataService) {
+        makeAutoObservable(this, { data: false, onChangeTitle: false });
+        this.data = dataService;
         this.editor = this._buildEditor();
     }
 
@@ -68,6 +73,10 @@ class ArticleEditorService {
                 syncBody: false,
             });
         }
+    }
+
+    setIsTitleUnique(unique: boolean) {
+        this.isTitleUnique = unique;
     }
 
     setEntity(entity: ArticleData | null) {
@@ -109,6 +118,7 @@ class ArticleEditorService {
 
     _buildEditor() {
         const Reference = useReferenceExtension({
+            queryItems: ({ query }) => this._queryByTitle(query),
             getSelectedIndex: () => this.selectedRefIndex,
             setSelectedIndex: (index) => this.setSelectedRefIndex(index),
         });
@@ -127,6 +137,12 @@ class ArticleEditorService {
         this._onChange();
     }
 
+    _queryByTitle(titleFragment: string): Suggestion[] {
+        return this.data.articles
+            .queryByTitle(titleFragment)
+            .map((info) => ({ label: info.title, value: info.id }));
+    }
+
     async _syncDelay({
         syncTitle = true,
         syncEntity = true,
@@ -143,16 +159,15 @@ class ArticleEditorService {
         syncEntity = true,
         syncBody = true,
     }: SyncSettings) {
+        if (syncTitle && this.titleChanged && this.title == "")
+            syncTitle = false;
         if (!syncTitle && !syncEntity && !syncBody) return null;
         if (!this.titleChanged && !this.entityChanged && !this.bodyChanged)
             return null;
 
-        if (syncTitle && this.titleChanged && this.title == "")
-            syncTitle = false;
-
-        let response: UpdateResponse<null> | null;
+        let response: ArticleUpdateResponse | null;
         try {
-            response = await updateArticle({
+            response = await this.data.articles.update({
                 id: this.id,
                 entity_type: this.entityType as EntityType,
                 title: syncTitle && this.titleChanged ? this.title : null,
@@ -170,11 +185,10 @@ class ArticleEditorService {
             return null;
         }
 
-        this._handleErrors(response.errors);
-
         this.synced = true;
         if (syncTitle) {
             this.titleChanged = false;
+            this.setIsTitleUnique(response.isTitleUnique ?? true);
             let updatedTitle: string | null = null;
             if (this.title != "" && this.isTitleUnique)
                 updatedTitle = this.title;
@@ -189,22 +203,6 @@ class ArticleEditorService {
         console.log(this.editor.getJSON());
 
         return response;
-    }
-
-    _handleErrors(errors: ApiError[]) {
-        let isTitleUnique = true;
-        for (let error of errors) {
-            if ("FieldNotUpdated" in error) {
-                const { msg, entity, field } = error["FieldNotUpdated"];
-                if (
-                    msg == "Title is not unique." &&
-                    entity == "Article" &&
-                    field == "title"
-                )
-                    isTitleUnique = false;
-            }
-        }
-        this.isTitleUnique = isTitleUnique;
     }
 
     _onChange() {
