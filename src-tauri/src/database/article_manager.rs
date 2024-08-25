@@ -14,7 +14,7 @@ pub struct ArticleItem {
 pub async fn insert(
     db: &DbConn,
     title: &str,
-    entity_type: EntityType
+    entity_type: EntityType,
 ) -> Result<article::Model, DbErr> {
     let new_entity = article::ActiveModel {
         id: NotSet,
@@ -34,15 +34,14 @@ pub async fn update(
     title: Option<String>,
     content: Option<String>,
 ) -> Result<article::Model, DbErr> {
-    let Some(existing_entity) = get(db, id).await?
-    else {
+    let Some(existing_entity) = get(db, id).await? else {
         return Err(DbErr::RecordNotFound("Article not found.".to_owned()));
     };
     let updated_entity = article::ActiveModel {
         id: Unchanged(existing_entity.id),
         entity_type: NotSet,
         title: util::optional_string_to_active_value(title),
-        body: util::optional_string_to_active_value(content)
+        body: util::optional_string_to_active_value(content),
     };
     updated_entity.update(db).await
 }
@@ -64,9 +63,7 @@ pub async fn is_title_unique_for_id(db: &DbConn, id: i32, title: &str) -> Result
 }
 
 pub async fn get(db: &DbConn, id: i32) -> Result<Option<article::Model>, DbErr> {
-    Article::find_by_id(id)
-        .one(db)
-        .await
+    Article::find_by_id(id).one(db).await
 }
 
 pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<article::Model>, DbErr> {
@@ -82,7 +79,7 @@ pub async fn get_all(db: &DbConn) -> Result<Vec<ArticleItem>, DbErr> {
         .columns([
             article::Column::Id,
             article::Column::Title,
-            article::Column::EntityType
+            article::Column::EntityType,
         ])
         .order_by_asc(article::Column::Title)
         .into_model::<ArticleItem>()

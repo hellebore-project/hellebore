@@ -15,7 +15,8 @@ use crate::types::{ARTICLE, PERSON};
 use crate::util;
 
 pub async fn create(
-    database: &DatabaseConnection, person: PersonDataSchema
+    database: &DatabaseConnection,
+    person: PersonDataSchema,
 ) -> Result<ArticleResponseSchema<IdentifiedPersonSchema>, ApiError> {
     let article = article_manager::insert(&database, &person.name, PERSON)
         .await
@@ -28,28 +29,25 @@ pub async fn create(
 
 pub async fn update(
     database: &DatabaseConnection,
-    article: ArticleUpdateSchema<PersonDataSchema>
+    article: ArticleUpdateSchema<PersonDataSchema>,
 ) -> Result<UpdateResponseSchema<()>, ApiError> {
-    let mut response = article_service::update(
-        &database,
-        article.id,
-        article.title,
-        article.body
-    ).await?;
+    let mut response =
+        article_service::update(&database, article.id, article.title, article.body).await?;
 
     if article.entity.is_some() {
         let entity = article.entity.unwrap();
         match person_manager::update(database, article.id, &entity.name).await {
             Ok(_) => (),
-            Err(e) => response.errors.push(ApiError::not_updated(e, PERSON))
+            Err(e) => response.errors.push(ApiError::not_updated(e, PERSON)),
         }
     }
-    
+
     return Ok(response);
 }
 
 pub async fn get(
-    database: &DatabaseConnection, id: i32
+    database: &DatabaseConnection,
+    id: i32,
 ) -> Result<ArticleResponseSchema<IdentifiedPersonSchema>, ApiError> {
     let article = article_service::get(&database, id).await?;
     let entity = person_manager::get(&database, id)
@@ -57,7 +55,7 @@ pub async fn get(
         .map_err(|e| ApiError::not_found(e, PERSON))?;
     return match entity {
         Some(entity) => Ok(generate_response(article, entity)),
-        None => Err(ApiError::not_found("Person not found.", PERSON))
+        None => Err(ApiError::not_found("Person not found.", PERSON)),
     };
 }
 
@@ -71,11 +69,16 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     let _ = article_manager::delete(&database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, ARTICLE))?;
-    person_manager::delete(&database, id).await.map_err(|e| ApiError::not_deleted(e, PERSON))?;
+    person_manager::delete(&database, id)
+        .await
+        .map_err(|e| ApiError::not_deleted(e, PERSON))?;
     return Ok(());
 }
 
-fn generate_response(article: Article, entity: Person) -> ArticleResponseSchema<IdentifiedPersonSchema> {
+fn generate_response(
+    article: Article,
+    entity: Person,
+) -> ArticleResponseSchema<IdentifiedPersonSchema> {
     return util::generate_article_response(
         &article,
         PERSON.code(),
