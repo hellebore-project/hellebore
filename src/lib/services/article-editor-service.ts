@@ -1,13 +1,12 @@
-import { makeAutoObservable, toJS } from "mobx";
+import { Node as PMNode } from "prosemirror-model";
 import { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { makeAutoObservable, toJS } from "mobx";
 
 import {
-    ApiError,
     ArticleResponse,
     ArticleData,
     EntityType,
-    UpdateResponse,
     ArticleUpdateResponse,
     Suggestion,
 } from "../interface";
@@ -17,11 +16,7 @@ import { useReferenceExtension } from "../shared/rich-text-editor";
 const ARTICLE_ID_SENTINAL = -1;
 const UPDATE_DELAY_MILLISECONDS = 5000;
 
-type TitleChangeHandler = (
-    id: number,
-    entityType: EntityType,
-    title: string | null,
-) => void;
+type OpenArticleHandler = (id: number) => void;
 
 interface SyncSettings {
     syncTitle?: boolean;
@@ -36,7 +31,7 @@ class ArticleEditorService {
     entity: ArticleData | null = null;
     editor: Editor;
 
-    synced: boolean = true;
+    syncing: boolean = false;
     lastModified: number = 0;
     isTitleUnique: boolean = true;
     titleChanged: boolean = false;
@@ -46,11 +41,15 @@ class ArticleEditorService {
 
     data: DataService;
 
-    onChangeTitle: TitleChangeHandler | null = null;
+    onOpenAnotherArticle: OpenArticleHandler | null = null;
 
-    constructor(dataService: DataService) {
-        makeAutoObservable(this, { data: false, onChangeTitle: false });
+    constructor(
+        dataService: DataService,
+        onOpenAnotherArticle: OpenArticleHandler,
+    ) {
+        makeAutoObservable(this, { data: false, onOpenAnotherArticle: false });
         this.data = dataService;
+        this.onOpenAnotherArticle = onOpenAnotherArticle;
         this.editor = this._buildEditor();
     }
 
@@ -128,6 +127,9 @@ class ArticleEditorService {
             onUpdate: ({ editor }) => {
                 this._updateEditor(editor as Editor);
             },
+            editorProps: {
+                handleClickOn: (_, __, node) => this._onClickEditor(node),
+            },
         });
     }
 
@@ -140,6 +142,7 @@ class ArticleEditorService {
     _queryByTitle(titleFragment: string): Suggestion[] {
         return this.data.articles
             .queryByTitle(titleFragment)
+            .filter((info) => info.id != this.id)
             .map((info) => ({ label: info.title, value: info.id }));
     }
 
@@ -151,6 +154,9 @@ class ArticleEditorService {
         while (Date.now() - this.lastModified < UPDATE_DELAY_MILLISECONDS) {
             await new Promise((r) => setTimeout(r, UPDATE_DELAY_MILLISECONDS));
         }
+        if (!this.syncing)
+            // terminate early if the article editor was synced with the BE during the delay
+            return true;
         return this._sync({ syncTitle, syncEntity, syncBody });
     }
 
@@ -161,9 +167,9 @@ class ArticleEditorService {
     }: SyncSettings) {
         if (syncTitle && this.titleChanged && this.title == "")
             syncTitle = false;
-        if (!syncTitle && !syncEntity && !syncBody) return null;
+        if (!syncTitle && !syncEntity && !syncBody) return true;
         if (!this.titleChanged && !this.entityChanged && !this.bodyChanged)
-            return null;
+            return true;
 
         let response: ArticleUpdateResponse | null;
         try {
@@ -178,42 +184,44 @@ class ArticleEditorService {
         } catch (error) {
             console.error("Failed to update article.");
             console.error(error);
-            return null;
+            return false;
         }
         if (response == null) {
             console.error("Failed to update article.");
-            return null;
+            return false;
         }
 
-        this.synced = true;
+        this.syncing = false;
         if (syncTitle) {
             this.titleChanged = false;
             this.setIsTitleUnique(response.isTitleUnique ?? true);
             let updatedTitle: string | null = null;
             if (this.title != "" && this.isTitleUnique)
                 updatedTitle = this.title;
-            this.onChangeTitle?.(
-                this.id,
-                this.entityType as EntityType,
-                updatedTitle,
-            );
         }
         if (syncEntity) this.entityChanged = false;
         if (syncBody) this.bodyChanged = false;
         console.log(this.editor.getJSON());
 
-        return response;
+        return true;
     }
 
     _onChange() {
         this.lastModified = Date.now();
-        if (this.synced) {
-            this.synced = false;
+        if (!this.syncing) {
+            this.syncing = true;
             this._syncDelay({
                 syncTitle: true,
                 syncEntity: true,
                 syncBody: true,
-            });
+            }).then(() => (this.syncing = false));
+        }
+    }
+
+    _onClickEditor(node: PMNode) {
+        if (node.type.name == "mention") {
+            const articleID: number | null = node.attrs["id"] ?? null;
+            if (articleID != null) this.onOpenAnotherArticle?.(articleID);
         }
     }
 }

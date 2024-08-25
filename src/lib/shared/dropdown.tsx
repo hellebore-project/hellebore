@@ -56,7 +56,9 @@ const renderDropdown = ({
 
     return (
         <Paper>
-            <Stack gap={0}>{options}</Stack>
+            <Stack gap={0} miw={50}>
+                {options}
+            </Stack>
         </Paper>
     );
 };

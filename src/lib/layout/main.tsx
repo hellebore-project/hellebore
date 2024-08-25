@@ -14,6 +14,4 @@ function renderMain() {
     return <Home />;
 }
 
-const Main = observer(renderMain);
-
-export default Main;
+export const Main = observer(renderMain);

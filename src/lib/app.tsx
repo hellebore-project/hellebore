@@ -1,9 +1,7 @@
 import { AppShell } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import Header from "./layout/header";
-import SideBar from "./layout/sidebar";
-import Main from "./layout/main";
+import { Header, Main, SideBar } from "./layout";
 import { getService } from "./services";
 
 function renderApp() {
