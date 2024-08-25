@@ -4,7 +4,11 @@ use entity::article::Model;
 
 use crate::schema::article::ArticleResponseSchema;
 
-pub fn generate_article_response<E>(article: &Model, entity_type: i8, entity: E) -> ArticleResponseSchema<E> {
+pub fn generate_article_response<E>(
+    article: &Model,
+    entity_type: i8,
+    entity: E,
+) -> ArticleResponseSchema<E> {
     ArticleResponseSchema {
         id: article.id,
         entity_type,

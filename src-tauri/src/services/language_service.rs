@@ -14,7 +14,8 @@ use crate::types::{ARTICLE, LANGUAGE};
 use crate::util;
 
 pub async fn create(
-    database: &DatabaseConnection, language: LanguageDataSchema
+    database: &DatabaseConnection,
+    language: LanguageDataSchema,
 ) -> Result<ArticleResponseSchema<IdentifiedLanguageSchema>, ApiError> {
     let article = article_manager::insert(&database, &language.name, LANGUAGE)
         .await
@@ -27,18 +28,14 @@ pub async fn create(
 
 pub async fn update(
     database: &DatabaseConnection,
-    article: ArticleUpdateSchema<LanguageDataSchema>
+    article: ArticleUpdateSchema<LanguageDataSchema>,
 ) -> Result<UpdateResponseSchema<()>, ApiError> {
-    return article_service::update(
-        &database,
-        article.id,
-        article.title,
-        article.body
-    ).await;
+    return article_service::update(&database, article.id, article.title, article.body).await;
 }
 
 pub async fn get(
-    database: &DatabaseConnection, id: i32
+    database: &DatabaseConnection,
+    id: i32,
 ) -> Result<ArticleResponseSchema<IdentifiedLanguageSchema>, ApiError> {
     return article_service::get(&database, id)
         .await
@@ -55,7 +52,9 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     let _ = article_manager::delete(&database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, ARTICLE))?;
-    language_manager::delete(&database, id).await.map_err(|e| ApiError::not_deleted(e, LANGUAGE))?;
+    language_manager::delete(&database, id)
+        .await
+        .map_err(|e| ApiError::not_deleted(e, LANGUAGE))?;
     return Ok(());
 }
 
@@ -65,7 +64,9 @@ fn generate_response(article: Article) -> ArticleResponseSchema<IdentifiedLangua
         LANGUAGE.code(),
         IdentifiedLanguageSchema {
             id: article.id,
-            data: LanguageDataSchema { name: article.title.to_string() },
+            data: LanguageDataSchema {
+                name: article.title.to_string(),
+            },
         },
     );
 }

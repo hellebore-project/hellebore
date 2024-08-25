@@ -9,10 +9,12 @@
     "preview": "vite preview",
     "dev:app": "env-cmd tauri dev",
     "generate:entities": "sea-orm-cli generate entity -l --with-serde both -o src-tauri/entity/src",
+    "rustfmt": "cargo fmt --manifest-path src-tauri/Cargo.toml",
+    "rustfmt:check": "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
     "typecheck": "tsc --noEmit",
-    "lint": "pnpm run lint:eslint && pnpm run lint:stylelint",
-    "lint:eslint": "eslint .",
-    "lint:stylelint": "stylelint **/*.css",
+    "lint": "pnpm run eslint && pnpm run stylelint",
+    "eslint": "eslint .",
+    "stylelint": "stylelint **/*.css",
     "prettier": "prettier --check \"**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "prepare": "husky"
@@ -55,6 +57,7 @@
     "vite": "^5.4.1"
   },
   "lint-staged": {
+    "*.rs": "rustfmt --edition 2021",
     "*.{ts,tsx}": "eslint --cache --fix",
     "*.css": "stylelint --fix",
     "*.{ts,tsx,css,md}": "prettier --write"

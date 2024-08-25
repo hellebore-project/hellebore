@@ -20,7 +20,7 @@ pub fn get_settings() -> Settings {
                 Err(_e) => ".".to_string(),
             };
             format!("{home_dir_path}/.fantasy_log")
-        },
+        }
     };
     fs::create_dir_all(&data_dir_path).expect("Failed to create data directory.");
 
