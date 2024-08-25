@@ -2,8 +2,6 @@ use sea_orm::*;
 
 use ::entity::{person, person::Entity as Person};
 
-use crate::util;
-
 pub async fn insert(db: &DbConn, id: i32, name: &str) -> Result<person::Model, DbErr> {
     let new_entity = person::ActiveModel {
         id: Set(id),

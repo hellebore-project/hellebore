@@ -1,4 +1,4 @@
-use fantasy_log_app::{schema::language::LanguageDataSchema, services::language_service};
+use hellebore::{schema::language::LanguageDataSchema, services::language_service};
 
 mod utils;
 

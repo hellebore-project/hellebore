@@ -1,5 +1,5 @@
 [package]
-name = "fantasy-log-app"
+name = "hellebore"
 version = "0.0.0"
 description = "Self-hosted rust app for world-building."
 authors = ["Ariel Boucheikhchoukh"]

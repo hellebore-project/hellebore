@@ -4,7 +4,6 @@
 
 class Language {
     integer id
-    text name
 }
 
 enum WordType {
