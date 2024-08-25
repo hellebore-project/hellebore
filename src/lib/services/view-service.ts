@@ -28,7 +28,9 @@ class ViewService {
 
         this.data = dataService;
         this.articleCreator = new ArticleCreatorService(dataService);
-        this.articleEditor = new ArticleEditorService(dataService);
+        this.articleEditor = new ArticleEditorService(dataService, (id) =>
+            this.openArticleEditorForId(id),
+        );
         this.navigation = new NavigationService();
 
         this.data.articles.onFetchedAll.push((infos) =>
@@ -61,16 +63,14 @@ class ViewService {
         this.viewKey = ViewKey.ARTICLE_EDITOR;
     }
 
-    async openArticleEditorForId(
-        id: number,
-        entityType: EntityType | null | undefined,
-    ) {
+    async openArticleEditorForId(id: number) {
         if (
             this.viewKey == ViewKey.ARTICLE_EDITOR &&
             this.articleEditor.id == id
         )
             return; // the article is already open
 
+        const entityType = this.data.articles.infos[id]?.entity_type ?? null;
         const article = await this.data.articles.get(id, entityType);
         if (article) this.openArticleEditor(article);
     }

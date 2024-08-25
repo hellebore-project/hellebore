@@ -8,10 +8,7 @@ function renderArticleNavigator() {
     const service = getService();
     const onClickNode = (node: ArticleTreeNodeData) => {
         if (node.entityType !== undefined)
-            service.view.openArticleEditorForId(
-                Number(node.value),
-                node.entityType,
-            );
+            service.view.openArticleEditorForId(Number(node.value));
     };
     return (
         <ContentTree<ArticleTreeNodeData>

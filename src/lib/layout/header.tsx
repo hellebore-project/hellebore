@@ -64,6 +64,4 @@ function renderHeader() {
     );
 }
 
-const Header = observer(renderHeader);
-
-export default Header;
+export const Header = observer(renderHeader);

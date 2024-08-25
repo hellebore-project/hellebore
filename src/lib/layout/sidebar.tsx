@@ -11,6 +11,4 @@ function renderSideBar() {
     );
 }
 
-const SideBar = observer(renderSideBar);
-
-export default SideBar;
+export const SideBar = observer(renderSideBar);

@@ -150,6 +150,7 @@ function generateSuggestionOptions(
         setSelectedIndex,
     );
     return {
+        //char: "[[",
         items: queryItems,
         render: () => ({
             // wrap the callbacks in arrow functions to ensure that they are bound to the renderer
@@ -173,12 +174,12 @@ export function useReferenceExtension({
             getSelectedIndex,
             setSelectedIndex,
         ),
-        renderText({ node }) {
-            return `${node.attrs.label ?? node.attrs.id}`;
+        HTMLAttributes: {
+            class: "article-reference",
         },
         renderHTML({ options, node }) {
             return [
-                "span",
+                "a",
                 mergeAttributes(
                     { "data-type": "reference" },
                     options.HTMLAttributes,
