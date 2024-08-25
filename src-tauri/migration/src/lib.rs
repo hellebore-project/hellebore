@@ -2,6 +2,7 @@ pub use sea_orm_migration::prelude::*;
 
 mod rev1;
 mod rev0;
+mod rev2;
 
 pub struct Migrator;
 
@@ -11,6 +12,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(rev0::Migration),
             Box::new(rev1::Migration),
+            Box::new(rev2::Migration),
         ]
     }
 }

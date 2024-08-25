@@ -9,9 +9,9 @@ use crate::errors::ApiError;
 
 #[tauri::command]
 pub async fn create_language(
-    state: tauri::State<'_, AppState>, language: LanguageDataSchema
+    state: tauri::State<'_, AppState>, data: LanguageDataSchema
 ) -> Result<ArticleResponseSchema<IdentifiedLanguageSchema>, ApiError> {
-    language_service::create(&state.database, language).await
+    language_service::create(&state.database, data).await
 }
 
 #[tauri::command]

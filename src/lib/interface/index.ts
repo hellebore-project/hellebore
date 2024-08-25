@@ -4,5 +4,6 @@ export * from "./common";
 export * from "./entity-type";
 export * from "./error";
 export * from "./language";
+export * from "./person";
 export * from "./suggestion";
 export * from "./update";

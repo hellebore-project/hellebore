@@ -4,7 +4,9 @@ use serde::{Serialize, Deserialize};
 pub enum EntityType {
     None,
     Article,
-    Language
+    Language,
+    Word,
+    Person,
 }
 
 impl EntityType {
@@ -13,9 +15,12 @@ impl EntityType {
             EntityType::None => 0,
             EntityType::Article => 1,
             EntityType::Language => 2,
+            EntityType::Word => 3,
+            EntityType::Person => 4,
         }
     }
 }
 
 pub const ARTICLE: EntityType = EntityType::Article;
 pub const LANGUAGE: EntityType = EntityType::Language;
+pub const PERSON: EntityType = EntityType::Person;

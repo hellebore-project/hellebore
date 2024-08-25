@@ -2,20 +2,18 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { makeAutoObservable } from "mobx";
 
 import {
-    ArticleResponse,
-    ArticleInfoResponse,
-    EntityType,
     ArticleData,
+    ArticleInfoResponse,
+    ArticleResponse,
     ArticleUpdate,
-    UpdateResponse,
     ArticleUpdateResponse,
+    ENTITY_TYPE_LABELS,
+    EntityType,
+    UpdateResponse,
     ValueChange,
 } from "../../interface";
-import {
-    createLanguage,
-    getLanguage,
-    updateLanguage,
-} from "./language-service";
+import { createLanguage } from "./language-service";
+import { createPerson } from "./person-service";
 
 type CreateArticleEventHandler = (
     article: ArticleResponse<ArticleData>,
@@ -52,7 +50,9 @@ export class ArticleService {
 
         try {
             if (entityType === EntityType.LANGUAGE)
-                response = await createLanguage({ name: title });
+                response = await createLanguage(title);
+            else if (entityType === EntityType.PERSON)
+                response = await createPerson(title);
             else {
                 console.error(
                     `Unabled to create articles with entity type ${entityType}.`,
@@ -80,14 +80,7 @@ export class ArticleService {
         let response: UpdateResponse<null> | null;
 
         try {
-            if (articleUpdate.entity_type === EntityType.LANGUAGE)
-                response = await updateLanguage(articleUpdate);
-            else {
-                console.error(
-                    `Unabled to update articles with entity type ${articleUpdate.entity_type}.`,
-                );
-                return null;
-            }
+            response = await updateArticle(articleUpdate);
         } catch (error) {
             console.error(error);
             return null;
@@ -151,17 +144,10 @@ export class ArticleService {
 
     async get(
         id: number,
-        entityType: EntityType | null | undefined,
+        entityType: EntityType,
     ): Promise<ArticleResponse<ArticleData> | null> {
         try {
-            if (entityType === EntityType.LANGUAGE)
-                return await getLanguage(id);
-            else {
-                console.error(
-                    `Unabled to retrieve articles with entity type ${entityType}.`,
-                );
-                return null;
-            }
+            return await getArticle(id, entityType);
         } catch (error) {
             console.error(error);
             return null;
@@ -193,4 +179,20 @@ export class ArticleService {
             .filter((info) => info.title.toLowerCase().startsWith(arg))
             .slice(0, maxResults);
     }
+}
+
+async function updateArticle(
+    article: ArticleUpdate<ArticleData>,
+): Promise<UpdateResponse<null>> {
+    console.log(article);
+    const command = `update_${ENTITY_TYPE_LABELS[article.entity_type].toLowerCase()}`;
+    return invoke<UpdateResponse<null>>(command, { article });
+}
+
+async function getArticle(
+    id: number,
+    entityType: EntityType,
+): Promise<ArticleResponse<ArticleData>> {
+    const command = `get_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
+    return invoke<ArticleResponse<ArticleData>>(command, { id });
 }
