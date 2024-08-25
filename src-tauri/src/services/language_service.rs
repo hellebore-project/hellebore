@@ -1,6 +1,6 @@
 use sea_orm::DatabaseConnection;
 
-use ::entity::article::Model;
+use ::entity::article::Model as Article;
 
 use crate::database::{article_manager, language_manager};
 use crate::errors::ApiError;
@@ -40,13 +40,9 @@ pub async fn update(
 pub async fn get(
     database: &DatabaseConnection, id: i32
 ) -> Result<ArticleResponseSchema<IdentifiedLanguageSchema>, ApiError> {
-    let article = article_manager::get(&database, id)
+    return article_service::get(&database, id)
         .await
-        .map_err(|e| ApiError::not_found(e, ARTICLE))?;
-    return match article {
-        Some(a) => Ok(generate_response(a)),
-        None => return Err(ApiError::not_found("Language not found.", ARTICLE))
-    };
+        .map(|a| generate_response(a));
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
@@ -63,7 +59,7 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     return Ok(());
 }
 
-fn generate_response(article: Model) -> ArticleResponseSchema<IdentifiedLanguageSchema> {
+fn generate_response(article: Article) -> ArticleResponseSchema<IdentifiedLanguageSchema> {
     return util::generate_article_response(
         &article,
         LANGUAGE.code(),

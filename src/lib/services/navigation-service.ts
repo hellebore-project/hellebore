@@ -4,12 +4,13 @@ import { makeAutoObservable, toJS } from "mobx";
 import {
     ArticleInfoResponse,
     ArticleUpdateResponse,
+    ENTITY_TYPE_PLURAL_LABELS,
     EntityType,
 } from "../interface";
 import { ArticleTreeNodeData, compareTreeNodes } from "../model";
 
-const ARTICLE_CATEGORY_LABELS: { [category: string]: string } = {
-    [EntityType.LANGUAGE]: "Languages",
+const ARTICLE_CATEGORY_LABELS: { [type: number]: string } = {
+    ...ENTITY_TYPE_PLURAL_LABELS,
 };
 
 class NavigationService {

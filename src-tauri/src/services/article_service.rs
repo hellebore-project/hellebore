@@ -1,5 +1,7 @@
 use sea_orm::DatabaseConnection;
 
+use ::entity::article::Model as Article;
+
 use crate::database::article_manager;
 use crate::schema::{
     article::ArticleInfoSchema,
@@ -54,6 +56,18 @@ pub async fn update(
             errors,
         }
     );
+}
+
+pub async fn get(
+    database: &DatabaseConnection, id: i32
+) -> Result<Article, ApiError> {
+    let article = article_manager::get(&database, id)
+        .await
+        .map_err(|e| ApiError::not_found(e, ARTICLE))?;
+    return match article {
+        Some(a) => Ok(a),
+        None => return Err(ApiError::not_found("Article not found.", ARTICLE))
+    };
 }
 
 pub async fn get_all(
