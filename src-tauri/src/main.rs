@@ -3,7 +3,7 @@
 
 use tauri;
 
-use fantasy_log_app::{app, settings::get_settings};
+use hellebore::{app, settings::get_settings};
 
 #[tokio::main]
 async fn main() {

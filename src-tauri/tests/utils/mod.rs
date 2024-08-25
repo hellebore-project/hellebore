@@ -1,4 +1,4 @@
-use fantasy_log_app::{app, settings};
+use hellebore::{app, settings};
 
 pub async fn setup() -> app::AppState {
     let settings = settings::Settings {

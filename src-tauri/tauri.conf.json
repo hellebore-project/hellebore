@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "fantasy-log-app",
+    "productName": "hellebore",
     "version": "0.0.0"
   },
   "tauri": {
@@ -19,7 +19,7 @@
     },
     "windows": [
       {
-        "title": "Fantasy Log",
+        "title": "Hellebore",
         "maximized": true,
         "minWidth": 300,
         "minHeight": 500
@@ -31,7 +31,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.fantasy-log.dev",
+      "identifier": "com.hellebore.dev",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",

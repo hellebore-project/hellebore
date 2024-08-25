@@ -1,4 +1,4 @@
-# Fantasy Log
+# Hellebore
 
 Self-hosted rust app for world-building.
 
@@ -21,9 +21,9 @@ cargo install --path src-tauri
 3. Configure the development environment via a `.env` file in the project root.
 
 ```sh
-FANTASY_LOG_DATA_DIR="data"
-FANTASY_LOG_DB_FILE="db.sqlite"
-FANTASY_LOG_CONNECTION_STRING="sqlite://data/db.sqlite?mode=rwc"
+HELLEBORE_DATA_DIR="data"
+HELLEBORE_DB_FILE="db.sqlite"
+HELLEBORE_CONNECTION_STRING="sqlite://data/db.sqlite?mode=rwc"
 
 # required for sea-orm-cli entity generation
 DATABASE_URL="sqlite://src-tauri/data/db.sqlite?mode=ro"
