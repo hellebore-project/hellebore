@@ -6,6 +6,8 @@ import { EntityType } from "../interface";
 import { observer } from "mobx-react-lite";
 import { getService } from "../services";
 
+const FLEX_STYLE = { paddingLeft: 15 };
+
 function renderSideBarToggleButton() {
     const service = getService();
     return (
@@ -30,7 +32,7 @@ function renderHeader() {
             align="center"
             direction="row"
             wrap="nowrap"
-            style={{ paddingLeft: 15 }}
+            style={FLEX_STYLE}
         >
             <SideBarToggleButton />
             <MenuButton label="Home" onClick={() => service.view.openHome()} />

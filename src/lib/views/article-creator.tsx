@@ -6,6 +6,7 @@ import SelectField from "../shared/select-field";
 import TextField from "../shared/text-field";
 import { getService } from "../services";
 
+// TODO: sort the dropdown data alphabetically
 const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = ALL_ENTITY_TYPES.map(
     (entityType) => ({
         label: ENTITY_TYPE_LABELS[entityType],

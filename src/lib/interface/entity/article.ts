@@ -1,8 +1,8 @@
-import { ArticleData } from "./article-data";
-import { IdentifiedObject, ValueChange } from "./common";
+import { BaseEntity } from "./base";
+import { ValueChange } from "../common";
 import { EntityType } from "./entity-type";
 
-export interface BaseArticleInfo extends IdentifiedObject {
+export interface BaseArticleInfo extends BaseEntity {
     entity_type: EntityType;
 }
 
@@ -12,8 +12,7 @@ export interface ArticleInfoUpdate extends BaseArticleInfo {
     title: string | null;
 }
 
-export interface ArticleUpdate<E extends ArticleData>
-    extends ArticleInfoUpdate {
+export interface ArticleUpdate<E extends BaseEntity> extends ArticleInfoUpdate {
     body: string | null;
     entity: E | null;
 }
@@ -31,7 +30,7 @@ export interface ArticleInfoResponse extends BaseArticleInfo {
     title: string;
 }
 
-export interface ArticleResponse<E extends ArticleData>
+export interface ArticleResponse<E extends BaseEntity>
     extends ArticleInfoResponse {
     entity: E;
     body: string;

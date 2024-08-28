@@ -1,4 +1,4 @@
-import { DataService } from "./data-service";
+import DataService from "./data";
 import ViewService from "./view-service";
 
 class AppService {

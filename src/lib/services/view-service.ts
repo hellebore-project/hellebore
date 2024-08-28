@@ -1,12 +1,10 @@
 import { makeAutoObservable } from "mobx";
 
-import { ViewKey } from "./constants";
-import { EntityType, ArticleData } from "../interface";
+import { ArticleResponse, BaseEntity, EntityType, ViewKey } from "../interface";
 import ArticleCreatorService from "./article-creator-service";
-import ArticleEditorService from "./article-editor-service";
-import { ArticleResponse } from "../interface";
+import ArticleEditorService from "./article-editing";
 import NavigationService from "./navigation-service";
-import { DataService } from "./data-service";
+import DataService from "./data";
 
 class ViewService {
     viewKey: ViewKey = ViewKey.HOME;
@@ -57,7 +55,7 @@ class ViewService {
         this.viewKey = ViewKey.ARTICLE_CREATOR;
     }
 
-    openArticleEditor(article: ArticleResponse<ArticleData>) {
+    openArticleEditor(article: ArticleResponse<BaseEntity>) {
         this.cleanUp();
         this.articleEditor.initialize(article);
         this.viewKey = ViewKey.ARTICLE_EDITOR;

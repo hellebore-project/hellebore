@@ -7,7 +7,7 @@ import {
     ENTITY_TYPE_PLURAL_LABELS,
     EntityType,
 } from "../interface";
-import { ArticleTreeNodeData, compareTreeNodes } from "../model";
+import { ArticleTreeNodeData, compareTreeNodes } from "../interface";
 
 const ARTICLE_CATEGORY_LABELS: { [type: number]: string } = {
     ...ENTITY_TYPE_PLURAL_LABELS,

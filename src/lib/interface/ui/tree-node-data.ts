@@ -1,7 +1,7 @@
 import { TreeNodeData } from "@mantine/core";
 
-import { EntityType } from "../interface";
-import { compareStrings } from "../utils/string";
+import { EntityType } from "../entity";
+import { compareStrings } from "../../utils/string";
 
 export interface ArticleTreeNodeData extends TreeNodeData {
     entityType?: EntityType;

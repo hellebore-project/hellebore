@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 
+import { ViewKey } from "../interface";
 import { getService } from "../services";
-import { ViewKey } from "../services/constants";
 import Home from "../views/home";
 import ArticleCreator from "../views/article-creator";
 import ArticleEditor from "../views/article-editor";
