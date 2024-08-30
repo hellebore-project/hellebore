@@ -6,7 +6,7 @@ use crate::database::{article_manager, language_manager};
 use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleResponseSchema, ArticleUpdateSchema},
-    language::{IdentifiedLanguageSchema, LanguageDataSchema},
+    language::LanguageDataSchema,
     update::UpdateResponseSchema,
 };
 use crate::services::article_service;
@@ -16,7 +16,7 @@ use crate::util;
 pub async fn create(
     database: &DatabaseConnection,
     language: LanguageDataSchema,
-) -> Result<ArticleResponseSchema<IdentifiedLanguageSchema>, ApiError> {
+) -> Result<ArticleResponseSchema<LanguageDataSchema>, ApiError> {
     let article = article_manager::insert(&database, &language.name, LANGUAGE)
         .await
         .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
@@ -36,7 +36,7 @@ pub async fn update(
 pub async fn get(
     database: &DatabaseConnection,
     id: i32,
-) -> Result<ArticleResponseSchema<IdentifiedLanguageSchema>, ApiError> {
+) -> Result<ArticleResponseSchema<LanguageDataSchema>, ApiError> {
     return article_service::get(&database, id)
         .await
         .map(|a| generate_response(a));
@@ -58,15 +58,12 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     return Ok(());
 }
 
-fn generate_response(article: Article) -> ArticleResponseSchema<IdentifiedLanguageSchema> {
+fn generate_response(article: Article) -> ArticleResponseSchema<LanguageDataSchema> {
     return util::generate_article_response(
         &article,
         LANGUAGE.code(),
-        IdentifiedLanguageSchema {
-            id: article.id,
-            data: LanguageDataSchema {
-                name: article.title.to_string(),
-            },
+        LanguageDataSchema {
+            name: article.title.to_string(),
         },
     );
 }

@@ -1,16 +1,16 @@
 import { makeAutoObservable } from "mobx";
 
-import { ArticleResponse, ArticleData, EntityType } from "../interface";
-import { DataService } from "./data-service";
+import { ArticleResponse, BaseEntity, EntityType } from "../interface";
+import { DomainService } from "./domain";
 
-class ArticleCreatorService {
+export class ArticleCreatorService {
     entityType: EntityType | null = null;
     title: string = "";
     isTitleUnique: boolean = true;
 
-    data: DataService;
+    data: DomainService;
 
-    constructor(dataService: DataService) {
+    constructor(dataService: DomainService) {
         makeAutoObservable(this, { data: false });
         this.data = dataService;
     }
@@ -27,7 +27,7 @@ class ArticleCreatorService {
         this.isTitleUnique = isUnique;
     }
 
-    async createArticle(): Promise<ArticleResponse<ArticleData> | null> {
+    async createArticle(): Promise<ArticleResponse<BaseEntity> | null> {
         const article = await this.data.articles.create(
             this.title,
             this.entityType,
@@ -55,5 +55,3 @@ class ArticleCreatorService {
         this.isTitleUnique = true;
     }
 }
-
-export default ArticleCreatorService;

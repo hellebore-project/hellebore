@@ -1,23 +1,21 @@
 import { makeAutoObservable } from "mobx";
 
-import { ViewKey } from "./constants";
-import { EntityType, ArticleData } from "../interface";
-import ArticleCreatorService from "./article-creator-service";
-import ArticleEditorService from "./article-editor-service";
-import { ArticleResponse } from "../interface";
-import NavigationService from "./navigation-service";
-import { DataService } from "./data-service";
+import { ArticleResponse, BaseEntity, EntityType, ViewKey } from "../interface";
+import { ArticleCreatorService } from "./article-creator-service";
+import { ArticleEditorService } from "./article-editing";
+import { NavigationService } from "./navigation-service";
+import { DomainService } from "./domain";
 
-class ViewService {
+export class ViewService {
     viewKey: ViewKey = ViewKey.HOME;
     sideBarOpen: boolean = true;
 
-    data: DataService;
+    domain: DomainService;
     articleCreator: ArticleCreatorService;
     articleEditor: ArticleEditorService;
     navigation: NavigationService;
 
-    constructor(dataService: DataService) {
+    constructor(domainService: DomainService) {
         const overrides = {
             data: false,
             articleCreator: false,
@@ -26,17 +24,17 @@ class ViewService {
         };
         makeAutoObservable(this, overrides);
 
-        this.data = dataService;
-        this.articleCreator = new ArticleCreatorService(dataService);
-        this.articleEditor = new ArticleEditorService(dataService, (id) =>
+        this.domain = domainService;
+        this.articleCreator = new ArticleCreatorService(domainService);
+        this.articleEditor = new ArticleEditorService(domainService, (id) =>
             this.openArticleEditorForId(id),
         );
         this.navigation = new NavigationService();
 
-        this.data.articles.onFetchedAll.push((infos) =>
+        this.domain.articles.onFetchedAll.push((infos) =>
             this.navigation.setupArticleNodes(infos),
         );
-        this.data.articles.onUpdated.push((articleUpdate) =>
+        this.domain.articles.onUpdated.push((articleUpdate) =>
             this.navigation.updateArticleNode(articleUpdate),
         );
     }
@@ -57,7 +55,7 @@ class ViewService {
         this.viewKey = ViewKey.ARTICLE_CREATOR;
     }
 
-    openArticleEditor(article: ArticleResponse<ArticleData>) {
+    openArticleEditor(article: ArticleResponse<BaseEntity>) {
         this.cleanUp();
         this.articleEditor.initialize(article);
         this.viewKey = ViewKey.ARTICLE_EDITOR;
@@ -66,12 +64,12 @@ class ViewService {
     async openArticleEditorForId(id: number) {
         if (
             this.viewKey == ViewKey.ARTICLE_EDITOR &&
-            this.articleEditor.id == id
+            this.articleEditor.info.id == id
         )
             return; // the article is already open
 
-        const entityType = this.data.articles.infos[id]?.entity_type ?? null;
-        const article = await this.data.articles.get(id, entityType);
+        const entityType = this.domain.articles.infos[id]?.entity_type ?? null;
+        const article = await this.domain.articles.get(id, entityType);
         if (article) this.openArticleEditor(article);
     }
 
@@ -88,5 +86,3 @@ class ViewService {
             this.articleEditor.cleanUp();
     }
 }
-
-export default ViewService;

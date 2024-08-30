@@ -2,22 +2,20 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { makeAutoObservable } from "mobx";
 
 import {
-    ArticleData,
+    BaseEntity,
     ArticleInfoResponse,
     ArticleResponse,
     ArticleUpdate,
     ArticleUpdateResponse,
     ENTITY_TYPE_LABELS,
     EntityType,
+    LanguageData,
+    PersonData,
     UpdateResponse,
     ValueChange,
 } from "../../interface";
-import { createLanguage } from "./language-service";
-import { createPerson } from "./person-service";
 
-type CreateArticleEventHandler = (
-    article: ArticleResponse<ArticleData>,
-) => void;
+type CreateArticleEventHandler = (article: ArticleResponse<BaseEntity>) => void;
 type UpdateArticleEventHandler = (update: ArticleUpdateResponse) => void;
 type FetchArticleEventHandler = (infos: ArticleInfoResponse[]) => void;
 
@@ -45,8 +43,8 @@ export class ArticleService {
     async create(
         title: string,
         entityType: EntityType | null,
-    ): Promise<ArticleResponse<ArticleData> | null> {
-        let response: ArticleResponse<ArticleData> | null;
+    ): Promise<ArticleResponse<BaseEntity> | null> {
+        let response: ArticleResponse<BaseEntity> | null;
 
         try {
             if (entityType === EntityType.LANGUAGE)
@@ -75,7 +73,7 @@ export class ArticleService {
     }
 
     async update(
-        articleUpdate: ArticleUpdate<ArticleData>,
+        articleUpdate: ArticleUpdate<BaseEntity>,
     ): Promise<ArticleUpdateResponse | null> {
         let response: UpdateResponse<null> | null;
 
@@ -103,7 +101,7 @@ export class ArticleService {
     }
 
     _buildUpdateResponse(
-        articleUpdate: ArticleUpdate<ArticleData>,
+        articleUpdate: ArticleUpdate<BaseEntity>,
         response: UpdateResponse<null>,
     ): ArticleUpdateResponse {
         const cleanResponse: ArticleUpdateResponse = {
@@ -145,7 +143,7 @@ export class ArticleService {
     async get(
         id: number,
         entityType: EntityType,
-    ): Promise<ArticleResponse<ArticleData> | null> {
+    ): Promise<ArticleResponse<BaseEntity> | null> {
         try {
             return await getArticle(id, entityType);
         } catch (error) {
@@ -181,8 +179,20 @@ export class ArticleService {
     }
 }
 
+async function createLanguage(
+    name: string,
+): Promise<ArticleResponse<LanguageData>> {
+    return invoke<ArticleResponse<LanguageData>>("create_language", { name });
+}
+
+async function createPerson(
+    name: string,
+): Promise<ArticleResponse<PersonData>> {
+    return invoke<ArticleResponse<PersonData>>("create_person", { name });
+}
+
 async function updateArticle(
-    article: ArticleUpdate<ArticleData>,
+    article: ArticleUpdate<BaseEntity>,
 ): Promise<UpdateResponse<null>> {
     console.log(article);
     const command = `update_${ENTITY_TYPE_LABELS[article.entity_type].toLowerCase()}`;
@@ -192,7 +202,7 @@ async function updateArticle(
 async function getArticle(
     id: number,
     entityType: EntityType,
-): Promise<ArticleResponse<ArticleData>> {
+): Promise<ArticleResponse<BaseEntity>> {
     const command = `get_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
-    return invoke<ArticleResponse<ArticleData>>(command, { id });
+    return invoke<ArticleResponse<BaseEntity>>(command, { id });
 }

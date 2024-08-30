@@ -1,4 +1,4 @@
-import { pluralize } from "../utils/string";
+import { pluralize } from "../../utils/string";
 
 /**
  * Mapping of all entity types to a unique numeric code.

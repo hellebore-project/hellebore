@@ -2,7 +2,7 @@ import { observer } from "mobx-react-lite";
 
 import { getService } from "../services";
 import ContentTree from "../shared/content-tree";
-import { ArticleTreeNodeData } from "../model";
+import { ArticleTreeNodeData } from "../interface";
 
 function renderArticleNavigator() {
     const service = getService();

@@ -1,4 +1,4 @@
-import { Button, ComboboxItem, Container, Group } from "@mantine/core";
+import { Button, ComboboxItem, Container, Group, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { ALL_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "../interface";
@@ -6,6 +6,7 @@ import SelectField from "../shared/select-field";
 import TextField from "../shared/text-field";
 import { getService } from "../services";
 
+// TODO: sort the dropdown data alphabetically
 const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = ALL_ENTITY_TYPES.map(
     (entityType) => ({
         label: ENTITY_TYPE_LABELS[entityType],
@@ -36,6 +37,7 @@ function renderArticleCreator() {
                         )
                     }
                 />
+                <Space h="xs" />
                 <TextField
                     label={"Title"}
                     placeholder="Enter a unique title"

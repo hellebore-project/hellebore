@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 import { ArticleService } from "./article-service";
 
-export class DataService {
+export class DomainService {
     articles: ArticleService;
 
     constructor() {

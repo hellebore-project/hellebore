@@ -12,6 +12,7 @@ import { Dropdown, DropdownSettings } from "../dropdown";
 import { Suggestion } from "../../interface";
 
 type QueryResult = string;
+type DOMRectAccessor = () => DOMRect;
 
 export interface QuerySettings {
     query: string;
@@ -79,7 +80,7 @@ class ReferenceSuggestionRenderer {
         if (!props.clientRect) return;
 
         this._popup = tippy("body", {
-            getReferenceClientRect: props.clientRect,
+            getReferenceClientRect: props.clientRect as DOMRectAccessor,
             appendTo: () => document.body,
             content: this.component.element,
             showOnCreate: true,
