@@ -7,11 +7,11 @@ import {
     ArticleUpdateResponse,
     FieldData,
 } from "../../interface";
-import DataService from "../data";
-import ArticleFieldTableService from "./article-field-table-service";
-import { ArticleBodyService, OpenArticleHandler } from "./article-body-service";
+import { DomainService } from "../domain";
+import { ArticleFieldTableService } from "./field-table-service";
+import { ArticleBodyService, OpenArticleHandler } from "./body-service";
+import { ArticleInfoService } from "./info-service";
 
-const ARTICLE_ID_SENTINEL = -1;
 const UPDATE_DELAY_MILLISECONDS = 5000;
 
 interface SyncSettings {
@@ -20,43 +20,43 @@ interface SyncSettings {
     syncBody?: boolean;
 }
 
-class ArticleEditorService {
-    id: number = ARTICLE_ID_SENTINEL;
-    title: string = "";
-    entityType: EntityType | null = null;
-
+export class ArticleEditorService {
     syncing: boolean = false;
     lastModified: number = 0;
-    isTitleUnique: boolean = true;
-    titleChanged: boolean = false;
 
-    data: DataService;
+    domain: DomainService;
+    info: ArticleInfoService;
     fieldTable: ArticleFieldTableService;
     body: ArticleBodyService;
 
     constructor(
-        dataService: DataService,
+        domain: DomainService,
         onOpenAnotherArticle: OpenArticleHandler,
     ) {
-        makeAutoObservable(this, { data: false });
+        makeAutoObservable(this, {
+            domain: false,
+            info: false,
+            fieldTable: false,
+            body: false,
+        });
 
-        this.data = dataService;
+        this.domain = domain;
+        this.info = new ArticleInfoService();
         this.fieldTable = new ArticleFieldTableService({
+            info: this.info,
             onChange: () => this._onChange(),
         });
         this.body = new ArticleBodyService({
-            dataService,
-            getID: () => this.id,
+            domain,
+            info: this.info,
             onChange: () => this._onChange(),
             onOpenAnotherArticle,
         });
     }
 
     setTitle(title: string) {
-        if (title != this.title) {
-            this.title = title;
-            this.titleChanged = true;
-
+        if (title != this.info.title) {
+            this.info.setTitle(title);
             this._sync({
                 syncTitle: true,
                 syncEntity: false,
@@ -65,21 +65,14 @@ class ArticleEditorService {
         }
     }
 
-    setIsTitleUnique(unique: boolean) {
-        this.isTitleUnique = unique;
-    }
-
     get fieldData(): FieldData[] {
-        return this.fieldTable.fieldData[this.entityType as EntityType] ?? [];
+        return this.fieldTable.fields[this.info.entityType as EntityType] ?? [];
     }
 
     initialize<E extends BaseEntity>(article: ArticleResponse<E>) {
-        this.id = article.id;
-        this.title = article.title;
-        this.isTitleUnique = true;
-        this.entityType = article.entity_type;
-        this.fieldTable.entityData = article.entity;
-        this.body.content = article.body ? JSON.parse(article.body) : "";
+        this.info.initialize(article.id, article.entity_type, article.title);
+        this.fieldTable.initialize(article.entity);
+        this.body.initialize(article.body);
     }
 
     cleanUp() {
@@ -91,11 +84,8 @@ class ArticleEditorService {
     }
 
     reset() {
-        this.id = ARTICLE_ID_SENTINEL;
-        this.title = "";
-        this.isTitleUnique = true;
-        this.entityType = null;
-        this.fieldTable.entityData = null;
+        this.info.reset();
+        this.fieldTable.reset();
         this.body.reset();
     }
 
@@ -118,11 +108,11 @@ class ArticleEditorService {
         syncEntity = true,
         syncBody = true,
     }: SyncSettings) {
-        if (syncTitle && this.titleChanged && this.title == "")
+        if (syncTitle && this.info.titleChanged && this.info.title == "")
             syncTitle = false;
         if (!syncTitle && !syncEntity && !syncBody) return true;
         if (
-            !this.titleChanged &&
+            !this.info.titleChanged &&
             !this.fieldTable.changed &&
             !this.body.changed
         )
@@ -130,10 +120,13 @@ class ArticleEditorService {
 
         let response: ArticleUpdateResponse | null;
         try {
-            response = await this.data.articles.update({
-                id: this.id,
-                entity_type: this.entityType as EntityType,
-                title: syncTitle && this.titleChanged ? this.title : null,
+            response = await this.domain.articles.update({
+                id: this.info.id,
+                entity_type: this.info.entityType as EntityType,
+                title:
+                    syncTitle && this.info.titleChanged
+                        ? this.info.title
+                        : null,
                 entity:
                     syncEntity && this.fieldTable.changed
                         ? this.fieldTable.entityData
@@ -152,11 +145,11 @@ class ArticleEditorService {
 
         this.syncing = false;
         if (syncTitle) {
-            this.titleChanged = false;
-            this.setIsTitleUnique(response.isTitleUnique ?? true);
+            this.info.sync();
+            this.info.setIsTitleUnique(response.isTitleUnique ?? true);
         }
-        if (syncEntity) this.fieldTable.changed = false;
-        if (syncBody) this.body.changed = false;
+        if (syncEntity) this.fieldTable.sync();
+        if (syncBody) this.body.sync();
         console.log(this.body.content);
 
         return true;
@@ -174,5 +167,3 @@ class ArticleEditorService {
         }
     }
 }
-
-export default ArticleEditorService;

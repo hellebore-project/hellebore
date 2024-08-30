@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-import AppService from "./app-service";
+import { AppService } from "./app-service";
 
 export const AppServiceContext = createContext<AppService>(new AppService());
 

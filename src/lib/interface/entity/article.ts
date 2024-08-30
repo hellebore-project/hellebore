@@ -1,8 +1,8 @@
 import { BaseEntity } from "./base";
-import { ValueChange } from "../common";
+import { IdentifiedObject, ValueChange } from "../common";
 import { EntityType } from "./entity-type";
 
-export interface BaseArticleInfo extends BaseEntity {
+export interface BaseArticleInfo extends IdentifiedObject {
     entity_type: EntityType;
 }
 

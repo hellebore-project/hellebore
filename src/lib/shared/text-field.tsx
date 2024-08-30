@@ -23,7 +23,6 @@ function renderTextField({
     const error = getError ? getError() : null;
 
     const props: TextInputProps = {
-        mt: "md",
         label,
         value,
         placeholder,

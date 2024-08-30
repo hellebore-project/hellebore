@@ -1,16 +1,16 @@
 import { makeAutoObservable } from "mobx";
 
 import { ArticleResponse, BaseEntity, EntityType } from "../interface";
-import { DataService } from "./data";
+import { DomainService } from "./domain";
 
-class ArticleCreatorService {
+export class ArticleCreatorService {
     entityType: EntityType | null = null;
     title: string = "";
     isTitleUnique: boolean = true;
 
-    data: DataService;
+    data: DomainService;
 
-    constructor(dataService: DataService) {
+    constructor(dataService: DomainService) {
         makeAutoObservable(this, { data: false });
         this.data = dataService;
     }
@@ -55,5 +55,3 @@ class ArticleCreatorService {
         this.isTitleUnique = true;
     }
 }
-
-export default ArticleCreatorService;

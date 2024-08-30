@@ -9,11 +9,11 @@ import {
     ArticleUpdateResponse,
     ENTITY_TYPE_LABELS,
     EntityType,
+    LanguageData,
+    PersonData,
     UpdateResponse,
     ValueChange,
 } from "../../interface";
-import { createLanguage } from "./language-service";
-import { createPerson } from "./person-service";
 
 type CreateArticleEventHandler = (article: ArticleResponse<BaseEntity>) => void;
 type UpdateArticleEventHandler = (update: ArticleUpdateResponse) => void;
@@ -177,6 +177,18 @@ export class ArticleService {
             .filter((info) => info.title.toLowerCase().startsWith(arg))
             .slice(0, maxResults);
     }
+}
+
+async function createLanguage(
+    name: string,
+): Promise<ArticleResponse<LanguageData>> {
+    return invoke<ArticleResponse<LanguageData>>("create_language", { name });
+}
+
+async function createPerson(
+    name: string,
+): Promise<ArticleResponse<PersonData>> {
+    return invoke<ArticleResponse<PersonData>>("create_person", { name });
 }
 
 async function updateArticle(

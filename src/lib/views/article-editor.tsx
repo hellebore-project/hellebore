@@ -16,11 +16,11 @@ function renderArticleEditor() {
                 <TextField
                     variant="unstyled"
                     placeholder="Enter a unique title"
-                    getValue={() => service.view.articleEditor.title}
+                    getValue={() => service.view.articleEditor.info.title}
                     getError={() => {
-                        if (service.view.articleEditor.title == "")
+                        if (service.view.articleEditor.info.title == "")
                             return "Empty title";
-                        if (!service.view.articleEditor.isTitleUnique)
+                        if (!service.view.articleEditor.info.isTitleUnique)
                             return "Duplicate title";
                         return null;
                     }}

@@ -4,16 +4,16 @@ import StarterKit from "@tiptap/starter-kit";
 import { makeAutoObservable } from "mobx";
 
 import { Suggestion } from "../../interface";
-import DataService from "../data";
+import { DomainService } from "../domain";
 import { useReferenceExtension } from "../../shared/rich-text-editor";
+import { ArticleInfoService } from "./info-service";
 
-type IDAccessor = () => number;
 type ChangeHandler = () => void;
 export type OpenArticleHandler = (id: number) => void;
 
 interface ArticleBodyServiceSettings {
-    dataService: DataService;
-    getID: IDAccessor;
+    domain: DomainService;
+    info: ArticleInfoService;
     onChange: ChangeHandler;
     onOpenAnotherArticle: OpenArticleHandler;
 }
@@ -23,27 +23,27 @@ export class ArticleBodyService {
     changed: boolean = false;
     selectedRefIndex: number | null = null;
 
-    data: DataService;
+    domain: DomainService;
+    info: ArticleInfoService;
 
-    getID: IDAccessor;
     onChange: ChangeHandler;
     onOpenAnotherArticle: OpenArticleHandler;
 
     constructor({
-        dataService,
-        getID,
+        domain,
+        info,
         onChange,
         onOpenAnotherArticle,
     }: ArticleBodyServiceSettings) {
         makeAutoObservable(this, {
-            data: false,
-            getID: false,
+            domain: false,
+            info: false,
             onChange: false,
             onOpenAnotherArticle: false,
         });
 
-        this.data = dataService;
-        this.getID = getID;
+        this.domain = domain;
+        this.info = info;
         this.onChange = onChange;
         this.onOpenAnotherArticle = onOpenAnotherArticle;
 
@@ -64,6 +64,14 @@ export class ArticleBodyService {
 
     setSelectedRefIndex(index: number | null) {
         this.selectedRefIndex = index;
+    }
+
+    initialize(body: string) {
+        this.content = body ? JSON.parse(body) : "";
+    }
+
+    sync() {
+        this.changed = false;
     }
 
     reset() {
@@ -95,9 +103,9 @@ export class ArticleBodyService {
     }
 
     _queryByTitle(titleFragment: string): Suggestion[] {
-        return this.data.articles
+        return this.domain.articles
             .queryByTitle(titleFragment)
-            .filter((info) => info.id != this.getID())
+            .filter((info) => info.id != this.info.id)
             .map((info) => ({ label: info.title, value: info.id }));
     }
 

@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 import { ArticleService } from "./article-service";
 
-class DataService {
+export class DomainService {
     articles: ArticleService;
 
     constructor() {
@@ -10,5 +10,3 @@ class DataService {
         this.articles = new ArticleService();
     }
 }
-
-export default DataService;

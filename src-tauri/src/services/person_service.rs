@@ -7,7 +7,7 @@ use crate::database::{article_manager, person_manager};
 use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleResponseSchema, ArticleUpdateSchema},
-    person::{IdentifiedPersonSchema, PersonDataSchema},
+    person::PersonDataSchema,
     update::UpdateResponseSchema,
 };
 use crate::services::article_service;
@@ -17,7 +17,7 @@ use crate::util;
 pub async fn create(
     database: &DatabaseConnection,
     person: PersonDataSchema,
-) -> Result<ArticleResponseSchema<IdentifiedPersonSchema>, ApiError> {
+) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
     let article = article_manager::insert(&database, &person.name, PERSON)
         .await
         .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
@@ -48,7 +48,7 @@ pub async fn update(
 pub async fn get(
     database: &DatabaseConnection,
     id: i32,
-) -> Result<ArticleResponseSchema<IdentifiedPersonSchema>, ApiError> {
+) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
     let article = article_service::get(&database, id).await?;
     let entity = person_manager::get(&database, id)
         .await
@@ -75,16 +75,10 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     return Ok(());
 }
 
-fn generate_response(
-    article: Article,
-    entity: Person,
-) -> ArticleResponseSchema<IdentifiedPersonSchema> {
+fn generate_response(article: Article, entity: Person) -> ArticleResponseSchema<PersonDataSchema> {
     return util::generate_article_response(
         &article,
         PERSON.code(),
-        IdentifiedPersonSchema {
-            id: article.id,
-            data: PersonDataSchema { name: entity.name },
-        },
+        PersonDataSchema { name: entity.name },
     );
 }

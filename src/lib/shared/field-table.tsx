@@ -1,5 +1,6 @@
 import { Grid, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
+
 import { FieldData, FieldType } from "../interface";
 import TextField from "./text-field";
 
@@ -13,10 +14,12 @@ interface FieldTableSettings {
     getData: () => FieldData[];
 }
 
-function renderField({ type, getValue, setValue }: FieldSettings) {
+function renderField({ label, type, getValue, setValue }: FieldSettings) {
     if (type == FieldType.TEXT) {
         return (
             <TextField
+                variant="unstyled"
+                placeholder={label}
                 getValue={getValue}
                 onChange={(event) => setValue?.(event.currentTarget.value)}
             />
@@ -29,7 +32,7 @@ const Field = observer(renderField);
 
 function renderFieldRow({ data }: FieldRowSettings) {
     return (
-        <Grid>
+        <Grid justify="flex-start" align="center">
             <Grid.Col span={3}>{data.label}</Grid.Col>
             <Grid.Col span={9}>
                 <Field {...data} />
@@ -42,7 +45,7 @@ const FieldRow = observer(renderFieldRow);
 
 function renderFieldTable({ getData }: FieldTableSettings) {
     const rows = getData().map((fieldData) => (
-        <FieldRow key={`${fieldData.key}-row`} data={fieldData} />
+        <FieldRow key={`${fieldData.property}-row`} data={fieldData} />
     ));
     if (rows.length == 0) return null;
     return (

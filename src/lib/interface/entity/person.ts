@@ -1,9 +1,9 @@
 import { BaseEntity } from "./base";
 
-export interface PersonData {
-    name: string;
+export enum PersonProperty {
+    NAME = "name",
 }
 
-export interface IdentifiedPerson extends BaseEntity {
-    data: PersonData;
+export interface PersonData extends BaseEntity {
+    name: string;
 }

@@ -7,7 +7,7 @@ import ReactDOM from "react-dom/client";
 
 import App from "./lib/app";
 import { AppServiceContext } from "./lib/services";
-import AppService from "./lib/services/app-service";
+import { AppService } from "./lib/services/app-service";
 
 const APP_SERVICE = new AppService();
 

@@ -13,7 +13,7 @@ const ARTICLE_CATEGORY_LABELS: { [type: number]: string } = {
     ...ENTITY_TYPE_PLURAL_LABELS,
 };
 
-class NavigationService {
+export class NavigationService {
     _articleNodes: ArticleTreeNodeData[];
 
     constructor() {
@@ -111,5 +111,3 @@ class NavigationService {
         return nodes[nodes.length - 1];
     }
 }
-
-export default NavigationService;

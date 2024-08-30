@@ -3,7 +3,7 @@ export enum FieldType {
 }
 
 export interface FieldData {
-    key: string;
+    property: string;
     label: string;
     type: FieldType;
     getValue?: () => any;

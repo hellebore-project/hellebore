@@ -1,1 +1,1 @@
-export { default } from "./article-editor-service";
+export * from "./editing-service";

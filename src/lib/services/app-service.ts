@@ -1,16 +1,14 @@
-import DataService from "./data";
-import ViewService from "./view-service";
+import { DomainService } from "./domain";
+import { ViewService } from "./view-service";
 
-class AppService {
-    data: DataService;
+export class AppService {
+    domain: DomainService;
     view: ViewService;
 
     constructor() {
-        this.data = new DataService();
-        this.view = new ViewService(this.data);
+        this.domain = new DomainService();
+        this.view = new ViewService(this.domain);
 
-        this.data.articles.getAll();
+        this.domain.articles.getAll();
     }
 }
-
-export default AppService;

@@ -1,4 +1,4 @@
-import { Button, ComboboxItem, Container, Group } from "@mantine/core";
+import { Button, ComboboxItem, Container, Group, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { ALL_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "../interface";
@@ -37,6 +37,7 @@ function renderArticleCreator() {
                         )
                     }
                 />
+                <Space h="xs" />
                 <TextField
                     label={"Title"}
                     placeholder="Enter a unique title"
