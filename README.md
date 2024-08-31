@@ -42,7 +42,3 @@ After running the migrations, run the following command:
 ```sh
 pnpm generate:entities
 ```
-
-## Useful Links
-
--   [Tauri-SeaORM Example](https://github.com/jthinking/tauri-seaorm-template/tree/main)

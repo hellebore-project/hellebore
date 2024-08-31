@@ -36,6 +36,4 @@ function renderTextField({
     return <TextInput {...props} />;
 }
 
-const TextField = observer(renderTextField);
-
-export default TextField;
+export const TextField = observer(renderTextField);

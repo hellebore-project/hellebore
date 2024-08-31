@@ -64,6 +64,7 @@ export class ArticleService {
 
         this.infos[response.id] = {
             id: response.id,
+            folder_id: response.folder_id,
             entity_type: response.entity_type,
             title: response.title,
         };
@@ -106,6 +107,7 @@ export class ArticleService {
     ): ArticleUpdateResponse {
         const cleanResponse: ArticleUpdateResponse = {
             id: articleUpdate.id,
+            folder_id: articleUpdate.folder_id,
             entity_type: articleUpdate.entity_type,
             title: articleUpdate.title,
             titleChange:
@@ -182,13 +184,17 @@ export class ArticleService {
 async function createLanguage(
     name: string,
 ): Promise<ArticleResponse<LanguageData>> {
-    return invoke<ArticleResponse<LanguageData>>("create_language", { name });
+    return invoke<ArticleResponse<LanguageData>>("create_language", {
+        data: { name },
+    });
 }
 
 async function createPerson(
     name: string,
 ): Promise<ArticleResponse<PersonData>> {
-    return invoke<ArticleResponse<PersonData>>("create_person", { name });
+    return invoke<ArticleResponse<PersonData>>("create_person", {
+        data: { name },
+    });
 }
 
 async function updateArticle(

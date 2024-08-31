@@ -1,8 +1,6 @@
 pub use sea_orm_migration::prelude::*;
 
-mod rev1;
-mod rev0;
-mod rev2;
+mod init;
 
 pub struct Migrator;
 
@@ -10,9 +8,10 @@ pub struct Migrator;
 impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
         vec![
-            Box::new(rev0::Migration),
-            Box::new(rev1::Migration),
-            Box::new(rev2::Migration),
+            Box::new(init::folder::Migration),
+            Box::new(init::article::Migration),
+            Box::new(init::language::Migration),
+            Box::new(init::person::Migration),
         ]
     }
 }

@@ -4,15 +4,13 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "article")]
+#[sea_orm(table_name = "folder")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub folder_id: i32,
-    pub entity_type: i8,
+    pub parent_id: i32,
     #[sea_orm(unique)]
-    pub title: String,
-    pub body: String,
+    pub name: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

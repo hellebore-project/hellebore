@@ -31,8 +31,14 @@ pub async fn update(
     database: &DatabaseConnection,
     article: ArticleUpdateSchema<PersonDataSchema>,
 ) -> Result<UpdateResponseSchema<()>, ApiError> {
-    let mut response =
-        article_service::update(&database, article.id, article.title, article.body).await?;
+    let mut response = article_service::update(
+        &database,
+        article.id,
+        article.folder_id,
+        article.title,
+        article.body,
+    )
+    .await?;
 
     if article.entity.is_some() {
         let entity = article.entity.unwrap();

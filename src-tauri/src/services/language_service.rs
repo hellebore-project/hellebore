@@ -30,7 +30,14 @@ pub async fn update(
     database: &DatabaseConnection,
     article: ArticleUpdateSchema<LanguageDataSchema>,
 ) -> Result<UpdateResponseSchema<()>, ApiError> {
-    return article_service::update(&database, article.id, article.title, article.body).await;
+    return article_service::update(
+        &database,
+        article.id,
+        article.folder_id,
+        article.title,
+        article.body,
+    )
+    .await;
 }
 
 pub async fn get(

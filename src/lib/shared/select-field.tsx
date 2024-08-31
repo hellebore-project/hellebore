@@ -17,7 +17,6 @@ function renderSelectField({
     placeholder = "Select a value",
 }: SelectFieldSettings) {
     const value = getValue ? getValue() : undefined;
-    console.log(value);
     return (
         <Select
             label={label}
@@ -31,6 +30,4 @@ function renderSelectField({
     );
 }
 
-const SelectField = observer(renderSelectField);
-
-export default SelectField;
+export const SelectField = observer(renderSelectField);

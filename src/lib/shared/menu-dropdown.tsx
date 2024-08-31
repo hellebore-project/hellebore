@@ -1,4 +1,5 @@
 import { Button, Menu } from "@mantine/core";
+import { observer } from "mobx-react-lite";
 
 interface MenuItemData {
     label: string;
@@ -10,7 +11,7 @@ interface MenuDropdownSettings {
     items: MenuItemData[];
 }
 
-function MenuDropdown({ label, items }: MenuDropdownSettings) {
+function renderMenuDropdown({ label, items }: MenuDropdownSettings) {
     const menuItems = items.map(({ label, onClick }) => (
         <Menu.Item key={label} onClick={onClick}>
             {label}
@@ -35,4 +36,4 @@ function MenuDropdown({ label, items }: MenuDropdownSettings) {
     );
 }
 
-export default MenuDropdown;
+export const MenuDropdown = observer(renderMenuDropdown);

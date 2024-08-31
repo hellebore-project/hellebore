@@ -1,11 +1,12 @@
 import { Button } from "@mantine/core";
+import { observer } from "mobx-react-lite";
 
 export interface MenuButtonSettings {
     label: string;
     onClick?: () => void;
 }
 
-function MenuButton({ label, onClick }: MenuButtonSettings) {
+function renderMenuButton({ label, onClick }: MenuButtonSettings) {
     return (
         <Button
             variant="filled"
@@ -18,4 +19,4 @@ function MenuButton({ label, onClick }: MenuButtonSettings) {
     );
 }
 
-export default MenuButton;
+export const MenuButton = observer(renderMenuButton);
