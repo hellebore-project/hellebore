@@ -60,7 +60,6 @@ export class ArticleFieldTableService {
             console.error(error);
             return;
         }
-        console.log("Changing");
         this.changed = true;
         this.onChange();
     }

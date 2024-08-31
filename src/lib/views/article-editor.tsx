@@ -2,9 +2,9 @@ import { Container, Divider, Space, Text } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { getService } from "../services";
-import TextField from "../shared/text-field";
-import RichTextEditor from "../shared/rich-text-editor/rich-text-editor";
-import FieldTable from "../shared/field-table";
+import { TextField } from "../shared/text-field";
+import { RichTextEditor } from "../shared/rich-text-editor/rich-text-editor";
+import { FieldTable } from "../shared/field-table";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 const RICH_TEXT_EDITOR_STYLES = { root: { borderWidth: "0" } };

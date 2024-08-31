@@ -1,4 +1,4 @@
-use sea_orm::entity::ActiveValue;
+use sea_orm::entity::{ActiveValue, Value};
 
 use entity::article::Model;
 
@@ -11,6 +11,7 @@ pub fn generate_article_response<E>(
 ) -> ArticleResponseSchema<E> {
     ArticleResponseSchema {
         id: article.id,
+        folder_id: article.folder_id,
         entity_type,
         title: article.title.to_string(),
         entity: Some(entity),
@@ -18,7 +19,10 @@ pub fn generate_article_response<E>(
     }
 }
 
-pub fn optional_string_to_active_value(string: Option<String>) -> ActiveValue<String> {
+pub fn optional_value_to_active_value<V>(string: Option<V>) -> ActiveValue<V>
+where
+    V: Into<Value>,
+{
     match string {
         Some(s) => ActiveValue::Set(s),
         None => ActiveValue::NotSet,

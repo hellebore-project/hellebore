@@ -65,6 +65,4 @@ function renderContentTree<N extends TreeNodeData>({
     );
 }
 
-const ContentTree = observer(renderContentTree);
-
-export default ContentTree;
+export const ContentTree = observer(renderContentTree);

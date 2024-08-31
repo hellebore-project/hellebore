@@ -9,6 +9,7 @@ export interface BaseArticleInfo extends IdentifiedObject {
 // Interfaces for updating articles
 
 export interface ArticleInfoUpdate extends BaseArticleInfo {
+    folder_id: number | null;
     title: string | null;
 }
 
@@ -27,6 +28,7 @@ export interface ArticleUpdateResponse extends ArticleInfoUpdate {
 // Interfaces for creating and fetching articles
 
 export interface ArticleInfoResponse extends BaseArticleInfo {
+    folder_id: number;
     title: string;
 }
 

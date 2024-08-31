@@ -19,6 +19,4 @@ function renderRichTextEditor({ getEditor, ...rest }: RichTextEditorSettings) {
     );
 }
 
-const RichTextEditor = observer(renderRichTextEditor);
-
-export default RichTextEditor;
+export const RichTextEditor = observer(renderRichTextEditor);

@@ -23,6 +23,7 @@
     "@mantine/core": "^7.12.2",
     "@mantine/hooks": "^7.12.2",
     "@mantine/tiptap": "^7.12.2",
+    "@minoru/react-dnd-treeview": "^3.4.4",
     "@tabler/icons-react": "^3.14.0",
     "@tauri-apps/api": "^1.6.0",
     "@tiptap/core": "^2.6.6",
@@ -38,6 +39,7 @@
     "mobx-react-lite": "^4.0.7",
     "prosemirror-model": "^1.22.3",
     "react": "^18.3.1",
+    "react-dnd": "^16.0.1",
     "react-dom": "^18.3.1",
     "tippy.js": "^6.3.7"
   },

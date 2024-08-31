@@ -7,6 +7,7 @@ use crate::util;
 #[derive(FromQueryResult)]
 pub struct ArticleItem {
     pub id: i32,
+    pub folder_id: i32,
     pub entity_type: i8,
     pub title: String,
 }
@@ -18,6 +19,7 @@ pub async fn insert(
 ) -> Result<article::Model, DbErr> {
     let new_entity = article::ActiveModel {
         id: NotSet,
+        folder_id: Set(-1),
         title: Set(title.to_string()),
         entity_type: Set(entity_type.code()),
         body: Set(String::from("")),
@@ -31,6 +33,7 @@ pub async fn insert(
 pub async fn update(
     db: &DbConn,
     id: i32,
+    folder_id: Option<i32>,
     title: Option<String>,
     content: Option<String>,
 ) -> Result<article::Model, DbErr> {
@@ -39,9 +42,10 @@ pub async fn update(
     };
     let updated_entity = article::ActiveModel {
         id: Unchanged(existing_entity.id),
+        folder_id: util::optional_value_to_active_value(folder_id),
         entity_type: NotSet,
-        title: util::optional_string_to_active_value(title),
-        body: util::optional_string_to_active_value(content),
+        title: util::optional_value_to_active_value(title),
+        body: util::optional_value_to_active_value(content),
     };
     updated_entity.update(db).await
 }
@@ -78,6 +82,7 @@ pub async fn get_all(db: &DbConn) -> Result<Vec<ArticleItem>, DbErr> {
         .select_only()
         .columns([
             article::Column::Id,
+            article::Column::FolderId,
             article::Column::Title,
             article::Column::EntityType,
         ])
