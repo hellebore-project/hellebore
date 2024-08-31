@@ -1,4 +1,4 @@
-import { Grid, Stack } from "@mantine/core";
+import { Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { FieldData, FieldType } from "../interface";
@@ -10,7 +10,7 @@ interface FieldRowSettings {
     data: FieldData;
 }
 
-interface FieldTableSettings {
+interface FieldTableSettings extends StackProps {
     getData: () => FieldData[];
 }
 
@@ -43,13 +43,13 @@ function renderFieldRow({ data }: FieldRowSettings) {
 
 const FieldRow = observer(renderFieldRow);
 
-function renderFieldTable({ getData }: FieldTableSettings) {
+function renderFieldTable({ getData, ...rest }: FieldTableSettings) {
     const rows = getData().map((fieldData) => (
         <FieldRow key={`${fieldData.property}-row`} data={fieldData} />
     ));
     if (rows.length == 0) return null;
     return (
-        <Stack align="stretch" gap="xs">
+        <Stack align="stretch" gap="xs" {...rest}>
             {rows}
         </Stack>
     );

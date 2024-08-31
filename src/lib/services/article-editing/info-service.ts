@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { EntityType } from "../../interface";
+import { ENTITY_TYPE_LABELS, EntityType } from "../../interface";
 
 const ARTICLE_ID_SENTINEL = -1;
 
@@ -17,6 +17,10 @@ export class ArticleInfoService {
 
     setId(id: number) {
         this.id = id;
+    }
+
+    get entityTypeLabel() {
+        return ENTITY_TYPE_LABELS[this.entityType as EntityType];
     }
 
     setEntityType(type: EntityType | null) {
