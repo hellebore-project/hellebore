@@ -1,18 +1,18 @@
 import { Button, ComboboxItem, Container, Group, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { ALL_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "../interface";
+import { ARTICLE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "../interface";
 import SelectField from "../shared/select-field";
 import TextField from "../shared/text-field";
 import { getService } from "../services";
+import { compareStrings } from "../utils/string";
 
-// TODO: sort the dropdown data alphabetically
-const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = ALL_ENTITY_TYPES.map(
+const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = ARTICLE_ENTITY_TYPES.map(
     (entityType) => ({
         label: ENTITY_TYPE_LABELS[entityType],
         value: entityType.toString(),
     }),
-);
+).sort((a, b) => compareStrings(a.label, b.label));
 
 function renderArticleCreator() {
     const service = getService();
@@ -30,7 +30,10 @@ function renderArticleCreator() {
                     label="Entity"
                     placeholder="Select an entity type (optional)"
                     data={ENTITY_TYPE_DROPDOWN_DATA}
-                    getValue={() => service.view.articleCreator.entityType}
+                    getValue={() =>
+                        service.view.articleCreator.entityType?.toString() ??
+                        null
+                    }
                     onChange={(entityType) =>
                         service.view.articleCreator.setEntityType(
                             Number(entityType),

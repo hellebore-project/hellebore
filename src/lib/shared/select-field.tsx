@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 interface SelectFieldSettings {
     label: string;
     data: ComboboxItem[];
-    getValue?: () => any;
+    getValue?: () => string | null;
     onChange?: (value: string | null, option: ComboboxItem) => void;
     placeholder?: string;
 }
@@ -17,6 +17,7 @@ function renderSelectField({
     placeholder = "Select a value",
 }: SelectFieldSettings) {
     const value = getValue ? getValue() : undefined;
+    console.log(value);
     return (
         <Select
             label={label}

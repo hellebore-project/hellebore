@@ -1,6 +1,7 @@
 import { Node as PMNode } from "prosemirror-model";
 import { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { Suggestion } from "../../interface";
@@ -86,7 +87,11 @@ export class ArticleBodyService {
         });
 
         return new Editor({
-            extensions: [StarterKit, Reference],
+            extensions: [
+                StarterKit,
+                Placeholder.configure({ placeholder: "Article Body" }),
+                Reference,
+            ],
             onUpdate: ({ editor }) => {
                 this._updateEditor(editor as Editor);
             },
