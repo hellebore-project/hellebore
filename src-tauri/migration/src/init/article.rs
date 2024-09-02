@@ -1,9 +1,12 @@
 use sea_orm_migration::{prelude::*, schema::*};
 
+use crate::init::folder::Folder;
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-const ARTICLE_TITLE_INDEX_NAME: &str = "article_title_index";
+const ARTICLE_TITLE_INDEX_NAME: &str = "index_article_title";
+const ARTICLE_FOLDER_ID_CONSTRAINT_NAME: &str = "fk_article_folder_id";
 
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
@@ -18,6 +21,13 @@ impl MigrationTrait for Migration {
                     .col(tiny_unsigned(Article::EntityType).not_null())
                     .col(string_uniq(Article::Title).not_null())
                     .col(string(Article::Body))
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name(ARTICLE_FOLDER_ID_CONSTRAINT_NAME)
+                            .from(Article::Table, Article::FolderId)
+                            .to(Folder::Table, Folder::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -35,10 +45,17 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Article::Table).to_owned())
+            .drop_index(Index::drop().name(ARTICLE_TITLE_INDEX_NAME).to_owned())
             .await?;
         manager
-            .drop_index(Index::drop().name(ARTICLE_TITLE_INDEX_NAME).to_owned())
+            .drop_foreign_key(
+                ForeignKey::drop()
+                    .name(ARTICLE_FOLDER_ID_CONSTRAINT_NAME)
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Article::Table).to_owned())
             .await?;
         Ok(())
     }
