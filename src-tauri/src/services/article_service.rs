@@ -2,9 +2,12 @@ use sea_orm::DatabaseConnection;
 
 use ::entity::article::Model as Article;
 
-use crate::database::article_manager;
+use crate::database::{article_manager, folder_manager};
 use crate::errors::ApiError;
-use crate::schema::{article::ArticleInfoSchema, update::UpdateResponseSchema};
+use crate::schema::{
+    article::{ArticleInfoSchema, ArticleResponseSchema},
+    update::UpdateResponseSchema,
+};
 use crate::types::ARTICLE;
 
 pub async fn update(
@@ -65,8 +68,23 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<ArticleInfoSch
 fn generate_info_response(item: &article_manager::ArticleItem) -> ArticleInfoSchema {
     return ArticleInfoSchema {
         id: item.id,
-        folder_id: item.folder_id,
+        folder_id: folder_manager::convert_null_folder_id_to_sentinel(item.folder_id),
         title: item.title.to_string(),
         entity_type: item.entity_type,
     };
+}
+
+pub fn generate_article_response<E>(
+    article: &Article,
+    entity_type: i8,
+    entity: E,
+) -> ArticleResponseSchema<E> {
+    ArticleResponseSchema {
+        id: article.id,
+        folder_id: folder_manager::convert_null_folder_id_to_sentinel(article.folder_id),
+        entity_type,
+        title: article.title.to_string(),
+        entity: Some(entity),
+        body: article.body.to_string(),
+    }
 }

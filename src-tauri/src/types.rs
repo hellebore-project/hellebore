@@ -14,11 +14,20 @@ impl EntityType {
     pub fn code(&self) -> i8 {
         match self {
             EntityType::None => 0,
+
+            // Core
             EntityType::Folder => 1,
             EntityType::Article => 2,
-            EntityType::Language => 3,
-            EntityType::Word => 4,
-            EntityType::Person => 5,
+
+            // Dictionary
+            EntityType::Language => 10,
+            EntityType::Word => 11,
+
+            // Calendar
+            // TODO
+
+            // Encyclopedia
+            EntityType::Person => 30,
         }
     }
 }

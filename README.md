@@ -42,3 +42,9 @@ After running the migrations, run the following command:
 ```sh
 pnpm generate:entities
 ```
+
+### Troubleshooting
+
+#### Drag and Drop
+
+On Windows systems, the `fileDropEnabled` option in the tauri config must be set to `false` in order to use drag and drop on the frontend.

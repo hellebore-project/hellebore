@@ -14,7 +14,7 @@ impl MigrationTrait for Migration {
                     .table(Folder::Table)
                     .if_not_exists()
                     .col(pk_auto(Folder::Id).not_null())
-                    .col(integer(Folder::ParentId))
+                    .col(integer_null(Folder::ParentId))
                     .col(string_uniq(Folder::Name).not_null())
                     .foreign_key(
                         ForeignKey::create()

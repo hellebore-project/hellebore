@@ -1,21 +1,21 @@
 use crate::app::AppState;
 use crate::errors::ApiError;
-use crate::schema::folder::{FolderInfoSchema, FolderResponseSchema};
+use crate::schema::folder::{FolderInfoSchema, FolderSchema};
 use crate::services::folder_service;
 
 #[tauri::command]
 pub async fn create_folder(
     state: tauri::State<'_, AppState>,
-    data: FolderInfoSchema,
-) -> Result<FolderResponseSchema, ApiError> {
-    folder_service::create(&state.database, &data).await
+    info: FolderInfoSchema,
+) -> Result<FolderSchema, ApiError> {
+    folder_service::create(&state.database, &info).await
 }
 
 #[tauri::command]
 pub async fn update_folder(
     state: tauri::State<'_, AppState>,
-    folder: FolderResponseSchema,
-) -> Result<FolderResponseSchema, ApiError> {
+    folder: FolderSchema,
+) -> Result<FolderSchema, ApiError> {
     folder_service::update(&state.database, &folder).await
 }
 
@@ -23,8 +23,13 @@ pub async fn update_folder(
 pub async fn get_folder(
     state: tauri::State<'_, AppState>,
     id: i32,
-) -> Result<FolderResponseSchema, ApiError> {
+) -> Result<FolderSchema, ApiError> {
     folder_service::get(&state.database, id).await
+}
+
+#[tauri::command]
+pub async fn get_folders(state: tauri::State<'_, AppState>) -> Result<Vec<FolderSchema>, ApiError> {
+    folder_service::get_all(&state.database).await
 }
 
 #[tauri::command]

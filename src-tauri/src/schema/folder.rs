@@ -7,7 +7,7 @@ pub struct FolderInfoSchema {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct FolderResponseSchema {
+pub struct FolderSchema {
     pub id: i32,
     pub info: FolderInfoSchema,
 }

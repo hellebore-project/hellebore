@@ -9,6 +9,6 @@ export class AppService {
         this.domain = new DomainService();
         this.view = new ViewService(this.domain);
 
-        this.domain.articles.getAll();
+        this.view.populateNavigator();
     }
 }

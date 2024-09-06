@@ -1,0 +1,22 @@
+.nav-item {
+    cursor: pointer;
+}
+
+.nav-sub-item {
+    align-items: "center";
+}
+
+.nav-item-indent {
+    width: 9px;
+    height: 18px;
+}
+
+.nav-item-expand-button-placeholder {
+    width: 18px;
+    height: 18px;
+}
+
+.nav-item-text {
+    /* prevent highlighting text in nav items */
+    user-select: "none";
+}

@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 import { ArticleResponse, BaseEntity, EntityType, ViewKey } from "../interface";
 import { ArticleCreatorService } from "./article-creator-service";
 import { ArticleEditorService } from "./article-editing";
-import { NavigationService } from "./navigation-service";
+import { NavigationService } from "./navigation/navigation-service";
 import { DomainService } from "./domain";
 
 export class ViewService {
@@ -15,7 +15,7 @@ export class ViewService {
     articleEditor: ArticleEditorService;
     navigation: NavigationService;
 
-    constructor(domainService: DomainService) {
+    constructor(domain: DomainService) {
         const overrides = {
             data: false,
             articleCreator: false,
@@ -24,19 +24,31 @@ export class ViewService {
         };
         makeAutoObservable(this, overrides);
 
-        this.domain = domainService;
-        this.articleCreator = new ArticleCreatorService(domainService);
-        this.articleEditor = new ArticleEditorService(domainService, (id) =>
+        this.domain = domain;
+
+        this.articleCreator = new ArticleCreatorService(domain);
+
+        this.articleEditor = new ArticleEditorService(domain, (id) =>
             this.openArticleEditorForId(id),
         );
-        this.navigation = new NavigationService();
 
-        this.domain.articles.onFetchedAll.push((infos) =>
-            this.navigation.setupArticleNodes(infos),
+        this.navigation = new NavigationService(this.domain);
+        this.navigation.articles.onSelectedArticle.push((id) =>
+            this.openArticleEditorForId(id),
         );
-        this.domain.articles.onUpdated.push((articleUpdate) =>
-            this.navigation.updateArticleNode(articleUpdate),
-        );
+
+        this.domain.articles.onUpdated.push(({ id, title, isTitleUnique }) => {
+            if (!title || title == "" || !isTitleUnique) return;
+            this.navigation.articles.updateArticleNodeText(id, title);
+        });
+    }
+
+    async populateNavigator() {
+        const articles = await this.domain.articles.getAll();
+        const folders = await this.domain.folders.getAll();
+
+        if (articles && folders)
+            this.navigation.articles.setup(articles, folders);
     }
 
     toggleSideBar() {
@@ -58,6 +70,7 @@ export class ViewService {
     openArticleEditor(article: ArticleResponse<BaseEntity>) {
         this.cleanUp();
         this.articleEditor.initialize(article);
+        this.navigation.articles.selectArticleNode(article.id);
         this.viewKey = ViewKey.ARTICLE_EDITOR;
     }
 
@@ -76,7 +89,7 @@ export class ViewService {
     async createArticle() {
         let article = await this.articleCreator.createArticle();
         if (article) {
-            this.navigation.addArticleNode(article);
+            this.navigation.articles.addNodeForCreatedArticle(article);
             this.openArticleEditor(article);
         }
     }

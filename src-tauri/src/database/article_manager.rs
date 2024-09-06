@@ -1,13 +1,14 @@
 use ::entity::{article, article::Entity as Article};
 use sea_orm::*;
 
+use crate::database::folder_manager;
 use crate::types::EntityType;
 use crate::util;
 
 #[derive(FromQueryResult)]
 pub struct ArticleItem {
     pub id: i32,
-    pub folder_id: i32,
+    pub folder_id: Option<i32>,
     pub entity_type: i8,
     pub title: String,
 }
@@ -19,7 +20,7 @@ pub async fn insert(
 ) -> Result<article::Model, DbErr> {
     let new_entity = article::ActiveModel {
         id: NotSet,
-        folder_id: Set(-1),
+        folder_id: Set(None),
         title: Set(title.to_string()),
         entity_type: Set(entity_type.code()),
         body: Set(String::from("")),
@@ -42,7 +43,7 @@ pub async fn update(
     };
     let updated_entity = article::ActiveModel {
         id: Unchanged(existing_entity.id),
-        folder_id: util::optional_value_to_active_value(folder_id),
+        folder_id: folder_manager::optional_folder_id_to_active_value(folder_id),
         entity_type: NotSet,
         title: util::optional_value_to_active_value(title),
         body: util::optional_value_to_active_value(content),

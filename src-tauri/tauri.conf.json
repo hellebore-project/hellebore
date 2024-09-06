@@ -22,7 +22,8 @@
         "title": "Hellebore",
         "maximized": true,
         "minWidth": 300,
-        "minHeight": 500
+        "minHeight": 500,
+        "fileDropEnabled": false
       }
     ],
     "security": {

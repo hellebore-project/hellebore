@@ -20,7 +20,7 @@ function renderApp() {
                 <Header />
             </AppShell.Header>
 
-            <AppShell.Navbar p="md">
+            <AppShell.Navbar>
                 <SideBar />
             </AppShell.Navbar>
 
@@ -31,6 +31,4 @@ function renderApp() {
     );
 }
 
-const App = observer(renderApp);
-
-export default App;
+export const App = observer(renderApp);
