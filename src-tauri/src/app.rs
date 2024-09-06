@@ -24,6 +24,12 @@ where
     builder.invoke_handler(tauri::generate_handler![
         // article API
         api::article::get_articles,
+        // folder API
+        api::folder::create_folder,
+        api::folder::update_folder,
+        api::folder::get_folder,
+        api::folder::get_folders,
+        api::folder::delete_folder,
         // language API
         api::language::create_language,
         api::language::update_language,

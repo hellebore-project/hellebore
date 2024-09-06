@@ -122,7 +122,6 @@ export class ArticleEditorService {
         try {
             response = await this.domain.articles.update({
                 id: this.info.id,
-                folder_id: null,
                 entity_type: this.info.entityType as EntityType,
                 title:
                     syncTitle && this.info.titleChanged

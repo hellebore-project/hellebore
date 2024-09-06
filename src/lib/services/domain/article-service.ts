@@ -73,22 +73,34 @@ export class ArticleService {
         return response;
     }
 
-    async update(
-        articleUpdate: ArticleUpdate<BaseEntity>,
-    ): Promise<ArticleUpdateResponse | null> {
+    async update({
+        id,
+        entity_type,
+        folder_id = null,
+        title = null,
+        body = null,
+        entity = null,
+    }: Partial<
+        ArticleUpdate<BaseEntity>
+    >): Promise<ArticleUpdateResponse | null> {
+        const payload: ArticleUpdate<BaseEntity> = {
+            id: id as number,
+            entity_type: entity_type as EntityType,
+            folder_id,
+            title,
+            body,
+            entity,
+        };
         let response: UpdateResponse<null> | null;
 
         try {
-            response = await updateArticle(articleUpdate);
+            response = await updateArticle(payload);
         } catch (error) {
             console.error(error);
             return null;
         }
 
-        const cleanResponse = this._buildUpdateResponse(
-            articleUpdate,
-            response,
-        );
+        const cleanResponse = this._buildUpdateResponse(payload, response);
 
         if (
             cleanResponse.titleChange == ValueChange.UPDATED &&
@@ -175,6 +187,7 @@ export class ArticleService {
         maxResults: number = 5,
     ): ArticleInfoResponse[] {
         const arg = titleFragment.toLowerCase();
+        // TODO: query the backend so that we don't have to cache the article infos
         return Object.values(this.infos)
             .filter((info) => info.title.toLowerCase().startsWith(arg))
             .slice(0, maxResults);

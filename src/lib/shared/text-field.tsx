@@ -2,35 +2,24 @@ import { TextInput, TextInputProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 export interface TextFieldSettings extends TextInputProps {
-    variant?: string;
-    label?: string;
-    placeholder?: string;
+    value?: string;
     getValue?: () => string;
     getError?: () => string | null;
-    onChange?: React.ChangeEventHandler<HTMLInputElement>;
 }
 
 function renderTextField({
-    variant = "default",
-    label,
-    placeholder,
+    value,
     getValue,
     getError,
-    onChange,
     ...rest
 }: TextFieldSettings) {
-    const value = getValue ? getValue() : undefined;
+    const _value = getValue ? getValue() : value;
     const error = getError ? getError() : null;
 
     const props: TextInputProps = {
-        label,
-        value,
-        placeholder,
-        onChange,
+        value: _value,
         ...rest,
     };
-    if (variant && variant != "default") props["variant"] = variant;
-    if (label) props["label"] = label;
     if (error) props["error"] = error;
 
     return <TextInput {...props} />;

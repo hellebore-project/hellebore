@@ -4,13 +4,13 @@ use ::entity::folder::Model as Folder;
 
 use crate::database::folder_manager;
 use crate::errors::ApiError;
-use crate::schema::folder::{FolderInfoSchema, FolderResponseSchema};
+use crate::schema::folder::{FolderInfoSchema, FolderSchema};
 use crate::types::FOLDER;
 
 pub async fn create(
     database: &DatabaseConnection,
     folder: &FolderInfoSchema,
-) -> Result<FolderResponseSchema, ApiError> {
+) -> Result<FolderSchema, ApiError> {
     return match folder_manager::insert(&database, folder.parent_id, &folder.name).await {
         Ok(entity) => Ok(generate_response(&entity)),
         Err(e) => Err(ApiError::not_inserted(e, FOLDER)),
@@ -19,8 +19,8 @@ pub async fn create(
 
 pub async fn update(
     database: &DatabaseConnection,
-    folder: &FolderResponseSchema,
-) -> Result<FolderResponseSchema, ApiError> {
+    folder: &FolderSchema,
+) -> Result<FolderSchema, ApiError> {
     return match folder_manager::update(
         &database,
         folder.id,
@@ -34,7 +34,7 @@ pub async fn update(
     };
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderResponseSchema, ApiError> {
+pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderSchema, ApiError> {
     let folder = folder_manager::get(&database, id)
         .await
         .map_err(|e| ApiError::not_found(e, FOLDER))?;
@@ -44,7 +44,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderRespons
     };
 }
 
-pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponseSchema>, ApiError> {
+pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderSchema>, ApiError> {
     let folders = folder_manager::get_all(&database)
         .await
         .map_err(|e| ApiError::not_found(e, FOLDER))?;
@@ -65,11 +65,11 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     return Ok(());
 }
 
-fn generate_response(folder: &Folder) -> FolderResponseSchema {
-    return FolderResponseSchema {
+fn generate_response(folder: &Folder) -> FolderSchema {
+    return FolderSchema {
         id: folder.id,
         info: FolderInfoSchema {
-            parent_id: folder.parent_id,
+            parent_id: folder_manager::convert_null_folder_id_to_sentinel(folder.parent_id),
             name: folder.name.to_string(),
         },
     };

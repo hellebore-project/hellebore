@@ -17,7 +17,7 @@ impl MigrationTrait for Migration {
                     .table(Article::Table)
                     .if_not_exists()
                     .col(pk_auto(Article::Id).not_null())
-                    .col(integer(Article::FolderId))
+                    .col(integer_null(Article::FolderId))
                     .col(tiny_unsigned(Article::EntityType).not_null())
                     .col(string_uniq(Article::Title).not_null())
                     .col(string(Article::Body))

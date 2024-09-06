@@ -6,10 +6,20 @@ import { pluralize } from "../../utils/string";
  */
 export enum EntityType {
     NONE = 0,
-    ARTICLE = 1,
-    LANGUAGE = 2,
-    WORD = 3,
-    PERSON = 4,
+
+    // Core
+    FOLDER = 1,
+    ARTICLE = 2,
+
+    // Dictionary
+    LANGUAGE = 10,
+    WORD = 11,
+
+    // Calendar
+    // TODO
+
+    // Encyclopedia
+    PERSON = 30,
 }
 
 export const ENTITY_TYPE_LABELS: { [entityType: number]: string } = {

@@ -12,7 +12,6 @@ use crate::schema::{
 };
 use crate::services::article_service;
 use crate::types::{ARTICLE, PERSON};
-use crate::util;
 
 pub async fn create(
     database: &DatabaseConnection,
@@ -82,7 +81,7 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
 }
 
 fn generate_response(article: Article, entity: Person) -> ArticleResponseSchema<PersonDataSchema> {
-    return util::generate_article_response(
+    return article_service::generate_article_response(
         &article,
         PERSON.code(),
         PersonDataSchema { name: entity.name },
