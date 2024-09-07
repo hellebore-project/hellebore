@@ -1,6 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
-import { ArticleResponse, BaseEntity, EntityType, ViewKey } from "../interface";
+import {
+    ArticleResponse,
+    BaseEntity,
+    EntityType,
+    ModalKey,
+    ViewKey,
+} from "../interface";
 import { ArticleCreatorService } from "./article-creator-service";
 import { ArticleEditorService } from "./article-editing";
 import { NavigationService } from "./navigation/navigation-service";
@@ -8,6 +14,7 @@ import { DomainService } from "./domain";
 
 export class ViewService {
     viewKey: ViewKey = ViewKey.HOME;
+    modalKey: ModalKey | null = null;
     sideBarOpen: boolean = true;
 
     domain: DomainService;
@@ -64,7 +71,7 @@ export class ViewService {
     openArticleCreator(entityType: EntityType | undefined = undefined) {
         this.cleanUp();
         this.articleCreator.initialize(entityType);
-        this.viewKey = ViewKey.ARTICLE_CREATOR;
+        this.modalKey = ModalKey.ARTICLE_CREATOR;
     }
 
     openArticleEditor(article: ArticleResponse<BaseEntity>) {
@@ -81,14 +88,20 @@ export class ViewService {
         )
             return; // the article is already open
 
-        const entityType = this.domain.articles.infos[id]?.entity_type ?? null;
-        const article = await this.domain.articles.get(id, entityType);
+        const article = await this.domain.articles.get(id);
         if (article) this.openArticleEditor(article);
     }
 
+    closeModal() {
+        this.modalKey = null;
+    }
+
     async createArticle() {
-        let article = await this.articleCreator.createArticle();
+        let article = await this.articleCreator.createArticle(
+            this.navigation.articles.activeFolderId,
+        );
         if (article) {
+            this.closeModal();
             this.navigation.articles.addNodeForCreatedArticle(article);
             this.openArticleEditor(article);
         }

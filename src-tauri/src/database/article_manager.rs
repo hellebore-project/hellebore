@@ -15,12 +15,15 @@ pub struct ArticleItem {
 
 pub async fn insert(
     db: &DbConn,
+    folder_id: i32,
     title: &str,
     entity_type: EntityType,
 ) -> Result<article::Model, DbErr> {
     let new_entity = article::ActiveModel {
         id: NotSet,
-        folder_id: Set(None),
+        folder_id: Set(folder_manager::convert_folder_id_sentinel_to_none(
+            folder_id,
+        )),
         title: Set(title.to_string()),
         entity_type: Set(entity_type.code()),
         body: Set(String::from("")),

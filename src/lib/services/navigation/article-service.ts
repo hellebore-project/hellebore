@@ -206,7 +206,7 @@ export class ArticleNavigationService {
 
                 if (folder) {
                     // sync the node ID with the backend
-                    node.id = folder.id;
+                    node.id = folderNodeId(folder.id);
                     delete node?.data?.isPlaceholder;
                     delete node?.data?.isEditable;
                     this.setNode(node, index);
@@ -237,6 +237,12 @@ export class ArticleNavigationService {
             if (node.droppable)
                 // folder
                 this.domain.folders.update(id, node.text, parentId);
+            // article
+            else
+                this.domain.articles.update({
+                    id,
+                    folder_id: parentId,
+                });
         }
     }
 

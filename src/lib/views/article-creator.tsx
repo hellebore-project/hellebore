@@ -1,7 +1,18 @@
-import { Button, ComboboxItem, Container, Group, Space } from "@mantine/core";
+import {
+    Button,
+    ComboboxItem,
+    Container,
+    Group,
+    Modal,
+    Space,
+} from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { ARTICLE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "../interface";
+import {
+    ARTICLE_ENTITY_TYPES,
+    ENTITY_TYPE_LABELS,
+    ModalKey,
+} from "../interface";
 import { SelectField } from "../shared/select-field";
 import { TextField } from "../shared/text-field";
 import { getService } from "../services";
@@ -23,47 +34,50 @@ function renderArticleCreator() {
     };
 
     return (
-        <Container size="xs">
-            <h1>Create a New Article</h1>
-            <form onSubmit={onSubmit}>
-                <SelectField
-                    label="Entity"
-                    placeholder="Select an entity type (optional)"
-                    data={ENTITY_TYPE_DROPDOWN_DATA}
-                    getValue={() =>
-                        service.view.articleCreator.entityType?.toString() ??
-                        null
-                    }
-                    onChange={(entityType) =>
-                        service.view.articleCreator.setEntityType(
-                            Number(entityType),
-                        )
-                    }
-                />
-                <Space h="xs" />
-                <TextField
-                    label={"Title"}
-                    placeholder="Enter a unique title"
-                    getValue={() => service.view.articleCreator.title}
-                    getError={() =>
-                        service.view.articleCreator.isTitleUnique
-                            ? null
-                            : "Duplicate title"
-                    }
-                    onChange={(event) =>
-                        service.view.articleCreator.setTitle(
-                            event.currentTarget.value,
-                        )
-                    }
-                />
-                <Group justify="flex-end" mt="md">
-                    <Button type="submit">Submit</Button>
-                </Group>
-            </form>
-        </Container>
+        <Modal
+            title="Create a new article"
+            opened={service.view.modalKey == ModalKey.ARTICLE_CREATOR}
+            onClose={() => service.view.closeModal()}
+        >
+            <Container size="xs">
+                <form onSubmit={onSubmit}>
+                    <SelectField
+                        label="Entity"
+                        placeholder="Select an entity type (optional)"
+                        data={ENTITY_TYPE_DROPDOWN_DATA}
+                        getValue={() =>
+                            service.view.articleCreator.entityType?.toString() ??
+                            null
+                        }
+                        onChange={(entityType) =>
+                            service.view.articleCreator.setEntityType(
+                                Number(entityType),
+                            )
+                        }
+                    />
+                    <Space h="xs" />
+                    <TextField
+                        label={"Title"}
+                        placeholder="Enter a unique title"
+                        getValue={() => service.view.articleCreator.title}
+                        getError={() =>
+                            service.view.articleCreator.isTitleUnique
+                                ? null
+                                : "Duplicate title"
+                        }
+                        onChange={(event) =>
+                            service.view.articleCreator.setTitle(
+                                event.currentTarget.value,
+                            )
+                        }
+                    />
+                    <Group justify="flex-end" mt="md">
+                        <Button type="submit">Submit</Button>
+                    </Group>
+                </form>
+            </Container>
+        </Modal>
     );
 }
 
-const ArticleCreator = observer(renderArticleCreator);
-
-export default ArticleCreator;
+export const ArticleCreator = observer(renderArticleCreator);

@@ -5,7 +5,7 @@ use ::entity::article::Model as Article;
 use crate::database::{article_manager, language_manager};
 use crate::errors::ApiError;
 use crate::schema::{
-    article::{ArticleResponseSchema, ArticleUpdateSchema},
+    article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     language::LanguageDataSchema,
     update::UpdateResponseSchema,
 };
@@ -14,9 +14,9 @@ use crate::types::{ARTICLE, LANGUAGE};
 
 pub async fn create(
     database: &DatabaseConnection,
-    language: LanguageDataSchema,
+    article: ArticleCreateSchema<LanguageDataSchema>,
 ) -> Result<ArticleResponseSchema<LanguageDataSchema>, ApiError> {
-    let article = article_manager::insert(&database, &language.name, LANGUAGE)
+    let article = article_manager::insert(&database, article.folder_id, &article.title, LANGUAGE)
         .await
         .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
     return match language_manager::insert(&database, article.id).await {

@@ -6,6 +6,14 @@ export interface BaseArticleInfo extends IdentifiedObject {
     entity_type: EntityType;
 }
 
+// Interfaces for creating articles
+
+export interface ArticleCreate<E extends BaseEntity> {
+    folder_id: number;
+    title: string;
+    data: E;
+}
+
 // Interfaces for updating articles
 
 export interface ArticleInfoUpdate extends BaseArticleInfo {
@@ -19,6 +27,7 @@ export interface ArticleUpdate<E extends BaseEntity> extends ArticleInfoUpdate {
 }
 
 export interface ArticleUpdateResponse extends ArticleInfoUpdate {
+    folderChange: ValueChange;
     isTitleUnique?: boolean;
     titleChange: ValueChange;
     entityChange: ValueChange;
