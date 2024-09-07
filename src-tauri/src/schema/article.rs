@@ -9,6 +9,13 @@ pub struct ArticleInfoSchema {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ArticleCreateSchema<E> {
+    pub folder_id: i32,
+    pub title: String,
+    pub data: E,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ArticleUpdateSchema<E> {
     pub id: i32,
     pub folder_id: Option<i32>,

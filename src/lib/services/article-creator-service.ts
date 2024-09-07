@@ -1,6 +1,11 @@
 import { makeAutoObservable } from "mobx";
 
-import { ArticleResponse, BaseEntity, EntityType } from "../interface";
+import {
+    ArticleResponse,
+    BaseEntity,
+    EntityType,
+    ROOT_FOLDER_ID,
+} from "../interface";
 import { DomainService } from "./domain";
 
 export class ArticleCreatorService {
@@ -27,10 +32,13 @@ export class ArticleCreatorService {
         this.isTitleUnique = isUnique;
     }
 
-    async createArticle(): Promise<ArticleResponse<BaseEntity> | null> {
+    async createArticle(
+        folder_id: number = ROOT_FOLDER_ID,
+    ): Promise<ArticleResponse<BaseEntity> | null> {
         const article = await this.data.articles.create(
+            this.entityType as EntityType,
             this.title,
-            this.entityType,
+            folder_id,
         );
 
         if (article == null) {

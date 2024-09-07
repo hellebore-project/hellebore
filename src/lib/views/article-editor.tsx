@@ -53,6 +53,4 @@ function renderArticleEditor() {
     );
 }
 
-const ArticleEditor = observer(renderArticleEditor);
-
-export default ArticleEditor;
+export const ArticleEditor = observer(renderArticleEditor);

@@ -1,7 +1,7 @@
 use crate::app::AppState;
 use crate::errors::ApiError;
 use crate::schema::{
-    article::{ArticleResponseSchema, ArticleUpdateSchema},
+    article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     language::LanguageDataSchema,
     update::UpdateResponseSchema,
 };
@@ -10,9 +10,9 @@ use crate::services::language_service;
 #[tauri::command]
 pub async fn create_language(
     state: tauri::State<'_, AppState>,
-    data: LanguageDataSchema,
+    article: ArticleCreateSchema<LanguageDataSchema>,
 ) -> Result<ArticleResponseSchema<LanguageDataSchema>, ApiError> {
-    language_service::create(&state.database, data).await
+    language_service::create(&state.database, article).await
 }
 
 #[tauri::command]

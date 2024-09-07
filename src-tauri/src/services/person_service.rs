@@ -6,7 +6,7 @@ use ::entity::person::Model as Person;
 use crate::database::{article_manager, person_manager};
 use crate::errors::ApiError;
 use crate::schema::{
-    article::{ArticleResponseSchema, ArticleUpdateSchema},
+    article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     person::PersonDataSchema,
     update::UpdateResponseSchema,
 };
@@ -15,13 +15,13 @@ use crate::types::{ARTICLE, PERSON};
 
 pub async fn create(
     database: &DatabaseConnection,
-    person: PersonDataSchema,
+    article: ArticleCreateSchema<PersonDataSchema>,
 ) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
-    let article = article_manager::insert(&database, &person.name, PERSON)
+    let _article = article_manager::insert(&database, article.folder_id, &article.title, PERSON)
         .await
         .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
-    return match person_manager::insert(&database, article.id, &person.name).await {
-        Ok(entity) => Ok(generate_response(article, entity)),
+    return match person_manager::insert(&database, _article.id, &article.data.name).await {
+        Ok(entity) => Ok(generate_response(_article, entity)),
         Err(e) => Err(ApiError::not_inserted(e, PERSON)),
     };
 }

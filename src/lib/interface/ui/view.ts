@@ -1,7 +1,8 @@
 export enum ViewKey {
     HOME = "HOME",
-    ARTICLE = "ARTICLE",
-    ARTICLE_CREATOR = "ARTICLE_CREATOR",
     ARTICLE_EDITOR = "ARTICLE_EDITOR",
-    ARTICLE_LIST = "ARTICLE_LIST",
+}
+
+export enum ModalKey {
+    ARTICLE_CREATOR = "ARTICLE_CREATOR",
 }

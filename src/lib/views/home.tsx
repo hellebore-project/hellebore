@@ -8,6 +8,4 @@ function renderHome() {
     );
 }
 
-const Home = observer(renderHome);
-
-export default Home;
+export const Home = observer(renderHome);

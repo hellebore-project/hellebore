@@ -13,14 +13,31 @@ import {
     PersonData,
     UpdateResponse,
     ValueChange,
+    IdentifiedObject,
+    ArticleCreate,
+    ROOT_FOLDER_ID,
 } from "../../interface";
+
+export interface ArticleUpdateArguments extends IdentifiedObject {
+    entity_type?: EntityType | null;
+    folder_id?: number | null;
+    title?: string | null;
+    body?: string | null;
+    entity?: BaseEntity | null;
+}
 
 type CreateArticleEventHandler = (article: ArticleResponse<BaseEntity>) => void;
 type UpdateArticleEventHandler = (update: ArticleUpdateResponse) => void;
 type FetchArticleEventHandler = (infos: ArticleInfoResponse[]) => void;
 
 export class ArticleService {
-    infos: { [id: number]: ArticleInfoResponse };
+    /**
+     * The high-level information of each article is cached. This information is used for:
+     *  - entity type look-ups
+     *  - querying articles by title
+     *  - updating references in article bodies (TODO)
+     */
+    _infos: { [id: number]: ArticleInfoResponse };
 
     onCreated: CreateArticleEventHandler[];
     onUpdated: UpdateArticleEventHandler[];
@@ -28,12 +45,13 @@ export class ArticleService {
 
     constructor() {
         makeAutoObservable(this, {
+            _infos: false,
             onCreated: false,
             onUpdated: false,
             onFetchedAll: false,
         });
 
-        this.infos = {};
+        this._infos = {};
 
         this.onCreated = [];
         this.onUpdated = [];
@@ -41,16 +59,17 @@ export class ArticleService {
     }
 
     async create(
+        entityType: EntityType,
         title: string,
-        entityType: EntityType | null,
+        folder_id: number = ROOT_FOLDER_ID,
     ): Promise<ArticleResponse<BaseEntity> | null> {
         let response: ArticleResponse<BaseEntity> | null;
 
         try {
             if (entityType === EntityType.LANGUAGE)
-                response = await createLanguage(title);
+                response = await createLanguage(title, folder_id);
             else if (entityType === EntityType.PERSON)
-                response = await createPerson(title);
+                response = await createPerson(title, folder_id);
             else {
                 console.error(
                     `Unabled to create articles with entity type ${entityType}.`,
@@ -62,7 +81,7 @@ export class ArticleService {
             return null;
         }
 
-        this.infos[response.id] = {
+        this._infos[response.id] = {
             id: response.id,
             folder_id: response.folder_id,
             entity_type: response.entity_type,
@@ -75,14 +94,14 @@ export class ArticleService {
 
     async update({
         id,
-        entity_type,
+        entity_type = null,
         folder_id = null,
         title = null,
         body = null,
         entity = null,
-    }: Partial<
-        ArticleUpdate<BaseEntity>
-    >): Promise<ArticleUpdateResponse | null> {
+    }: ArticleUpdateArguments): Promise<ArticleUpdateResponse | null> {
+        if (!entity_type) entity_type = this._infos[id].entity_type;
+
         const payload: ArticleUpdate<BaseEntity> = {
             id: id as number,
             entity_type: entity_type as EntityType,
@@ -102,12 +121,15 @@ export class ArticleService {
 
         const cleanResponse = this._buildUpdateResponse(payload, response);
 
+        if (cleanResponse.folderChange && cleanResponse.folder_id !== null)
+            this._infos[cleanResponse.id].folder_id = cleanResponse.folder_id;
         if (
             cleanResponse.titleChange == ValueChange.UPDATED &&
             cleanResponse.title &&
             cleanResponse.isTitleUnique
         )
-            this.infos[cleanResponse.id].title = cleanResponse.title;
+            this._infos[cleanResponse.id].title = cleanResponse.title;
+
         this.onUpdated.forEach((handler) => handler(cleanResponse));
 
         return cleanResponse;
@@ -120,6 +142,10 @@ export class ArticleService {
         const cleanResponse: ArticleUpdateResponse = {
             id: articleUpdate.id,
             folder_id: articleUpdate.folder_id,
+            folderChange:
+                articleUpdate.folder_id == null
+                    ? ValueChange.NOT_SET
+                    : ValueChange.UPDATED,
             entity_type: articleUpdate.entity_type,
             title: articleUpdate.title,
             titleChange:
@@ -156,8 +182,10 @@ export class ArticleService {
 
     async get(
         id: number,
-        entityType: EntityType,
+        entityType?: EntityType | null,
     ): Promise<ArticleResponse<BaseEntity> | null> {
+        if (!entityType) entityType = this._infos[id].entity_type;
+
         try {
             return await getArticle(id, entityType);
         } catch (error) {
@@ -176,7 +204,7 @@ export class ArticleService {
             return null;
         }
 
-        response.forEach((info) => (this.infos[info.id] = info));
+        response.forEach((info) => (this._infos[info.id] = info));
         this.onFetchedAll.forEach((handler) => handler(response));
 
         return response;
@@ -187,8 +215,7 @@ export class ArticleService {
         maxResults: number = 5,
     ): ArticleInfoResponse[] {
         const arg = titleFragment.toLowerCase();
-        // TODO: query the backend so that we don't have to cache the article infos
-        return Object.values(this.infos)
+        return Object.values(this._infos)
             .filter((info) => info.title.toLowerCase().startsWith(arg))
             .slice(0, maxResults);
     }
@@ -196,18 +223,29 @@ export class ArticleService {
 
 async function createLanguage(
     name: string,
+    folder_id: number,
 ): Promise<ArticleResponse<LanguageData>> {
-    return invoke<ArticleResponse<LanguageData>>("create_language", {
+    const article: ArticleCreate<LanguageData> = {
+        folder_id,
+        title: name,
         data: { name },
+    };
+    console.log(article);
+    return invoke<ArticleResponse<LanguageData>>("create_language", {
+        article,
     });
 }
 
 async function createPerson(
     name: string,
+    folder_id: number,
 ): Promise<ArticleResponse<PersonData>> {
-    return invoke<ArticleResponse<PersonData>>("create_person", {
+    const article: ArticleCreate<LanguageData> = {
+        folder_id,
+        title: name,
         data: { name },
-    });
+    };
+    return invoke<ArticleResponse<PersonData>>("create_person", { article });
 }
 
 async function updateArticle(

@@ -1,7 +1,7 @@
 use crate::app::AppState;
 use crate::errors::ApiError;
 use crate::schema::{
-    article::{ArticleResponseSchema, ArticleUpdateSchema},
+    article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     person::PersonDataSchema,
     update::UpdateResponseSchema,
 };
@@ -10,9 +10,9 @@ use crate::services::person_service;
 #[tauri::command]
 pub async fn create_person(
     state: tauri::State<'_, AppState>,
-    data: PersonDataSchema,
+    article: ArticleCreateSchema<PersonDataSchema>,
 ) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
-    person_service::create(&state.database, data).await
+    person_service::create(&state.database, article).await
 }
 
 #[tauri::command]
