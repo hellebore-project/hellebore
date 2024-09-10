@@ -7,7 +7,7 @@ use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     language::LanguageDataSchema,
-    update::UpdateResponseSchema,
+    response::ResponseSchema,
 };
 use crate::services::article_service;
 use crate::types::{ARTICLE, LANGUAGE};
@@ -28,7 +28,7 @@ pub async fn create(
 pub async fn update(
     database: &DatabaseConnection,
     article: ArticleUpdateSchema<LanguageDataSchema>,
-) -> Result<UpdateResponseSchema<()>, ApiError> {
+) -> Result<ResponseSchema<()>, ApiError> {
     return article_service::update(
         &database,
         article.id,
@@ -49,15 +49,7 @@ pub async fn get(
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    let exists = article_manager::exists(&database, id)
-        .await
-        .map_err(|e| ApiError::query_failed(e, ARTICLE))?;
-    if !exists {
-        return Err(ApiError::not_found("Language not found.", ARTICLE));
-    }
-    let _ = article_manager::delete(&database, id)
-        .await
-        .map_err(|e| ApiError::not_deleted(e, ARTICLE))?;
+    article_service::delete(&database, id).await?;
     language_manager::delete(&database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, LANGUAGE))?;

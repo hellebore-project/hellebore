@@ -1,7 +1,15 @@
-import { Grid, GridColProps, GridProps, Text, TextProps } from "@mantine/core";
+import {
+    Grid,
+    GridColProps,
+    GridProps,
+    Popover,
+    PopoverProps,
+    Text,
+    TextProps,
+} from "@mantine/core";
 import { IconChevronRight } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
-import { CSSProperties, PropsWithChildren, ReactNode } from "react";
+import { forwardRef, PropsWithChildren, ReactNode } from "react";
 
 import { TextField, TextFieldSettings } from "../text-field";
 import { range } from "../../utils/array";
@@ -36,13 +44,18 @@ export interface TextSettings extends TextProps {
     getValue?: () => string;
 }
 
-interface NavSubItemSettings extends GridColProps {}
+export interface PopoverSettings extends PopoverProps {
+    text?: string;
+}
+
+export interface NavSubItemSettings extends GridColProps {}
 
 interface NavItemSettings extends PropsWithChildren<GridProps> {
     indentSettings?: IndentSettings;
     expandButtonSettings?: ExpandButtonSettings;
     textSettings?: TextSettings;
     textInputSettings?: TextFieldSettings;
+    popoverSettings?: PopoverSettings;
 }
 
 function renderExpandButton({
@@ -62,6 +75,27 @@ function renderExpandButton({
 
 const ExpandButton = observer(renderExpandButton);
 
+const renderReadOnlyText = forwardRef<HTMLParagraphElement, TextSettings>(
+    ({ value, getValue, ...rest }, ref) => {
+        const _text = getValue?.() ?? value;
+        return (
+            <Text className="nav-item-text" {...rest}>
+                {_text}
+            </Text>
+        );
+    },
+);
+
+const ReadOnlyText = observer(renderReadOnlyText);
+
+const renderEditableText = forwardRef<HTMLInputElement, TextFieldSettings>(
+    (settings, ref) => {
+        return <TextField inputRef={ref} {...settings} />;
+    },
+);
+
+const EditableText = observer(renderEditableText);
+
 function renderNavSubItem({ children, ...rest }: NavSubItemSettings) {
     return (
         <Grid.Col className="nav-sub-item" display="flex" {...rest}>
@@ -77,6 +111,7 @@ function renderNavItem({
     expandButtonSettings = {},
     textSettings = {},
     textInputSettings = {},
+    popoverSettings = {},
     children,
     ...rest
 }: NavItemSettings) {
@@ -101,16 +136,9 @@ function renderNavItem({
 
     // Text
     let textNode: ReactNode;
-    if (textInputSettings.readOnly === false) {
-        textNode = <TextField {...textInputSettings} />;
-    } else {
-        const _text = textSettings?.getValue?.() ?? textSettings?.value;
-        textNode = (
-            <Text className="nav-item-text" {...textSettings}>
-                {_text}
-            </Text>
-        );
-    }
+    if (textInputSettings.readOnly === false)
+        textNode = <EditableText {...textInputSettings} />;
+    else textNode = <ReadOnlyText {...textSettings} />;
 
     return (
         <Grid
@@ -125,7 +153,26 @@ function renderNavItem({
                 {expandNode}
             </NavSubItem>
             <NavSubItem span="auto" px="0" py="0">
-                {textNode}
+                <Popover
+                    width={200}
+                    position="bottom-start"
+                    offset={0}
+                    withArrow
+                    arrowPosition="side"
+                    shadow="md"
+                    opened={popoverSettings.opened ?? false}
+                >
+                    <Popover.Target>
+                        {textInputSettings.readOnly === false ? (
+                            <EditableText {...textInputSettings} />
+                        ) : (
+                            <ReadOnlyText {...textSettings} />
+                        )}
+                    </Popover.Target>
+                    <Popover.Dropdown style={{ pointerEvents: "none" }}>
+                        <Text size="sm">{popoverSettings.text}</Text>
+                    </Popover.Dropdown>
+                </Popover>
             </NavSubItem>
             {children}
         </Grid>

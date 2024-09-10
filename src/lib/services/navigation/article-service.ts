@@ -68,12 +68,9 @@ export class ArticleNavigationService {
 
     get activeFolderId() {
         if (this.selectedNode) {
-            let id: NodeId;
-            if (this.selectedNode.droppable)
-                // folder
-                id = this.selectedNode.id;
-            // article
-            else id = this.selectedNode.parent;
+            let id = this.isFolderNode(this.selectedNode)
+                ? this.selectedNode.id
+                : this.selectedNode.parent;
             return convertNodeIdToEntityId(id);
         }
         return ROOT_FOLDER_ID;
@@ -85,6 +82,22 @@ export class ArticleNavigationService {
 
     setNode(node: ArticleNodeModel, index: number) {
         this._nodes[index] = node;
+    }
+
+    isFolderNode(node: ArticleNodeModel) {
+        return node.droppable;
+    }
+
+    isPlaceholderNode(node: ArticleNodeModel) {
+        return node?.data?.isPlaceholder ?? false;
+    }
+
+    setNodeError(node: ArticleNodeModel, error: string) {
+        this._addNodeData(node, { error });
+    }
+
+    clearNodeError(node: ArticleNodeModel) {
+        delete node?.data?.error;
     }
 
     toggleExpanded() {
@@ -157,10 +170,10 @@ export class ArticleNavigationService {
 
     selectNode(node: ArticleNodeModel) {
         this.setSelectedNode(node);
-        if (node?.data?.isPlaceholder ?? false) return;
+        if (this.isFolderNode(node)) return;
 
         const id = convertNodeIdToEntityId(node.id);
-        if (node.droppable)
+        if (this.isFolderNode(node))
             // folder
             this.onSelectedFolder.forEach((handler) => handler(id));
         // article
@@ -180,29 +193,70 @@ export class ArticleNavigationService {
         const index = this._getNodeIndex(nodeId);
         if (index !== null) {
             const node = this._nodes[index];
+
+            // update the editable text of the node
             if (!node?.data)
                 node.data = { isEditable: true, editableText: text };
             else node.data.editableText = text;
+
+            // update the node collection
             this._nodes[index] = node;
+
+            this.validateEditedNodeText(node, text);
         }
     }
 
-    async confirmEditingNodeText(node: ArticleNodeModel) {
+    async validateEditedNodeText(node: ArticleNodeModel, newText: string) {
+        if (!newText) this.setNodeError(node, "A name must be provided.");
+        else if (newText != node.text) {
+            let id = this.isPlaceholderNode(node)
+                ? null
+                : convertNodeIdToEntityId(node.id);
+
+            // validate the new text
+            if (this.isFolderNode(node)) {
+                // folder
+                const parentId = convertNodeIdToEntityId(node.parent);
+                this.domain.folders
+                    .validate_name(newText, parentId, id)
+                    .then((isUnique) => {
+                        if (!isUnique)
+                            this.setNodeError(
+                                node,
+                                `A folder named ${newText} already exists at this location.`,
+                            );
+                        else this.clearNodeError(node);
+                    });
+            } else {
+                // article
+                // TODO
+            }
+        } else this.clearNodeError(node);
+    }
+
+    async confirmNodeTextEdit(node: ArticleNodeModel) {
+        if (node?.data?.error)
+            // cancel the edit
+            this._cancelNodeTextEdit(node);
+        // apply the edit
+        else await this._applyNodeTextEdit(node);
+    }
+
+    async _applyNodeTextEdit(node: ArticleNodeModel) {
+        const index = this._getNodeIndex(node.id, false) as number;
+
         node.text = node?.data?.editableText ?? node.text;
         delete node?.data?.editableText;
 
-        if (node.droppable) {
-            // folder
-
-            if (node?.data?.isPlaceholder ?? false) {
+        // folder
+        if (this.isFolderNode(node)) {
+            if (this.isPlaceholderNode(node)) {
                 // add new folder
                 const parentId = convertNodeIdToEntityId(node.parent);
                 const folder = await this.domain.folders.create(
                     node.text,
                     parentId,
                 );
-
-                const index = this._getNodeIndex(node.id, false) as number;
 
                 if (folder) {
                     // sync the node ID with the backend
@@ -219,9 +273,22 @@ export class ArticleNavigationService {
                 // update existing folder
                 // TODO
             }
-        } else {
-            // article
+        }
+        // article
+        else {
             // TODO
+        }
+
+        this.setNode(node, index);
+    }
+
+    _cancelNodeTextEdit(node: ArticleNodeModel) {
+        const index = this._getNodeIndex(node.id, false) as number;
+        if (this.isPlaceholderNode(node)) this._deleteNodeAtIndex(index);
+        else {
+            delete node?.data?.editableText;
+            this.clearNodeError(node);
+            this.setNode(node, index);
         }
     }
 
@@ -234,7 +301,7 @@ export class ArticleNavigationService {
             const id = convertNodeIdToEntityId(node.id);
             const parentId = convertNodeIdToEntityId(node.parent);
 
-            if (node.droppable)
+            if (this.isFolderNode(node))
                 // folder
                 this.domain.folders.update(id, node.text, parentId);
             // article

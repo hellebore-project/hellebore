@@ -62,10 +62,17 @@ pub async fn title_exists(db: &DbConn, title: &str) -> Result<bool, DbErr> {
     return Ok(get_by_title(db, title).await?.is_some());
 }
 
-pub async fn is_title_unique_for_id(db: &DbConn, id: i32, title: &str) -> Result<bool, DbErr> {
+pub async fn is_title_unique_for_id(
+    db: &DbConn,
+    id: Option<i32>,
+    title: &str,
+) -> Result<bool, DbErr> {
     let article = get_by_title(db, title).await?;
     return match article {
-        Some(a) => Ok(a.id == id),
+        Some(a) => match id {
+            Some(id) => Ok(a.id == id),
+            None => Ok(false),
+        },
         None => Ok(true),
     };
 }

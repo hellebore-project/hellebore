@@ -16,7 +16,11 @@ import {
     ROOT_FOLDER_NODE_ID,
 } from "../../interface";
 import { getService } from "../../services";
-import { NavItem, TextSettings } from "../../shared/nav-item/nav-item";
+import {
+    NavItem,
+    PopoverSettings,
+    TextSettings,
+} from "../../shared/nav-item/nav-item";
 import { TextFieldSettings } from "../../shared/text-field";
 import { ThemeManager } from "../../theme";
 
@@ -65,11 +69,18 @@ function renderArticleNavItem({
                     event.target.value,
                 ),
             onBlur: () =>
-                service.view.navigation.articles.confirmEditingNodeText(node),
+                service.view.navigation.articles.confirmNodeTextEdit(node),
         };
     else
         textSettings = {
             value: node.text,
+        };
+
+    let popoverSettings: PopoverSettings | undefined = undefined;
+    if (node?.data?.error)
+        popoverSettings = {
+            opened: true,
+            text: node?.data?.error ?? "",
         };
 
     if (selected) {
@@ -91,6 +102,7 @@ function renderArticleNavItem({
             }}
             textSettings={textSettings}
             textInputSettings={textInputSettings}
+            popoverSettings={popoverSettings}
             onClick={onActivate}
             {...rest}
         ></NavItem>

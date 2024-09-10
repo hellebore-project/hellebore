@@ -3,7 +3,7 @@ use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     language::LanguageDataSchema,
-    update::UpdateResponseSchema,
+    response::ResponseSchema,
 };
 use crate::services::language_service;
 
@@ -19,7 +19,7 @@ pub async fn create_language(
 pub async fn update_language(
     state: tauri::State<'_, AppState>,
     article: ArticleUpdateSchema<LanguageDataSchema>,
-) -> Result<UpdateResponseSchema<()>, ApiError> {
+) -> Result<ResponseSchema<()>, ApiError> {
     language_service::update(&state.database, article).await
 }
 

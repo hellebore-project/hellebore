@@ -1,16 +1,19 @@
 import { TextInput, TextInputProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
+import { ForwardedRef } from "react";
 
 export interface TextFieldSettings extends TextInputProps {
     value?: string;
     getValue?: () => string;
     getError?: () => string | null;
+    inputRef?: ForwardedRef<HTMLInputElement>;
 }
 
 function renderTextField({
     value,
     getValue,
     getError,
+    inputRef,
     ...rest
 }: TextFieldSettings) {
     const _value = getValue ? getValue() : value;
@@ -22,7 +25,7 @@ function renderTextField({
     };
     if (error) props["error"] = error;
 
-    return <TextInput {...props} />;
+    return <TextInput ref={inputRef} {...props} />;
 }
 
 export const TextField = observer(renderTextField);

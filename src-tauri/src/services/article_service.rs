@@ -6,7 +6,7 @@ use crate::database::{article_manager, folder_manager};
 use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleInfoSchema, ArticleResponseSchema},
-    update::UpdateResponseSchema,
+    response::ResponseSchema,
 };
 use crate::types::ARTICLE;
 
@@ -16,23 +16,29 @@ pub async fn update(
     folder_id: Option<i32>,
     title: Option<String>,
     body: Option<String>,
-) -> Result<UpdateResponseSchema<()>, ApiError> {
+) -> Result<ResponseSchema<()>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
 
     // Check whether the updated title is unique; if not, then do not update the title in the DB
     let mut title = title;
     if title.is_some() {
-        let is_unique =
-            article_manager::is_title_unique_for_id(database, id, &title.clone().unwrap()).await;
+        let _title = title.clone().unwrap();
+        let is_unique = article_manager::is_title_unique_for_id(database, Some(id), &_title).await;
         match is_unique {
             Ok(is_unique) => {
                 if !is_unique {
-                    title = None;
                     errors.push(ApiError::field_not_updated(
                         String::from("Title is not unique."),
                         ARTICLE,
                         String::from("title"),
                     ));
+                    errors.push(ApiError::field_not_unique(
+                        ARTICLE,
+                        Some(id),
+                        &String::from("title"),
+                        _title,
+                    ));
+                    title = None;
                 }
             }
             Err(e) => return Err(ApiError::query_failed(e, ARTICLE)),
@@ -44,7 +50,30 @@ pub async fn update(
         Err(e) => errors.push(ApiError::not_updated(e, ARTICLE)),
     };
 
-    return Ok(UpdateResponseSchema { data: (), errors });
+    return Ok(ResponseSchema { data: (), errors });
+}
+
+pub async fn validate_title(
+    database: &DatabaseConnection,
+    id: Option<i32>,
+    title: &str,
+) -> Result<ResponseSchema<bool>, ApiError> {
+    let mut errors: Vec<ApiError> = Vec::new();
+    let is_unique = article_manager::is_title_unique_for_id(&database, id, title)
+        .await
+        .map_err(|e| ApiError::query_failed(e, ARTICLE))?;
+    if !is_unique {
+        errors.push(ApiError::field_not_unique(
+            ARTICLE,
+            id,
+            &String::from("title"),
+            title,
+        ));
+    }
+    return Ok(ResponseSchema {
+        data: is_unique,
+        errors,
+    });
 }
 
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<Article, ApiError> {
@@ -63,6 +92,19 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<ArticleInfoSch
         .map_err(|e| ApiError::not_found(e, ARTICLE))?;
     let articles = articles.iter().map(generate_info_response).collect();
     return Ok(articles);
+}
+
+pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
+    let exists = article_manager::exists(&database, id)
+        .await
+        .map_err(|e| ApiError::query_failed(e, ARTICLE))?;
+    if !exists {
+        return Err(ApiError::not_found("Person not found.", ARTICLE));
+    }
+    article_manager::delete(&database, id)
+        .await
+        .map_err(|e| ApiError::not_deleted(e, ARTICLE))?;
+    return Ok(());
 }
 
 fn generate_info_response(item: &article_manager::ArticleItem) -> ArticleInfoSchema {

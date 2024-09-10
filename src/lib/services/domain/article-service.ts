@@ -11,7 +11,7 @@ import {
     EntityType,
     LanguageData,
     PersonData,
-    UpdateResponse,
+    RichResponse,
     ValueChange,
     IdentifiedObject,
     ArticleCreate,
@@ -110,7 +110,7 @@ export class ArticleService {
             body,
             entity,
         };
-        let response: UpdateResponse<null> | null;
+        let response: RichResponse<null> | null;
 
         try {
             response = await updateArticle(payload);
@@ -137,7 +137,7 @@ export class ArticleService {
 
     _buildUpdateResponse(
         articleUpdate: ArticleUpdate<BaseEntity>,
-        response: UpdateResponse<null>,
+        response: RichResponse<null>,
     ): ArticleUpdateResponse {
         const cleanResponse: ArticleUpdateResponse = {
             id: articleUpdate.id,
@@ -250,10 +250,10 @@ async function createPerson(
 
 async function updateArticle(
     article: ArticleUpdate<BaseEntity>,
-): Promise<UpdateResponse<null>> {
+): Promise<RichResponse<null>> {
     console.log(article);
     const command = `update_${ENTITY_TYPE_LABELS[article.entity_type].toLowerCase()}`;
-    return invoke<UpdateResponse<null>>(command, { article });
+    return invoke<RichResponse<null>>(command, { article });
 }
 
 async function getArticle(
