@@ -1,1 +1,1 @@
-export * from "./editing-service";
+export * from "./article-editor";

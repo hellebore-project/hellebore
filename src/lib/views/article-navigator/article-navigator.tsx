@@ -8,7 +8,7 @@ import {
 } from "@minoru/react-dnd-treeview";
 import { observer } from "mobx-react-lite";
 import { DndProvider } from "react-dnd";
-import { MouseEvent } from "react";
+import { MouseEvent, useRef } from "react";
 
 import {
     ArticleNodeData,
@@ -59,10 +59,10 @@ function renderArticleNavItem({
     let textInputSettings: TextFieldSettings | undefined = undefined;
     if (selected && editable)
         textInputSettings = {
-            variant: "unstyled",
             value: node?.data?.editableText ?? node.text,
             readOnly: false,
             autoFocus: true,
+            error: node?.data?.error ? true : undefined,
             onChange: (event) =>
                 service.view.navigation.articles.editNodeText(
                     node.id,
@@ -70,6 +70,9 @@ function renderArticleNavItem({
                 ),
             onBlur: () =>
                 service.view.navigation.articles.confirmNodeTextEdit(node),
+            variant: "unstyled",
+            size: "xs",
+            styles: { input: { fontSize: 16 } },
         };
     else
         textSettings = {
@@ -113,6 +116,10 @@ export const ArticleNavItem = observer(renderArticleNavItem);
 
 function renderArticleNavigator({}: ArticleNavigatorSettings) {
     const service = getService();
+
+    const ref = useRef(null);
+    service.view.navigation.articles.tree = ref;
+
     const data = service.view.navigation.articles.nodes;
 
     const dragPreviewRender: DragPreviewRender<ArticleNodeData> = (
@@ -130,6 +137,7 @@ function renderArticleNavigator({}: ArticleNavigatorSettings) {
     return (
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
             <Tree
+                ref={ref}
                 tree={data}
                 rootId={ROOT_FOLDER_NODE_ID}
                 listComponent="div"

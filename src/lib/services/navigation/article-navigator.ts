@@ -1,4 +1,6 @@
+import { TreeMethods } from "@minoru/react-dnd-treeview";
 import { makeAutoObservable, toJS } from "mobx";
+import { RefObject } from "react";
 
 import {
     ArticleInfoResponse,
@@ -24,6 +26,12 @@ export class ArticleNavigationService {
     _nodes: ArticleNodeModel[];
     _nodePositionCache: { [nodeId: NodeId]: number };
 
+    /**
+     * Reference to the article tree component.
+     * Its handlers must be called inside a component function to ensure that the DOM is updated.
+     */
+    _tree: RefObject<TreeMethods> | null = null;
+
     expanded: boolean = true;
     hover: boolean = false;
     selectedNode: ArticleNodeModel | null;
@@ -38,6 +46,7 @@ export class ArticleNavigationService {
         makeAutoObservable(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
+            _tree: false,
             domain: false,
         });
 
@@ -51,6 +60,18 @@ export class ArticleNavigationService {
 
         this._placeholderIdGenerator = new Counter();
         this.domain = domain;
+    }
+
+    /**
+     * Reference to the article tree component.
+     * Its handlers must be called inside a component function to ensure that the DOM is updated.
+     */
+    get tree() {
+        return this._tree;
+    }
+
+    set tree(ref: RefObject<TreeMethods> | null) {
+        this._tree = ref;
     }
 
     get nodes() {
@@ -143,7 +164,7 @@ export class ArticleNavigationService {
         this.setSelectedNode(node);
     }
 
-    addPlaceholderNodeForNewFolder() {
+    addPlaceholderNodeForNewFolder(): ArticleNodeModel {
         const id = this._placeholderIdGenerator.increment();
         const node = this._generateFolderNode(
             `P${id}`,
@@ -159,6 +180,8 @@ export class ArticleNavigationService {
         this._nodePositionCache[node.id] = this._nodes.length;
         this._nodes.push(node);
         this.selectedNode = node;
+
+        return node;
     }
 
     selectArticleNode(id: number) {
@@ -202,11 +225,12 @@ export class ArticleNavigationService {
             // update the node collection
             this._nodes[index] = node;
 
-            this.validateEditedNodeText(node, text);
+            this.validateEditedNodeText(node);
         }
     }
 
-    async validateEditedNodeText(node: ArticleNodeModel, newText: string) {
+    async validateEditedNodeText(node: ArticleNodeModel) {
+        const newText = node.data?.editableText ?? "";
         if (!newText) this.setNodeError(node, "A name must be provided.");
         else if (newText != node.text) {
             let id = this.isPlaceholderNode(node)
@@ -235,7 +259,9 @@ export class ArticleNavigationService {
     }
 
     async confirmNodeTextEdit(node: ArticleNodeModel) {
-        if (node?.data?.error)
+        this.validateEditedNodeText(node);
+        console.log(node);
+        if (node.data?.error)
             // cancel the edit
             this._cancelNodeTextEdit(node);
         // apply the edit
@@ -257,7 +283,7 @@ export class ArticleNavigationService {
                     node.text,
                     parentId,
                 );
-
+                console.log(folder);
                 if (folder) {
                     // sync the node ID with the backend
                     node.id = folderNodeId(folder.id);
@@ -266,8 +292,8 @@ export class ArticleNavigationService {
                     this.setNode(node, index);
                     this.setSelectedNode(node);
                 } else {
-                    this._deleteNodeAtIndex(index);
                     this.setSelectedNode(null);
+                    this._deleteNodeAtIndex(index);
                 }
             } else {
                 // update existing folder
@@ -278,8 +304,6 @@ export class ArticleNavigationService {
         else {
             // TODO
         }
-
-        this.setNode(node, index);
     }
 
     _cancelNodeTextEdit(node: ArticleNodeModel) {
@@ -402,11 +426,12 @@ export class ArticleNavigationService {
         }
     }
 
-    _deleteNodeAtIndex(index: number) {
+    _deleteNodeAtIndex(index: number): ArticleNodeModel {
         const node = this._nodes[index];
         if (node) {
             this._nodes.splice(index, 1);
             delete this._nodePositionCache[node.id];
         }
+        return node;
     }
 }

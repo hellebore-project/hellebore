@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
-import { ArticleService } from "./article-service";
-import { FolderService } from "./folder-service";
+import { ArticleService } from "./article-manager";
+import { FolderService } from "./folder-manager";
 
 export class DomainService {
     articles: ArticleService;

@@ -11,7 +11,11 @@ function renderAddFolderButton() {
     const service = getService();
     const onClick = (event: MouseEvent) => {
         event.stopPropagation();
-        service.view.navigation.articles.addPlaceholderNodeForNewFolder();
+        const articleNavService = service.view.navigation.articles;
+        const node = articleNavService.addPlaceholderNodeForNewFolder();
+        // the parent folder needs to be open
+        // NOTE: the `open` function can't be called inside a service
+        articleNavService.tree?.current?.open(node.parent);
     };
     return (
         <NavSubItem span="content" p="0">

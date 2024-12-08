@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { ArticleNavigationService } from "./article-service";
+import { ArticleNavigationService } from "./article-navigator";
 import { DomainService } from "../domain";
 
 export class NavigationService {

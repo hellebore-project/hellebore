@@ -7,7 +7,7 @@ import {
     ModalKey,
     ViewKey,
 } from "../interface";
-import { ArticleCreatorService } from "./article-creator-service";
+import { ArticleCreatorService } from "./article-creator";
 import { ArticleEditorService } from "./article-editing";
 import { NavigationService } from "./navigation/navigation-service";
 import { DomainService } from "./domain";

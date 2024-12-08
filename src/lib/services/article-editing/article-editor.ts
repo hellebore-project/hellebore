@@ -8,9 +8,9 @@ import {
     FieldData,
 } from "../../interface";
 import { DomainService } from "../domain";
-import { ArticleFieldTableService } from "./field-table-service";
-import { ArticleBodyService, OpenArticleHandler } from "./body-service";
-import { ArticleInfoService } from "./info-service";
+import { ArticleFieldTableService } from "./field-table-editor";
+import { ArticleBodyService, OpenArticleHandler } from "./body-editor";
+import { ArticleInfoService } from "./info-editor";
 
 const UPDATE_DELAY_MILLISECONDS = 5000;
 

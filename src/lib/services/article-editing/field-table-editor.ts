@@ -8,7 +8,7 @@ import {
     PersonData,
     PersonProperty,
 } from "../../interface";
-import { ArticleInfoService } from "./info-service";
+import { ArticleInfoService } from "./info-editor";
 
 type FieldDataCollection = { [type: number]: FieldData[] };
 type ChangeHandler = () => void;
