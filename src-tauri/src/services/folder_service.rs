@@ -4,7 +4,10 @@ use ::entity::folder::Model as Folder;
 
 use crate::database::folder_manager;
 use crate::errors::ApiError;
-use crate::schema::folder::{FolderInfoSchema, FolderSchema};
+use crate::schema::{
+    folder::{FolderInfoSchema, FolderSchema},
+    response::ResponseSchema,
+};
 use crate::types::FOLDER;
 
 pub async fn create(
@@ -32,6 +35,30 @@ pub async fn update(
         Ok(entity) => Ok(generate_response(&entity)),
         Err(e) => Err(ApiError::not_updated(e, FOLDER)),
     };
+}
+
+pub async fn validate_name(
+    database: &DatabaseConnection,
+    id: Option<i32>,
+    parent_id: i32,
+    name: &str,
+) -> Result<ResponseSchema<bool>, ApiError> {
+    let mut errors: Vec<ApiError> = Vec::new();
+    let is_unique = folder_manager::is_name_unique_for_id(&database, id, parent_id, name)
+        .await
+        .map_err(|e| ApiError::query_failed(e, FOLDER))?;
+    if !is_unique {
+        errors.push(ApiError::field_not_unique(
+            FOLDER,
+            id,
+            &String::from("name"),
+            name,
+        ));
+    }
+    return Ok(ResponseSchema {
+        data: is_unique,
+        errors,
+    });
 }
 
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderSchema, ApiError> {

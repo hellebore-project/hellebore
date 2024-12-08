@@ -6,6 +6,8 @@ export interface ArticleNodeData {
     isPlaceholder?: boolean;
     isEditable?: boolean;
     editableText?: string;
+    isUnique?: boolean;
+    error?: string;
 }
 export type ArticleNodeModel = NodeModel<ArticleNodeData>;
 

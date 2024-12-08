@@ -1,4 +1,6 @@
+import { TreeMethods } from "@minoru/react-dnd-treeview";
 import { makeAutoObservable, toJS } from "mobx";
+import { RefObject } from "react";
 
 import {
     ArticleInfoResponse,
@@ -24,6 +26,12 @@ export class ArticleNavigationService {
     _nodes: ArticleNodeModel[];
     _nodePositionCache: { [nodeId: NodeId]: number };
 
+    /**
+     * Reference to the article tree component.
+     * Its handlers must be called inside a component function to ensure that the DOM is updated.
+     */
+    _tree: RefObject<TreeMethods> | null = null;
+
     expanded: boolean = true;
     hover: boolean = false;
     selectedNode: ArticleNodeModel | null;
@@ -38,6 +46,7 @@ export class ArticleNavigationService {
         makeAutoObservable(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
+            _tree: false,
             domain: false,
         });
 
@@ -51,6 +60,18 @@ export class ArticleNavigationService {
 
         this._placeholderIdGenerator = new Counter();
         this.domain = domain;
+    }
+
+    /**
+     * Reference to the article tree component.
+     * Its handlers must be called inside a component function to ensure that the DOM is updated.
+     */
+    get tree() {
+        return this._tree;
+    }
+
+    set tree(ref: RefObject<TreeMethods> | null) {
+        this._tree = ref;
     }
 
     get nodes() {
@@ -68,12 +89,9 @@ export class ArticleNavigationService {
 
     get activeFolderId() {
         if (this.selectedNode) {
-            let id: NodeId;
-            if (this.selectedNode.droppable)
-                // folder
-                id = this.selectedNode.id;
-            // article
-            else id = this.selectedNode.parent;
+            let id = this.isFolderNode(this.selectedNode)
+                ? this.selectedNode.id
+                : this.selectedNode.parent;
             return convertNodeIdToEntityId(id);
         }
         return ROOT_FOLDER_ID;
@@ -85,6 +103,22 @@ export class ArticleNavigationService {
 
     setNode(node: ArticleNodeModel, index: number) {
         this._nodes[index] = node;
+    }
+
+    isFolderNode(node: ArticleNodeModel) {
+        return node.droppable;
+    }
+
+    isPlaceholderNode(node: ArticleNodeModel) {
+        return node?.data?.isPlaceholder ?? false;
+    }
+
+    setNodeError(node: ArticleNodeModel, error: string) {
+        this._addNodeData(node, { error });
+    }
+
+    clearNodeError(node: ArticleNodeModel) {
+        delete node?.data?.error;
     }
 
     toggleExpanded() {
@@ -130,7 +164,7 @@ export class ArticleNavigationService {
         this.setSelectedNode(node);
     }
 
-    addPlaceholderNodeForNewFolder() {
+    addPlaceholderNodeForNewFolder(): ArticleNodeModel {
         const id = this._placeholderIdGenerator.increment();
         const node = this._generateFolderNode(
             `P${id}`,
@@ -146,6 +180,8 @@ export class ArticleNavigationService {
         this._nodePositionCache[node.id] = this._nodes.length;
         this._nodes.push(node);
         this.selectedNode = node;
+
+        return node;
     }
 
     selectArticleNode(id: number) {
@@ -157,10 +193,10 @@ export class ArticleNavigationService {
 
     selectNode(node: ArticleNodeModel) {
         this.setSelectedNode(node);
-        if (node?.data?.isPlaceholder ?? false) return;
+        if (this.isFolderNode(node)) return;
 
         const id = convertNodeIdToEntityId(node.id);
-        if (node.droppable)
+        if (this.isFolderNode(node))
             // folder
             this.onSelectedFolder.forEach((handler) => handler(id));
         // article
@@ -180,30 +216,74 @@ export class ArticleNavigationService {
         const index = this._getNodeIndex(nodeId);
         if (index !== null) {
             const node = this._nodes[index];
+
+            // update the editable text of the node
             if (!node?.data)
                 node.data = { isEditable: true, editableText: text };
             else node.data.editableText = text;
+
+            // update the node collection
             this._nodes[index] = node;
+
+            this.validateEditedNodeText(node);
         }
     }
 
-    async confirmEditingNodeText(node: ArticleNodeModel) {
+    async validateEditedNodeText(node: ArticleNodeModel) {
+        const newText = node.data?.editableText ?? "";
+        if (!newText) this.setNodeError(node, "A name must be provided.");
+        else if (newText != node.text) {
+            let id = this.isPlaceholderNode(node)
+                ? null
+                : convertNodeIdToEntityId(node.id);
+
+            // validate the new text
+            if (this.isFolderNode(node)) {
+                // folder
+                const parentId = convertNodeIdToEntityId(node.parent);
+                this.domain.folders
+                    .validate_name(newText, parentId, id)
+                    .then((isUnique) => {
+                        if (!isUnique)
+                            this.setNodeError(
+                                node,
+                                `A folder named ${newText} already exists at this location.`,
+                            );
+                        else this.clearNodeError(node);
+                    });
+            } else {
+                // article
+                // TODO
+            }
+        } else this.clearNodeError(node);
+    }
+
+    async confirmNodeTextEdit(node: ArticleNodeModel) {
+        this.validateEditedNodeText(node);
+        console.log(node);
+        if (node.data?.error)
+            // cancel the edit
+            this._cancelNodeTextEdit(node);
+        // apply the edit
+        else await this._applyNodeTextEdit(node);
+    }
+
+    async _applyNodeTextEdit(node: ArticleNodeModel) {
+        const index = this._getNodeIndex(node.id, false) as number;
+
         node.text = node?.data?.editableText ?? node.text;
         delete node?.data?.editableText;
 
-        if (node.droppable) {
-            // folder
-
-            if (node?.data?.isPlaceholder ?? false) {
+        // folder
+        if (this.isFolderNode(node)) {
+            if (this.isPlaceholderNode(node)) {
                 // add new folder
                 const parentId = convertNodeIdToEntityId(node.parent);
                 const folder = await this.domain.folders.create(
                     node.text,
                     parentId,
                 );
-
-                const index = this._getNodeIndex(node.id, false) as number;
-
+                console.log(folder);
                 if (folder) {
                     // sync the node ID with the backend
                     node.id = folderNodeId(folder.id);
@@ -212,16 +292,27 @@ export class ArticleNavigationService {
                     this.setNode(node, index);
                     this.setSelectedNode(node);
                 } else {
-                    this._deleteNodeAtIndex(index);
                     this.setSelectedNode(null);
+                    this._deleteNodeAtIndex(index);
                 }
             } else {
                 // update existing folder
                 // TODO
             }
-        } else {
-            // article
+        }
+        // article
+        else {
             // TODO
+        }
+    }
+
+    _cancelNodeTextEdit(node: ArticleNodeModel) {
+        const index = this._getNodeIndex(node.id, false) as number;
+        if (this.isPlaceholderNode(node)) this._deleteNodeAtIndex(index);
+        else {
+            delete node?.data?.editableText;
+            this.clearNodeError(node);
+            this.setNode(node, index);
         }
     }
 
@@ -234,7 +325,7 @@ export class ArticleNavigationService {
             const id = convertNodeIdToEntityId(node.id);
             const parentId = convertNodeIdToEntityId(node.parent);
 
-            if (node.droppable)
+            if (this.isFolderNode(node))
                 // folder
                 this.domain.folders.update(id, node.text, parentId);
             // article
@@ -335,11 +426,12 @@ export class ArticleNavigationService {
         }
     }
 
-    _deleteNodeAtIndex(index: number) {
+    _deleteNodeAtIndex(index: number): ArticleNodeModel {
         const node = this._nodes[index];
         if (node) {
             this._nodes.splice(index, 1);
             delete this._nodePositionCache[node.id];
         }
+        return node;
     }
 }

@@ -1,6 +1,6 @@
 import { ApiError } from "./error";
 
-export interface UpdateResponse<T> {
+export interface RichResponse<T> {
     data: T;
     errors: ApiError[];
 }

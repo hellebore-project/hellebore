@@ -34,6 +34,22 @@ pub async fn exists(db: &DbConn, id: i32) -> Result<bool, DbErr> {
     return Ok(get(db, id).await?.is_some());
 }
 
+pub async fn is_name_unique_for_id(
+    db: &DbConn,
+    id: Option<i32>,
+    parent_id: i32,
+    name: &str,
+) -> Result<bool, DbErr> {
+    let parent_id = convert_folder_id_sentinel_to_none(parent_id);
+    let entities = Folder::find()
+        .filter(folder::Column::ParentId.eq(parent_id))
+        .filter(folder::Column::Name.eq(name))
+        .all(db)
+        .await?;
+    return Ok(entities.len() == 0
+        || (entities.len() == 1 && id.is_some() && entities[0].id == id.unwrap()));
+}
+
 pub async fn get(db: &DbConn, id: i32) -> Result<Option<folder::Model>, DbErr> {
     Folder::find_by_id(id).one(db).await
 }

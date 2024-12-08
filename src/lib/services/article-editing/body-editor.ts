@@ -7,7 +7,7 @@ import { makeAutoObservable } from "mobx";
 import { Suggestion } from "../../interface";
 import { DomainService } from "../domain";
 import { useReferenceExtension } from "../../shared/rich-text-editor";
-import { ArticleInfoService } from "./info-service";
+import { ArticleInfoService } from "./info-editor";
 
 type ChangeHandler = () => void;
 export type OpenArticleHandler = (id: number) => void;

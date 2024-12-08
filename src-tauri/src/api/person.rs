@@ -3,7 +3,7 @@ use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     person::PersonDataSchema,
-    update::UpdateResponseSchema,
+    response::ResponseSchema,
 };
 use crate::services::person_service;
 
@@ -19,7 +19,7 @@ pub async fn create_person(
 pub async fn update_person(
     state: tauri::State<'_, AppState>,
     article: ArticleUpdateSchema<PersonDataSchema>,
-) -> Result<UpdateResponseSchema<()>, ApiError> {
+) -> Result<ResponseSchema<()>, ApiError> {
     person_service::update(&state.database, article).await
 }
 

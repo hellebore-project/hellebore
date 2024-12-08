@@ -29,6 +29,12 @@ pub enum ApiError {
         msg: String,
         entity: EntityType,
     },
+    FieldNotUnique {
+        entity: EntityType,
+        id: Option<i32>,
+        key: String,
+        value: String,
+    },
 }
 
 impl ApiError {
@@ -72,6 +78,20 @@ impl ApiError {
         return ApiError::QueryFailed {
             msg: msg.to_string(),
             entity,
+        };
+    }
+
+    pub fn field_not_unique<V: ToString>(
+        entity: EntityType,
+        id: Option<i32>,
+        key: &str,
+        value: V,
+    ) -> ApiError {
+        return ApiError::FieldNotUnique {
+            entity,
+            id,
+            key: key.to_string(),
+            value: value.to_string(),
         };
     }
 }

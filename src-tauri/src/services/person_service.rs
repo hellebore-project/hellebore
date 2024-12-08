@@ -8,7 +8,7 @@ use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     person::PersonDataSchema,
-    update::UpdateResponseSchema,
+    response::ResponseSchema,
 };
 use crate::services::article_service;
 use crate::types::{ARTICLE, PERSON};
@@ -29,7 +29,7 @@ pub async fn create(
 pub async fn update(
     database: &DatabaseConnection,
     article: ArticleUpdateSchema<PersonDataSchema>,
-) -> Result<UpdateResponseSchema<()>, ApiError> {
+) -> Result<ResponseSchema<()>, ApiError> {
     let mut response = article_service::update(
         &database,
         article.id,
@@ -65,15 +65,7 @@ pub async fn get(
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    let exists = article_manager::exists(&database, id)
-        .await
-        .map_err(|e| ApiError::query_failed(e, ARTICLE))?;
-    if !exists {
-        return Err(ApiError::not_found("Person not found.", ARTICLE));
-    }
-    let _ = article_manager::delete(&database, id)
-        .await
-        .map_err(|e| ApiError::not_deleted(e, ARTICLE))?;
+    article_service::delete(&database, id).await?;
     person_manager::delete(&database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, PERSON))?;

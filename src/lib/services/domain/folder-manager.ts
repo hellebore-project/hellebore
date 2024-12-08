@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { makeAutoObservable } from "mobx";
 
-import { FolderResponse, ROOT_FOLDER_ID } from "../../interface";
+import { FolderResponse, RichResponse, ROOT_FOLDER_ID } from "../../interface";
 
 export class FolderService {
     constructor() {
@@ -17,6 +17,20 @@ export class FolderService {
             return null;
         }
         return response;
+    }
+
+    async validate_name(
+        name: string,
+        parentId: number = ROOT_FOLDER_ID,
+        id: number | null = null,
+    ) {
+        try {
+            const response = await validateFolderName(name, parentId, id);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
     }
 
     async update(id: number, name: string, parentId: number = ROOT_FOLDER_ID) {
@@ -60,6 +74,18 @@ async function updateFolder(
 ): Promise<FolderResponse> {
     return invoke<FolderResponse>("update_folder", {
         folder: { id, info: { parent_id: parentId, name } },
+    });
+}
+
+async function validateFolderName(
+    name: string,
+    parentId: number = ROOT_FOLDER_ID,
+    id: number | null = null,
+): Promise<RichResponse<boolean>> {
+    return invoke<RichResponse<boolean>>("validate_folder_name", {
+        id,
+        parent_id: parentId,
+        name,
     });
 }
 
