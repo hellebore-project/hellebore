@@ -5,6 +5,7 @@ import { MouseEvent } from "react";
 
 import { getService } from "../../services";
 import { NavSubItem } from "../../shared/nav-item/nav-item";
+import { ToolTipWrapper } from "../../shared/tool-tip";
 
 function renderAddFolderButton() {
     const service = getService();
@@ -18,15 +19,17 @@ function renderAddFolderButton() {
     };
     return (
         <NavSubItem span="content" p="0">
-            <ActionIcon
-                key="add-folder"
-                variant="subtle"
-                color="gray"
-                size="sm"
-                onClick={onClick}
-            >
-                <IconFolderPlus size={18} />
-            </ActionIcon>
+            <ToolTipWrapper label="New Folder">
+                <ActionIcon
+                    key="add-folder"
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    onClick={onClick}
+                >
+                    <IconFolderPlus size={18} />
+                </ActionIcon>
+            </ToolTipWrapper>
         </NavSubItem>
     );
 }

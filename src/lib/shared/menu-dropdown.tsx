@@ -27,7 +27,11 @@ function renderMenuDropdown({ label, items }: MenuDropdownSettings) {
             shadow="md"
         >
             <Menu.Target>
-                <Button variant="filled" color="gray" size="compact-md">
+                <Button
+                    variant="filled"
+                    color="var(--mantine-color-dark-7)"
+                    size="compact-md"
+                >
                     {label}
                 </Button>
             </Menu.Target>

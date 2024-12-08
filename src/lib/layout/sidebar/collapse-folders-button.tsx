@@ -5,6 +5,7 @@ import { MouseEvent } from "react";
 
 import { getService } from "../../services";
 import { NavSubItem } from "../../shared/nav-item/nav-item";
+import { ToolTipWrapper } from "../../shared/tool-tip";
 
 function renderCollapseFolderButton() {
     const service = getService();
@@ -16,15 +17,17 @@ function renderCollapseFolderButton() {
     };
     return (
         <NavSubItem span="content" p="0">
-            <ActionIcon
-                key="add-folder"
-                variant="subtle"
-                color="gray"
-                size="sm"
-                onClick={onClick}
-            >
-                <IconLibraryMinus size={18} />
-            </ActionIcon>
+            <ToolTipWrapper label="Collapse All Folders">
+                <ActionIcon
+                    key="collapse-folders"
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    onClick={onClick}
+                >
+                    <IconLibraryMinus size={18} />
+                </ActionIcon>
+            </ToolTipWrapper>
         </NavSubItem>
     );
 }
