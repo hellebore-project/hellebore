@@ -101,6 +101,10 @@ export class ArticleNavigationService {
         return this.expanded && this.hover;
     }
 
+    get canCollapseAllFolders() {
+        return this.expanded && this.hover;
+    }
+
     setNode(node: ArticleNodeModel, index: number) {
         this._nodes[index] = node;
     }
