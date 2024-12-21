@@ -72,7 +72,7 @@ export class ArticleService {
                 response = await createPerson(title, folder_id);
             else {
                 console.error(
-                    `Unabled to create articles with entity type ${entityType}.`,
+                    `Unable to create article with entity type ${entityType}.`,
                 );
                 return null;
             }
@@ -219,6 +219,23 @@ export class ArticleService {
             .filter((info) => info.title.toLowerCase().startsWith(arg))
             .slice(0, maxResults);
     }
+
+    async delete(id: number, entityType?: EntityType | null): Promise<boolean> {
+        if (!entityType) entityType = this._infos[id].entity_type;
+
+        try {
+            await deleteArticle(id, entityType);
+        } catch (error) {
+            console.error(error);
+            console.error(
+                `Unable to delete article ${id} with entity type ${entityType}.`,
+            );
+            return false;
+        }
+
+        delete this._infos[id];
+        return true;
+    }
 }
 
 async function createLanguage(
@@ -262,4 +279,12 @@ async function getArticle(
 ): Promise<ArticleResponse<BaseEntity>> {
     const command = `get_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
     return invoke<ArticleResponse<BaseEntity>>(command, { id });
+}
+
+async function deleteArticle(
+    id: number,
+    entityType: EntityType,
+): Promise<void> {
+    const command = `delete_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
+    invoke<ArticleResponse<BaseEntity>>(command, { id });
 }

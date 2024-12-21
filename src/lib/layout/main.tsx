@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite";
 import { ViewKey } from "../interface";
 import { getService } from "../services";
 import { Home } from "../views/home";
-import { ArticleEditor } from "../views/article-editor";
+import { ArticleEditor } from "../views/article-editor/article-editor";
 
 function renderMain() {
     const service = getService();

@@ -6,6 +6,7 @@ import { NavItem } from "../../shared/nav-item/nav-item";
 import { ArticleNavigator } from "../../views/article-navigator";
 import { AddFolderButton } from "./add-folder-button";
 import { CollapseFoldersButton } from "./collapse-folders-button";
+import { AddArticleButton } from "./add-article-button";
 
 function renderArticlesTabHeader() {
     const articleNavService = getService().view.navigation.articles;
@@ -21,6 +22,7 @@ function renderArticlesTabHeader() {
             }}
             onClick={() => articleNavService.toggleExpanded()}
         >
+            {articleNavService.canAddArticle && <AddArticleButton />}
             {articleNavService.canAddFolder && <AddFolderButton />}
             {articleNavService.canCollapseAllFolders && (
                 <CollapseFoldersButton />

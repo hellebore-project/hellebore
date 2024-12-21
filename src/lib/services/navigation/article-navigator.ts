@@ -97,6 +97,10 @@ export class ArticleNavigationService {
         return ROOT_FOLDER_ID;
     }
 
+    get canAddArticle() {
+        return this.expanded && this.hover;
+    }
+
     get canAddFolder() {
         return this.expanded && this.hover;
     }
@@ -264,7 +268,6 @@ export class ArticleNavigationService {
 
     async confirmNodeTextEdit(node: ArticleNodeModel) {
         this.validateEditedNodeText(node);
-        console.log(node);
         if (node.data?.error)
             // cancel the edit
             this._cancelNodeTextEdit(node);
@@ -287,7 +290,6 @@ export class ArticleNavigationService {
                     node.text,
                     parentId,
                 );
-                console.log(folder);
                 if (folder) {
                     // sync the node ID with the backend
                     node.id = folderNodeId(folder.id);
@@ -339,6 +341,10 @@ export class ArticleNavigationService {
                     folder_id: parentId,
                 });
         }
+    }
+
+    deleteArticleNode(id: number) {
+        this._deleteNode(articleNodeId(id));
     }
 
     _generateArticleNode(
