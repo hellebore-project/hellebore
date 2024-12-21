@@ -9,7 +9,7 @@ use hellebore::{app, settings::get_settings};
 async fn main() {
     let settings = get_settings();
     let state = app::setup(settings).await;
-    let mut builder = tauri::Builder::default();
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_shell::init());
     builder = builder.manage(state);
     builder = app::attach_handlers(builder);
     builder
