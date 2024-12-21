@@ -65,7 +65,6 @@ export class ViewService {
     openHome() {
         this.cleanUp();
         this.viewKey = ViewKey.HOME;
-        this.articleCreator;
     }
 
     openArticleCreator(entityType: EntityType | undefined = undefined) {
@@ -105,6 +104,23 @@ export class ViewService {
             this.navigation.articles.addNodeForCreatedArticle(article);
             this.openArticleEditor(article);
         }
+    }
+
+    async deleteArticle(id: number) {
+        const success = await this.domain.articles.delete(id);
+        if (!success)
+            // failed to delete the article; aborting
+            return;
+
+        if (
+            this.viewKey == ViewKey.ARTICLE_EDITOR &&
+            this.articleEditor.info.id == id
+        ) {
+            // deleted article is currently open
+            this.openHome();
+        }
+
+        this.navigation.articles.deleteArticleNode(id);
     }
 
     cleanUp() {
