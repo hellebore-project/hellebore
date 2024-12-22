@@ -1,10 +1,10 @@
 import { Burger, Flex } from "@mantine/core";
-
-import { MenuButton } from "../shared/menu-button";
-import { MenuDropdown } from "../shared/menu-dropdown";
-import { EntityType } from "../interface";
 import { observer } from "mobx-react-lite";
-import { getService } from "../services";
+
+import { EntityType } from "@/interface";
+import { getService } from "@/services";
+import { MenuButton } from "@/shared/menu-button";
+import { MenuDropdown } from "@/shared/menu-dropdown";
 
 const FLEX_STYLE = { paddingLeft: 15 };
 
@@ -61,6 +61,10 @@ function renderHeader() {
                             service.view.openArticleCreator(EntityType.WORD),
                     },
                 ]}
+            />
+            <MenuButton
+                label="Settings"
+                onClick={() => service.view.openSettings()}
             />
         </Flex>
     );

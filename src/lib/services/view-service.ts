@@ -6,13 +6,14 @@ import {
     EntityType,
     ModalKey,
     ViewKey,
-} from "../interface";
+} from "@/interface";
 import { ArticleCreatorService } from "./article-creator";
 import { ArticleEditorService } from "./article-editing";
 import { NavigationService } from "./navigation/navigation-service";
 import { DomainService } from "./domain";
 
 export class ViewService {
+    _projectName: string = "";
     viewKey: ViewKey = ViewKey.HOME;
     modalKey: ModalKey | null = null;
     sideBarOpen: boolean = true;
@@ -50,6 +51,20 @@ export class ViewService {
         });
     }
 
+    get projectName() {
+        return this._projectName;
+    }
+
+    set projectName(name: string) {
+        this._projectName = name;
+    }
+
+    async fetchProjectInfo() {
+        this.domain.project
+            .get()
+            .then((project) => (this.projectName = project?.name ?? "Error"));
+    }
+
     async populateNavigator() {
         const articles = await this.domain.articles.getAll();
         const folders = await this.domain.folders.getAll();
@@ -65,6 +80,11 @@ export class ViewService {
     openHome() {
         this.cleanUp();
         this.viewKey = ViewKey.HOME;
+    }
+
+    openSettings() {
+        this.cleanUp();
+        this.viewKey = ViewKey.SETTINGS;
     }
 
     openArticleCreator(entityType: EntityType | undefined = undefined) {

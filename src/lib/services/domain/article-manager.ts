@@ -16,7 +16,7 @@ import {
     IdentifiedObject,
     ArticleCreate,
     ROOT_FOLDER_ID,
-} from "../../interface";
+} from "@/interface";
 
 export interface ArticleUpdateArguments extends IdentifiedObject {
     entity_type?: EntityType | null;

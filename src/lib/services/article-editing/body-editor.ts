@@ -4,9 +4,9 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { Suggestion } from "../../interface";
+import { Suggestion } from "@/interface";
+import { useReferenceExtension } from "@/shared/rich-text-editor";
 import { DomainService } from "../domain";
-import { useReferenceExtension } from "../../shared/rich-text-editor";
 import { ArticleInfoService } from "./info-editor";
 
 type ChangeHandler = () => void;

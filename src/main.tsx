@@ -5,8 +5,8 @@ import { MantineProvider } from "@mantine/core";
 import React from "react";
 import ReactDOM from "react-dom/client";
 
-import { App } from "./lib/app";
-import { DEFAULT_COLOR_SCHEME } from "./lib/theme";
+import { App } from "@/app";
+import { DEFAULT_COLOR_SCHEME } from "@/theme";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>

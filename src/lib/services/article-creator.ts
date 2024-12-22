@@ -5,7 +5,7 @@ import {
     BaseEntity,
     EntityType,
     ROOT_FOLDER_ID,
-} from "../interface";
+} from "@/interface";
 import { DomainService } from "./domain";
 
 export class ArticleCreatorService {

@@ -1,10 +1,10 @@
 import { Container, Divider, Grid, Space, Text } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "../../services";
-import { TextField } from "../../shared/text-field";
-import { RichTextEditor } from "../../shared/rich-text-editor/rich-text-editor";
-import { FieldTable } from "../../shared/field-table";
+import { getService } from "@/services";
+import { TextField } from "@/shared/text-field";
+import { RichTextEditor } from "@/shared/rich-text-editor/rich-text-editor";
+import { FieldTable } from "@/shared/field-table";
 import { DeleteArticleButton } from "./delete-article-button";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };

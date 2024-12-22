@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
-import { FolderResponse, RichResponse, ROOT_FOLDER_ID } from "../../interface";
+import { FolderResponse, RichResponse, ROOT_FOLDER_ID } from "@/interface";
 
 export class FolderService {
     constructor() {

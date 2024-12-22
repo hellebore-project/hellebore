@@ -8,8 +8,8 @@ import {
 } from "@tiptap/suggestion";
 import tippy from "tippy.js";
 
+import { Suggestion } from "@/interface";
 import { Dropdown, DropdownSettings } from "../dropdown";
-import { Suggestion } from "../../interface";
 
 type QueryResult = string;
 type DOMRectAccessor = () => DOMRect;

@@ -7,7 +7,7 @@ import {
     FieldType,
     PersonData,
     PersonProperty,
-} from "../../interface";
+} from "@/interface";
 import { ArticleInfoService } from "./info-editor";
 
 type FieldDataCollection = { [type: number]: FieldData[] };

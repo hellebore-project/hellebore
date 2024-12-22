@@ -1,5 +1,6 @@
 export enum ViewKey {
     HOME = "HOME",
+    SETTINGS = "SETTINGS",
     ARTICLE_EDITOR = "ARTICLE_EDITOR",
 }
 

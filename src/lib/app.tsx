@@ -1,9 +1,9 @@
 import { AppShell } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { Header, Main, SideBar } from "./layout";
+import { Footer, Header, Center, LeftSideBar } from "./layout";
 import { getService } from "./services";
-import { ArticleCreator } from "./views/article-creator";
+import { ArticleCreator } from "./modals/article-creator";
 
 function renderApp() {
     const service = getService();
@@ -16,6 +16,9 @@ function renderApp() {
                     breakpoint: "sm",
                     collapsed: { mobile: !service.view.sideBarOpen },
                 }}
+                footer={{
+                    height: 25,
+                }}
                 padding="md"
             >
                 <AppShell.Header>
@@ -23,12 +26,16 @@ function renderApp() {
                 </AppShell.Header>
 
                 <AppShell.Navbar>
-                    <SideBar />
+                    <LeftSideBar />
                 </AppShell.Navbar>
 
                 <AppShell.Main>
-                    <Main />
+                    <Center />
                 </AppShell.Main>
+
+                <AppShell.Footer>
+                    <Footer />
+                </AppShell.Footer>
             </AppShell>
 
             <ArticleCreator />
