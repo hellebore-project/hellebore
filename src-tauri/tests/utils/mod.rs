@@ -8,5 +8,5 @@ pub async fn setup() -> app::AppState {
             connection_string: String::from("sqlite::memory:"),
         },
     };
-    return app::setup(settings).await;
+    return app::setup(settings).await.unwrap();
 }
