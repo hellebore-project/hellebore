@@ -1,8 +1,10 @@
 export enum ViewKey {
     HOME = "HOME",
+    SETTINGS = "SETTINGS",
     ARTICLE_EDITOR = "ARTICLE_EDITOR",
 }
 
 export enum ModalKey {
+    PROJECT_CREATOR = "PROJECT_LOADER",
     ARTICLE_CREATOR = "ARTICLE_CREATOR",
 }

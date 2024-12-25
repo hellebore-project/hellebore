@@ -1,12 +1,12 @@
-use hellebore::{app, settings};
+use hellebore::{app, settings, state::State};
 
-pub async fn setup() -> app::AppState {
+pub async fn setup() -> State {
     let settings = settings::Settings {
         data_dir_path: String::from(""),
         database: settings::DatabaseSettings {
-            db_file_path: String::from(""),
-            connection_string: String::from("sqlite::memory:"),
+            file_path: String::from(""),
+            in_memory: true,
         },
     };
-    return app::setup(settings).await;
+    return app::setup(settings).await.unwrap();
 }

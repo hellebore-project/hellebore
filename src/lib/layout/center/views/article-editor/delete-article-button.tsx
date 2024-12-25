@@ -3,9 +3,9 @@ import { IconTrash } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 import { MouseEvent } from "react";
 
-import { getService } from "../../services";
-import { NavSubItem } from "../../shared/nav-item/nav-item";
-import { ToolTipWrapper } from "../../shared/tool-tip";
+import { getService } from "@/services";
+import { NavSubItem } from "@/shared/nav-item";
+import { ToolTipWrapper } from "@/shared/tool-tip";
 
 function renderDeleteArticleButton() {
     const service = getService();

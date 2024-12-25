@@ -1,3 +1,4 @@
 export * from "./header";
-export * from "./main";
-export * from "./sidebar";
+export * from "./center";
+export * from "./left-sidebar";
+export * from "./footer";

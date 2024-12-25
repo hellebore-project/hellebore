@@ -6,7 +6,7 @@ import {
     EntityType,
     ArticleUpdateResponse,
     FieldData,
-} from "../../interface";
+} from "@/interface";
 import { DomainService } from "../domain";
 import { ArticleFieldTableService } from "./field-table-editor";
 import { ArticleBodyService, OpenArticleHandler } from "./body-editor";

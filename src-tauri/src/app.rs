@@ -1,20 +1,13 @@
-use sea_orm::DatabaseConnection;
-
 use crate::api;
-use crate::database::database_manager;
+use crate::errors::ApiError;
+use crate::services::project_service;
 use crate::settings::Settings;
+use crate::state::State;
 
-pub struct AppState {
-    pub settings: Settings,
-    pub database: DatabaseConnection,
-}
-
-pub async fn setup(settings: Settings) -> AppState {
-    let db = database_manager::setup(&settings).await;
-    AppState {
-        settings,
-        database: db,
-    }
+pub async fn setup(settings: Settings) -> Result<State, ApiError> {
+    let project = project_service::create(&settings, "My Wiki").await?;
+    let state = State::new(settings, project.db);
+    Ok(state)
 }
 
 pub fn attach_handlers<R>(builder: tauri::Builder<R>) -> tauri::Builder<R>
@@ -22,6 +15,13 @@ where
     R: tauri::Runtime,
 {
     builder.invoke_handler(tauri::generate_handler![
+        // session API
+        api::session::get_session,
+        // project API
+        api::project::create_project,
+        api::project::load_project,
+        api::project::update_project,
+        api::project::get_project,
         // article API
         api::article::validate_article_title,
         api::article::get_articles,

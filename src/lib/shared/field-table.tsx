@@ -1,7 +1,7 @@
 import { Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { FieldData, FieldType } from "../interface";
+import { FieldData, FieldType } from "@/interface";
 import { TextField } from "./text-field";
 
 interface FieldSettings extends FieldData {}

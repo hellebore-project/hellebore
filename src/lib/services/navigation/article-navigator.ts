@@ -10,14 +10,14 @@ import {
     NodeId,
     ROOT_FOLDER_ID,
     ROOT_FOLDER_NODE_ID,
-} from "../../interface";
+} from "@/interface";
+import { Counter } from "@/utils/counter";
 import {
     articleNodeId,
     convertNodeIdToEntityId,
     folderNodeId,
-} from "../../utils/node";
+} from "@/utils/node";
 import { DomainService } from "../domain";
-import { Counter } from "../../utils/counter";
 
 export type SelectArticleHandler = (id: number) => void;
 export type SelectFolderHandler = (id: number) => void;

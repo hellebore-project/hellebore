@@ -1,51 +1,54 @@
-use crate::app::AppState;
 use crate::errors::ApiError;
 use crate::schema::{
     folder::{FolderInfoSchema, FolderSchema},
     response::ResponseSchema,
 };
 use crate::services::folder_service;
+use crate::state::State;
 
 #[tauri::command]
 pub async fn create_folder(
-    state: tauri::State<'_, AppState>,
+    state: tauri::State<'_, State>,
     info: FolderInfoSchema,
 ) -> Result<FolderSchema, ApiError> {
+    let state = state.get_data().await;
     folder_service::create(&state.database, &info).await
 }
 
 #[tauri::command]
 pub async fn update_folder(
-    state: tauri::State<'_, AppState>,
+    state: tauri::State<'_, State>,
     folder: FolderSchema,
 ) -> Result<FolderSchema, ApiError> {
+    let state = state.get_data().await;
     folder_service::update(&state.database, &folder).await
 }
 
 #[tauri::command(rename_all = "snake_case")]
 pub async fn validate_folder_name(
-    state: tauri::State<'_, AppState>,
+    state: tauri::State<'_, State>,
     id: Option<i32>,
     parent_id: i32,
     name: &str,
 ) -> Result<ResponseSchema<bool>, ApiError> {
+    let state = state.get_data().await;
     folder_service::validate_name(&state.database, id, parent_id, name).await
 }
 
 #[tauri::command]
-pub async fn get_folder(
-    state: tauri::State<'_, AppState>,
-    id: i32,
-) -> Result<FolderSchema, ApiError> {
+pub async fn get_folder(state: tauri::State<'_, State>, id: i32) -> Result<FolderSchema, ApiError> {
+    let state = state.get_data().await;
     folder_service::get(&state.database, id).await
 }
 
 #[tauri::command]
-pub async fn get_folders(state: tauri::State<'_, AppState>) -> Result<Vec<FolderSchema>, ApiError> {
+pub async fn get_folders(state: tauri::State<'_, State>) -> Result<Vec<FolderSchema>, ApiError> {
+    let state = state.get_data().await;
     folder_service::get_all(&state.database).await
 }
 
 #[tauri::command]
-pub async fn delete_folder(state: tauri::State<'_, AppState>, id: i32) -> Result<(), ApiError> {
+pub async fn delete_folder(state: tauri::State<'_, State>, id: i32) -> Result<(), ApiError> {
+    let state = state.get_data().await;
     folder_service::delete(&state.database, id).await
 }

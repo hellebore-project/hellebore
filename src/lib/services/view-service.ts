@@ -6,11 +6,15 @@ import {
     EntityType,
     ModalKey,
     ViewKey,
-} from "../interface";
+} from "@/interface";
 import { ArticleCreatorService } from "./article-creator";
 import { ArticleEditorService } from "./article-editing";
 import { NavigationService } from "./navigation/navigation-service";
 import { DomainService } from "./domain";
+import { HomeService } from "./home-service";
+import { SettingsEditorService } from "./settings-editor";
+import { ProjectCreatorService } from "./project-creator";
+import { open } from "@tauri-apps/plugin-dialog";
 
 export class ViewService {
     viewKey: ViewKey = ViewKey.HOME;
@@ -18,20 +22,30 @@ export class ViewService {
     sideBarOpen: boolean = true;
 
     domain: DomainService;
+    home: HomeService;
+    projectCreator: ProjectCreatorService;
     articleCreator: ArticleCreatorService;
     articleEditor: ArticleEditorService;
     navigation: NavigationService;
+    settingsEditor: SettingsEditorService;
 
     constructor(domain: DomainService) {
         const overrides = {
-            data: false,
+            domain: false,
+            home: false,
+            projectCreator: false,
             articleCreator: false,
             articleEditor: false,
             navigation: false,
+            settingsEditor: false,
         };
         makeAutoObservable(this, overrides);
 
         this.domain = domain;
+
+        this.home = new HomeService(domain);
+
+        this.projectCreator = new ProjectCreatorService(domain);
 
         this.articleCreator = new ArticleCreatorService(domain);
 
@@ -43,10 +57,18 @@ export class ViewService {
         this.navigation.articles.onSelectedArticle.push((id) =>
             this.openArticleEditorForId(id),
         );
-
         this.domain.articles.onUpdated.push(({ id, title, isTitleUnique }) => {
             if (!title || title == "" || !isTitleUnique) return;
             this.navigation.articles.updateArticleNodeText(id, title);
+        });
+
+        this.settingsEditor = new SettingsEditorService(domain);
+    }
+
+    async fetchProjectInfo() {
+        this.domain.session.getSession().then((session) => {
+            // TODO: trigger UI error state if the project info is unavailable
+            this.home.initialize(session?.project?.name ?? "Error");
         });
     }
 
@@ -65,6 +87,17 @@ export class ViewService {
     openHome() {
         this.cleanUp();
         this.viewKey = ViewKey.HOME;
+    }
+
+    openProjectCreator() {
+        this.cleanUp();
+        this.projectCreator.initialize();
+        this.modalKey = ModalKey.PROJECT_CREATOR;
+    }
+
+    openSettings() {
+        this.cleanUp();
+        this.viewKey = ViewKey.SETTINGS;
     }
 
     openArticleCreator(entityType: EntityType | undefined = undefined) {
@@ -93,6 +126,28 @@ export class ViewService {
 
     closeModal() {
         this.modalKey = null;
+    }
+
+    async createProject(name: string, dbFilePath: string) {
+        const response = await this.domain.session.createProject(
+            name,
+            dbFilePath,
+        );
+        if (response) {
+            this.home.initialize(response.name);
+            this.openHome();
+        }
+    }
+
+    async loadProject() {
+        const path = await open();
+        if (path) {
+            const response = await this.domain.session.loadProject(path);
+            if (response) {
+                this.home.initialize(response.name);
+                this.openHome();
+            }
+        }
     }
 
     async createArticle() {
@@ -124,6 +179,7 @@ export class ViewService {
     }
 
     cleanUp() {
+        if (this.modalKey) this.closeModal();
         if (this.viewKey == ViewKey.ARTICLE_EDITOR)
             this.articleEditor.cleanUp();
     }

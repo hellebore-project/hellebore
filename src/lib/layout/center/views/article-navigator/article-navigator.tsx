@@ -14,15 +14,15 @@ import {
     ArticleNodeData,
     ArticleNodeModel,
     ROOT_FOLDER_NODE_ID,
-} from "../../interface";
-import { getService } from "../../services";
+} from "@/interface";
+import { getService } from "@/services";
 import {
     NavItem,
     PopoverSettings,
     TextSettings,
-} from "../../shared/nav-item/nav-item";
-import { TextFieldSettings } from "../../shared/text-field";
-import { ThemeManager } from "../../theme";
+} from "@/shared/nav-item/nav-item";
+import { TextFieldSettings } from "@/shared/text-field";
+import { ThemeManager } from "@/theme";
 
 import "./article-navigator.css";
 

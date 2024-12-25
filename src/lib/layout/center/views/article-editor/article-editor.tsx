@@ -1,10 +1,10 @@
-import { Container, Divider, Grid, Space, Text } from "@mantine/core";
+import { Badge, Container, Divider, Grid, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "../../services";
-import { TextField } from "../../shared/text-field";
-import { RichTextEditor } from "../../shared/rich-text-editor/rich-text-editor";
-import { FieldTable } from "../../shared/field-table";
+import { getService } from "@/services";
+import { TextField } from "@/shared/text-field";
+import { RichTextEditor } from "@/shared/rich-text-editor/rich-text-editor";
+import { FieldTable } from "@/shared/field-table";
 import { DeleteArticleButton } from "./delete-article-button";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
@@ -19,16 +19,15 @@ function renderArticleEditor() {
             <form>
                 <Grid align="center">
                     <Grid.Col span="content">
-                        <Text size="sm" fw={700} mx="12">
+                        <Badge color="blue" mx="12">
                             {service.view.articleEditor.info.entityTypeLabel}
-                        </Text>
+                        </Badge>
                     </Grid.Col>
                     <Grid.Col span="content" style={{ marginLeft: "auto" }}>
                         <DeleteArticleButton />
                     </Grid.Col>
                 </Grid>
 
-                <Divider my="sm" />
                 {SPACE}
 
                 <TextField
@@ -50,6 +49,7 @@ function renderArticleEditor() {
                     }
                     styles={TITLE_FIELD_STYLES}
                 />
+                <Divider my="sm" />
 
                 {SPACE}
 

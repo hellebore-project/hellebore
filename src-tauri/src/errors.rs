@@ -4,6 +4,14 @@ use crate::types::EntityType;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ApiError {
+    DatabaseConnectionFailed {
+        msg: String,
+        connection_string: String,
+    },
+    DatabaseMigrationFailed {
+        msg: String,
+        connection_string: String,
+    },
     NotInserted {
         msg: String,
         entity: EntityType,
@@ -38,6 +46,20 @@ pub enum ApiError {
 }
 
 impl ApiError {
+    pub fn db_connection_failed<M: ToString>(msg: M, connection_string: String) -> ApiError {
+        return ApiError::DatabaseConnectionFailed {
+            msg: msg.to_string(),
+            connection_string,
+        };
+    }
+
+    pub fn db_migration_failed<M: ToString>(msg: M, connection_string: String) -> ApiError {
+        return ApiError::DatabaseMigrationFailed {
+            msg: msg.to_string(),
+            connection_string,
+        };
+    }
+
     pub fn not_inserted<M: ToString>(msg: M, entity: EntityType) -> ApiError {
         return ApiError::NotInserted {
             msg: msg.to_string(),

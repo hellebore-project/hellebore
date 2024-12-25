@@ -12,11 +12,11 @@ import {
     ARTICLE_ENTITY_TYPES,
     ENTITY_TYPE_LABELS,
     ModalKey,
-} from "../interface";
-import { SelectField } from "../shared/select-field";
-import { TextField } from "../shared/text-field";
-import { getService } from "../services";
-import { compareStrings } from "../utils/string";
+} from "@/interface";
+import { SelectField } from "@/shared/select-field";
+import { TextField } from "@/shared/text-field";
+import { getService } from "@/services";
+import { compareStrings } from "@/utils/string";
 
 const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = ARTICLE_ENTITY_TYPES.map(
     (entityType) => ({

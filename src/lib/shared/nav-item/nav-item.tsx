@@ -11,8 +11,8 @@ import { IconChevronRight } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 import { forwardRef, PropsWithChildren, ReactNode } from "react";
 
+import { range } from "@/utils/array";
 import { TextField, TextFieldSettings } from "../text-field";
-import { range } from "../../utils/array";
 
 import "./nav-item.css";
 

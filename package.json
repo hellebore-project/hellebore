@@ -27,6 +27,7 @@
     "@minoru/react-dnd-treeview": "^3.4.4",
     "@tabler/icons-react": "^3.14.0",
     "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-dialog": "~2",
     "@tauri-apps/plugin-shell": "~2",
     "@tiptap/core": "^2.6.6",
     "@tiptap/extension-link": "^2.6.6",

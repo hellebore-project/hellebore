@@ -4,3 +4,4 @@ pub use super::article::Entity as Article;
 pub use super::folder::Entity as Folder;
 pub use super::language::Entity as Language;
 pub use super::person::Entity as Person;
+pub use super::project::Entity as Project;

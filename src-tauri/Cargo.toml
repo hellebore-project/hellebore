@@ -23,6 +23,7 @@ tauri = { version = "2", features = ["devtools"] }
 tokio = { version = "1.38.1", features = ["full"] }
 uuid = { version = "^1.10.0", features = ["v4"] }
 tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
 
 [dev-dependencies]
 sea-orm-cli = "^1.0.0"
