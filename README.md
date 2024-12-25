@@ -22,11 +22,10 @@ cargo install --path src-tauri
 
 ```sh
 HELLEBORE_DATA_DIR="data"
-HELLEBORE_DB_FILE="db.sqlite"
-HELLEBORE_CONNECTION_STRING="sqlite://data/db.sqlite?mode=rwc"
+HELLEBORE_DEFAULT_DB_FILE="db.sqlite"
 
 # required for sea-orm-cli entity generation
-DATABASE_URL="sqlite://src-tauri/data/db.sqlite?mode=ro"
+DATABASE_URL="sqlite://src-tauri/data/db.sqlite?mode=rwc"
 ```
 
 4. Serve the app.

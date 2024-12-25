@@ -3,14 +3,18 @@
 
 use tauri;
 
-use hellebore::{app, settings::get_settings};
+use hellebore::{app, settings::Settings};
 
 #[tokio::main]
 async fn main() {
-    let mut builder = tauri::Builder::default().plugin(tauri_plugin_shell::init());
+    let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init());
 
-    let settings = get_settings();
-    // TODO: handle error
+    let settings = Settings::new();
+    settings.write_config_file();
+
+    // TODO: fall back to an error state in the UI if setup fails
     let state = app::setup(settings)
         .await
         .expect("Failed to set up application.");

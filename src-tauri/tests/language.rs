@@ -8,6 +8,8 @@ mod utils;
 #[tokio::test]
 async fn create_language() {
     let state = utils::setup().await;
+    let state = state.get_data().await;
+
     let language = LanguageDataSchema {
         name: String::from("French"),
     };

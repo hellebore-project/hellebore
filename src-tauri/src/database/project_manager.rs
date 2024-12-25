@@ -1,14 +1,6 @@
 use ::entity::{project, project::Entity as Project};
 use sea_orm::*;
 
-#[derive(FromQueryResult)]
-pub struct ArticleItem {
-    pub id: i32,
-    pub folder_id: Option<i32>,
-    pub entity_type: i8,
-    pub title: String,
-}
-
 pub async fn insert(db: &DbConn, name: &str) -> Result<project::Model, DbErr> {
     let new_entity = project::ActiveModel {
         id: NotSet,
