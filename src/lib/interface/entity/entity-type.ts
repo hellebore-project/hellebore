@@ -8,8 +8,10 @@ export enum EntityType {
     NONE = 0,
 
     // Core
-    FOLDER = 1,
-    ARTICLE = 2,
+    SESSION = 1,
+    PROJECT = 2,
+    FOLDER = 3,
+    ARTICLE = 4,
 
     // Dictionary
     LANGUAGE = 10,

@@ -11,7 +11,7 @@ function renderMenuButton({ label, onClick }: MenuButtonSettings) {
         <Button
             variant="filled"
             color="var(--mantine-color-dark-7)"
-            size="compact-md"
+            size="compact-sm"
             onClick={onClick}
         >
             {label}

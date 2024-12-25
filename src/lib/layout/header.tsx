@@ -4,7 +4,8 @@ import { observer } from "mobx-react-lite";
 import { EntityType } from "@/interface";
 import { getService } from "@/services";
 import { MenuButton } from "@/shared/menu-button";
-import { MenuDropdown } from "@/shared/menu-dropdown";
+import { DIVIDER, MenuDropdown } from "@/shared/menu-dropdown";
+import { HEADER_HEIGHT } from "@/constants";
 
 const FLEX_STYLE = { paddingLeft: 15 };
 
@@ -26,8 +27,8 @@ function renderHeader() {
     const service = getService();
     return (
         <Flex
-            mih={50}
-            gap="md"
+            mih={HEADER_HEIGHT}
+            gap={0}
             justify="flex-start"
             align="center"
             direction="row"
@@ -37,8 +38,26 @@ function renderHeader() {
             <SideBarToggleButton />
             <MenuButton label="Home" onClick={() => service.view.openHome()} />
             <MenuDropdown
+                label="App"
+                elements={[
+                    {
+                        label: "New Project",
+                        onClick: () => service.view.openProjectCreator(),
+                    },
+                    {
+                        label: "Open Project",
+                        onClick: () => service.view.loadProject(),
+                    },
+                    DIVIDER,
+                    {
+                        label: "Settings",
+                        onClick: () => service.view.openSettings(),
+                    },
+                ]}
+            />
+            <MenuDropdown
                 label="Encyclopedia"
-                items={[
+                elements={[
                     {
                         label: "New Article",
                         onClick: () => service.view.openArticleCreator(),
@@ -47,7 +66,7 @@ function renderHeader() {
             />
             <MenuDropdown
                 label="Dictionary"
-                items={[
+                elements={[
                     {
                         label: "New Language",
                         onClick: () =>
@@ -61,10 +80,6 @@ function renderHeader() {
                             service.view.openArticleCreator(EntityType.WORD),
                     },
                 ]}
-            />
-            <MenuButton
-                label="Settings"
-                onClick={() => service.view.openSettings()}
             />
         </Flex>
     );

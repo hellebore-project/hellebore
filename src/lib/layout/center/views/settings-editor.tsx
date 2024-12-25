@@ -1,9 +1,10 @@
-import { Container, Divider, FileInput, Space, Title } from "@mantine/core";
+import { Container, Divider, Space, Title } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 const SPACE = <Space h="lg" />;
 
 function renderSettingsEditor() {
+    // TODO
     return (
         <div className="container">
             <Title order={1}>Settings</Title>
@@ -11,9 +12,8 @@ function renderSettingsEditor() {
             <Divider my="sm" />
             {SPACE}
 
-            <Title order={2}>Data</Title>
             <Container ml={0} pl={0} size="xs">
-                <FileInput label="File" placeholder="..." />
+                <Title order={2}>Section...</Title>
             </Container>
         </div>
     );

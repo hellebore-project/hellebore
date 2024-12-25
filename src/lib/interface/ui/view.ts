@@ -5,5 +5,6 @@ export enum ViewKey {
 }
 
 export enum ModalKey {
+    PROJECT_CREATOR = "PROJECT_LOADER",
     ARTICLE_CREATOR = "ARTICLE_CREATOR",
 }

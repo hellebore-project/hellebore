@@ -2,21 +2,21 @@ import { makeAutoObservable } from "mobx";
 
 import { ArticleService } from "./article-manager";
 import { FolderService } from "./folder-manager";
-import { ProjectService } from "./project-manager";
+import { SessionService } from "./session-manager";
 
 export class DomainService {
-    project: ProjectService;
-    articles: ArticleService;
+    session: SessionService;
     folders: FolderService;
+    articles: ArticleService;
 
     constructor() {
         makeAutoObservable(this, {
-            project: false,
-            articles: false,
+            session: false,
             folders: false,
+            articles: false,
         });
-        this.project = new ProjectService();
-        this.articles = new ArticleService();
+        this.session = new SessionService();
         this.folders = new FolderService();
+        this.articles = new ArticleService();
     }
 }

@@ -13,11 +13,11 @@ export class ArticleCreatorService {
     title: string = "";
     isTitleUnique: boolean = true;
 
-    data: DomainService;
+    domain: DomainService;
 
-    constructor(dataService: DomainService) {
-        makeAutoObservable(this, { data: false });
-        this.data = dataService;
+    constructor(domain: DomainService) {
+        makeAutoObservable(this, { domain: false });
+        this.domain = domain;
     }
 
     setEntityType(entityType: EntityType | null = null) {
@@ -35,7 +35,7 @@ export class ArticleCreatorService {
     async createArticle(
         folder_id: number = ROOT_FOLDER_ID,
     ): Promise<ArticleResponse<BaseEntity> | null> {
-        const article = await this.data.articles.create(
+        const article = await this.domain.articles.create(
             this.entityType as EntityType,
             this.title,
             folder_id,

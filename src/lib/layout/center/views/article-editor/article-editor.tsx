@@ -1,4 +1,4 @@
-import { Container, Divider, Grid, Space, Text } from "@mantine/core";
+import { Badge, Container, Divider, Grid, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { getService } from "@/services";
@@ -19,16 +19,15 @@ function renderArticleEditor() {
             <form>
                 <Grid align="center">
                     <Grid.Col span="content">
-                        <Text size="sm" fw={700} mx="12">
+                        <Badge color="blue" mx="12">
                             {service.view.articleEditor.info.entityTypeLabel}
-                        </Text>
+                        </Badge>
                     </Grid.Col>
                     <Grid.Col span="content" style={{ marginLeft: "auto" }}>
                         <DeleteArticleButton />
                     </Grid.Col>
                 </Grid>
 
-                <Divider my="sm" />
                 {SPACE}
 
                 <TextField
@@ -50,6 +49,7 @@ function renderArticleEditor() {
                     }
                     styles={TITLE_FIELD_STYLES}
                 />
+                <Divider my="sm" />
 
                 {SPACE}
 
