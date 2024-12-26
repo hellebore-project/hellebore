@@ -8,16 +8,19 @@ pub const DEFAULT_DB_FILE_NAME: &str = "db.sqlite";
 pub const CONFIG_FILE_NAME: &str = "hellebore.config.json";
 
 pub struct DatabaseSettings {
-    pub file_path: String,
+    pub file_path: Option<String>,
     pub in_memory: bool,
 }
 
 impl DatabaseSettings {
-    pub fn get_connection_string(&self) -> String {
+    pub fn get_connection_string(&self) -> Option<String> {
         if self.in_memory {
-            return "sqlite::memory:".to_string();
+            return Some("sqlite::memory:".to_string());
         }
-        format!("sqlite://{0}?mode=rwc", self.file_path)
+        match self.file_path {
+            Some(ref path) => Some(format!("sqlite://{0}?mode=rwc", path)),
+            None => None,
+        }
     }
 }
 
@@ -32,19 +35,8 @@ impl Settings {
 
         let config = Self::read_config_file(&data_dir_path);
 
-        let db_file_path = match config.session.db_file_path {
-            Some(val) => val,
-            None => {
-                let db_file_name = match env::var("HELLEBORE_DEFAULT_DB_FILE") {
-                    Ok(val) => val,
-                    Err(_e) => DEFAULT_DB_FILE_NAME.to_string(),
-                };
-                format!("{data_dir_path}/{db_file_name}")
-            }
-        };
-
         let db_settings = DatabaseSettings {
-            file_path: db_file_path,
+            file_path: config.session.db_file_path,
             in_memory: false,
         };
 
@@ -76,7 +68,7 @@ impl Settings {
     fn to_config(&self) -> ConfigSchema {
         ConfigSchema {
             session: SessionSchema {
-                db_file_path: Some(self.database.file_path.clone()),
+                db_file_path: self.database.file_path.clone(),
             },
         }
     }

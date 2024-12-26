@@ -1,3 +1,4 @@
+use crate::api::util;
 use crate::errors::ApiError;
 use crate::schema::{
     folder::{FolderInfoSchema, FolderSchema},
@@ -11,8 +12,8 @@ pub async fn create_folder(
     state: tauri::State<'_, State>,
     info: FolderInfoSchema,
 ) -> Result<FolderSchema, ApiError> {
-    let state = state.get_data().await;
-    folder_service::create(&state.database, &info).await
+    let state = state.lock().await;
+    folder_service::create(util::get_database(&state)?, &info).await
 }
 
 #[tauri::command]
@@ -20,8 +21,8 @@ pub async fn update_folder(
     state: tauri::State<'_, State>,
     folder: FolderSchema,
 ) -> Result<FolderSchema, ApiError> {
-    let state = state.get_data().await;
-    folder_service::update(&state.database, &folder).await
+    let state = state.lock().await;
+    folder_service::update(util::get_database(&state)?, &folder).await
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -31,24 +32,24 @@ pub async fn validate_folder_name(
     parent_id: i32,
     name: &str,
 ) -> Result<ResponseSchema<bool>, ApiError> {
-    let state = state.get_data().await;
-    folder_service::validate_name(&state.database, id, parent_id, name).await
+    let state = state.lock().await;
+    folder_service::validate_name(util::get_database(&state)?, id, parent_id, name).await
 }
 
 #[tauri::command]
 pub async fn get_folder(state: tauri::State<'_, State>, id: i32) -> Result<FolderSchema, ApiError> {
-    let state = state.get_data().await;
-    folder_service::get(&state.database, id).await
+    let state = state.lock().await;
+    folder_service::get(util::get_database(&state)?, id).await
 }
 
 #[tauri::command]
 pub async fn get_folders(state: tauri::State<'_, State>) -> Result<Vec<FolderSchema>, ApiError> {
-    let state = state.get_data().await;
-    folder_service::get_all(&state.database).await
+    let state = state.lock().await;
+    folder_service::get_all(util::get_database(&state)?).await
 }
 
 #[tauri::command]
 pub async fn delete_folder(state: tauri::State<'_, State>, id: i32) -> Result<(), ApiError> {
-    let state = state.get_data().await;
-    folder_service::delete(&state.database, id).await
+    let state = state.lock().await;
+    folder_service::delete(util::get_database(&state)?, id).await
 }
