@@ -1,3 +1,4 @@
+use crate::api::util;
 use crate::errors::ApiError;
 use crate::schema::{article::ArticleInfoSchema, response::ResponseSchema};
 use crate::services::article_service;
@@ -9,14 +10,14 @@ pub async fn validate_article_title(
     id: Option<i32>,
     title: &str,
 ) -> Result<ResponseSchema<bool>, ApiError> {
-    let state = state.get_data().await;
-    article_service::validate_title(&state.database, id, title).await
+    let state = state.lock().await;
+    article_service::validate_title(util::get_database(&state)?, id, title).await
 }
 
 #[tauri::command]
 pub async fn get_articles(
     state: tauri::State<'_, State>,
 ) -> Result<Vec<ArticleInfoSchema>, ApiError> {
-    let state = state.get_data().await;
-    article_service::get_all(&state.database).await
+    let state = state.lock().await;
+    article_service::get_all(util::get_database(&state)?).await
 }

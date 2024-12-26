@@ -1,18 +1,24 @@
 use sea_orm::DatabaseConnection;
 
 use ::entity::project::Model as Project;
+use tokio::sync::MutexGuard;
 
 use crate::database::{database_manager, project_manager};
 use crate::errors::ApiError;
 use crate::schema::project::{ProjectLoadResponseSchema, ProjectResponseSchema};
 use crate::settings::Settings;
+use crate::state::StateData;
 use crate::types::PROJECT;
 
 pub async fn create(
-    settings: &Settings,
+    state: &mut MutexGuard<'_, StateData>,
     name: &str,
+    db_path: &str,
 ) -> Result<ProjectLoadResponseSchema, ApiError> {
-    let db = database_manager::setup(&settings).await?;
+    state.settings.database.file_path = Some(db_path.to_string());
+    state.settings.write_config_file();
+
+    let db = database_manager::setup(&state.settings).await?;
 
     // TODO: fall back to an error state in the UI if the query fails
     let mut projects = _get_all_records(&db).await?;
@@ -27,8 +33,14 @@ pub async fn create(
     Ok(ProjectLoadResponseSchema { info: project, db })
 }
 
-pub async fn load(settings: &Settings) -> Result<ProjectLoadResponseSchema, ApiError> {
-    let db = database_manager::setup(&settings).await?;
+pub async fn load(
+    state: &mut MutexGuard<'_, StateData>,
+    db_path: &str,
+) -> Result<ProjectLoadResponseSchema, ApiError> {
+    state.settings.database.file_path = Some(db_path.to_string());
+    state.settings.write_config_file();
+
+    let db = database_manager::setup(&state.settings).await?;
     let project = match get(&db).await? {
         Some(project) => project,
         None => {
@@ -39,6 +51,12 @@ pub async fn load(settings: &Settings) -> Result<ProjectLoadResponseSchema, ApiE
         }
     };
     Ok(ProjectLoadResponseSchema { info: project, db })
+}
+
+pub async fn close(state: &mut MutexGuard<'_, StateData>) -> Result<(), ApiError> {
+    state.settings.database.file_path = None;
+    state.settings.write_config_file();
+    Ok(())
 }
 
 pub async fn update(

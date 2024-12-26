@@ -1,16 +1,11 @@
 import { makeAutoObservable } from "mobx";
 
-import { DomainService } from "./domain";
-
 export class ProjectCreatorService {
     _name: string = "";
     _dbFilePath: string = "";
 
-    domain: DomainService;
-
-    constructor(domain: DomainService) {
-        makeAutoObservable(this, { domain: false });
-        this.domain = domain;
+    constructor() {
+        makeAutoObservable(this);
     }
 
     get name() {

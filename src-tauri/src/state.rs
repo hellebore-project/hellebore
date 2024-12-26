@@ -6,7 +6,7 @@ use crate::settings::Settings;
 
 pub struct StateData {
     pub settings: Settings,
-    pub database: DatabaseConnection,
+    pub database: Option<DatabaseConnection>,
 }
 
 pub struct State {
@@ -14,13 +14,13 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(settings: Settings, database: DatabaseConnection) -> Self {
+    pub fn new(settings: Settings, database: Option<DatabaseConnection>) -> Self {
         Self {
             data: Mutex::new(StateData { settings, database }),
         }
     }
 
-    pub async fn get_data(&self) -> MutexGuard<'_, StateData> {
+    pub async fn lock(&self) -> MutexGuard<'_, StateData> {
         self.data.lock().await
     }
 }

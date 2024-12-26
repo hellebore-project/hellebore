@@ -5,8 +5,27 @@ use crate::settings::Settings;
 use crate::state::State;
 
 pub async fn setup(settings: Settings) -> Result<State, ApiError> {
-    let project = project_service::create(&settings, "My Wiki").await?;
-    let state = State::new(settings, project.db);
+    let state = State::new(settings, None);
+    // lock the state for the duration of this function
+    let mut state_data = state.lock().await;
+
+    let db_file_path = state_data.settings.database.file_path.clone();
+    state_data.database = match db_file_path {
+        Some(path) => {
+            // try to load the last project from the previous session
+            match project_service::load(&mut state_data, &path).await {
+                Ok(project) => Some(project.db),
+                Err(e) => match e {
+                    ApiError::ProjectNotLoaded => None,
+                    _ => return Err(e),
+                },
+            }
+        }
+        None => None,
+    };
+    // now that the state has been mutated, drop the guard
+    drop(state_data);
+
     Ok(state)
 }
 
@@ -20,6 +39,7 @@ where
         // project API
         api::project::create_project,
         api::project::load_project,
+        api::project::close_project,
         api::project::update_project,
         api::project::get_project,
         // article API

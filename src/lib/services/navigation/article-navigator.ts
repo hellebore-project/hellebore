@@ -141,7 +141,9 @@ export class ArticleNavigationService {
         this.selectedNode = node;
     }
 
-    setup(articles: ArticleInfoResponse[], folders: FolderResponse[]) {
+    initialize(articles: ArticleInfoResponse[], folders: FolderResponse[]) {
+        this._nodePositionCache = {};
+
         const nodes: ArticleNodeModel[] = [];
 
         for (let article of articles) {
@@ -164,6 +166,11 @@ export class ArticleNavigationService {
         }
 
         this._nodes = nodes;
+    }
+
+    reset() {
+        this._nodes = [];
+        this._nodePositionCache = {};
     }
 
     addNodeForCreatedArticle({ id, folder_id, title }: ArticleInfoResponse) {

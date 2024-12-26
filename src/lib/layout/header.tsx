@@ -4,24 +4,132 @@ import { observer } from "mobx-react-lite";
 import { EntityType } from "@/interface";
 import { getService } from "@/services";
 import { MenuButton } from "@/shared/menu-button";
-import { DIVIDER, MenuDropdown } from "@/shared/menu-dropdown";
+import {
+    DIVIDER,
+    MenuDropdown,
+    MenuDropdownElementData,
+} from "@/shared/menu-dropdown";
 import { HEADER_HEIGHT } from "@/constants";
 
 const FLEX_STYLE = { paddingLeft: 15 };
 
-function renderSideBarToggleButton() {
+function renderNavBarMobileToggleButton() {
     const service = getService();
     return (
         <Burger
-            opened={service.view.sideBarOpen}
-            onClick={() => service.view.toggleSideBar()}
+            opened={service.view.navBarMobileOpen}
+            onClick={() => service.view.toggleNavBar()}
             hiddenFrom="sm"
             size="sm"
         />
     );
 }
 
-const SideBarToggleButton = observer(renderSideBarToggleButton);
+const NavBarMobileToggleButton = observer(renderNavBarMobileToggleButton);
+
+function renderAppMenuDropdown() {
+    const service = getService();
+
+    const newProjectButtonData = {
+        label: "New Project",
+        onClick: () => service.view.openProjectCreator(),
+    };
+    const openProjectButtonData = {
+        label: "Open Project",
+        onClick: () => service.view.loadProject(),
+    };
+    const closeProjectButtonData = {
+        label: "Close Project",
+        onClick: () => service.view.closeProject(),
+    };
+    const settingsButtonData = {
+        label: "Settings",
+        onClick: () => service.view.openSettings(),
+    };
+
+    let elements: MenuDropdownElementData[];
+    if (service.domain.hasProject)
+        elements = [
+            newProjectButtonData,
+            openProjectButtonData,
+            closeProjectButtonData,
+            DIVIDER,
+            settingsButtonData,
+        ];
+    else
+        elements = [
+            newProjectButtonData,
+            openProjectButtonData,
+            DIVIDER,
+            settingsButtonData,
+        ];
+
+    return <MenuDropdown label="App" elements={elements} />;
+}
+
+export const AppMenuDropdown = observer(renderAppMenuDropdown);
+
+function renderEncyclopediaMenuDropdown() {
+    const service = getService();
+    return (
+        <MenuDropdown
+            label="Encyclopedia"
+            elements={[
+                {
+                    label: "New Article",
+                    onClick: () => service.view.openArticleCreator(),
+                },
+                DIVIDER,
+                {
+                    label: "Search",
+                    onClick: () => {
+                        /* TODO */
+                    },
+                },
+            ]}
+        />
+    );
+}
+
+export const EncyclopediaMenuDropdown = observer(
+    renderEncyclopediaMenuDropdown,
+);
+
+function renderDictionaryMenuDropdown() {
+    const service = getService();
+    return (
+        <MenuDropdown
+            label="Dictionary"
+            elements={[
+                {
+                    label: "New Language",
+                    onClick: () =>
+                        service.view.openArticleCreator(EntityType.LANGUAGE),
+                },
+                {
+                    label: "New Word",
+                    onClick: () =>
+                        service.view.openArticleCreator(EntityType.WORD),
+                },
+                DIVIDER,
+                {
+                    label: "Search",
+                    onClick: () => {
+                        /* TODO */
+                    },
+                },
+                {
+                    label: "Translate",
+                    onClick: () => {
+                        /* TODO */
+                    },
+                },
+            ]}
+        />
+    );
+}
+
+export const DictionaryMenuDropdown = observer(renderDictionaryMenuDropdown);
 
 function renderHeader() {
     const service = getService();
@@ -35,52 +143,11 @@ function renderHeader() {
             wrap="nowrap"
             style={FLEX_STYLE}
         >
-            <SideBarToggleButton />
+            <NavBarMobileToggleButton />
             <MenuButton label="Home" onClick={() => service.view.openHome()} />
-            <MenuDropdown
-                label="App"
-                elements={[
-                    {
-                        label: "New Project",
-                        onClick: () => service.view.openProjectCreator(),
-                    },
-                    {
-                        label: "Open Project",
-                        onClick: () => service.view.loadProject(),
-                    },
-                    DIVIDER,
-                    {
-                        label: "Settings",
-                        onClick: () => service.view.openSettings(),
-                    },
-                ]}
-            />
-            <MenuDropdown
-                label="Encyclopedia"
-                elements={[
-                    {
-                        label: "New Article",
-                        onClick: () => service.view.openArticleCreator(),
-                    },
-                ]}
-            />
-            <MenuDropdown
-                label="Dictionary"
-                elements={[
-                    {
-                        label: "New Language",
-                        onClick: () =>
-                            service.view.openArticleCreator(
-                                EntityType.LANGUAGE,
-                            ),
-                    },
-                    {
-                        label: "New Word",
-                        onClick: () =>
-                            service.view.openArticleCreator(EntityType.WORD),
-                    },
-                ]}
-            />
+            <AppMenuDropdown />
+            {service.domain.hasProject && <EncyclopediaMenuDropdown />}
+            {service.domain.hasProject && <DictionaryMenuDropdown />}
         </Flex>
     );
 }

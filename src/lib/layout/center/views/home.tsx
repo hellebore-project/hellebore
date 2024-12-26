@@ -9,6 +9,7 @@ const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 
 function renderHome() {
     const service = getService();
+    if (!service.domain.hasProject) return null;
     return (
         <div className="container">
             <TextField
