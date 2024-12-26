@@ -3,23 +3,23 @@ import { observer } from "mobx-react-lite";
 
 export const DIVIDER = "DIVIDER";
 
-interface MenuItemData {
+interface MenuDropdownItemData {
     label: string;
     onClick?: () => void;
 }
 
-type MenuElementData = MenuItemData | string;
+export type MenuDropdownElementData = MenuDropdownItemData | string;
 
 interface MenuElementSettings {
-    data: MenuElementData;
+    data: MenuDropdownElementData;
 }
 
 interface MenuDropdownSettings {
     label: string;
-    elements: MenuElementData[];
+    elements: MenuDropdownElementData[];
 }
 
-function renderMenuElement({ data }: MenuElementSettings) {
+function renderMenuDropdownElement({ data }: MenuElementSettings) {
     if (data === DIVIDER) return <Menu.Divider />;
     else if (typeof data === "string") return <Menu.Label>{data}</Menu.Label>;
 
@@ -32,7 +32,7 @@ function renderMenuElement({ data }: MenuElementSettings) {
     );
 }
 
-const MenuElement = observer(renderMenuElement);
+export const MenuDropdownElement = observer(renderMenuDropdownElement);
 
 function renderMenuDropdown({ label, elements }: MenuDropdownSettings) {
     return (
@@ -55,7 +55,10 @@ function renderMenuDropdown({ label, elements }: MenuDropdownSettings) {
             </Menu.Target>
             <Menu.Dropdown>
                 {elements.map((element, index) => (
-                    <MenuElement key={`${label}-${index}`} data={element} />
+                    <MenuDropdownElement
+                        key={`${label}-${index}`}
+                        data={element}
+                    />
                 ))}
             </Menu.Dropdown>
         </Menu>

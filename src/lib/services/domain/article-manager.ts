@@ -194,6 +194,10 @@ export class ArticleService {
         }
     }
 
+    getInfo(id: number) {
+        return this._infos[id];
+    }
+
     async getAll(): Promise<ArticleInfoResponse[] | null> {
         let response: ArticleInfoResponse[] | null;
         try {

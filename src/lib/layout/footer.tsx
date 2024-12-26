@@ -10,7 +10,7 @@ function renderFooter() {
     return (
         <Grid justify="flex-start" align="center" gutter={{ base: 0 }}>
             <Grid.Col span={1} pl={8} h={25} style={COLUMN_STYLE}>
-                <Text size="xs">{service.view.home.projectName}</Text>
+                <Text size="xs">{service.domain.projectName ?? ""}</Text>
             </Grid.Col>
         </Grid>
     );

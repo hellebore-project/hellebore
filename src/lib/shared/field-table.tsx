@@ -1,4 +1,4 @@
-import { Grid, Stack, StackProps } from "@mantine/core";
+import { Card, Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { FieldData, FieldType } from "@/interface";
@@ -49,9 +49,11 @@ function renderFieldTable({ getData, ...rest }: FieldTableSettings) {
     ));
     if (rows.length == 0) return null;
     return (
-        <Stack align="stretch" gap="xs" {...rest}>
-            {rows}
-        </Stack>
+        <Card>
+            <Stack align="stretch" gap="xs" {...rest}>
+                {rows}
+            </Stack>
+        </Card>
     );
 }
 

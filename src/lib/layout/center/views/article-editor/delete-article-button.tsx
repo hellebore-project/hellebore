@@ -11,7 +11,7 @@ function renderDeleteArticleButton() {
     const service = getService();
     const onClick = (event: MouseEvent) => {
         event.stopPropagation();
-        service.view.deleteArticle(service.view.articleEditor.info.id);
+        service.view.openArticleRemover(service.view.articleEditor.info.id);
     };
     return (
         <NavSubItem span="content" p="0">

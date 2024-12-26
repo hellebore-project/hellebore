@@ -9,7 +9,8 @@ export class AppService {
         this.domain = new DomainService();
         this.view = new ViewService(this.domain);
 
-        this.view.fetchProjectInfo();
-        this.view.populateNavigator();
+        this.view.fetchProjectInfo().then((project) => {
+            if (project) this.view.populateNavigator();
+        });
     }
 }

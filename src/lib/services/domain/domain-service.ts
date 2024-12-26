@@ -19,4 +19,12 @@ export class DomainService {
         this.folders = new FolderService();
         this.articles = new ArticleService();
     }
+
+    get hasProject() {
+        return this.session.project !== null;
+    }
+
+    get projectName() {
+        return this.session.project?.name ?? null;
+    }
 }

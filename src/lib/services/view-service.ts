@@ -15,16 +15,18 @@ import { HomeService } from "./home-service";
 import { SettingsEditorService } from "./settings-editor";
 import { ProjectCreatorService } from "./project-creator";
 import { open } from "@tauri-apps/plugin-dialog";
+import { ArticleRemoverService } from "./article-remover";
 
 export class ViewService {
     viewKey: ViewKey = ViewKey.HOME;
     modalKey: ModalKey | null = null;
-    sideBarOpen: boolean = true;
+    navBarMobileOpen: boolean = true;
 
     domain: DomainService;
     home: HomeService;
     projectCreator: ProjectCreatorService;
     articleCreator: ArticleCreatorService;
+    articleRemover: ArticleRemoverService;
     articleEditor: ArticleEditorService;
     navigation: NavigationService;
     settingsEditor: SettingsEditorService;
@@ -35,6 +37,7 @@ export class ViewService {
             home: false,
             projectCreator: false,
             articleCreator: false,
+            articleRemover: false,
             articleEditor: false,
             navigation: false,
             settingsEditor: false,
@@ -43,16 +46,14 @@ export class ViewService {
 
         this.domain = domain;
 
+        // central views
         this.home = new HomeService(domain);
-
-        this.projectCreator = new ProjectCreatorService(domain);
-
-        this.articleCreator = new ArticleCreatorService(domain);
-
+        this.settingsEditor = new SettingsEditorService(domain);
         this.articleEditor = new ArticleEditorService(domain, (id) =>
             this.openArticleEditorForId(id),
         );
 
+        // navbar
         this.navigation = new NavigationService(this.domain);
         this.navigation.articles.onSelectedArticle.push((id) =>
             this.openArticleEditorForId(id),
@@ -62,13 +63,17 @@ export class ViewService {
             this.navigation.articles.updateArticleNodeText(id, title);
         });
 
-        this.settingsEditor = new SettingsEditorService(domain);
+        // modals
+        this.projectCreator = new ProjectCreatorService();
+        this.articleCreator = new ArticleCreatorService(domain);
+        this.articleRemover = new ArticleRemoverService();
     }
 
     async fetchProjectInfo() {
-        this.domain.session.getSession().then((session) => {
+        return this.domain.session.getSession().then((session) => {
             // TODO: trigger UI error state if the project info is unavailable
             this.home.initialize(session?.project?.name ?? "Error");
+            return session?.project ?? null;
         });
     }
 
@@ -76,12 +81,11 @@ export class ViewService {
         const articles = await this.domain.articles.getAll();
         const folders = await this.domain.folders.getAll();
 
-        if (articles && folders)
-            this.navigation.articles.setup(articles, folders);
+        if (articles && folders) this.navigation.initialize(articles, folders);
     }
 
-    toggleSideBar() {
-        this.sideBarOpen = !this.sideBarOpen;
+    toggleNavBar() {
+        this.navBarMobileOpen = !this.navBarMobileOpen;
     }
 
     openHome() {
@@ -104,6 +108,12 @@ export class ViewService {
         this.cleanUp();
         this.articleCreator.initialize(entityType);
         this.modalKey = ModalKey.ARTICLE_CREATOR;
+    }
+
+    openArticleRemover(id: number) {
+        this.cleanUp();
+        this.articleRemover.initialize(id);
+        this.modalKey = ModalKey.ARTICLE_REMOVER;
     }
 
     openArticleEditor(article: ArticleResponse<BaseEntity>) {
@@ -134,6 +144,7 @@ export class ViewService {
             dbFilePath,
         );
         if (response) {
+            this.populateNavigator();
             this.home.initialize(response.name);
             this.openHome();
         }
@@ -144,9 +155,19 @@ export class ViewService {
         if (path) {
             const response = await this.domain.session.loadProject(path);
             if (response) {
+                this.populateNavigator();
                 this.home.initialize(response.name);
                 this.openHome();
             }
+        }
+    }
+
+    async closeProject() {
+        const success = await this.domain.session.closeProject();
+        if (success) {
+            this.navigation.reset();
+            this.home.initialize("");
+            this.openHome();
         }
     }
 
