@@ -8,7 +8,7 @@ use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     person::PersonDataSchema,
-    response::ResponseSchema,
+    response::ResponseDiagnosticsSchema,
 };
 use crate::services::article_service;
 use crate::types::{ARTICLE, PERSON};
@@ -29,7 +29,7 @@ pub async fn create(
 pub async fn update(
     database: &DatabaseConnection,
     article: ArticleUpdateSchema<PersonDataSchema>,
-) -> Result<ResponseSchema<()>, ApiError> {
+) -> Result<ResponseDiagnosticsSchema<()>, ApiError> {
     let mut response = article_service::update(
         &database,
         article.id,

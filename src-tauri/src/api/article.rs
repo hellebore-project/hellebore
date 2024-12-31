@@ -1,6 +1,6 @@
 use crate::api::util;
 use crate::errors::ApiError;
-use crate::schema::{article::ArticleInfoSchema, response::ResponseSchema};
+use crate::schema::{article::ArticleInfoSchema, response::ResponseDiagnosticsSchema};
 use crate::services::article_service;
 use crate::state::State;
 
@@ -9,7 +9,7 @@ pub async fn validate_article_title(
     state: tauri::State<'_, State>,
     id: Option<i32>,
     title: &str,
-) -> Result<ResponseSchema<bool>, ApiError> {
+) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
     let state = state.lock().await;
     article_service::validate_title(util::get_database(&state)?, id, title).await
 }

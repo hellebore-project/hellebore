@@ -6,7 +6,6 @@ use tokio::sync::MutexGuard;
 use crate::database::{database_manager, project_manager};
 use crate::errors::ApiError;
 use crate::schema::project::{ProjectLoadResponseSchema, ProjectResponseSchema};
-use crate::settings::Settings;
 use crate::state::StateData;
 use crate::types::PROJECT;
 

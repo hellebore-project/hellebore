@@ -46,7 +46,7 @@ pub async fn update(
     };
     let updated_entity = article::ActiveModel {
         id: Unchanged(existing_entity.id),
-        folder_id: folder_manager::optional_folder_id_to_active_value(folder_id),
+        folder_id: folder_manager::convert_optional_folder_id_to_active_value(folder_id),
         entity_type: NotSet,
         title: util::optional_value_to_active_value(title),
         body: util::optional_value_to_active_value(content),
@@ -108,4 +108,11 @@ pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
         return Err(DbErr::RecordNotFound(String::from("Article not found.")));
     };
     existing_entity.delete(db).await
+}
+
+pub async fn delete_many(db: &DbConn, ids: Vec<i32>) -> Result<DeleteResult, DbErr> {
+    Article::delete_many()
+        .filter(article::Column::Id.is_in(ids))
+        .exec(db)
+        .await
 }

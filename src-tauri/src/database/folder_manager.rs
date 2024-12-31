@@ -1,6 +1,8 @@
 use ::entity::{folder, folder::Entity as Folder};
 use sea_orm::*;
 
+use crate::database::util;
+
 pub async fn insert(db: &DbConn, parent_id: i32, name: &str) -> Result<folder::Model, DbErr> {
     let new_entity = folder::ActiveModel {
         id: NotSet,
@@ -16,16 +18,16 @@ pub async fn insert(db: &DbConn, parent_id: i32, name: &str) -> Result<folder::M
 pub async fn update(
     db: &DbConn,
     id: i32,
-    parent_id: i32,
-    name: &str,
+    parent_id: Option<i32>,
+    name: Option<String>,
 ) -> Result<folder::Model, DbErr> {
     let Some(existing_entity) = get(db, id).await? else {
         return Err(DbErr::RecordNotFound("Folder not found.".to_owned()));
     };
     let updated_entity = folder::ActiveModel {
         id: Unchanged(existing_entity.id),
-        parent_id: Set(convert_folder_id_sentinel_to_none(parent_id)),
-        name: Set(name.to_string()),
+        parent_id: convert_optional_folder_id_to_active_value(parent_id),
+        name: util::optional_value_to_active_value(name),
     };
     updated_entity.update(db).await
 }
@@ -65,6 +67,13 @@ pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
     existing_entity.delete(db).await
 }
 
+pub async fn delete_many(db: &DbConn, ids: Vec<i32>) -> Result<DeleteResult, DbErr> {
+    Folder::delete_many()
+        .filter(folder::Column::Id.is_in(ids))
+        .exec(db)
+        .await
+}
+
 pub fn convert_folder_id_sentinel_to_none(id: i32) -> Option<i32> {
     if id >= 0 {
         Some(id)
@@ -80,7 +89,7 @@ pub fn convert_null_folder_id_to_sentinel(id: Option<i32>) -> i32 {
     }
 }
 
-pub fn optional_folder_id_to_active_value(id: Option<i32>) -> ActiveValue<Option<i32>> {
+pub fn convert_optional_folder_id_to_active_value(id: Option<i32>) -> ActiveValue<Option<i32>> {
     match id {
         Some(v) => ActiveValue::Set(convert_folder_id_sentinel_to_none(v)),
         None => ActiveValue::NotSet,
