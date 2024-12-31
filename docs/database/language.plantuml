@@ -3,7 +3,7 @@
 ''' Classes
 
 class Language {
-    integer id
+    int id
 }
 
 enum WordType {
@@ -55,9 +55,9 @@ enum VerbTense {
 }
 
 class Word {
-    integer id
-    text spelling
-    integer language_id
+    int id
+    string spelling
+    int language_id
     WordType word_type
     GrammaticalNumber number
     GrammaticalPerson person
