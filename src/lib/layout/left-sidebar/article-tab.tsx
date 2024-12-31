@@ -3,13 +3,13 @@ import { observer } from "mobx-react-lite";
 
 import { getService } from "@/services";
 import { NavItem } from "@/shared/nav-item/nav-item";
-import { ArticleNavigator } from "../center/views/article-navigator";
+import { FileNavigator } from "./file-navigator";
 import { AddFolderButton } from "./add-folder-button";
 import { CollapseFoldersButton } from "./collapse-folders-button";
 import { AddArticleButton } from "./add-article-button";
 
 function renderArticlesTabHeader() {
-    const articleNavService = getService().view.navigation.articles;
+    const articleNavService = getService().view.navigation.files;
     return (
         <NavItem
             textSettings={{
@@ -35,28 +35,27 @@ const ArticlesTabHeader = observer(renderArticlesTabHeader);
 
 function renderArticlesTab() {
     const service = getService();
+    console.log(service.view.navigation.files.expanded);
     // the components have to take up as much vertical space as possible in order to allow
     // dragging article nodes to the top level of the file tree
     return (
         <Box
             h="100%"
-            onMouseEnter={() => service.view.navigation.articles.setHover(true)}
-            onMouseLeave={() =>
-                service.view.navigation.articles.setHover(false)
-            }
+            onMouseEnter={() => service.view.navigation.files.setHover(true)}
+            onMouseLeave={() => service.view.navigation.files.setHover(false)}
         >
             <ArticlesTabHeader />
             <Space h="sm" />
             <Collapse
                 h="100%"
-                in={service.view.navigation.articles.expanded}
+                in={service.view.navigation.files.expanded}
                 transitionDuration={50}
                 transitionTimingFunction="linear"
-                onClick={() =>
-                    service.view.navigation.articles.setSelectedNode(null)
-                }
+                onClick={() => {
+                    service.view.navigation.files.setSelectedNode(null);
+                }}
             >
-                <ArticleNavigator />
+                <FileNavigator />
             </Collapse>
         </Box>
     );

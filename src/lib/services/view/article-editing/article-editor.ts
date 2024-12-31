@@ -7,12 +7,16 @@ import {
     ArticleUpdateResponse,
     FieldData,
 } from "@/interface";
-import { DomainService } from "../domain";
+import { ArticleUpdateArguments, DomainService } from "@/services/domain";
 import { ArticleFieldTableService } from "./field-table-editor";
 import { ArticleBodyService, OpenArticleHandler } from "./body-editor";
 import { ArticleInfoService } from "./info-editor";
 
 const UPDATE_DELAY_MILLISECONDS = 5000;
+
+export type UpdateArticleHandler = (
+    update: ArticleUpdateArguments,
+) => Promise<ArticleUpdateResponse | null>;
 
 interface SyncSettings {
     syncTitle?: boolean;
@@ -29,9 +33,12 @@ export class ArticleEditorService {
     fieldTable: ArticleFieldTableService;
     body: ArticleBodyService;
 
+    updateArticle: UpdateArticleHandler;
+
     constructor(
         domain: DomainService,
-        onOpenAnotherArticle: OpenArticleHandler,
+        updateArticle: UpdateArticleHandler,
+        openArticle: OpenArticleHandler,
     ) {
         makeAutoObservable(this, {
             domain: false,
@@ -50,8 +57,10 @@ export class ArticleEditorService {
             domain,
             info: this.info,
             onChange: () => this._onChange(),
-            onOpenAnotherArticle,
+            openArticle,
         });
+
+        this.updateArticle = updateArticle;
     }
 
     setTitle(title: string) {
@@ -120,7 +129,7 @@ export class ArticleEditorService {
 
         let response: ArticleUpdateResponse | null;
         try {
-            response = await this.domain.articles.update({
+            response = await this.updateArticle({
                 id: this.info.id,
                 entity_type: this.info.entityType as EntityType,
                 title:

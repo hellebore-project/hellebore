@@ -1,3 +1,4 @@
+import { open } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable } from "mobx";
 
 import {
@@ -7,66 +8,85 @@ import {
     ModalKey,
     ViewKey,
 } from "@/interface";
+import { ArticleUpdateArguments, DomainService } from "../domain";
 import { ArticleCreatorService } from "./article-creator";
 import { ArticleEditorService } from "./article-editing";
-import { NavigationService } from "./navigation/navigation-service";
-import { DomainService } from "./domain";
+import { ContextMenuService } from "./context-menu-manager";
+import { DataRemoverService } from "./data-remover";
 import { HomeService } from "./home-service";
-import { SettingsEditorService } from "./settings-editor";
+import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreatorService } from "./project-creator";
-import { open } from "@tauri-apps/plugin-dialog";
-import { ArticleRemoverService } from "./article-remover";
+import { SettingsEditorService } from "./settings-editor";
 
 export class ViewService {
+    // state variables
     viewKey: ViewKey = ViewKey.HOME;
     modalKey: ModalKey | null = null;
     navBarMobileOpen: boolean = true;
 
+    // domain service
     domain: DomainService;
+
+    // central view services
     home: HomeService;
+    articleEditor: ArticleEditorService;
+    settingsEditor: SettingsEditorService;
+
+    // navigation bar service
+    navigation: NavigationService;
+
+    // modal services
     projectCreator: ProjectCreatorService;
     articleCreator: ArticleCreatorService;
-    articleRemover: ArticleRemoverService;
-    articleEditor: ArticleEditorService;
-    navigation: NavigationService;
-    settingsEditor: SettingsEditorService;
+    articleRemover: DataRemoverService;
+    folderRemover: DataRemoverService;
+
+    // context menu service
+    contextMenu: ContextMenuService;
 
     constructor(domain: DomainService) {
         const overrides = {
             domain: false,
             home: false,
+            settingsEditor: false,
+            navigation: false,
             projectCreator: false,
+            folderRemover: false,
             articleCreator: false,
             articleRemover: false,
             articleEditor: false,
-            navigation: false,
-            settingsEditor: false,
+            contextMenu: false,
         };
         makeAutoObservable(this, overrides);
+
+        const updateArticle = (update: ArticleUpdateArguments) =>
+            this.updateArticle(update);
 
         this.domain = domain;
 
         // central views
         this.home = new HomeService(domain);
         this.settingsEditor = new SettingsEditorService(domain);
-        this.articleEditor = new ArticleEditorService(domain, (id) =>
-            this.openArticleEditorForId(id),
+        this.articleEditor = new ArticleEditorService(
+            domain,
+            updateArticle,
+            (id) => this.openArticleEditorForId(id),
         );
 
         // navbar
-        this.navigation = new NavigationService(this.domain);
-        this.navigation.articles.onSelectedArticle.push((id) =>
+        this.navigation = new NavigationService(domain, updateArticle);
+        this.navigation.files.onSelectedArticle.push((id) =>
             this.openArticleEditorForId(id),
         );
-        this.domain.articles.onUpdated.push(({ id, title, isTitleUnique }) => {
-            if (!title || title == "" || !isTitleUnique) return;
-            this.navigation.articles.updateArticleNodeText(id, title);
-        });
 
         // modals
         this.projectCreator = new ProjectCreatorService();
+        this.folderRemover = new DataRemoverService();
         this.articleCreator = new ArticleCreatorService(domain);
-        this.articleRemover = new ArticleRemoverService();
+        this.articleRemover = new DataRemoverService();
+
+        // context menu
+        this.contextMenu = new ContextMenuService();
     }
 
     async fetchProjectInfo() {
@@ -93,33 +113,34 @@ export class ViewService {
         this.viewKey = ViewKey.HOME;
     }
 
-    openProjectCreator() {
-        this.cleanUp();
-        this.projectCreator.initialize();
-        this.modalKey = ModalKey.PROJECT_CREATOR;
-    }
-
     openSettings() {
         this.cleanUp();
         this.viewKey = ViewKey.SETTINGS;
     }
 
+    openProjectCreator() {
+        this.projectCreator.initialize();
+        this.modalKey = ModalKey.PROJECT_CREATOR;
+    }
+
+    openFolderRemover(id: number) {
+        this.folderRemover.initialize(id);
+        this.modalKey = ModalKey.FOLDER_REMOVER;
+    }
+
     openArticleCreator(entityType: EntityType | undefined = undefined) {
-        this.cleanUp();
         this.articleCreator.initialize(entityType);
         this.modalKey = ModalKey.ARTICLE_CREATOR;
     }
 
     openArticleRemover(id: number) {
-        this.cleanUp();
         this.articleRemover.initialize(id);
         this.modalKey = ModalKey.ARTICLE_REMOVER;
     }
 
     openArticleEditor(article: ArticleResponse<BaseEntity>) {
-        this.cleanUp();
         this.articleEditor.initialize(article);
-        this.navigation.articles.selectArticleNode(article.id);
+        this.navigation.files.selectArticleNode(article.id);
         this.viewKey = ViewKey.ARTICLE_EDITOR;
     }
 
@@ -139,10 +160,14 @@ export class ViewService {
     }
 
     async createProject(name: string, dbFilePath: string) {
+        // save any unsynced data before loading a new project
+        this.cleanUp();
+
         const response = await this.domain.session.createProject(
             name,
             dbFilePath,
         );
+
         if (response) {
             this.populateNavigator();
             this.home.initialize(response.name);
@@ -153,6 +178,9 @@ export class ViewService {
     async loadProject() {
         const path = await open();
         if (path) {
+            // save any unsynced data before loading another project
+            this.cleanUp();
+
             const response = await this.domain.session.loadProject(path);
             if (response) {
                 this.populateNavigator();
@@ -163,6 +191,9 @@ export class ViewService {
     }
 
     async closeProject() {
+        // save any unsynced data before closing the project
+        this.cleanUp();
+
         const success = await this.domain.session.closeProject();
         if (success) {
             this.navigation.reset();
@@ -171,22 +202,54 @@ export class ViewService {
         }
     }
 
+    async deleteFolder(id: number) {
+        const fileIds = await this.domain.folders.delete(id);
+        if (!fileIds) return null;
+
+        for (const folderId of fileIds.folders)
+            this.navigation.files.deleteFolderNode(folderId);
+        for (const articleId of fileIds.articles)
+            this.navigation.files.deleteArticleNode(articleId);
+
+        if (
+            this.viewKey == ViewKey.ARTICLE_EDITOR &&
+            fileIds.articles.includes(this.articleEditor.info.id)
+        ) {
+            // currently-open article has been deleted
+            this.openHome();
+        }
+
+        return fileIds;
+    }
+
     async createArticle() {
         let article = await this.articleCreator.createArticle(
-            this.navigation.articles.activeFolderId,
+            this.navigation.files.activeFolderId,
         );
         if (article) {
             this.closeModal();
-            this.navigation.articles.addNodeForCreatedArticle(article);
+            this.navigation.files.addNodeForCreatedArticle(article);
             this.openArticleEditor(article);
         }
+        return article;
+    }
+
+    async updateArticle(update: ArticleUpdateArguments) {
+        const response = await this.domain.articles.update(update);
+        if (!response) return null;
+
+        const { id, title } = update;
+        if (title && title != "" && response.isTitleUnique)
+            this.navigation.files.updateArticleNodeText(id, title);
+
+        return response;
     }
 
     async deleteArticle(id: number) {
         const success = await this.domain.articles.delete(id);
         if (!success)
             // failed to delete the article; aborting
-            return;
+            return false;
 
         if (
             this.viewKey == ViewKey.ARTICLE_EDITOR &&
@@ -196,7 +259,9 @@ export class ViewService {
             this.openHome();
         }
 
-        this.navigation.articles.deleteArticleNode(id);
+        this.navigation.files.deleteArticleNode(id);
+
+        return true;
     }
 
     cleanUp() {

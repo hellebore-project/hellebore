@@ -4,26 +4,29 @@ import { RefObject } from "react";
 
 import {
     ArticleInfoResponse,
-    ArticleNodeData,
-    ArticleNodeModel,
+    ArticleUpdateResponse,
+    FileNodeData,
+    FileNodeModel,
     FolderResponse,
     NodeId,
     ROOT_FOLDER_ID,
     ROOT_FOLDER_NODE_ID,
 } from "@/interface";
+import { ArticleUpdateArguments, DomainService } from "@/services/domain";
 import { Counter } from "@/utils/counter";
 import {
     articleNodeId,
     convertNodeIdToEntityId,
     folderNodeId,
 } from "@/utils/node";
-import { DomainService } from "../domain";
 
+export type UpdateArticleHandler = (
+    update: ArticleUpdateArguments,
+) => Promise<ArticleUpdateResponse | null>;
 export type SelectArticleHandler = (id: number) => void;
-export type SelectFolderHandler = (id: number) => void;
 
-export class ArticleNavigationService {
-    _nodes: ArticleNodeModel[];
+export class FileNavigationService {
+    _nodes: FileNodeModel[];
     _nodePositionCache: { [nodeId: NodeId]: number };
 
     /**
@@ -34,20 +37,22 @@ export class ArticleNavigationService {
 
     expanded: boolean = true;
     hover: boolean = false;
-    selectedNode: ArticleNodeModel | null;
+    selectedNode: FileNodeModel | null;
 
     onSelectedArticle: SelectArticleHandler[];
-    onSelectedFolder: SelectFolderHandler[];
 
     _placeholderIdGenerator: Counter;
     domain: DomainService;
 
-    constructor(domain: DomainService) {
+    updateArticle: UpdateArticleHandler;
+
+    constructor(domain: DomainService, updateArticle: UpdateArticleHandler) {
         makeAutoObservable(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
             _tree: false,
             domain: false,
+            updateArticle: false,
         });
 
         this._nodes = [];
@@ -56,10 +61,11 @@ export class ArticleNavigationService {
         this.selectedNode = null;
 
         this.onSelectedArticle = [];
-        this.onSelectedFolder = [];
 
         this._placeholderIdGenerator = new Counter();
         this.domain = domain;
+
+        this.updateArticle = updateArticle;
     }
 
     /**
@@ -78,7 +84,7 @@ export class ArticleNavigationService {
         return toJS(this._nodes);
     }
 
-    set nodes(nodes: ArticleNodeModel[]) {
+    set nodes(nodes: FileNodeModel[]) {
         this._nodes = nodes;
     }
 
@@ -109,23 +115,23 @@ export class ArticleNavigationService {
         return this.expanded && this.hover;
     }
 
-    setNode(node: ArticleNodeModel, index: number) {
+    setNode(node: FileNodeModel, index: number) {
         this._nodes[index] = node;
     }
 
-    isFolderNode(node: ArticleNodeModel) {
+    isFolderNode(node: FileNodeModel) {
         return node.droppable;
     }
 
-    isPlaceholderNode(node: ArticleNodeModel) {
+    isPlaceholderNode(node: FileNodeModel) {
         return node?.data?.isPlaceholder ?? false;
     }
 
-    setNodeError(node: ArticleNodeModel, error: string) {
+    setNodeError(node: FileNodeModel, error: string) {
         this._addNodeData(node, { error });
     }
 
-    clearNodeError(node: ArticleNodeModel) {
+    clearNodeError(node: FileNodeModel) {
         delete node?.data?.error;
     }
 
@@ -137,14 +143,14 @@ export class ArticleNavigationService {
         this.hover = hover;
     }
 
-    setSelectedNode(node: ArticleNodeModel | null) {
+    setSelectedNode(node: FileNodeModel | null) {
         this.selectedNode = node;
     }
 
     initialize(articles: ArticleInfoResponse[], folders: FolderResponse[]) {
         this._nodePositionCache = {};
 
-        const nodes: ArticleNodeModel[] = [];
+        const nodes: FileNodeModel[] = [];
 
         for (let article of articles) {
             nodes.push(
@@ -159,8 +165,8 @@ export class ArticleNavigationService {
             nodes.push(
                 this._generateFolderNode(
                     folder.id,
-                    folder.info.parent_id,
-                    folder.info.name,
+                    folder.parent_id,
+                    folder.name,
                 ),
             );
         }
@@ -173,13 +179,40 @@ export class ArticleNavigationService {
         this._nodePositionCache = {};
     }
 
+    getNode(nodeId: NodeId) {
+        const index = this.getNodeIndex(nodeId, true);
+        if (index === null) return null;
+        return this.nodes[index];
+    }
+
+    getNodeIndex(nodeId: NodeId | null, cache: boolean = true): number | null {
+        if (!nodeId) return null;
+
+        let index = this._nodePositionCache[nodeId];
+        let node = this._nodes[index];
+
+        if (node && node.id == nodeId) return index;
+
+        index = 0;
+        for (let node of this._nodes) {
+            if (node.id != nodeId) {
+                index++;
+                continue;
+            }
+            if (cache) this._nodePositionCache[nodeId] = index;
+            return index;
+        }
+
+        return null;
+    }
+
     addNodeForCreatedArticle({ id, folder_id, title }: ArticleInfoResponse) {
         const node = this._generateArticleNode(id, folder_id, title);
         this._nodes.push(node);
         this.setSelectedNode(node);
     }
 
-    addPlaceholderNodeForNewFolder(): ArticleNodeModel {
+    addPlaceholderNodeForNewFolder(): FileNodeModel {
         const id = this._placeholderIdGenerator.increment();
         const node = this._generateFolderNode(
             `P${id}`,
@@ -206,16 +239,13 @@ export class ArticleNavigationService {
         if (node) this.selectNode(node);
     }
 
-    selectNode(node: ArticleNodeModel) {
+    selectNode(node: FileNodeModel) {
         this.setSelectedNode(node);
         if (this.isFolderNode(node)) return;
 
         const id = convertNodeIdToEntityId(node.id);
-        if (this.isFolderNode(node))
-            // folder
-            this.onSelectedFolder.forEach((handler) => handler(id));
-        // article
-        else this.onSelectedArticle.forEach((handler) => handler(id));
+        if (!this.isFolderNode(node))
+            this.onSelectedArticle.forEach((handler) => handler(id));
     }
 
     updateArticleNodeText(id: number, title: string) {
@@ -223,12 +253,12 @@ export class ArticleNavigationService {
     }
 
     setNodeText(nodeId: NodeId, text: string) {
-        const index = this._getNodeIndex(nodeId);
+        const index = this.getNodeIndex(nodeId);
         if (index !== null) this._nodes[index].text = text;
     }
 
     editNodeText(nodeId: NodeId, text: string) {
-        const index = this._getNodeIndex(nodeId);
+        const index = this.getNodeIndex(nodeId);
         if (index !== null) {
             const node = this._nodes[index];
 
@@ -244,7 +274,7 @@ export class ArticleNavigationService {
         }
     }
 
-    async validateEditedNodeText(node: ArticleNodeModel) {
+    async validateEditedNodeText(node: FileNodeModel) {
         const newText = node.data?.editableText ?? "";
         if (!newText) this.setNodeError(node, "A name must be provided.");
         else if (newText != node.text) {
@@ -256,16 +286,17 @@ export class ArticleNavigationService {
             if (this.isFolderNode(node)) {
                 // folder
                 const parentId = convertNodeIdToEntityId(node.parent);
-                this.domain.folders
-                    .validate_name(newText, parentId, id)
-                    .then((isUnique) => {
-                        if (!isUnique)
-                            this.setNodeError(
-                                node,
-                                `A folder named ${newText} already exists at this location.`,
-                            );
-                        else this.clearNodeError(node);
-                    });
+                const validationResponse = this.domain.folders.validate_name(
+                    id,
+                    parentId,
+                    newText,
+                );
+                if (!validationResponse.nameIsUnique)
+                    this.setNodeError(
+                        node,
+                        `A folder named ${newText} already exists at this location.`,
+                    );
+                else this.clearNodeError(node);
             } else {
                 // article
                 // TODO
@@ -273,7 +304,7 @@ export class ArticleNavigationService {
         } else this.clearNodeError(node);
     }
 
-    async confirmNodeTextEdit(node: ArticleNodeModel) {
+    async confirmNodeTextEdit(node: FileNodeModel) {
         this.validateEditedNodeText(node);
         if (node.data?.error)
             // cancel the edit
@@ -282,8 +313,8 @@ export class ArticleNavigationService {
         else await this._applyNodeTextEdit(node);
     }
 
-    async _applyNodeTextEdit(node: ArticleNodeModel) {
-        const index = this._getNodeIndex(node.id, false) as number;
+    async _applyNodeTextEdit(node: FileNodeModel) {
+        const index = this.getNodeIndex(node.id, false) as number;
 
         node.text = node?.data?.editableText ?? node.text;
         delete node?.data?.editableText;
@@ -319,8 +350,8 @@ export class ArticleNavigationService {
         }
     }
 
-    _cancelNodeTextEdit(node: ArticleNodeModel) {
-        const index = this._getNodeIndex(node.id, false) as number;
+    _cancelNodeTextEdit(node: FileNodeModel) {
+        const index = this.getNodeIndex(node.id, false) as number;
         if (this.isPlaceholderNode(node)) this._deleteNodeAtIndex(index);
         else {
             delete node?.data?.editableText;
@@ -329,24 +360,40 @@ export class ArticleNavigationService {
         }
     }
 
-    moveNode(node: ArticleNodeModel, folderNodeId: NodeId) {
-        const index = this._getNodeIndex(node.id);
+    async moveNode(node: FileNodeModel, destFolderNodeId: NodeId) {
+        const index = this.getNodeIndex(node.id);
         if (index !== null) {
-            node.parent = folderNodeId;
-            this._nodes[index] = node;
+            const sourceFolderNodeId = node.parent;
 
             const id = convertNodeIdToEntityId(node.id);
-            const parentId = convertNodeIdToEntityId(node.parent);
+            const sourceParentId = convertNodeIdToEntityId(sourceFolderNodeId);
+            const destParentId = convertNodeIdToEntityId(destFolderNodeId);
 
-            if (this.isFolderNode(node))
+            let response: any;
+            if (this.isFolderNode(node)) {
                 // folder
-                this.domain.folders.update(id, node.text, parentId);
-            // article
-            else
-                this.domain.articles.update({
+                response = await this.domain.folders.update({
                     id,
-                    folder_id: parentId,
+                    parentId: destParentId,
+                    oldParentId: sourceParentId,
                 });
+            } else {
+                // article
+                response = await this.updateArticle({
+                    id,
+                    folderId: destParentId,
+                    oldFolderId: sourceParentId,
+                });
+            }
+            console.log(response);
+            if (response) {
+                node.parent = destFolderNodeId;
+                this.setNode(node, index);
+            } else
+                console.error(
+                    `Unable to move node ${node.id} to folder ${destFolderNodeId}.`,
+                );
+            console.log(this.nodes);
         }
     }
 
@@ -354,12 +401,17 @@ export class ArticleNavigationService {
         this._deleteNode(articleNodeId(id));
     }
 
+    deleteFolderNode(id: number) {
+        // child nodes should be deleted in separate calls
+        this._deleteNode(folderNodeId(id));
+    }
+
     _generateArticleNode(
         id: any,
         folder_id: any,
         title: string,
-        data: ArticleNodeData | undefined = undefined,
-    ): ArticleNodeModel {
+        data: FileNodeData | undefined = undefined,
+    ): FileNodeModel {
         const node = {
             id: articleNodeId(id),
             parent: folderNodeId(folder_id, ROOT_FOLDER_NODE_ID),
@@ -373,8 +425,8 @@ export class ArticleNavigationService {
         id: any,
         parentId: any,
         name: string,
-        data: ArticleNodeData | undefined = undefined,
-    ): ArticleNodeModel {
+        data: FileNodeData | undefined = undefined,
+    ): FileNodeModel {
         const node = {
             id: folderNodeId(id),
             parent: folderNodeId(parentId, ROOT_FOLDER_NODE_ID),
@@ -385,7 +437,7 @@ export class ArticleNavigationService {
         return node;
     }
 
-    _addNodeData(node: ArticleNodeModel, data: ArticleNodeData) {
+    _addNodeData(node: FileNodeModel, data: FileNodeData) {
         if (node.data) node.data = { ...node.data, ...data };
         else node.data = data;
     }
@@ -393,7 +445,7 @@ export class ArticleNavigationService {
     _findNode(
         nodeId: NodeId | null,
         cache: boolean = true,
-    ): ArticleNodeModel | null {
+    ): FileNodeModel | null {
         if (!nodeId) return null;
 
         let index = this._nodePositionCache[nodeId];
@@ -414,36 +466,15 @@ export class ArticleNavigationService {
         return null;
     }
 
-    _getNodeIndex(nodeId: NodeId | null, cache: boolean = true): number | null {
-        if (!nodeId) return null;
-
-        let index = this._nodePositionCache[nodeId];
-        let node = this._nodes[index];
-
-        if (node && node.id == nodeId) return index;
-
-        index = 0;
-        for (let node of this._nodes) {
-            if (node.id != nodeId) {
-                index++;
-                continue;
-            }
-            if (cache) this._nodePositionCache[nodeId] = index;
-            return index;
-        }
-
-        return null;
-    }
-
     _deleteNode(nodeId: NodeId) {
-        const index = this._getNodeIndex(nodeId, false);
+        const index = this.getNodeIndex(nodeId, false);
         if (index !== null) {
             this._nodes.splice(index, 1);
             delete this._nodePositionCache[nodeId];
         }
     }
 
-    _deleteNodeAtIndex(index: number): ArticleNodeModel {
+    _deleteNodeAtIndex(index: number): FileNodeModel {
         const node = this._nodes[index];
         if (node) {
             this._nodes.splice(index, 1);

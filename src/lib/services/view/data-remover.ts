@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-export class ArticleRemoverService {
+export class DataRemoverService {
     _id: number | null = null;
 
     constructor() {
@@ -17,9 +17,5 @@ export class ArticleRemoverService {
 
     initialize(id: number | null) {
         this._id = id;
-    }
-
-    reset() {
-        this.id = null;
     }
 }

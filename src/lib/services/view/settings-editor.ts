@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { DomainService } from "./domain";
+import { DomainService } from "../domain";
 
 export class SettingsEditorService {
     domain: DomainService;

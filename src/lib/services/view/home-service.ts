@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { DomainService } from "./domain";
+import { DomainService } from "../domain";
 
 export class HomeService {
     _projectName: string = "";

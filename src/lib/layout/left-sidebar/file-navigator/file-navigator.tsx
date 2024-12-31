@@ -7,14 +7,10 @@ import {
     Tree,
 } from "@minoru/react-dnd-treeview";
 import { observer } from "mobx-react-lite";
-import { DndProvider } from "react-dnd";
 import { MouseEvent, useRef } from "react";
+import { DndProvider } from "react-dnd";
 
-import {
-    ArticleNodeData,
-    ArticleNodeModel,
-    ROOT_FOLDER_NODE_ID,
-} from "@/interface";
+import { FileNodeData, FileNodeModel, ROOT_FOLDER_NODE_ID } from "@/interface";
 import { getService } from "@/services";
 import {
     NavItem,
@@ -23,36 +19,58 @@ import {
 } from "@/shared/nav-item/nav-item";
 import { TextFieldSettings } from "@/shared/text-field";
 import { ThemeManager } from "@/theme";
+import { convertNodeIdToEntityId } from "@/utils/node";
 
-import "./article-navigator.css";
+import "./file-navigator.css";
 
-interface ArticleNavItemSettings extends GridProps {
-    node: ArticleNodeModel;
+const ARTICLE_NAV_ITEM_PREFIX = "nav-item-";
+
+interface FileNavItemSettings extends GridProps {
+    node: FileNodeModel;
     depth: number;
     expanded: boolean;
     toggle: () => void;
 }
 
-interface ArticleNavigatorSettings {}
+interface FileNavigatorSettings {}
 
-function renderArticleNavItem({
+const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
+    const service = getService();
+    const articlesService = service.view.navigation.files;
+
+    const elementId = e.currentTarget.id;
+    const nodeId = elementId.slice(ARTICLE_NAV_ITEM_PREFIX.length);
+
+    const node = articlesService.getNode(nodeId);
+    if (!node) return;
+
+    if (articlesService.isFolderNode(node)) {
+        e.preventDefault();
+        service.view.contextMenu.openForNavBarFolderNode({
+            position: { x: e.pageX, y: e.pageY },
+            id: convertNodeIdToEntityId(nodeId),
+            nodeId,
+        });
+    }
+};
+
+function renderFileNavItem({
     node,
     depth,
     expanded,
     toggle,
     bg,
     ...rest
-}: ArticleNavItemSettings) {
+}: FileNavItemSettings) {
     const service = getService();
 
-    const selected = service.view.navigation.articles.selectedNodeId == node.id;
+    const selected = service.view.navigation.files.selectedNodeId == node.id;
     const editable = node?.data?.isEditable ?? false;
 
-    const onActivate = (event: MouseEvent) => {
-        event.stopPropagation();
+    const onActivate = () => {
         if (editable) return;
         toggle();
-        service.view.navigation.articles.selectNode(node);
+        service.view.navigation.files.selectNode(node);
     };
 
     let textSettings: TextSettings | undefined = undefined;
@@ -64,12 +82,12 @@ function renderArticleNavItem({
             autoFocus: true,
             error: node?.data?.error ? true : undefined,
             onChange: (event) =>
-                service.view.navigation.articles.editNodeText(
+                service.view.navigation.files.editNodeText(
                     node.id,
                     event.target.value,
                 ),
             onBlur: () =>
-                service.view.navigation.articles.confirmNodeTextEdit(node),
+                service.view.navigation.files.confirmNodeTextEdit(node),
             variant: "unstyled",
             size: "xs",
             styles: { input: { fontSize: 16 } },
@@ -95,6 +113,7 @@ function renderArticleNavItem({
 
     return (
         <NavItem
+            id={`${ARTICLE_NAV_ITEM_PREFIX}${node.id}`}
             bg={bg}
             indentSettings={{
                 count: depth + 1,
@@ -107,31 +126,32 @@ function renderArticleNavItem({
             textInputSettings={textInputSettings}
             popoverSettings={popoverSettings}
             onClick={onActivate}
+            onContextMenu={openContextMenu}
             {...rest}
         ></NavItem>
     );
 }
 
-export const ArticleNavItem = observer(renderArticleNavItem);
+export const FileNavItem = observer(renderFileNavItem);
 
-function renderArticleNavigator({}: ArticleNavigatorSettings) {
+function renderFileNavigator({}: FileNavigatorSettings) {
     const service = getService();
 
     const ref = useRef(null);
-    service.view.navigation.articles.tree = ref;
+    service.view.navigation.files.tree = ref;
 
-    const data = service.view.navigation.articles.nodes;
+    const data = service.view.navigation.files.nodes;
 
-    const dragPreviewRender: DragPreviewRender<ArticleNodeData> = (
+    const dragPreviewRender: DragPreviewRender<FileNodeData> = (
         monitorProps,
     ) => <div>{monitorProps.item.text}</div>;
 
     const onDrop = (
         _: any,
-        { dragSource, dropTargetId }: DropOptions<ArticleNodeData>,
+        { dragSource, dropTargetId }: DropOptions<FileNodeData>,
     ) => {
         if (dragSource)
-            service.view.navigation.articles.moveNode(dragSource, dropTargetId);
+            service.view.navigation.files.moveNode(dragSource, dropTargetId);
     };
 
     return (
@@ -145,7 +165,7 @@ function renderArticleNavigator({}: ArticleNavigatorSettings) {
                 dragPreviewRender={dragPreviewRender}
                 onDrop={onDrop}
                 render={(node, { depth, isOpen, onToggle }) => (
-                    <ArticleNavItem
+                    <FileNavItem
                         key={node.id}
                         node={node}
                         depth={depth}
@@ -161,4 +181,4 @@ function renderArticleNavigator({}: ArticleNavigatorSettings) {
     );
 }
 
-export const ArticleNavigator = observer(renderArticleNavigator);
+export const FileNavigator = observer(renderFileNavigator);

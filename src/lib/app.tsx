@@ -5,6 +5,7 @@ import { FOOTER_HEIGHT, HEADER_HEIGHT, NAVBAR_WIDTH } from "./constants";
 import { Footer, Header, Center, LeftSideBar } from "./layout";
 import { ArticleCreator, ArticleRemover, ProjectCreator } from "./modals";
 import { getService } from "./services";
+import { ContextMenu } from "./context-menu";
 
 function renderApp() {
     const service = getService();
@@ -47,6 +48,8 @@ function renderApp() {
             <ProjectCreator />
             <ArticleCreator />
             <ArticleRemover />
+
+            <ContextMenu />
         </>
     );
 }

@@ -5,8 +5,8 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { Suggestion } from "@/interface";
+import { DomainService } from "@/services/domain";
 import { useReferenceExtension } from "@/shared/rich-text-editor";
-import { DomainService } from "../domain";
 import { ArticleInfoService } from "./info-editor";
 
 type ChangeHandler = () => void;
@@ -16,37 +16,37 @@ interface ArticleBodyServiceSettings {
     domain: DomainService;
     info: ArticleInfoService;
     onChange: ChangeHandler;
-    onOpenAnotherArticle: OpenArticleHandler;
+    openArticle: OpenArticleHandler;
 }
 
 export class ArticleBodyService {
     editor: Editor;
     changed: boolean = false;
-    selectedRefIndex: number | null = null;
+    _selectedRefIndex: number | null = null;
 
     domain: DomainService;
     info: ArticleInfoService;
 
     onChange: ChangeHandler;
-    onOpenAnotherArticle: OpenArticleHandler;
+    openArticle: OpenArticleHandler;
 
     constructor({
         domain,
         info,
         onChange,
-        onOpenAnotherArticle,
+        openArticle,
     }: ArticleBodyServiceSettings) {
         makeAutoObservable(this, {
             domain: false,
             info: false,
             onChange: false,
-            onOpenAnotherArticle: false,
+            openArticle: false,
         });
 
         this.domain = domain;
         this.info = info;
         this.onChange = onChange;
-        this.onOpenAnotherArticle = onOpenAnotherArticle;
+        this.openArticle = openArticle;
 
         this.editor = this._buildEditor();
     }
@@ -63,8 +63,12 @@ export class ArticleBodyService {
         return JSON.stringify(this.content);
     }
 
-    setSelectedRefIndex(index: number | null) {
-        this.selectedRefIndex = index;
+    get selectedRefIndex() {
+        return this._selectedRefIndex;
+    }
+
+    set selectedRefIndex(index: number | null) {
+        this._selectedRefIndex = index;
     }
 
     initialize(body: string) {
@@ -83,7 +87,7 @@ export class ArticleBodyService {
         const Reference = useReferenceExtension({
             queryItems: ({ query }) => this._queryByTitle(query),
             getSelectedIndex: () => this.selectedRefIndex,
-            setSelectedIndex: (index) => this.setSelectedRefIndex(index),
+            setSelectedIndex: (index) => (this.selectedRefIndex = index),
         });
 
         return new Editor({
@@ -108,6 +112,7 @@ export class ArticleBodyService {
     }
 
     _queryByTitle(titleFragment: string): Suggestion[] {
+        this.selectedRefIndex = 0;
         return this.domain.articles
             .queryByTitle(titleFragment)
             .filter((info) => info.id != this.info.id)
@@ -117,7 +122,7 @@ export class ArticleBodyService {
     _onClickEditor(node: PMNode) {
         if (node.type.name == "mention") {
             const articleID: number | null = node.attrs["id"] ?? null;
-            if (articleID != null) this.onOpenAnotherArticle?.(articleID);
+            if (articleID != null) this.openArticle?.(articleID);
         }
     }
 }

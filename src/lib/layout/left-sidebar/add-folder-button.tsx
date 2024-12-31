@@ -9,14 +9,6 @@ import { ToolTipWrapper } from "@/shared/tool-tip";
 
 function renderAddFolderButton() {
     const service = getService();
-    const onClick = (event: MouseEvent) => {
-        event.stopPropagation();
-        const articleNavService = service.view.navigation.articles;
-        const node = articleNavService.addPlaceholderNodeForNewFolder();
-        // the parent folder needs to be open
-        // NOTE: the `open` function can't be called inside a service
-        articleNavService.tree?.current?.open(node.parent);
-    };
     return (
         <NavSubItem span="content" p="0">
             <ToolTipWrapper label="New Folder">
@@ -25,7 +17,15 @@ function renderAddFolderButton() {
                     variant="subtle"
                     color="gray"
                     size="sm"
-                    onClick={onClick}
+                    onClick={(e) => {
+                        e.stopPropagation(); // don't toggle the expanded status of the tab
+                        const articleNavService = service.view.navigation.files;
+                        const node =
+                            articleNavService.addPlaceholderNodeForNewFolder();
+                        // the parent folder needs to be open
+                        // NOTE: the `open` function can't be called inside a service
+                        articleNavService.tree?.current?.open(node.parent);
+                    }}
                 >
                     <IconFolderPlus size={18} />
                 </ActionIcon>

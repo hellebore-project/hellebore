@@ -134,12 +134,6 @@ function renderNavItem({
         expandNode = <ExpandButton {...expandButtonSettings} />;
     else expandNode = EXPAND_BUTTON_PLACEHOLDER;
 
-    // Text
-    let textNode: ReactNode;
-    if (textInputSettings.readOnly === false)
-        textNode = <EditableText {...textInputSettings} />;
-    else textNode = <ReadOnlyText {...textSettings} />;
-
     return (
         <Grid
             className="nav-item"

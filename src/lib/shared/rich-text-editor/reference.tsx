@@ -1,4 +1,3 @@
-import { ComboboxItem } from "@mantine/core";
 import Mention, { MentionOptions } from "@tiptap/extension-mention";
 import { mergeAttributes, ReactRenderer } from "@tiptap/react";
 import {
@@ -9,7 +8,11 @@ import {
 import tippy from "tippy.js";
 
 import { Suggestion } from "@/interface";
-import { Dropdown, DropdownSettings } from "../dropdown";
+import {
+    VerticalMenu,
+    VerticalMenuItemData,
+    VerticalMenuSettings,
+} from "../vertical-menu";
 
 type QueryResult = string;
 type DOMRectAccessor = () => DOMRect;
@@ -25,7 +28,10 @@ export interface ReferenceExtensionSettings {
 }
 
 class ReferenceSuggestionRenderer {
-    _component: ReactRenderer<typeof Dropdown, DropdownSettings> | null = null;
+    _component: ReactRenderer<
+        typeof VerticalMenu,
+        VerticalMenuSettings
+    > | null = null;
     _popup: any[];
     _data: any[];
     _confirm: ((item: any) => void) | null = null;
@@ -43,14 +49,16 @@ class ReferenceSuggestionRenderer {
         this.setSelectedIndex = setSelectedIndex;
     }
 
-    get component(): ReactRenderer<typeof Dropdown, DropdownSettings> {
+    get component(): ReactRenderer<typeof VerticalMenu, VerticalMenuSettings> {
         return this._component as ReactRenderer<
-            typeof Dropdown,
-            DropdownSettings
+            typeof VerticalMenu,
+            VerticalMenuSettings
         >;
     }
 
-    set component(component: ReactRenderer<typeof Dropdown, DropdownSettings>) {
+    set component(
+        component: ReactRenderer<typeof VerticalMenu, VerticalMenuSettings>,
+    ) {
         this._component = component;
     }
 
@@ -62,20 +70,28 @@ class ReferenceSuggestionRenderer {
         this._data = this.convertQueryResult(props.items);
         this._confirm = props.command;
 
-        const dropdownSettings: DropdownSettings = {
+        const dropdownSettings: VerticalMenuSettings = {
             data: this._data,
             getSelectedIndex: this.getSelectedIndex,
-            // use an arrow function to bind onConfirm to the renderer
-            confirm: (item) => this.onConfirm(item),
+            onConfirm: (_, item) => this.onConfirm(item),
+            placeholder: "No results",
+            withBorder: true,
+            radius: 0,
+            item: {
+                onMouseOver: (e) =>
+                    this.setSelectedIndex(
+                        Number(e.currentTarget.getAttribute("index")),
+                    ),
+            },
         };
 
-        this.component = new ReactRenderer<typeof Dropdown, DropdownSettings>(
-            Dropdown,
-            {
-                props: dropdownSettings,
-                editor: props.editor,
-            },
-        );
+        this.component = new ReactRenderer<
+            typeof VerticalMenu,
+            VerticalMenuSettings
+        >(VerticalMenu, {
+            props: dropdownSettings,
+            editor: props.editor,
+        });
 
         if (!props.clientRect) return;
 
@@ -100,7 +116,7 @@ class ReferenceSuggestionRenderer {
         });
     }
 
-    onConfirm(item: ComboboxItem) {
+    async onConfirm(item: VerticalMenuItemData) {
         if (item) this._confirm?.({ id: item.value, label: item.label });
     }
 
@@ -136,8 +152,8 @@ class ReferenceSuggestionRenderer {
         this.component.destroy();
     }
 
-    convertQueryResult(result: Suggestion[]): ComboboxItem[] {
-        return result;
+    convertQueryResult(result: Suggestion[]): VerticalMenuItemData[] {
+        return result.map((r, i) => ({ index: i, ...r }));
     }
 }
 

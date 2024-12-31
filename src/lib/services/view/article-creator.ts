@@ -6,7 +6,7 @@ import {
     EntityType,
     ROOT_FOLDER_ID,
 } from "@/interface";
-import { DomainService } from "./domain";
+import { DomainService } from "../domain";
 
 export class ArticleCreatorService {
     entityType: EntityType | null = null;
