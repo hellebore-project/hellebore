@@ -5,7 +5,7 @@ import { EntityType } from "@/interface";
 import { getService } from "@/services";
 import { MenuButton } from "@/shared/menu-button";
 import {
-    DIVIDER,
+    DIVIDER_DATA,
     MenuDropdown,
     MenuDropdownElementData,
 } from "@/shared/menu-dropdown";
@@ -53,14 +53,14 @@ function renderAppMenuDropdown() {
             newProjectButtonData,
             openProjectButtonData,
             closeProjectButtonData,
-            DIVIDER,
+            DIVIDER_DATA,
             settingsButtonData,
         ];
     else
         elements = [
             newProjectButtonData,
             openProjectButtonData,
-            DIVIDER,
+            DIVIDER_DATA,
             settingsButtonData,
         ];
 
@@ -79,7 +79,7 @@ function renderEncyclopediaMenuDropdown() {
                     label: "New Article",
                     onClick: () => service.view.openArticleCreator(),
                 },
-                DIVIDER,
+                DIVIDER_DATA,
                 {
                     label: "Search",
                     onClick: () => {
@@ -111,7 +111,7 @@ function renderDictionaryMenuDropdown() {
                     onClick: () =>
                         service.view.openArticleCreator(EntityType.WORD),
                 },
-                DIVIDER,
+                DIVIDER_DATA,
                 {
                     label: "Search",
                     onClick: () => {

@@ -1,9 +1,7 @@
-import { Button, ButtonProps } from "@mantine/core";
+import { Button } from "@mantine/core";
 import { observer } from "mobx-react-lite";
-import React from "react";
 
-type BaseButtonSettings = ButtonProps &
-    React.ButtonHTMLAttributes<HTMLButtonElement>;
+import { BaseButtonSettings } from "./common";
 
 export interface FormButtonSettings extends BaseButtonSettings {
     label?: string;

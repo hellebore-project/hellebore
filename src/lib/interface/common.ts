@@ -7,3 +7,8 @@ export enum ValueChange {
 export interface IdentifiedObject {
     id: number;
 }
+
+export interface Point {
+    x: number;
+    y: number;
+}

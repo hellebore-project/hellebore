@@ -59,6 +59,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      consolidated-events:
+        specifier: ^2.0.2
+        version: 2.0.2
       mobx:
         specifier: ^6.13.1
         version: 6.13.1
@@ -84,6 +87,9 @@ importers:
       '@tauri-apps/cli':
         specifier: ^2.1.0
         version: 2.1.0
+      '@types/consolidated-events':
+        specifier: ^2.0.0
+        version: 2.0.0
       '@types/react':
         specifier: ^18.3.5
         version: 18.3.5
@@ -866,6 +872,9 @@ packages:
   '@types/babel__traverse@7.20.6':
     resolution: {integrity: sha512-r1bzfrm0tomOI8g1SzvCaQHo6Lcv6zu0EA+W2kHrt8dyrHQxGzBBL4kdkzIS+jBMV+EYcMAEAqXqYaLJq5rOZg==}
 
+  '@types/consolidated-events@2.0.0':
+    resolution: {integrity: sha512-aFunHGKWJ7C9MhsvNBYHgCr8hIZOuQloZr5XxBTwnAJhXBdTV5NBh4YdLtkm0T0NqRmpnmSrkz22C6URIWIY7w==}
+
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
 
@@ -1019,6 +1028,9 @@ packages:
 
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
+
+  consolidated-events@2.0.2:
+    resolution: {integrity: sha512-2/uRVMdRypf5z/TW/ncD/66l75P5hH2vM/GR8Jf8HLc2xnfJtmina6F6du8+v4Z2vTrMo7jC+W1tmEEuuELgkQ==}
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
@@ -2810,6 +2822,8 @@ snapshots:
     dependencies:
       '@babel/types': 7.25.6
 
+  '@types/consolidated-events@2.0.0': {}
+
   '@types/estree@1.0.5': {}
 
   '@types/node@20.14.11':
@@ -2954,6 +2968,8 @@ snapshots:
   commander@4.1.1: {}
 
   concat-map@0.0.1: {}
+
+  consolidated-events@2.0.2: {}
 
   convert-source-map@2.0.0: {}
 

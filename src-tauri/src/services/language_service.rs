@@ -7,7 +7,7 @@ use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
     language::LanguageDataSchema,
-    response::ResponseSchema,
+    response::ResponseDiagnosticsSchema,
 };
 use crate::services::article_service;
 use crate::types::{ARTICLE, LANGUAGE};
@@ -28,7 +28,7 @@ pub async fn create(
 pub async fn update(
     database: &DatabaseConnection,
     article: ArticleUpdateSchema<LanguageDataSchema>,
-) -> Result<ResponseSchema<()>, ApiError> {
+) -> Result<ResponseDiagnosticsSchema<()>, ApiError> {
     return article_service::update(
         &database,
         article.id,

@@ -1,7 +1,7 @@
-import { Container, Divider, Space, Title } from "@mantine/core";
+import { Container, Title } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-const SPACE = <Space h="lg" />;
+import { DIVIDER, SPACE } from "@/shared/common";
 
 function renderSettingsEditor() {
     // TODO
@@ -9,7 +9,7 @@ function renderSettingsEditor() {
         <div className="container">
             <Title order={1}>Settings</Title>
 
-            <Divider my="sm" />
+            {DIVIDER}
             {SPACE}
 
             <Container ml={0} pl={0} size="xs">

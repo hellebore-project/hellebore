@@ -1,20 +1,21 @@
 import { Button } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-export interface MenuButtonSettings {
-    label: string;
-    onClick?: () => void;
+import { BaseButtonSettings } from "./common";
+
+export interface MenuButtonSettings extends BaseButtonSettings {
+    label?: string;
 }
 
-function renderMenuButton({ label, onClick }: MenuButtonSettings) {
+function renderMenuButton({ label, ...rest }: MenuButtonSettings) {
     return (
         <Button
             variant="filled"
             color="var(--mantine-color-dark-7)"
             size="compact-sm"
-            onClick={onClick}
+            {...rest}
         >
-            {label}
+            {label ?? ""}
         </Button>
     );
 }

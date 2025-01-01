@@ -1,5 +1,5 @@
 import { DomainService } from "./domain";
-import { ViewService } from "./view-service";
+import { ViewService } from "./view";
 
 export class AppService {
     domain: DomainService;

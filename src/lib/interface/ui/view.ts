@@ -7,5 +7,8 @@ export enum ViewKey {
 export enum ModalKey {
     PROJECT_CREATOR = "PROJECT_CREATOR",
     ARTICLE_CREATOR = "ARTICLE_CREATOR",
-    ARTICLE_REMOVER = "ARTICLE_REMOVER",
+}
+
+export enum ContextMenuKey {
+    NAV_BAR_FOLDER_NODE = "NAV_BAR_FOLDER_NODE",
 }

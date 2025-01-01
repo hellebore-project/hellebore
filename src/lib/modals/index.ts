@@ -1,4 +1,3 @@
 export * from "./article-creator";
-export * from "./article-remover";
-export * from "./confirm";
+export * from "../shared/confirm";
 export * from "./project-creator";

@@ -11,51 +11,29 @@ import {
     EntityType,
     LanguageData,
     PersonData,
-    RichResponse,
+    ResponseWithDiagnostics,
     ValueChange,
     IdentifiedObject,
     ArticleCreate,
     ROOT_FOLDER_ID,
 } from "@/interface";
+import { FileStructure } from "./file-structure";
 
 export interface ArticleUpdateArguments extends IdentifiedObject {
     entity_type?: EntityType | null;
-    folder_id?: number | null;
+    folderId?: number | null;
+    oldFolderId?: number | null;
     title?: string | null;
     body?: string | null;
     entity?: BaseEntity | null;
 }
 
-type CreateArticleEventHandler = (article: ArticleResponse<BaseEntity>) => void;
-type UpdateArticleEventHandler = (update: ArticleUpdateResponse) => void;
-type FetchArticleEventHandler = (infos: ArticleInfoResponse[]) => void;
-
 export class ArticleService {
-    /**
-     * The high-level information of each article is cached. This information is used for:
-     *  - entity type look-ups
-     *  - querying articles by title
-     *  - updating references in article bodies (TODO)
-     */
-    _infos: { [id: number]: ArticleInfoResponse };
+    _structure: FileStructure;
 
-    onCreated: CreateArticleEventHandler[];
-    onUpdated: UpdateArticleEventHandler[];
-    onFetchedAll: FetchArticleEventHandler[];
-
-    constructor() {
-        makeAutoObservable(this, {
-            _infos: false,
-            onCreated: false,
-            onUpdated: false,
-            onFetchedAll: false,
-        });
-
-        this._infos = {};
-
-        this.onCreated = [];
-        this.onUpdated = [];
-        this.onFetchedAll = [];
+    constructor(structure: FileStructure) {
+        makeAutoObservable(this, { _structure: false });
+        this._structure = structure;
     }
 
     async create(
@@ -81,13 +59,7 @@ export class ArticleService {
             return null;
         }
 
-        this._infos[response.id] = {
-            id: response.id,
-            folder_id: response.folder_id,
-            entity_type: response.entity_type,
-            title: response.title,
-        };
-        this.onCreated.forEach((handler) => handler(response));
+        this._structure.addArticle(response);
 
         return response;
     }
@@ -95,22 +67,23 @@ export class ArticleService {
     async update({
         id,
         entity_type = null,
-        folder_id = null,
+        folderId = null,
+        oldFolderId = null,
         title = null,
         body = null,
         entity = null,
     }: ArticleUpdateArguments): Promise<ArticleUpdateResponse | null> {
-        if (!entity_type) entity_type = this._infos[id].entity_type;
+        if (!entity_type) entity_type = this.getInfo(id).entity_type;
 
         const payload: ArticleUpdate<BaseEntity> = {
             id: id as number,
             entity_type: entity_type as EntityType,
-            folder_id,
+            folder_id: folderId,
             title,
             body,
             entity,
         };
-        let response: RichResponse<null> | null;
+        let response: ResponseWithDiagnostics<null> | null;
 
         try {
             response = await updateArticle(payload);
@@ -118,26 +91,35 @@ export class ArticleService {
             console.error(error);
             return null;
         }
+        console.log(response);
+        const updateResponse = this._buildUpdateResponse(payload, response);
 
-        const cleanResponse = this._buildUpdateResponse(payload, response);
-
-        if (cleanResponse.folderChange && cleanResponse.folder_id !== null)
-            this._infos[cleanResponse.id].folder_id = cleanResponse.folder_id;
         if (
-            cleanResponse.titleChange == ValueChange.UPDATED &&
-            cleanResponse.title &&
-            cleanResponse.isTitleUnique
+            updateResponse.folderChange &&
+            updateResponse.folder_id !== null &&
+            oldFolderId !== null
+        ) {
+            this.getInfo(updateResponse.id).folder_id =
+                updateResponse.folder_id;
+            this._structure.moveArticle(
+                updateResponse.id,
+                oldFolderId,
+                updateResponse.folder_id,
+            );
+        }
+        if (
+            updateResponse.titleChange == ValueChange.UPDATED &&
+            updateResponse.title &&
+            updateResponse.isTitleUnique
         )
-            this._infos[cleanResponse.id].title = cleanResponse.title;
+            this.getInfo(updateResponse.id).title = updateResponse.title;
 
-        this.onUpdated.forEach((handler) => handler(cleanResponse));
-
-        return cleanResponse;
+        return updateResponse;
     }
 
     _buildUpdateResponse(
         articleUpdate: ArticleUpdate<BaseEntity>,
-        response: RichResponse<null>,
+        response: ResponseWithDiagnostics<null>,
     ): ArticleUpdateResponse {
         const cleanResponse: ArticleUpdateResponse = {
             id: articleUpdate.id,
@@ -184,7 +166,7 @@ export class ArticleService {
         id: number,
         entityType?: EntityType | null,
     ): Promise<ArticleResponse<BaseEntity> | null> {
-        if (!entityType) entityType = this._infos[id].entity_type;
+        if (!entityType) entityType = this.getInfo(id).entity_type;
 
         try {
             return await getArticle(id, entityType);
@@ -195,7 +177,7 @@ export class ArticleService {
     }
 
     getInfo(id: number) {
-        return this._infos[id];
+        return this._structure.articles[id];
     }
 
     async getAll(): Promise<ArticleInfoResponse[] | null> {
@@ -208,8 +190,9 @@ export class ArticleService {
             return null;
         }
 
-        response.forEach((info) => (this._infos[info.id] = info));
-        this.onFetchedAll.forEach((handler) => handler(response));
+        for (const info of response) {
+            this._structure.addArticle(info);
+        }
 
         return response;
     }
@@ -219,13 +202,13 @@ export class ArticleService {
         maxResults: number = 5,
     ): ArticleInfoResponse[] {
         const arg = titleFragment.toLowerCase();
-        return Object.values(this._infos)
+        return Object.values(this._structure.articles)
             .filter((info) => info.title.toLowerCase().startsWith(arg))
             .slice(0, maxResults);
     }
 
     async delete(id: number, entityType?: EntityType | null): Promise<boolean> {
-        if (!entityType) entityType = this._infos[id].entity_type;
+        if (!entityType) entityType = this.getInfo(id).entity_type;
 
         try {
             await deleteArticle(id, entityType);
@@ -237,7 +220,8 @@ export class ArticleService {
             return false;
         }
 
-        delete this._infos[id];
+        this._structure.deleteArticle(id);
+
         return true;
     }
 }
@@ -251,7 +235,6 @@ async function createLanguage(
         title: name,
         data: { name },
     };
-    console.log(article);
     return invoke<ArticleResponse<LanguageData>>("create_language", {
         article,
     });
@@ -271,10 +254,10 @@ async function createPerson(
 
 async function updateArticle(
     article: ArticleUpdate<BaseEntity>,
-): Promise<RichResponse<null>> {
+): Promise<ResponseWithDiagnostics<null>> {
     console.log(article);
     const command = `update_${ENTITY_TYPE_LABELS[article.entity_type].toLowerCase()}`;
-    return invoke<RichResponse<null>>(command, { article });
+    return invoke<ResponseWithDiagnostics<null>>(command, { article });
 }
 
 async function getArticle(

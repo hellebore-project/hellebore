@@ -1,16 +1,15 @@
-import { Badge, Card, Container, Divider, Grid, Space } from "@mantine/core";
+import { Badge, Container, Grid } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { getService } from "@/services";
-import { TextField } from "@/shared/text-field";
-import { RichTextEditor } from "@/shared/rich-text-editor/rich-text-editor";
+import { DIVIDER, SPACE } from "@/shared/common";
 import { FieldTable } from "@/shared/field-table";
+import { RichTextEditor } from "@/shared/rich-text-editor/rich-text-editor";
+import { TextField } from "@/shared/text-field";
 import { DeleteArticleButton } from "./delete-article-button";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 const RICH_TEXT_EDITOR_STYLES = { root: { borderWidth: "0" } };
-
-const SPACE = <Space h="lg" />;
 
 function renderArticleEditor() {
     const service = getService();
@@ -20,6 +19,7 @@ function renderArticleEditor() {
                 <TextField
                     variant="unstyled"
                     mx="12"
+                    styles={TITLE_FIELD_STYLES}
                     placeholder="Title"
                     getValue={() => service.view.articleEditor.info.title}
                     getError={() => {
@@ -34,9 +34,8 @@ function renderArticleEditor() {
                             event.currentTarget.value,
                         )
                     }
-                    styles={TITLE_FIELD_STYLES}
                 />
-                <Divider my="sm" />
+                {DIVIDER}
 
                 <Grid align="center" mx="12">
                     <Grid.Col span="content">

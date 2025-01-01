@@ -6,7 +6,7 @@ use crate::database::{article_manager, folder_manager};
 use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleInfoSchema, ArticleResponseSchema},
-    response::ResponseSchema,
+    response::ResponseDiagnosticsSchema,
 };
 use crate::types::ARTICLE;
 
@@ -16,7 +16,7 @@ pub async fn update(
     folder_id: Option<i32>,
     title: Option<String>,
     body: Option<String>,
-) -> Result<ResponseSchema<()>, ApiError> {
+) -> Result<ResponseDiagnosticsSchema<()>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
 
     // Check whether the updated title is unique; if not, then do not update the title in the DB
@@ -45,21 +45,21 @@ pub async fn update(
         };
     }
 
-    match article_manager::update(&database, id, folder_id, title, body).await {
+    match article_manager::update(database, id, folder_id, title, body).await {
         Ok(_) => (),
         Err(e) => errors.push(ApiError::not_updated(e, ARTICLE)),
     };
 
-    return Ok(ResponseSchema { data: (), errors });
+    return Ok(ResponseDiagnosticsSchema { data: (), errors });
 }
 
 pub async fn validate_title(
     database: &DatabaseConnection,
     id: Option<i32>,
     title: &str,
-) -> Result<ResponseSchema<bool>, ApiError> {
+) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
-    let is_unique = article_manager::is_title_unique_for_id(&database, id, title)
+    let is_unique = article_manager::is_title_unique_for_id(database, id, title)
         .await
         .map_err(|e| ApiError::query_failed(e, ARTICLE))?;
     if !is_unique {
@@ -70,14 +70,14 @@ pub async fn validate_title(
             title,
         ));
     }
-    return Ok(ResponseSchema {
+    return Ok(ResponseDiagnosticsSchema {
         data: is_unique,
         errors,
     });
 }
 
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<Article, ApiError> {
-    let article = article_manager::get(&database, id)
+    let article = article_manager::get(database, id)
         .await
         .map_err(|e| ApiError::not_found(e, ARTICLE))?;
     return match article {
@@ -87,7 +87,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<Article, ApiE
 }
 
 pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<ArticleInfoSchema>, ApiError> {
-    let articles = article_manager::get_all(&database)
+    let articles = article_manager::get_all(database)
         .await
         .map_err(|e| ApiError::not_found(e, ARTICLE))?;
     let articles = articles.iter().map(generate_info_response).collect();
@@ -95,16 +95,23 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<ArticleInfoSch
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    let exists = article_manager::exists(&database, id)
+    let exists = article_manager::exists(database, id)
         .await
         .map_err(|e| ApiError::query_failed(e, ARTICLE))?;
     if !exists {
-        return Err(ApiError::not_found("Person not found.", ARTICLE));
+        return Err(ApiError::not_found("Article not found.", ARTICLE));
     }
     article_manager::delete(&database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, ARTICLE))?;
     return Ok(());
+}
+
+pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result<(), ApiError> {
+    article_manager::delete_many(database, ids)
+        .await
+        .map(|_| ())
+        .map_err(|e| ApiError::not_deleted(e, ARTICLE))
 }
 
 fn generate_info_response(item: &article_manager::ArticleItem) -> ArticleInfoSchema {

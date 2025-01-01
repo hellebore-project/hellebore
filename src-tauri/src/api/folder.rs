@@ -1,8 +1,8 @@
 use crate::api::util;
 use crate::errors::ApiError;
 use crate::schema::{
-    folder::{FolderInfoSchema, FolderSchema},
-    response::ResponseSchema,
+    folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
+    response::ResponseDiagnosticsSchema,
 };
 use crate::services::folder_service;
 use crate::state::State;
@@ -10,8 +10,8 @@ use crate::state::State;
 #[tauri::command]
 pub async fn create_folder(
     state: tauri::State<'_, State>,
-    info: FolderInfoSchema,
-) -> Result<FolderSchema, ApiError> {
+    info: FolderCreateSchema,
+) -> Result<FolderResponseSchema, ApiError> {
     let state = state.lock().await;
     folder_service::create(util::get_database(&state)?, &info).await
 }
@@ -19,8 +19,8 @@ pub async fn create_folder(
 #[tauri::command]
 pub async fn update_folder(
     state: tauri::State<'_, State>,
-    folder: FolderSchema,
-) -> Result<FolderSchema, ApiError> {
+    folder: FolderUpdateSchema,
+) -> Result<FolderResponseSchema, ApiError> {
     let state = state.lock().await;
     folder_service::update(util::get_database(&state)?, &folder).await
 }
@@ -31,19 +31,24 @@ pub async fn validate_folder_name(
     id: Option<i32>,
     parent_id: i32,
     name: &str,
-) -> Result<ResponseSchema<bool>, ApiError> {
+) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
     let state = state.lock().await;
     folder_service::validate_name(util::get_database(&state)?, id, parent_id, name).await
 }
 
 #[tauri::command]
-pub async fn get_folder(state: tauri::State<'_, State>, id: i32) -> Result<FolderSchema, ApiError> {
+pub async fn get_folder(
+    state: tauri::State<'_, State>,
+    id: i32,
+) -> Result<FolderResponseSchema, ApiError> {
     let state = state.lock().await;
     folder_service::get(util::get_database(&state)?, id).await
 }
 
 #[tauri::command]
-pub async fn get_folders(state: tauri::State<'_, State>) -> Result<Vec<FolderSchema>, ApiError> {
+pub async fn get_folders(
+    state: tauri::State<'_, State>,
+) -> Result<Vec<FolderResponseSchema>, ApiError> {
     let state = state.lock().await;
     folder_service::get_all(util::get_database(&state)?).await
 }

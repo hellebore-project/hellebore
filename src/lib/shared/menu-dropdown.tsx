@@ -1,7 +1,7 @@
 import { Button, Menu } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-export const DIVIDER = "DIVIDER";
+export const DIVIDER_DATA = "DIVIDER";
 
 interface MenuDropdownItemData {
     label: string;
@@ -20,7 +20,7 @@ interface MenuDropdownSettings {
 }
 
 function renderMenuDropdownElement({ data }: MenuElementSettings) {
-    if (data === DIVIDER) return <Menu.Divider />;
+    if (data === DIVIDER_DATA) return <Menu.Divider />;
     else if (typeof data === "string") return <Menu.Label>{data}</Menu.Label>;
 
     const { label, onClick } = data;

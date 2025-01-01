@@ -1,0 +1,10 @@
+@startuml Person
+
+''' Classes
+
+class Person {
+    int id
+    string name
+}
+
+@enduml

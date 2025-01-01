@@ -5,16 +5,16 @@ use ::entity::folder::Model as Folder;
 use crate::database::folder_manager;
 use crate::errors::ApiError;
 use crate::schema::{
-    folder::{FolderInfoSchema, FolderSchema},
-    response::ResponseSchema,
+    folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
+    response::ResponseDiagnosticsSchema,
 };
 use crate::types::FOLDER;
 
 pub async fn create(
     database: &DatabaseConnection,
-    folder: &FolderInfoSchema,
-) -> Result<FolderSchema, ApiError> {
-    return match folder_manager::insert(&database, folder.parent_id, &folder.name).await {
+    folder: &FolderCreateSchema,
+) -> Result<FolderResponseSchema, ApiError> {
+    return match folder_manager::insert(database, folder.parent_id, &folder.name).await {
         Ok(entity) => Ok(generate_response(&entity)),
         Err(e) => Err(ApiError::not_inserted(e, FOLDER)),
     };
@@ -22,15 +22,10 @@ pub async fn create(
 
 pub async fn update(
     database: &DatabaseConnection,
-    folder: &FolderSchema,
-) -> Result<FolderSchema, ApiError> {
-    return match folder_manager::update(
-        &database,
-        folder.id,
-        folder.info.parent_id,
-        &folder.info.name,
-    )
-    .await
+    folder: &FolderUpdateSchema,
+) -> Result<FolderResponseSchema, ApiError> {
+    return match folder_manager::update(database, folder.id, folder.parent_id, folder.name.clone())
+        .await
     {
         Ok(entity) => Ok(generate_response(&entity)),
         Err(e) => Err(ApiError::not_updated(e, FOLDER)),
@@ -42,9 +37,9 @@ pub async fn validate_name(
     id: Option<i32>,
     parent_id: i32,
     name: &str,
-) -> Result<ResponseSchema<bool>, ApiError> {
+) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
-    let is_unique = folder_manager::is_name_unique_for_id(&database, id, parent_id, name)
+    let is_unique = folder_manager::is_name_unique_for_id(database, id, parent_id, name)
         .await
         .map_err(|e| ApiError::query_failed(e, FOLDER))?;
     if !is_unique {
@@ -55,14 +50,14 @@ pub async fn validate_name(
             name,
         ));
     }
-    return Ok(ResponseSchema {
+    return Ok(ResponseDiagnosticsSchema {
         data: is_unique,
         errors,
     });
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderSchema, ApiError> {
-    let folder = folder_manager::get(&database, id)
+pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderResponseSchema, ApiError> {
+    let folder = folder_manager::get(database, id)
         .await
         .map_err(|e| ApiError::not_found(e, FOLDER))?;
     return match folder {
@@ -71,8 +66,8 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderSchema,
     };
 }
 
-pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderSchema>, ApiError> {
-    let folders = folder_manager::get_all(&database)
+pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponseSchema>, ApiError> {
+    let folders = folder_manager::get_all(database)
         .await
         .map_err(|e| ApiError::not_found(e, FOLDER))?;
     let folders = folders.iter().map(generate_response).collect();
@@ -80,7 +75,7 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderSchema>,
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    let exists = folder_manager::exists(&database, id)
+    let exists = folder_manager::exists(database, id)
         .await
         .map_err(|e| ApiError::query_failed(e, FOLDER))?;
     if !exists {
@@ -92,12 +87,17 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     return Ok(());
 }
 
-fn generate_response(folder: &Folder) -> FolderSchema {
-    return FolderSchema {
+pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result<(), ApiError> {
+    folder_manager::delete_many(database, ids)
+        .await
+        .map(|_| ())
+        .map_err(|e| ApiError::not_deleted(e, FOLDER))
+}
+
+fn generate_response(folder: &Folder) -> FolderResponseSchema {
+    return FolderResponseSchema {
         id: folder.id,
-        info: FolderInfoSchema {
-            parent_id: folder_manager::convert_null_folder_id_to_sentinel(folder.parent_id),
-            name: folder.name.to_string(),
-        },
+        parent_id: folder_manager::convert_null_folder_id_to_sentinel(folder.parent_id),
+        name: folder.name.to_string(),
     };
 }

@@ -38,6 +38,7 @@
     "@tiptap/starter-kit": "^2.6.6",
     "@tiptap/suggestion": "^2.6.6",
     "clsx": "^2.1.1",
+    "consolidated-events": "^2.0.2",
     "mobx": "^6.13.1",
     "mobx-react-lite": "^4.0.7",
     "prosemirror-model": "^1.22.3",
@@ -48,6 +49,7 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.1.0",
+    "@types/consolidated-events": "^2.0.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

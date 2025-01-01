@@ -46,3 +46,5 @@ export interface ArticleResponse<E extends BaseEntity>
     entity: E;
     body: string;
 }
+
+export type ArticleNode = ArticleInfoResponse;
