@@ -5,18 +5,17 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { Suggestion } from "@/interface";
-import { DomainService } from "@/services/domain";
 import { useReferenceExtension } from "@/shared/rich-text-editor";
+import { ViewServiceInterface } from "../view-service-interface";
 import { ArticleInfoService } from "./info-editor";
 
 type ChangeHandler = () => void;
 export type OpenArticleHandler = (id: number) => void;
 
 interface ArticleBodyServiceSettings {
-    domain: DomainService;
+    view: ViewServiceInterface;
     info: ArticleInfoService;
     onChange: ChangeHandler;
-    openArticle: OpenArticleHandler;
 }
 
 export class ArticleBodyService {
@@ -24,29 +23,21 @@ export class ArticleBodyService {
     changed: boolean = false;
     _selectedRefIndex: number | null = null;
 
-    domain: DomainService;
+    view: ViewServiceInterface;
     info: ArticleInfoService;
 
     onChange: ChangeHandler;
-    openArticle: OpenArticleHandler;
 
-    constructor({
-        domain,
-        info,
-        onChange,
-        openArticle,
-    }: ArticleBodyServiceSettings) {
+    constructor({ view, info, onChange }: ArticleBodyServiceSettings) {
         makeAutoObservable(this, {
-            domain: false,
+            view: false,
             info: false,
             onChange: false,
-            openArticle: false,
         });
 
-        this.domain = domain;
+        this.view = view;
         this.info = info;
         this.onChange = onChange;
-        this.openArticle = openArticle;
 
         this.editor = this._buildEditor();
     }
@@ -113,7 +104,7 @@ export class ArticleBodyService {
 
     _queryByTitle(titleFragment: string): Suggestion[] {
         this.selectedRefIndex = 0;
-        return this.domain.articles
+        return this.view.domain.articles
             .queryByTitle(titleFragment)
             .filter((info) => info.id != this.info.id)
             .map((info) => ({ label: info.title, value: info.id }));
@@ -122,7 +113,8 @@ export class ArticleBodyService {
     _onClickEditor(node: PMNode) {
         if (node.type.name == "mention") {
             const articleID: number | null = node.attrs["id"] ?? null;
-            if (articleID != null) this.openArticle?.(articleID);
+            if (articleID != null)
+                this.view.openArticleEditorForId?.(articleID);
         }
     }
 }

@@ -10,7 +10,7 @@ import {
 import { DataManager } from "./data-manager";
 import { FileStructure } from "./file-structure";
 
-interface FolderUpdateArguments {
+export interface FolderUpdateArguments {
     id: number;
     name?: string | null;
     parentId?: number | null;
@@ -41,17 +41,18 @@ export class FolderService {
         return response;
     }
 
-    validate_name(id: number | null, parentId: number, name: string) {
+    validate(id: number | null, parentId: number, name: string) {
         const response: FolderValidateResponse = {
             id,
             parent_id: parentId,
             name,
-            nameIsUnique: true,
         };
         const parentNode = this._structure.folders[parentId];
         for (const subFolderNode of Object.values(parentNode.subFolders)) {
             if (subFolderNode.id != id && subFolderNode.name == name) {
-                response.nameIsUnique = false;
+                response.nameCollision = {
+                    collidingFolderId: subFolderNode.id,
+                };
                 break;
             }
         }
@@ -71,18 +72,6 @@ export class FolderService {
             parentId !== null &&
             oldParentId !== null &&
             parentId != oldParentId;
-
-        if (parentChanged) {
-            // check for a name collision in the new location
-            const _name = name ?? folderNode.name;
-            const parentNode = this._structure.folders[parentId];
-            for (const subFolderNode of Object.values(parentNode.subFolders)) {
-                if (subFolderNode.name == _name) {
-                    // TODO: replace folder with same name
-                    break;
-                }
-            }
-        }
 
         let response: FolderResponse | null;
         try {

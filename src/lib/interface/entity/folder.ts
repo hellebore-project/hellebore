@@ -22,9 +22,13 @@ export interface FolderUpdateResponse extends FolderUpdate {
 
 export type FolderResponse = IdentifiedObject & FolderProperties;
 
+export interface FolderNameCollisionResponse {
+    collidingFolderId: number;
+}
+
 export interface FolderValidateResponse extends FolderProperties {
     id: number | null;
-    nameIsUnique: boolean;
+    nameCollision?: FolderNameCollisionResponse | null;
 }
 
 export interface FolderNode extends FolderResponse {

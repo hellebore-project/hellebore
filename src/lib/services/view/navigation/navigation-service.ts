@@ -1,15 +1,15 @@
 import { makeAutoObservable } from "mobx";
 
 import { ArticleInfoResponse, FolderResponse } from "@/interface";
-import { DomainService } from "@/services/domain";
-import { FileNavigationService, UpdateArticleHandler } from "./file-navigator";
+import { FileNavigationService } from "./file-navigator";
+import { ViewServiceInterface } from "../view-service-interface";
 
 export class NavigationService {
     files: FileNavigationService;
 
-    constructor(domain: DomainService, updateArticle: UpdateArticleHandler) {
+    constructor(view: ViewServiceInterface) {
         makeAutoObservable(this, { files: false });
-        this.files = new FileNavigationService(domain, updateArticle);
+        this.files = new FileNavigationService(view);
     }
 
     initialize(articles: ArticleInfoResponse[], folders: FolderResponse[]) {

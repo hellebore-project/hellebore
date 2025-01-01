@@ -1,4 +1,4 @@
-import { open } from "@tauri-apps/plugin-dialog";
+import { ask, open } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable } from "mobx";
 
 import {
@@ -17,8 +17,9 @@ import { HomeService } from "./home-service";
 import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreatorService } from "./project-creator";
 import { SettingsEditorService } from "./settings-editor";
+import { ViewServiceInterface } from "./view-service-interface";
 
-export class ViewService {
+export class ViewService implements ViewServiceInterface {
     // state variables
     viewKey: ViewKey = ViewKey.HOME;
     modalKey: ModalKey | null = null;
@@ -59,30 +60,20 @@ export class ViewService {
         };
         makeAutoObservable(this, overrides);
 
-        const updateArticle = (update: ArticleUpdateArguments) =>
-            this.updateArticle(update);
-
         this.domain = domain;
 
         // central views
-        this.home = new HomeService(domain);
-        this.settingsEditor = new SettingsEditorService(domain);
-        this.articleEditor = new ArticleEditorService(
-            domain,
-            updateArticle,
-            (id) => this.openArticleEditorForId(id),
-        );
+        this.home = new HomeService(this);
+        this.settingsEditor = new SettingsEditorService(this);
+        this.articleEditor = new ArticleEditorService(this);
 
         // navbar
-        this.navigation = new NavigationService(domain, updateArticle);
-        this.navigation.files.onSelectedArticle.push((id) =>
-            this.openArticleEditorForId(id),
-        );
+        this.navigation = new NavigationService(this);
 
         // modals
         this.projectCreator = new ProjectCreatorService();
         this.folderRemover = new DataRemoverService();
-        this.articleCreator = new ArticleCreatorService(domain);
+        this.articleCreator = new ArticleCreatorService(this);
         this.articleRemover = new DataRemoverService();
 
         // context menu
@@ -123,22 +114,20 @@ export class ViewService {
         this.modalKey = ModalKey.PROJECT_CREATOR;
     }
 
-    openFolderRemover(id: number) {
-        this.folderRemover.initialize(id);
-        this.modalKey = ModalKey.FOLDER_REMOVER;
-    }
-
     openArticleCreator(entityType: EntityType | undefined = undefined) {
         this.articleCreator.initialize(entityType);
         this.modalKey = ModalKey.ARTICLE_CREATOR;
     }
 
-    openArticleRemover(id: number) {
-        this.articleRemover.initialize(id);
-        this.modalKey = ModalKey.ARTICLE_REMOVER;
-    }
-
     openArticleEditor(article: ArticleResponse<BaseEntity>) {
+        if (
+            this.viewKey == ViewKey.ARTICLE_EDITOR &&
+            this.articleEditor.info.id == article.id
+        )
+            return; // the article is already open
+
+        this.cleanUp();
+
         this.articleEditor.initialize(article);
         this.navigation.files.selectArticleNode(article.id);
         this.viewKey = ViewKey.ARTICLE_EDITOR;
@@ -173,21 +162,23 @@ export class ViewService {
             this.home.initialize(response.name);
             this.openHome();
         }
+
+        return response;
     }
 
     async loadProject() {
         const path = await open();
-        if (path) {
-            // save any unsynced data before loading another project
-            this.cleanUp();
+        if (!path) return null;
+        // save any unsynced data before loading another project
+        this.cleanUp();
 
-            const response = await this.domain.session.loadProject(path);
-            if (response) {
-                this.populateNavigator();
-                this.home.initialize(response.name);
-                this.openHome();
-            }
+        const response = await this.domain.session.loadProject(path);
+        if (response) {
+            this.populateNavigator();
+            this.home.initialize(response.name);
+            this.openHome();
         }
+        return response;
     }
 
     async closeProject() {
@@ -200,9 +191,23 @@ export class ViewService {
             this.home.initialize("");
             this.openHome();
         }
+        return success;
     }
 
-    async deleteFolder(id: number) {
+    async deleteFolder(id: number, confirm: boolean = true) {
+        if (confirm) {
+            const folder = this.domain.folders.getInfo(id);
+            const canDelete = await ask(
+                `Are you sure you want to delete folder '${folder.name}' and its contents? This action is irreversible.`,
+                {
+                    title: "Delete folder",
+                    kind: "warning",
+                    okLabel: "Delete",
+                },
+            );
+            if (!canDelete) return null;
+        }
+
         const fileIds = await this.domain.folders.delete(id);
         if (!fileIds) return null;
 
@@ -245,7 +250,20 @@ export class ViewService {
         return response;
     }
 
-    async deleteArticle(id: number) {
+    async deleteArticle(id: number, confirm: boolean = true) {
+        if (confirm) {
+            const article = this.domain.articles.getInfo(id);
+            const canDelete = await ask(
+                `Are you sure you want to delete the article for '${article.title}'? This action is irreversible.`,
+                {
+                    title: "Delete article",
+                    kind: "warning",
+                    okLabel: "Delete",
+                },
+            );
+            if (!canDelete) return false;
+        }
+
         const success = await this.domain.articles.delete(id);
         if (!success)
             // failed to delete the article; aborting

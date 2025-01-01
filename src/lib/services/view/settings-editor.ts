@@ -1,12 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
-import { DomainService } from "../domain";
+import { ViewServiceInterface } from "./view-service-interface";
 
 export class SettingsEditorService {
-    domain: DomainService;
+    view: ViewServiceInterface;
 
-    constructor(domain: DomainService) {
-        makeAutoObservable(this, { domain: false });
-        this.domain = domain;
+    constructor(view: ViewServiceInterface) {
+        makeAutoObservable(this, { view: false });
+        this.view = view;
     }
 }

@@ -1,0 +1,10 @@
+.variant-color {
+    color: var(--variant-color, unset);
+    background-color: var(--variant-background, unset);
+    border-color: var(--variant-border, unset);
+}
+
+.variant-color:hover {
+    color: var(--variant-hover-color, unset);
+    background-color: var(--variant-hover, unset);
+}

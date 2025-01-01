@@ -17,7 +17,6 @@ function renderCollapseFolderButton() {
                     color="gray"
                     size="sm"
                     onClick={(e) => {
-                        console.log("");
                         e.stopPropagation(); // don't toggle the expanded status of the tab
                         const articleNavService = service.view.navigation.files;
                         // NOTE: the `closeAll` function can't be called inside a service

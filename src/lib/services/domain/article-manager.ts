@@ -91,7 +91,7 @@ export class ArticleService {
             console.error(error);
             return null;
         }
-
+        console.log(response);
         const updateResponse = this._buildUpdateResponse(payload, response);
 
         if (
@@ -235,7 +235,6 @@ async function createLanguage(
         title: name,
         data: { name },
     };
-    console.log(article);
     return invoke<ArticleResponse<LanguageData>>("create_language", {
         article,
     });

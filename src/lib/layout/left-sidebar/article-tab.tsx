@@ -35,7 +35,6 @@ const ArticlesTabHeader = observer(renderArticlesTabHeader);
 
 function renderArticlesTab() {
     const service = getService();
-    console.log(service.view.navigation.files.expanded);
     // the components have to take up as much vertical space as possible in order to allow
     // dragging article nodes to the top level of the file tree
     return (

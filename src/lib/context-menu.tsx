@@ -23,7 +23,7 @@ function generateDataMapping(service: AppService) {
             onConfirm: () => {
                 const id = service.view.contextMenu.articleNavigator
                     .id as number;
-                return new Promise(() => service.view.openFolderRemover(id));
+                return new Promise(() => service.view.deleteFolder(id));
             },
         },
     ]);
@@ -53,13 +53,10 @@ function renderContextMenu() {
 
     return (
         <OutsideClickHandler
-            state={contextMenuService.outsideClickHandlerState}
             display="block"
+            state={contextMenuService.outsideClickHandlerState}
         >
             <VerticalMenu
-                data={data}
-                getSelectedIndex={() => contextMenuService.selectedIndex}
-                onConfirm={onConfirm}
                 left={`${contextMenuService.position.x}px`}
                 top={`${contextMenuService.position.y}px`}
                 display="block"
@@ -67,30 +64,32 @@ function renderContextMenu() {
                 autoFocus={true}
                 style={{
                     position: "absolute",
-                    zIndex: 101,
+                    zIndex: "var(--mantine-z-index-overlay)",
                 }}
+                data={data}
                 item={{
                     variant: "transparent",
-                    m: 3,
                     size: "compact-md",
                     justify: "space-between",
+                    m: 3,
                     style: {
                         minWidth: 300,
                     },
                     onMouseOver: (e) => {
-                        console.log("mousing over item");
                         contextMenuService.selectedIndex = Number(
-                            e.currentTarget.getAttribute("index"),
+                            e.currentTarget.getAttribute("data-index"),
                         );
                     },
                     onMouseLeave: (e) => {
                         const index = Number(
-                            e.currentTarget.getAttribute("index"),
+                            e.currentTarget.getAttribute("data-index"),
                         );
                         if (index == contextMenuService.selectedIndex)
                             contextMenuService.selectedIndex = null;
                     },
                 }}
+                getSelectedIndex={() => contextMenuService.selectedIndex}
+                onConfirm={onConfirm}
             />
         </OutsideClickHandler>
     );

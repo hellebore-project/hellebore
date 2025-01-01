@@ -19,6 +19,7 @@ function renderArticleEditor() {
                 <TextField
                     variant="unstyled"
                     mx="12"
+                    styles={TITLE_FIELD_STYLES}
                     placeholder="Title"
                     getValue={() => service.view.articleEditor.info.title}
                     getError={() => {
@@ -33,7 +34,6 @@ function renderArticleEditor() {
                             event.currentTarget.value,
                         )
                     }
-                    styles={TITLE_FIELD_STYLES}
                 />
                 {DIVIDER}
 

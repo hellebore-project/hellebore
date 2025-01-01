@@ -80,7 +80,7 @@ class ReferenceSuggestionRenderer {
             item: {
                 onMouseOver: (e) =>
                     this.setSelectedIndex(
-                        Number(e.currentTarget.getAttribute("index")),
+                        Number(e.currentTarget.getAttribute("data-index")),
                     ),
             },
         };

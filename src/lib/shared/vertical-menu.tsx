@@ -32,8 +32,19 @@ function renderVerticalMenuItem({
     selected = false,
     ...sharedAttrs
 }: VerticalMenuItemSettings) {
-    let { variant: sharedVariant, ..._sharedAttrs } = sharedAttrs;
-    let { label, onConfirm, variant: uniqueVariant, ...uniqueAttrs } = data;
+    let {
+        variant: sharedVariant,
+        style: sharedStyle,
+        ..._sharedAttrs
+    } = sharedAttrs;
+    let {
+        index,
+        label,
+        onConfirm,
+        variant: uniqueVariant,
+        style: uniqueStyle,
+        ...uniqueAttrs
+    } = data;
 
     let baseVariant = uniqueVariant ?? sharedVariant ?? "filled";
 
@@ -41,15 +52,20 @@ function renderVerticalMenuItem({
     if (!baseVariant.endsWith("-nohover"))
         unselectedVariant = `${baseVariant}-nohover`;
     const _variant = selected ? "selected" : unselectedVariant;
-    console.log(_variant);
+
     return (
         <Button
             variant={_variant}
             color="gray"
             radius={0}
             px="sm"
+            style={{
+                ...sharedStyle,
+                ...uniqueStyle,
+            }}
             {..._sharedAttrs}
             {...uniqueAttrs}
+            {...{ "data-index": index }}
         >
             {label}
         </Button>
@@ -70,12 +86,11 @@ const renderVerticalMenu = ({
     let options: ReactElement[];
     if (data.length) {
         const selectedIndex = getSelectedIndex() ?? null;
-        console.log(`selected index: ${selectedIndex}`);
-        options = data.map((itemData, index) => (
+        options = data.map((itemData) => (
             <VerticalMenuItem
                 key={`${itemData.value}`}
                 data={itemData}
-                selected={index == selectedIndex}
+                selected={itemData.index == selectedIndex}
                 onClick={async (e: SyntheticEvent<HTMLButtonElement>) => {
                     if (onConfirm) onConfirm(e, itemData);
                     else if (itemData.onConfirm) itemData.onConfirm(e);

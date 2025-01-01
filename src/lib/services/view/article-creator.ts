@@ -6,18 +6,18 @@ import {
     EntityType,
     ROOT_FOLDER_ID,
 } from "@/interface";
-import { DomainService } from "../domain";
+import { ViewService } from "./view-service";
 
 export class ArticleCreatorService {
     entityType: EntityType | null = null;
     title: string = "";
     isTitleUnique: boolean = true;
 
-    domain: DomainService;
+    view: ViewService;
 
-    constructor(domain: DomainService) {
-        makeAutoObservable(this, { domain: false });
-        this.domain = domain;
+    constructor(view: ViewService) {
+        makeAutoObservable(this, { view: false });
+        this.view = view;
     }
 
     setEntityType(entityType: EntityType | null = null) {
@@ -35,7 +35,7 @@ export class ArticleCreatorService {
     async createArticle(
         folder_id: number = ROOT_FOLDER_ID,
     ): Promise<ArticleResponse<BaseEntity> | null> {
-        const article = await this.domain.articles.create(
+        const article = await this.view.domain.articles.create(
             this.entityType as EntityType,
             this.title,
             folder_id,

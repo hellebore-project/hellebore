@@ -1,10 +1,10 @@
 import { TreeMethods } from "@minoru/react-dnd-treeview";
+import { ask } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable, toJS } from "mobx";
 import { RefObject } from "react";
 
 import {
     ArticleInfoResponse,
-    ArticleUpdateResponse,
     FileNodeData,
     FileNodeModel,
     FolderResponse,
@@ -12,18 +12,13 @@ import {
     ROOT_FOLDER_ID,
     ROOT_FOLDER_NODE_ID,
 } from "@/interface";
-import { ArticleUpdateArguments, DomainService } from "@/services/domain";
 import { Counter } from "@/utils/counter";
 import {
     articleNodeId,
     convertNodeIdToEntityId,
     folderNodeId,
 } from "@/utils/node";
-
-export type UpdateArticleHandler = (
-    update: ArticleUpdateArguments,
-) => Promise<ArticleUpdateResponse | null>;
-export type SelectArticleHandler = (id: number) => void;
+import { ViewServiceInterface } from "../view-service-interface";
 
 export class FileNavigationService {
     _nodes: FileNodeModel[];
@@ -39,20 +34,15 @@ export class FileNavigationService {
     hover: boolean = false;
     selectedNode: FileNodeModel | null;
 
-    onSelectedArticle: SelectArticleHandler[];
-
     _placeholderIdGenerator: Counter;
-    domain: DomainService;
+    view: ViewServiceInterface;
 
-    updateArticle: UpdateArticleHandler;
-
-    constructor(domain: DomainService, updateArticle: UpdateArticleHandler) {
+    constructor(view: ViewServiceInterface) {
         makeAutoObservable(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
             _tree: false,
-            domain: false,
-            updateArticle: false,
+            view: false,
         });
 
         this._nodes = [];
@@ -60,12 +50,8 @@ export class FileNavigationService {
 
         this.selectedNode = null;
 
-        this.onSelectedArticle = [];
-
         this._placeholderIdGenerator = new Counter();
-        this.domain = domain;
-
-        this.updateArticle = updateArticle;
+        this.view = view;
     }
 
     /**
@@ -242,10 +228,10 @@ export class FileNavigationService {
     selectNode(node: FileNodeModel) {
         this.setSelectedNode(node);
         if (this.isFolderNode(node)) return;
-
-        const id = convertNodeIdToEntityId(node.id);
-        if (!this.isFolderNode(node))
-            this.onSelectedArticle.forEach((handler) => handler(id));
+        else {
+            const id = convertNodeIdToEntityId(node.id);
+            this.view.openArticleEditorForId(id);
+        }
     }
 
     updateArticleNodeText(id: number, title: string) {
@@ -286,12 +272,12 @@ export class FileNavigationService {
             if (this.isFolderNode(node)) {
                 // folder
                 const parentId = convertNodeIdToEntityId(node.parent);
-                const validationResponse = this.domain.folders.validate_name(
+                const validationResponse = this.view.domain.folders.validate(
                     id,
                     parentId,
                     newText,
                 );
-                if (!validationResponse.nameIsUnique)
+                if (validationResponse.nameCollision)
                     this.setNodeError(
                         node,
                         `A folder named ${newText} already exists at this location.`,
@@ -324,7 +310,7 @@ export class FileNavigationService {
             if (this.isPlaceholderNode(node)) {
                 // add new folder
                 const parentId = convertNodeIdToEntityId(node.parent);
-                const folder = await this.domain.folders.create(
+                const folder = await this.view.domain.folders.create(
                     node.text,
                     parentId,
                 );
@@ -361,40 +347,70 @@ export class FileNavigationService {
     }
 
     async moveNode(node: FileNodeModel, destFolderNodeId: NodeId) {
-        const index = this.getNodeIndex(node.id);
-        if (index !== null) {
-            const sourceFolderNodeId = node.parent;
+        let index = this.getNodeIndex(node.id);
+        if (index === null) return;
 
-            const id = convertNodeIdToEntityId(node.id);
-            const sourceParentId = convertNodeIdToEntityId(sourceFolderNodeId);
-            const destParentId = convertNodeIdToEntityId(destFolderNodeId);
+        const sourceFolderNodeId = node.parent;
 
-            let response: any;
-            if (this.isFolderNode(node)) {
-                // folder
-                response = await this.domain.folders.update({
-                    id,
-                    parentId: destParentId,
-                    oldParentId: sourceParentId,
-                });
-            } else {
-                // article
-                response = await this.updateArticle({
-                    id,
-                    folderId: destParentId,
-                    oldFolderId: sourceParentId,
-                });
-            }
-            console.log(response);
-            if (response) {
-                node.parent = destFolderNodeId;
-                this.setNode(node, index);
-            } else
-                console.error(
-                    `Unable to move node ${node.id} to folder ${destFolderNodeId}.`,
+        const id = convertNodeIdToEntityId(node.id);
+        const sourceParentId = convertNodeIdToEntityId(sourceFolderNodeId);
+        const destParentId = convertNodeIdToEntityId(destFolderNodeId);
+
+        let response: any;
+        if (this.isFolderNode(node)) {
+            // folder
+            const validateResponse = this.view.domain.folders.validate(
+                id,
+                destParentId,
+                node.text,
+            );
+            if (validateResponse.nameCollision) {
+                const replace = await ask(
+                    `A folder with the name '${node.text}' already exists in the destination folder. Do you want to replace it?`,
+                    {
+                        title: "Folder name collision",
+                        kind: "warning",
+                    },
                 );
-            console.log(this.nodes);
+                if (!replace) return;
+
+                const deleteResponse = await this.view.deleteFolder(
+                    validateResponse.nameCollision.collidingFolderId,
+                    false,
+                );
+                if (!deleteResponse) {
+                    console.error(
+                        "Failed to delete colliding folder. Aborting move.",
+                    );
+                    return;
+                }
+
+                // need to fetch the index of the node again because the original index may be outdated following the delete request
+                index = this.getNodeIndex(node.id) as number;
+            }
+
+            response = await this.view.domain.folders.update({
+                id,
+                parentId: destParentId,
+                oldParentId: sourceParentId,
+            });
+        } else {
+            // article
+            response = await this.view.updateArticle({
+                id,
+                folderId: destParentId,
+                oldFolderId: sourceParentId,
+            });
         }
+
+        if (response) {
+            node.parent = destFolderNodeId;
+            // setting the node at its current index forces a refresh of the tree component
+            this.setNode(node, index);
+        } else
+            console.error(
+                `Unable to move node ${node.id} to folder ${destFolderNodeId}.`,
+            );
     }
 
     deleteArticleNode(id: number) {

@@ -1,15 +1,15 @@
 import { makeAutoObservable } from "mobx";
 
-import { DomainService } from "../domain";
+import { ViewServiceInterface } from "./view-service-interface";
 
 export class HomeService {
     _projectName: string = "";
 
-    domain: DomainService;
+    view: ViewServiceInterface;
 
-    constructor(domain: DomainService) {
-        makeAutoObservable(this, { domain: false });
-        this.domain = domain;
+    constructor(view: ViewServiceInterface) {
+        makeAutoObservable(this, { view: false });
+        this.view = view;
     }
 
     get projectName() {
@@ -18,7 +18,7 @@ export class HomeService {
 
     set projectName(name: string) {
         this._projectName = name;
-        if (name) this.domain.session.updateProject(name);
+        if (name) this.view.domain.session.updateProject(name);
     }
 
     initialize(name: string) {

@@ -7,10 +7,11 @@ import {
     ArticleUpdateResponse,
     FieldData,
 } from "@/interface";
-import { ArticleUpdateArguments, DomainService } from "@/services/domain";
+import { ArticleUpdateArguments } from "@/services/domain";
 import { ArticleFieldTableService } from "./field-table-editor";
 import { ArticleBodyService, OpenArticleHandler } from "./body-editor";
 import { ArticleInfoService } from "./info-editor";
+import { ViewServiceInterface } from "../view-service-interface";
 
 const UPDATE_DELAY_MILLISECONDS = 5000;
 
@@ -28,39 +29,30 @@ export class ArticleEditorService {
     syncing: boolean = false;
     lastModified: number = 0;
 
-    domain: DomainService;
+    view: ViewServiceInterface;
     info: ArticleInfoService;
     fieldTable: ArticleFieldTableService;
     body: ArticleBodyService;
 
-    updateArticle: UpdateArticleHandler;
-
-    constructor(
-        domain: DomainService,
-        updateArticle: UpdateArticleHandler,
-        openArticle: OpenArticleHandler,
-    ) {
+    constructor(view: ViewServiceInterface) {
         makeAutoObservable(this, {
-            domain: false,
+            view: false,
             info: false,
             fieldTable: false,
             body: false,
         });
 
-        this.domain = domain;
+        this.view = view;
         this.info = new ArticleInfoService();
         this.fieldTable = new ArticleFieldTableService({
             info: this.info,
             onChange: () => this._onChange(),
         });
         this.body = new ArticleBodyService({
-            domain,
+            view: view,
             info: this.info,
             onChange: () => this._onChange(),
-            openArticle,
         });
-
-        this.updateArticle = updateArticle;
     }
 
     setTitle(title: string) {
@@ -129,7 +121,7 @@ export class ArticleEditorService {
 
         let response: ArticleUpdateResponse | null;
         try {
-            response = await this.updateArticle({
+            response = await this.view.updateArticle({
                 id: this.info.id,
                 entity_type: this.info.entityType as EntityType,
                 title:
@@ -159,7 +151,6 @@ export class ArticleEditorService {
         }
         if (syncEntity) this.fieldTable.sync();
         if (syncBody) this.body.sync();
-        console.log(this.body.content);
 
         return true;
     }

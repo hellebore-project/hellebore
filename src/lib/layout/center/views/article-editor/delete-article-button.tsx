@@ -9,7 +9,7 @@ import { ToolTipWrapper } from "@/shared/tool-tip";
 function renderDeleteArticleButton() {
     const service = getService();
     const onClick = () => {
-        service.view.openArticleRemover(service.view.articleEditor.info.id);
+        service.view.deleteArticle(service.view.articleEditor.info.id);
     };
     return (
         <NavSubItem span="content" p="0">

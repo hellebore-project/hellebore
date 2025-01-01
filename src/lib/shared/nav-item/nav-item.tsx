@@ -1,6 +1,5 @@
 import {
     Grid,
-    GridColProps,
     GridProps,
     Popover,
     PopoverProps,
@@ -15,8 +14,10 @@ import { range } from "@/utils/array";
 import { TextField, TextFieldSettings } from "../text-field";
 
 import "./nav-item.css";
+import { BaseGridColSettings, BaseGridSettings } from "../common";
+import { ThemeManager } from "@/theme";
 
-const GRID_STYLES = {
+const DEFAULT_NAV_ITEM_STYLES = {
     inner: {
         // margin defaults to negative value, resulting in overlap with adjacent nav items
         margin: 0,
@@ -48,9 +49,9 @@ export interface PopoverSettings extends PopoverProps {
     text?: string;
 }
 
-export interface NavSubItemSettings extends GridColProps {}
+export interface NavSubItemSettings extends BaseGridColSettings {}
 
-interface NavItemSettings extends PropsWithChildren<GridProps> {
+interface NavItemSettings extends PropsWithChildren<BaseGridSettings> {
     indentSettings?: IndentSettings;
     expandButtonSettings?: ExpandButtonSettings;
     textSettings?: TextSettings;
@@ -76,7 +77,7 @@ function renderExpandButton({
 const ExpandButton = observer(renderExpandButton);
 
 const renderReadOnlyText = forwardRef<HTMLParagraphElement, TextSettings>(
-    ({ value, getValue, ...rest }, ref) => {
+    ({ value, getValue, ...rest }, _) => {
         const _text = getValue?.() ?? value;
         return (
             <Text className="nav-item-text" {...rest}>
@@ -112,6 +113,7 @@ function renderNavItem({
     textSettings = {},
     textInputSettings = {},
     popoverSettings = {},
+    styles = {},
     children,
     ...rest
 }: NavItemSettings) {
@@ -134,14 +136,16 @@ function renderNavItem({
         expandNode = <ExpandButton {...expandButtonSettings} />;
     else expandNode = EXPAND_BUTTON_PLACEHOLDER;
 
+    const gridProps = ThemeManager.resolveVariant<GridProps>({
+        className: "nav-item variant-color",
+        align: "center",
+        px: "4",
+        styles: { ...DEFAULT_NAV_ITEM_STYLES, ...styles },
+        ...rest,
+    });
+
     return (
-        <Grid
-            className="nav-item"
-            align="center"
-            px="4"
-            styles={GRID_STYLES}
-            {...rest}
-        >
+        <Grid {...gridProps}>
             {indentItem}
             <NavSubItem span="content" py="0">
                 {expandNode}

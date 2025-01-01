@@ -1,4 +1,4 @@
-import { GridProps, lighten } from "@mantine/core";
+import { GridProps } from "@mantine/core";
 import {
     DragPreviewRender,
     DropOptions,
@@ -18,12 +18,15 @@ import {
     TextSettings,
 } from "@/shared/nav-item/nav-item";
 import { TextFieldSettings } from "@/shared/text-field";
-import { ThemeManager } from "@/theme";
 import { convertNodeIdToEntityId } from "@/utils/node";
 
 import "./file-navigator.css";
 
 const ARTICLE_NAV_ITEM_PREFIX = "nav-item-";
+const SELECTED_NAV_ITEM_BORDER_STYLE = {
+    borderStyle: "solid",
+    borderWidth: "1px",
+};
 
 interface FileNavItemSettings extends GridProps {
     node: FileNodeModel;
@@ -59,7 +62,6 @@ function renderFileNavItem({
     depth,
     expanded,
     toggle,
-    bg,
     ...rest
 }: FileNavItemSettings) {
     const service = getService();
@@ -67,7 +69,8 @@ function renderFileNavItem({
     const selected = service.view.navigation.files.selectedNodeId == node.id;
     const editable = node?.data?.isEditable ?? false;
 
-    const onActivate = () => {
+    const onActivate = (event: MouseEvent) => {
+        event.stopPropagation();
         if (editable) return;
         toggle();
         service.view.navigation.files.selectNode(node);
@@ -104,26 +107,25 @@ function renderFileNavItem({
             text: node?.data?.error ?? "",
         };
 
-    if (selected) {
-        const normalBg = bg
-            ? ThemeManager.getThemeColor(bg).color
-            : ThemeManager.getDefaultThemeColor();
-        bg = lighten(normalBg, 0.1);
-    }
+    const variant = selected ? "selected" : "filled";
+    const bg = selected ? "none" : "var(--mantine-color-dark-7)";
+    const borderStyle = selected ? SELECTED_NAV_ITEM_BORDER_STYLE : undefined;
 
     return (
         <NavItem
             id={`${ARTICLE_NAV_ITEM_PREFIX}${node.id}`}
+            variant={variant}
             bg={bg}
+            style={borderStyle}
             indentSettings={{
                 count: depth + 1,
             }}
+            textSettings={textSettings}
+            textInputSettings={textInputSettings}
             expandButtonSettings={{
                 expandable: node.droppable,
                 expanded: expanded,
             }}
-            textSettings={textSettings}
-            textInputSettings={textInputSettings}
             popoverSettings={popoverSettings}
             onClick={onActivate}
             onContextMenu={openContextMenu}
@@ -157,25 +159,25 @@ function renderFileNavigator({}: FileNavigatorSettings) {
     return (
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
             <Tree
-                ref={ref}
-                tree={data}
-                rootId={ROOT_FOLDER_NODE_ID}
-                listComponent="div"
-                listItemComponent="div"
-                dragPreviewRender={dragPreviewRender}
-                onDrop={onDrop}
-                render={(node, { depth, isOpen, onToggle }) => (
-                    <FileNavItem
-                        key={node.id}
-                        node={node}
-                        depth={depth}
-                        expanded={isOpen}
-                        toggle={onToggle}
-                    />
-                )}
                 classes={{
                     root: "article-tree-root",
                 }}
+                dragPreviewRender={dragPreviewRender}
+                listComponent="div"
+                listItemComponent="div"
+                onDrop={onDrop}
+                ref={ref}
+                render={(node, { depth, isOpen, onToggle }) => (
+                    <FileNavItem
+                        depth={depth}
+                        expanded={isOpen}
+                        key={node.id}
+                        node={node}
+                        toggle={onToggle}
+                    />
+                )}
+                rootId={ROOT_FOLDER_NODE_ID}
+                tree={data}
             />
         </DndProvider>
     );
