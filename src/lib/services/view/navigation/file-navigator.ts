@@ -243,21 +243,37 @@ export class FileNavigator {
         if (index !== null) this._nodes[index].text = text;
     }
 
-    editNodeText(nodeId: NodeId, text: string) {
+    editFolderNodeText(id: number) {
+        this.editNodeText(folderNodeId(id));
+    }
+
+    editNodeText(nodeId: NodeId) {
         const index = this.getNodeIndex(nodeId);
-        if (index !== null) {
-            const node = this._nodes[index];
+        if (index === null) return;
 
-            // update the editable text of the node
-            if (!node?.data)
-                node.data = { isEditable: true, editableText: text };
-            else node.data.editableText = text;
+        const node = this._nodes[index];
 
-            // update the node collection
-            this._nodes[index] = node;
+        if (!node.data) node.data = {};
+        node.data.isEditable = true;
+        node.data.editableText = node.text;
 
-            this.validateEditedNodeText(node);
-        }
+        this._nodes[index] = node;
+    }
+
+    setEditableNodeText(nodeId: NodeId, text: string) {
+        const index = this.getNodeIndex(nodeId);
+        if (index === null) return;
+
+        const node = this._nodes[index];
+
+        // update the editable text of the node
+        if (!node?.data) node.data = { isEditable: true, editableText: text };
+        else node.data.editableText = text;
+
+        // update the node collection
+        this._nodes[index] = node;
+
+        this.validateEditedNodeText(node);
     }
 
     async validateEditedNodeText(node: FileNodeModel) {
@@ -300,10 +316,10 @@ export class FileNavigator {
     }
 
     async _applyNodeTextEdit(node: FileNodeModel) {
-        const index = this.getNodeIndex(node.id, false) as number;
+        // NOTE: the node must be refreshed AFTER all of its properties have been updated
 
-        node.text = node?.data?.editableText ?? node.text;
-        delete node?.data?.editableText;
+        const index = this.getNodeIndex(node.id, false) as number;
+        const newText = node?.data?.editableText ?? node.text;
 
         // folder
         if (this.isFolderNode(node)) {
@@ -311,23 +327,39 @@ export class FileNavigator {
                 // add new folder
                 const parentId = convertNodeIdToEntityId(node.parent);
                 const folder = await this.view.domain.folders.create(
-                    node.text,
+                    newText,
                     parentId,
                 );
+
                 if (folder) {
                     // sync the node ID with the backend
                     node.id = folderNodeId(folder.id);
+                    node.text = newText;
                     delete node?.data?.isPlaceholder;
                     delete node?.data?.isEditable;
-                    this.setNode(node, index);
+                    delete node?.data?.editableText;
                     this.setSelectedNode(node);
+                    // force a refresh
+                    this.setNode(node, index);
                 } else {
+                    // failed to create a new folder in the backend
                     this.setSelectedNode(null);
                     this._deleteNodeAtIndex(index);
                 }
             } else {
                 // update existing folder
-                // TODO
+                const folder = await this.view.domain.folders.update({
+                    id: convertNodeIdToEntityId(node.id),
+                    name: newText,
+                });
+
+                if (folder) {
+                    node.text = newText;
+                    delete node?.data?.isEditable;
+                    delete node?.data?.editableText;
+                    // force a refresh
+                    this.setNode(node, index);
+                }
             }
         }
         // article

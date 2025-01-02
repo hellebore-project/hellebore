@@ -25,6 +25,7 @@ export interface ViewManagerInterface {
     ): Promise<ProjectResponse | null>;
     loadProject(): Promise<ProjectResponse | null>;
     closeProject(): Promise<boolean>;
+    editFolderName(id: number): void;
     deleteFolder(id: number, confirm?: boolean): Promise<BulkData | null>;
     createArticle(): Promise<ArticleResponse<BaseEntity> | null>;
     updateArticle(

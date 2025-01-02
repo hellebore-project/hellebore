@@ -38,19 +38,21 @@ interface FileNavItemSettings extends GridProps {
 interface FileNavigatorSettings {}
 
 const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
     const service = getService();
-    const articlesService = service.view.navigation.files;
+    const fileNavigator = service.view.navigation.files;
 
     const elementId = e.currentTarget.id;
     const nodeId = elementId.slice(ARTICLE_NAV_ITEM_PREFIX.length);
 
-    const node = articlesService.getNode(nodeId);
+    const node = fileNavigator.getNode(nodeId);
     if (!node) return;
 
-    e.preventDefault();
+    fileNavigator.selectNode(node);
     const id = convertNodeIdToEntityId(nodeId);
 
-    if (articlesService.isFolderNode(node))
+    if (fileNavigator.isFolderNode(node))
         service.view.contextMenu.openForNavBarFolderNode({
             position: { x: e.pageX, y: e.pageY },
             id,
@@ -78,6 +80,7 @@ function renderFileNavItem({
 
     const onActivate = (event: MouseEvent) => {
         event.stopPropagation();
+        // if the node is editable, then its open status must remain static
         if (editable) return;
         toggle();
         service.view.navigation.files.selectNode(node);
@@ -92,7 +95,7 @@ function renderFileNavItem({
             autoFocus: true,
             error: node?.data?.error ? true : undefined,
             onChange: (event) =>
-                service.view.navigation.files.editNodeText(
+                service.view.navigation.files.setEditableNodeText(
                     node.id,
                     event.target.value,
                 ),
