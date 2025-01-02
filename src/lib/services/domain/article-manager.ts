@@ -28,7 +28,7 @@ export interface ArticleUpdateArguments extends IdentifiedObject {
     entity?: BaseEntity | null;
 }
 
-export class ArticleService {
+export class ArticleManager {
     _structure: FileStructure;
 
     constructor(structure: FileStructure) {

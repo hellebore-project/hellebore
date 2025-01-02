@@ -18,9 +18,9 @@ import {
     convertNodeIdToEntityId,
     folderNodeId,
 } from "@/utils/node";
-import { ViewServiceInterface } from "../view-service-interface";
+import { ViewManagerInterface } from "../view-manager-interface";
 
-export class FileNavigationService {
+export class FileNavigator {
     _nodes: FileNodeModel[];
     _nodePositionCache: { [nodeId: NodeId]: number };
 
@@ -35,9 +35,9 @@ export class FileNavigationService {
     selectedNode: FileNodeModel | null;
 
     _placeholderIdGenerator: Counter;
-    view: ViewServiceInterface;
+    view: ViewManagerInterface;
 
-    constructor(view: ViewServiceInterface) {
+    constructor(view: ViewManagerInterface) {
         makeAutoObservable(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,

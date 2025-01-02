@@ -1,15 +1,15 @@
 import { makeAutoObservable } from "mobx";
 
 import { ArticleInfoResponse, FolderResponse } from "@/interface";
-import { FileNavigationService } from "./file-navigator";
-import { ViewServiceInterface } from "../view-service-interface";
+import { FileNavigator } from "./file-navigator";
+import { ViewManagerInterface } from "../view-manager-interface";
 
 export class NavigationService {
-    files: FileNavigationService;
+    files: FileNavigator;
 
-    constructor(view: ViewServiceInterface) {
+    constructor(view: ViewManagerInterface) {
         makeAutoObservable(this, { files: false });
-        this.files = new FileNavigationService(view);
+        this.files = new FileNavigator(view);
     }
 
     initialize(articles: ArticleInfoResponse[], folders: FolderResponse[]) {

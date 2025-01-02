@@ -1,3 +1,3 @@
 export * from "./article-manager";
-export * from "./domain-service";
+export * from "./domain-manager";
 export * from "./folder-manager";

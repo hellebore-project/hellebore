@@ -17,7 +17,7 @@ export interface FolderUpdateArguments {
     oldParentId?: number | null;
 }
 
-export class FolderService {
+export class FolderManager {
     _data: DataManager;
     _structure: FileStructure;
 

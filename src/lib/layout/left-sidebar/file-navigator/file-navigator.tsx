@@ -47,14 +47,21 @@ const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
     const node = articlesService.getNode(nodeId);
     if (!node) return;
 
-    if (articlesService.isFolderNode(node)) {
-        e.preventDefault();
+    e.preventDefault();
+    const id = convertNodeIdToEntityId(nodeId);
+
+    if (articlesService.isFolderNode(node))
         service.view.contextMenu.openForNavBarFolderNode({
             position: { x: e.pageX, y: e.pageY },
-            id: convertNodeIdToEntityId(nodeId),
+            id,
             nodeId,
         });
-    }
+    else
+        service.view.contextMenu.openForNavBarArticleNode({
+            position: { x: e.pageX, y: e.pageY },
+            id,
+            nodeId,
+        });
 };
 
 function renderFileNavItem({

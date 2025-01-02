@@ -6,25 +6,24 @@ import { makeAutoObservable } from "mobx";
 
 import { Suggestion } from "@/interface";
 import { useReferenceExtension } from "@/shared/rich-text-editor";
-import { ViewServiceInterface } from "../view-service-interface";
-import { ArticleInfoService } from "./info-editor";
+import { ViewManagerInterface } from "../view-manager-interface";
+import { ArticleInfoEditor } from "./info-editor";
 
 type ChangeHandler = () => void;
-export type OpenArticleHandler = (id: number) => void;
 
 interface ArticleBodyServiceSettings {
-    view: ViewServiceInterface;
-    info: ArticleInfoService;
+    view: ViewManagerInterface;
+    info: ArticleInfoEditor;
     onChange: ChangeHandler;
 }
 
-export class ArticleBodyService {
+export class ArticleBodyEditor {
     editor: Editor;
     changed: boolean = false;
     _selectedRefIndex: number | null = null;
 
-    view: ViewServiceInterface;
-    info: ArticleInfoService;
+    view: ViewManagerInterface;
+    info: ArticleInfoEditor;
 
     onChange: ChangeHandler;
 

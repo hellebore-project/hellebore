@@ -6,16 +6,16 @@ import {
     EntityType,
     ROOT_FOLDER_ID,
 } from "@/interface";
-import { ViewService } from "./view-service";
+import { ViewManager } from "./view-manager";
 
-export class ArticleCreatorService {
+export class ArticleCreator {
     entityType: EntityType | null = null;
     title: string = "";
     isTitleUnique: boolean = true;
 
-    view: ViewService;
+    view: ViewManager;
 
-    constructor(view: ViewService) {
+    constructor(view: ViewManager) {
         makeAutoObservable(this, { view: false });
         this.view = view;
     }

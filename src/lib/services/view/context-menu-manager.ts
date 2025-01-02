@@ -1,9 +1,19 @@
 import { makeAutoObservable, toJS } from "mobx";
 
-import { ContextMenuKey, NodeId, Point } from "@/interface";
+import {
+    ContextMenuKey,
+    NodeId,
+    Point,
+    VerticalMenuItemData,
+} from "@/interface";
 import { OutsideClickHandlerState } from "@/shared/outside-click-handler";
+import { ViewManagerInterface } from "./view-manager-interface";
 
-class ArticleNavigatorContextMenuService {
+type ContextMenuDataMapping = {
+    [key in ContextMenuKey]: VerticalMenuItemData[];
+};
+
+class ArticleNavigatorContextMenuManager {
     _id: number | null = null;
     _nodeId: NodeId | null = null;
 
@@ -28,21 +38,30 @@ class ArticleNavigatorContextMenuService {
     }
 }
 
-export class ContextMenuService {
+export class ContextMenuManager {
     _key: ContextMenuKey | null = null;
     _position: Point | null = null;
     _selectedIndex: number | null = null;
     _outsideClickHandlerState: OutsideClickHandlerState;
 
-    articleNavigator: ArticleNavigatorContextMenuService;
+    menuData: ContextMenuDataMapping;
 
-    constructor() {
-        makeAutoObservable(this, { articleNavigator: false });
-        this.articleNavigator = new ArticleNavigatorContextMenuService();
+    view: ViewManagerInterface;
+    articleNavigator: ArticleNavigatorContextMenuManager;
+
+    constructor(view: ViewManagerInterface) {
+        makeAutoObservable(this, {
+            view: false,
+            articleNavigator: false,
+            menuData: false,
+        });
+        this.view = view;
+        this.articleNavigator = new ArticleNavigatorContextMenuManager();
         this._outsideClickHandlerState = new OutsideClickHandlerState({
             onOutsideClick: () => this.close(),
             disabled: false,
         });
+        this.menuData = this._generateMenuDataMapping();
     }
 
     get key() {
@@ -88,6 +107,21 @@ export class ContextMenuService {
         this.articleNavigator.nodeId = nodeId;
     }
 
+    openForNavBarArticleNode({
+        position,
+        id,
+        nodeId,
+    }: {
+        position: Point;
+        id: number;
+        nodeId: NodeId;
+    }) {
+        this.key = ContextMenuKey.NAV_BAR_ARTICLE_NODE;
+        this.position = position;
+        this.articleNavigator.id = id;
+        this.articleNavigator.nodeId = nodeId;
+    }
+
     close() {
         this.reset();
     }
@@ -96,5 +130,39 @@ export class ContextMenuService {
         this.key = null;
         this.position = null;
         this.selectedIndex = null;
+    }
+
+    _generateMenuDataMapping() {
+        const NAV_BAR_FOLDER_NODE_DATA = this._formatMenuData([
+            {
+                label: "Delete",
+                onConfirm: () => {
+                    const id = this.articleNavigator.id as number;
+                    return new Promise(() => this.view.deleteFolder(id));
+                },
+            },
+        ]);
+
+        const NAV_BAR_ARTICLE_NODE_DATA = this._formatMenuData([
+            {
+                label: "Delete",
+                onConfirm: () => {
+                    const id = this.articleNavigator.id as number;
+                    return new Promise(() => this.view.deleteArticle(id));
+                },
+            },
+        ]);
+
+        return {
+            [ContextMenuKey.NAV_BAR_FOLDER_NODE]: NAV_BAR_FOLDER_NODE_DATA,
+            [ContextMenuKey.NAV_BAR_ARTICLE_NODE]: NAV_BAR_ARTICLE_NODE_DATA,
+        };
+    }
+
+    _formatMenuData(data: Partial<VerticalMenuItemData>[]) {
+        return data.map((d, i) => ({
+            index: i,
+            ...d,
+        })) as VerticalMenuItemData[];
     }
 }

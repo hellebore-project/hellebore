@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 
 import { ProjectResponse, SessionResponse } from "@/interface";
 
-export class SessionService {
+export class SessionManager {
     _dbFilePath: string | null = null;
     _project: ProjectResponse | null = null;
 

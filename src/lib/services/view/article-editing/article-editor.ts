@@ -8,10 +8,10 @@ import {
     FieldData,
 } from "@/interface";
 import { ArticleUpdateArguments } from "@/services/domain";
-import { ArticleFieldTableService } from "./field-table-editor";
-import { ArticleBodyService, OpenArticleHandler } from "./body-editor";
-import { ArticleInfoService } from "./info-editor";
-import { ViewServiceInterface } from "../view-service-interface";
+import { ArticleFieldTableEditor } from "./field-table-editor";
+import { ArticleBodyEditor } from "./body-editor";
+import { ArticleInfoEditor } from "./info-editor";
+import { ViewManagerInterface } from "../view-manager-interface";
 
 const UPDATE_DELAY_MILLISECONDS = 5000;
 
@@ -25,16 +25,16 @@ interface SyncSettings {
     syncBody?: boolean;
 }
 
-export class ArticleEditorService {
+export class ArticleEditor {
     syncing: boolean = false;
     lastModified: number = 0;
 
-    view: ViewServiceInterface;
-    info: ArticleInfoService;
-    fieldTable: ArticleFieldTableService;
-    body: ArticleBodyService;
+    view: ViewManagerInterface;
+    info: ArticleInfoEditor;
+    fieldTable: ArticleFieldTableEditor;
+    body: ArticleBodyEditor;
 
-    constructor(view: ViewServiceInterface) {
+    constructor(view: ViewManagerInterface) {
         makeAutoObservable(this, {
             view: false,
             info: false,
@@ -43,12 +43,12 @@ export class ArticleEditorService {
         });
 
         this.view = view;
-        this.info = new ArticleInfoService();
-        this.fieldTable = new ArticleFieldTableService({
+        this.info = new ArticleInfoEditor();
+        this.fieldTable = new ArticleFieldTableEditor({
             info: this.info,
             onChange: () => this._onChange(),
         });
-        this.body = new ArticleBodyService({
+        this.body = new ArticleBodyEditor({
             view: view,
             info: this.info,
             onChange: () => this._onChange(),
