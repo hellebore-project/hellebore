@@ -91,7 +91,6 @@ export class ArticleManager {
             console.error(error);
             return null;
         }
-        console.log(response);
         const updateResponse = this._buildUpdateResponse(payload, response);
 
         if (
@@ -255,7 +254,6 @@ async function createPerson(
 async function updateArticle(
     article: ArticleUpdate<BaseEntity>,
 ): Promise<ResponseWithDiagnostics<null>> {
-    console.log(article);
     const command = `update_${ENTITY_TYPE_LABELS[article.entity_type].toLowerCase()}`;
     return invoke<ResponseWithDiagnostics<null>>(command, { article });
 }

@@ -190,6 +190,10 @@ export class ViewManager implements ViewManagerInterface {
         return success;
     }
 
+    editFolderName(id: number) {
+        this.navigation.files.editFolderNodeText(id);
+    }
+
     async deleteFolder(id: number, confirm: boolean = true) {
         if (confirm) {
             const folder = this.domain.folders.getInfo(id);

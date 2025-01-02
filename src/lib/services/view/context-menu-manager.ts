@@ -133,7 +133,15 @@ export class ContextMenuManager {
     }
 
     _generateMenuDataMapping() {
+        // folder node in the nav bar
         const NAV_BAR_FOLDER_NODE_DATA = this._formatMenuData([
+            {
+                label: "Rename",
+                onConfirm: () => {
+                    const id = this.articleNavigator.id as number;
+                    return new Promise(() => this.view.editFolderName(id));
+                },
+            },
             {
                 label: "Delete",
                 onConfirm: () => {
@@ -143,6 +151,7 @@ export class ContextMenuManager {
             },
         ]);
 
+        // article node in the nav bar
         const NAV_BAR_ARTICLE_NODE_DATA = this._formatMenuData([
             {
                 label: "Delete",
@@ -162,6 +171,7 @@ export class ContextMenuManager {
     _formatMenuData(data: Partial<VerticalMenuItemData>[]) {
         return data.map((d, i) => ({
             index: i,
+            value: d.label,
             ...d,
         })) as VerticalMenuItemData[];
     }
