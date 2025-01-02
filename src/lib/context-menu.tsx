@@ -1,46 +1,17 @@
 import { observer } from "mobx-react-lite";
 
-import { ContextMenuKey } from "@/interface";
+import { VerticalMenuItemData } from "@/interface";
 import { getService } from "@/services";
-import { VerticalMenu, VerticalMenuItemData } from "@/shared/vertical-menu";
+import { VerticalMenu } from "@/shared/vertical-menu";
 import { SyntheticEvent } from "react";
 import { OutsideClickHandler } from "./shared/outside-click-handler";
-import { AppService } from "./services/app-service";
-
-type ContextMenuDataMapping = {
-    [key in ContextMenuKey]?: VerticalMenuItemData[];
-};
-let CONTEXT_MENU_DATA_MAPPING: ContextMenuDataMapping | null = null;
-
-function formatData(data: Partial<VerticalMenuItemData>[]) {
-    return data.map((d, i) => ({ index: i, ...d })) as VerticalMenuItemData[];
-}
-
-function generateDataMapping(service: AppService) {
-    const NAV_BAR_FOLDER_NODE_DATA = formatData([
-        {
-            label: "Delete",
-            onConfirm: () => {
-                const id = service.view.contextMenu.articleNavigator
-                    .id as number;
-                return new Promise(() => service.view.deleteFolder(id));
-            },
-        },
-    ]);
-
-    CONTEXT_MENU_DATA_MAPPING = {
-        [ContextMenuKey.NAV_BAR_FOLDER_NODE]: NAV_BAR_FOLDER_NODE_DATA,
-    };
-    return CONTEXT_MENU_DATA_MAPPING;
-}
 
 function renderContextMenu() {
     const service = getService();
     const contextMenuService = service.view.contextMenu;
     if (!contextMenuService.key || !contextMenuService.position) return null;
 
-    const mapping = CONTEXT_MENU_DATA_MAPPING ?? generateDataMapping(service);
-    const data = mapping?.[contextMenuService.key] as VerticalMenuItemData[];
+    const data = contextMenuService.menuData[contextMenuService.key];
 
     const onConfirm = async (
         e: SyntheticEvent<HTMLButtonElement>,

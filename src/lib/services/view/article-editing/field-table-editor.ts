@@ -8,22 +8,22 @@ import {
     PersonData,
     PersonProperty,
 } from "@/interface";
-import { ArticleInfoService } from "./info-editor";
+import { ArticleInfoEditor } from "./info-editor";
 
 type FieldDataCollection = { [type: number]: FieldData[] };
 type ChangeHandler = () => void;
 
 interface ArticleFieldTableServiceSettings {
-    info: ArticleInfoService;
+    info: ArticleInfoEditor;
     onChange: ChangeHandler;
 }
 
-export class ArticleFieldTableService {
+export class ArticleFieldTableEditor {
     fields: FieldDataCollection;
     entity: BaseEntity | null = null;
     changed: boolean = false;
 
-    info: ArticleInfoService;
+    info: ArticleInfoEditor;
 
     onChange: ChangeHandler;
 

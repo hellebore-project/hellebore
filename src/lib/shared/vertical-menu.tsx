@@ -2,13 +2,11 @@ import { Button, Paper, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { ReactElement, SyntheticEvent } from "react";
 
-import { BasePaperSettings, BaseButtonSettings } from "./common";
-
-export interface VerticalMenuItemData extends BaseButtonSettings {
-    index: number;
-    label: string;
-    onConfirm?: (e: SyntheticEvent<HTMLButtonElement>) => Promise<any>;
-}
+import {
+    BaseButtonSettings,
+    BasePaperSettings,
+    VerticalMenuItemData,
+} from "@/interface";
 
 interface VerticalMenuItemSettings extends BaseButtonSettings {
     data: VerticalMenuItemData;

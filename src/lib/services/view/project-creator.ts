@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-export class ProjectCreatorService {
+export class ProjectCreator {
     _name: string = "";
     _dbFilePath: string = "";
 

@@ -1,7 +1,7 @@
-import { AppService } from "./app-service";
+import { AppManager } from "./app-manager";
 
-export const appService = new AppService();
+export const APP_MANAGER = new AppManager();
 
 export function getService() {
-    return appService;
+    return APP_MANAGER;
 }

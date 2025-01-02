@@ -1,17 +1,17 @@
 import { makeAutoObservable } from "mobx";
 
-import { ArticleService } from "./article-manager";
-import { FolderService } from "./folder-manager";
-import { SessionService } from "./session-manager";
+import { ArticleManager } from "./article-manager";
+import { FolderManager } from "./folder-manager";
+import { SessionManager } from "./session-manager";
 import { DataManager } from "./data-manager";
 import { FileStructure } from "./file-structure";
 
-export class DomainService {
-    session: SessionService;
+export class DomainManager {
+    session: SessionManager;
     structure: FileStructure;
     data: DataManager;
-    folders: FolderService;
-    articles: ArticleService;
+    folders: FolderManager;
+    articles: ArticleManager;
 
     constructor() {
         makeAutoObservable(this, {
@@ -21,11 +21,11 @@ export class DomainService {
             folders: false,
             articles: false,
         });
-        this.session = new SessionService();
+        this.session = new SessionManager();
         this.structure = new FileStructure();
         this.data = new DataManager(this.structure);
-        this.folders = new FolderService(this.data, this.structure);
-        this.articles = new ArticleService(this.structure);
+        this.folders = new FolderManager(this.data, this.structure);
+        this.articles = new ArticleManager(this.structure);
     }
 
     get hasProject() {

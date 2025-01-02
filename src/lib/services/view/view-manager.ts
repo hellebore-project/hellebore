@@ -8,44 +8,41 @@ import {
     ModalKey,
     ViewKey,
 } from "@/interface";
-import { ArticleUpdateArguments, DomainService } from "../domain";
-import { ArticleCreatorService } from "./article-creator";
-import { ArticleEditorService } from "./article-editing";
-import { ContextMenuService } from "./context-menu-manager";
-import { DataRemoverService } from "./data-remover";
-import { HomeService } from "./home-service";
+import { ArticleUpdateArguments, DomainManager } from "../domain";
+import { ArticleCreator } from "./article-creator";
+import { ArticleEditor } from "./article-editing";
+import { ContextMenuManager } from "./context-menu-manager";
+import { HomeManager } from "./home-manager";
 import { NavigationService } from "./navigation/navigation-service";
-import { ProjectCreatorService } from "./project-creator";
-import { SettingsEditorService } from "./settings-editor";
-import { ViewServiceInterface } from "./view-service-interface";
+import { ProjectCreator } from "./project-creator";
+import { SettingsEditor } from "./settings-editor";
+import { ViewManagerInterface } from "./view-manager-interface";
 
-export class ViewService implements ViewServiceInterface {
+export class ViewManager implements ViewManagerInterface {
     // state variables
     viewKey: ViewKey = ViewKey.HOME;
     modalKey: ModalKey | null = null;
     navBarMobileOpen: boolean = true;
 
     // domain service
-    domain: DomainService;
+    domain: DomainManager;
 
     // central view services
-    home: HomeService;
-    articleEditor: ArticleEditorService;
-    settingsEditor: SettingsEditorService;
+    home: HomeManager;
+    articleEditor: ArticleEditor;
+    settingsEditor: SettingsEditor;
 
     // navigation bar service
     navigation: NavigationService;
 
     // modal services
-    projectCreator: ProjectCreatorService;
-    articleCreator: ArticleCreatorService;
-    articleRemover: DataRemoverService;
-    folderRemover: DataRemoverService;
+    projectCreator: ProjectCreator;
+    articleCreator: ArticleCreator;
 
     // context menu service
-    contextMenu: ContextMenuService;
+    contextMenu: ContextMenuManager;
 
-    constructor(domain: DomainService) {
+    constructor(domain: DomainManager) {
         const overrides = {
             domain: false,
             home: false,
@@ -63,21 +60,19 @@ export class ViewService implements ViewServiceInterface {
         this.domain = domain;
 
         // central views
-        this.home = new HomeService(this);
-        this.settingsEditor = new SettingsEditorService(this);
-        this.articleEditor = new ArticleEditorService(this);
+        this.home = new HomeManager(this);
+        this.settingsEditor = new SettingsEditor(this);
+        this.articleEditor = new ArticleEditor(this);
 
         // navbar
         this.navigation = new NavigationService(this);
 
         // modals
-        this.projectCreator = new ProjectCreatorService();
-        this.folderRemover = new DataRemoverService();
-        this.articleCreator = new ArticleCreatorService(this);
-        this.articleRemover = new DataRemoverService();
+        this.projectCreator = new ProjectCreator();
+        this.articleCreator = new ArticleCreator(this);
 
         // context menu
-        this.contextMenu = new ContextMenuService();
+        this.contextMenu = new ContextMenuManager(this);
     }
 
     async fetchProjectInfo() {
@@ -126,6 +121,7 @@ export class ViewService implements ViewServiceInterface {
         )
             return; // the article is already open
 
+        // save any unsynced data before opening another article
         this.cleanUp();
 
         this.articleEditor.initialize(article);

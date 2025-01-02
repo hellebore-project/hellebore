@@ -11,4 +11,5 @@ export enum ModalKey {
 
 export enum ContextMenuKey {
     NAV_BAR_FOLDER_NODE = "NAV_BAR_FOLDER_NODE",
+    NAV_BAR_ARTICLE_NODE = "NAV_BAR_ARTICLE_NODE",
 }

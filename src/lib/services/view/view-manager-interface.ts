@@ -6,10 +6,10 @@ import {
     EntityType,
     ProjectResponse,
 } from "@/interface";
-import { ArticleUpdateArguments, DomainService } from "../domain";
+import { ArticleUpdateArguments, DomainManager } from "../domain";
 
-export interface ViewServiceInterface {
-    domain: DomainService;
+export interface ViewManagerInterface {
+    domain: DomainManager;
     fetchProjectInfo(): Promise<ProjectResponse | null>;
     populateNavigator(): Promise<void>;
     openHome(): void;

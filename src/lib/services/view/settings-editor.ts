@@ -1,11 +1,11 @@
 import { makeAutoObservable } from "mobx";
 
-import { ViewServiceInterface } from "./view-service-interface";
+import { ViewManagerInterface } from "./view-manager-interface";
 
-export class SettingsEditorService {
-    view: ViewServiceInterface;
+export class SettingsEditor {
+    view: ViewManagerInterface;
 
-    constructor(view: ViewServiceInterface) {
+    constructor(view: ViewManagerInterface) {
         makeAutoObservable(this, { view: false });
         this.view = view;
     }
