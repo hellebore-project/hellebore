@@ -18,7 +18,13 @@ pnpm install
 cargo install --path src-tauri
 ```
 
-3. Configure the development environment via a `.env` file in the project root.
+3. Install the sea-orm cli
+
+```sh
+cargo install sea-orm-cli@1.1.0
+```
+
+4. Configure the development environment via a `.env` file in the project root.
 
 ```sh
 HELLEBORE_DATA_DIR="data"
@@ -28,7 +34,7 @@ HELLEBORE_DEFAULT_DB_FILE="db.sqlite"
 DATABASE_URL="sqlite://src-tauri/data/db.sqlite?mode=rwc"
 ```
 
-4. Serve the app.
+5. Serve the app.
 
 ```sh
 pnpm dev:app

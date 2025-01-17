@@ -8,7 +8,7 @@ use crate::schema::{
     article::{ArticleInfoSchema, ArticleResponseSchema},
     response::ResponseDiagnosticsSchema,
 };
-use crate::types::ARTICLE;
+use crate::types::{EntityType, ARTICLE};
 
 pub async fn update(
     database: &DatabaseConnection,
@@ -119,13 +119,13 @@ fn generate_info_response(item: &article_manager::ArticleItem) -> ArticleInfoSch
         id: item.id,
         folder_id: folder_manager::convert_null_folder_id_to_sentinel(item.folder_id),
         title: item.title.to_string(),
-        entity_type: item.entity_type,
+        entity_type: EntityType::from(item.entity_type),
     };
 }
 
 pub fn generate_article_response<E>(
     article: &Article,
-    entity_type: i8,
+    entity_type: EntityType,
     entity: E,
 ) -> ArticleResponseSchema<E> {
     ArticleResponseSchema {

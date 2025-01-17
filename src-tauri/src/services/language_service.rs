@@ -10,7 +10,7 @@ use crate::schema::{
     response::ResponseDiagnosticsSchema,
 };
 use crate::services::article_service;
-use crate::types::{ARTICLE, LANGUAGE};
+use crate::types::{CodedType, ARTICLE, LANGUAGE};
 
 pub async fn create(
     database: &DatabaseConnection,
@@ -59,7 +59,7 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
 fn generate_response(article: Article) -> ArticleResponseSchema<LanguageDataSchema> {
     return article_service::generate_article_response(
         &article,
-        LANGUAGE.code(),
+        LANGUAGE,
         LanguageDataSchema {
             name: article.title.to_string(),
         },

@@ -25,8 +25,7 @@ impl MigrationTrait for Migration {
                         ForeignKey::create()
                             .name(ARTICLE_FOLDER_ID_CONSTRAINT_NAME)
                             .from(Article::Table, Article::FolderId)
-                            .to(Folder::Table, Folder::Id)
-                            .on_delete(ForeignKeyAction::Cascade),
+                            .to(Folder::Table, Folder::Id),
                     )
                     .to_owned(),
             )

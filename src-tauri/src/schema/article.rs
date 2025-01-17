@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+use crate::types::EntityType;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ArticleInfoSchema {
     pub id: i32,
     pub folder_id: i32,
-    pub entity_type: i8,
+    pub entity_type: EntityType,
     pub title: String,
 }
 
@@ -19,7 +21,7 @@ pub struct ArticleCreateSchema<E> {
 pub struct ArticleUpdateSchema<E> {
     pub id: i32,
     pub folder_id: Option<i32>,
-    pub entity_type: i8,
+    pub entity_type: EntityType,
     pub title: Option<String>,
     pub entity: Option<E>,
     pub body: Option<String>,
@@ -29,7 +31,7 @@ pub struct ArticleUpdateSchema<E> {
 pub struct ArticleResponseSchema<E> {
     pub id: i32,
     pub folder_id: i32,
-    pub entity_type: i8,
+    pub entity_type: EntityType,
     pub title: String,
     pub entity: Option<E>,
     pub body: String,

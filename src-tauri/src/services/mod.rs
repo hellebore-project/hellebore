@@ -5,3 +5,4 @@ pub mod language_service;
 pub mod person_service;
 pub mod project_service;
 pub mod session_service;
+pub mod word_service;
