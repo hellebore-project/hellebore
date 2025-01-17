@@ -20,8 +20,7 @@ impl MigrationTrait for Migration {
                         ForeignKey::create()
                             .name(FOLDER_PARENT_ID_CONSTRAINT_NAME)
                             .from(Folder::Table, Folder::ParentId)
-                            .to(Folder::Table, Folder::Id)
-                            .on_delete(ForeignKeyAction::Cascade),
+                            .to(Folder::Table, Folder::Id),
                     )
                     .to_owned(),
             )

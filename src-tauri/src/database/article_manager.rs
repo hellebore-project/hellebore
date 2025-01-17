@@ -3,7 +3,7 @@ use sea_orm::*;
 
 use crate::database::folder_manager;
 use crate::database::util;
-use crate::types::EntityType;
+use crate::types::{CodedType, EntityType};
 
 #[derive(FromQueryResult)]
 pub struct ArticleItem {

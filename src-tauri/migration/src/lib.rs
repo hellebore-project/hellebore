@@ -12,6 +12,7 @@ impl MigratorTrait for Migrator {
             Box::new(init::folder::Migration),
             Box::new(init::article::Migration),
             Box::new(init::language::Migration),
+            Box::new(init::word::Migration),
             Box::new(init::person::Migration),
         ]
     }

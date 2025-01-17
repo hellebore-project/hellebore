@@ -1,39 +1,34 @@
-use serde::{Deserialize, Serialize};
+use std::convert::From;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum EntityType {
-    None,
-    Session,
-    Project,
-    Folder,
-    Article,
-    Language,
-    Word,
-    Person,
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+
+use serde_repr::{Deserialize_repr, Serialize_repr};
+
+pub trait CodedType {
+    fn code(&self) -> i8;
 }
 
-impl EntityType {
-    pub fn code(&self) -> i8 {
-        match self {
-            EntityType::None => 0,
+#[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
+#[repr(i8)]
+pub enum EntityType {
+    None = 0,
 
-            // Core
-            EntityType::Session => 1,
-            EntityType::Project => 2,
-            EntityType::Folder => 3,
-            EntityType::Article => 4,
+    // Core
+    Session = 1,
+    Project = 2,
+    Folder = 3,
+    Article = 4,
 
-            // Dictionary
-            EntityType::Language => 10,
-            EntityType::Word => 11,
+    // Dictionary
+    Language = 10,
+    Word = 11,
 
-            // Calendar
-            // TODO
+    // Calendar
+    // TODO
 
-            // Encyclopedia
-            EntityType::Person => 30,
-        }
-    }
+    // Encyclopedia
+    Person = 30,
 }
 
 pub const SESSION: EntityType = EntityType::Session;
@@ -41,4 +36,190 @@ pub const PROJECT: EntityType = EntityType::Project;
 pub const FOLDER: EntityType = EntityType::Folder;
 pub const ARTICLE: EntityType = EntityType::Article;
 pub const LANGUAGE: EntityType = EntityType::Language;
+pub const WORD: EntityType = EntityType::Word;
 pub const PERSON: EntityType = EntityType::Person;
+
+impl CodedType for EntityType {
+    fn code(&self) -> i8 {
+        *self as i8
+    }
+}
+
+impl From<i8> for EntityType {
+    fn from(code: i8) -> Self {
+        for value in Self::iter() {
+            if code == value.code() {
+                return value;
+            }
+        }
+        panic!("Not implemented")
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
+#[repr(i8)]
+pub enum WordType {
+    None = 0,
+    RootWord = 1,
+    Article = 11,
+    Preposition = 12,
+    Conjunction = 13,
+    Pronoun = 21,
+    Noun = 31,
+    Adjective = 41,
+    Adverb = 42,
+    Verb = 51,
+}
+
+impl CodedType for WordType {
+    fn code(&self) -> i8 {
+        *self as i8
+    }
+}
+
+impl From<i8> for WordType {
+    fn from(code: i8) -> Self {
+        for value in Self::iter() {
+            if code == value.code() {
+                return value;
+            }
+        }
+        panic!("Not implemented")
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
+#[repr(i8)]
+pub enum GrammaticalNumber {
+    None = 0,
+    Singular = 1,
+    Dual = 2,
+    Trial = 3,
+    Quadral = 4,
+    Quintal = 5,
+    Paucal = 11,
+    GreaterPaucal = 12,
+    Plural = 21,
+    GreaterPlural = 22,
+    GreatestPlural = 23,
+}
+
+impl CodedType for GrammaticalNumber {
+    fn code(&self) -> i8 {
+        *self as i8
+    }
+}
+
+impl From<i8> for GrammaticalNumber {
+    fn from(code: i8) -> Self {
+        for value in Self::iter() {
+            if code == value.code() {
+                return value;
+            }
+        }
+        panic!("Not implemented")
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
+#[repr(i8)]
+pub enum GrammaticalGender {
+    None = 0,
+    Neutral = 1,
+    Masculine = 11,
+    Feminine = 12,
+}
+
+impl CodedType for GrammaticalGender {
+    fn code(&self) -> i8 {
+        *self as i8
+    }
+}
+
+impl From<i8> for GrammaticalGender {
+    fn from(code: i8) -> Self {
+        for value in Self::iter() {
+            if code == value.code() {
+                return value;
+            }
+        }
+        panic!("Not implemented")
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
+#[repr(i8)]
+pub enum GrammaticalPerson {
+    None = 0,
+    First = 1,
+    Second = 2,
+    Third = 3,
+}
+
+impl CodedType for GrammaticalPerson {
+    fn code(&self) -> i8 {
+        *self as i8
+    }
+}
+
+impl From<i8> for GrammaticalPerson {
+    fn from(code: i8) -> Self {
+        for value in Self::iter() {
+            if code == value.code() {
+                return value;
+            }
+        }
+        panic!("Not implemented")
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
+#[repr(i8)]
+pub enum VerbForm {
+    None = 0,
+    Infinitive = 1,
+    Finite = 2,
+}
+
+impl CodedType for VerbForm {
+    fn code(&self) -> i8 {
+        *self as i8
+    }
+}
+
+impl From<i8> for VerbForm {
+    fn from(code: i8) -> Self {
+        for value in Self::iter() {
+            if code == value.code() {
+                return value;
+            }
+        }
+        panic!("Not implemented")
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
+#[repr(i8)]
+pub enum VerbTense {
+    None = 0,
+    Present = 1,
+    Past = 11,
+    Future = 21,
+}
+
+impl CodedType for VerbTense {
+    fn code(&self) -> i8 {
+        *self as i8
+    }
+}
+
+impl From<i8> for VerbTense {
+    fn from(code: i8) -> Self {
+        for value in Self::iter() {
+            if code == value.code() {
+                return value;
+            }
+        }
+        panic!("Not implemented")
+    }
+}

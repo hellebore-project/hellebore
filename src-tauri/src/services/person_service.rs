@@ -75,7 +75,7 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
 fn generate_response(article: Article, entity: Person) -> ArticleResponseSchema<PersonDataSchema> {
     return article_service::generate_article_response(
         &article,
-        PERSON.code(),
+        PERSON,
         PersonDataSchema { name: entity.name },
     );
 }

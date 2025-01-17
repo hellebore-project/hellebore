@@ -7,3 +7,4 @@ pub mod person;
 pub mod project;
 pub mod response;
 pub mod session;
+pub mod word;
