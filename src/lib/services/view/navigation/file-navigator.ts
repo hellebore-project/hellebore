@@ -32,7 +32,7 @@ export class FileNavigator {
 
     expanded: boolean = true;
     hover: boolean = false;
-    selectedNode: FileNodeModel | null;
+    _selectedNode: FileNodeModel | null = null;
 
     _placeholderIdGenerator: Counter;
     view: ViewManagerInterface;
@@ -47,8 +47,6 @@ export class FileNavigator {
 
         this._nodes = [];
         this._nodePositionCache = {};
-
-        this.selectedNode = null;
 
         this._placeholderIdGenerator = new Counter();
         this.view = view;
@@ -72,6 +70,14 @@ export class FileNavigator {
 
     set nodes(nodes: FileNodeModel[]) {
         this._nodes = nodes;
+    }
+
+    get selectedNode() {
+        return this._selectedNode;
+    }
+
+    set selectedNode(node: FileNodeModel | null) {
+        this._selectedNode = node;
     }
 
     get selectedNodeId() {
@@ -127,10 +133,6 @@ export class FileNavigator {
 
     setHover(hover: boolean) {
         this.hover = hover;
-    }
-
-    setSelectedNode(node: FileNodeModel | null) {
-        this.selectedNode = node;
     }
 
     initialize(articles: ArticleInfoResponse[], folders: FolderResponse[]) {
@@ -195,7 +197,7 @@ export class FileNavigator {
     addNodeForCreatedArticle({ id, folder_id, title }: ArticleInfoResponse) {
         const node = this._generateArticleNode(id, folder_id, title);
         this._nodes.push(node);
-        this.setSelectedNode(node);
+        this.selectedNode = node;
     }
 
     addPlaceholderNodeForNewFolder(): FileNodeModel {
@@ -226,7 +228,7 @@ export class FileNavigator {
     }
 
     selectNode(node: FileNodeModel) {
-        this.setSelectedNode(node);
+        this.selectedNode = node;
         if (this.isFolderNode(node)) return;
         else {
             const id = convertNodeIdToEntityId(node.id);
@@ -338,12 +340,12 @@ export class FileNavigator {
                     delete node?.data?.isPlaceholder;
                     delete node?.data?.isEditable;
                     delete node?.data?.editableText;
-                    this.setSelectedNode(node);
+                    this.selectedNode = node;
                     // force a refresh
                     this.setNode(node, index);
                 } else {
                     // failed to create a new folder in the backend
-                    this.setSelectedNode(null);
+                    this.selectedNode = null;
                     this._deleteNodeAtIndex(index);
                 }
             } else {

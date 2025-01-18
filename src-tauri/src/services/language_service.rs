@@ -10,7 +10,7 @@ use crate::schema::{
     response::ResponseDiagnosticsSchema,
 };
 use crate::services::article_service;
-use crate::types::{CodedType, ARTICLE, LANGUAGE};
+use crate::types::{ARTICLE, LANGUAGE};
 
 pub async fn create(
     database: &DatabaseConnection,

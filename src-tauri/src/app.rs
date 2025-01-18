@@ -13,7 +13,7 @@ pub async fn setup(settings: Settings) -> Result<State, ApiError> {
     state_data.database = match db_file_path {
         Some(path) => {
             // try to load the last project from the previous session
-            match project_service::load(&mut state_data, &path).await {
+            match project_service::create(&mut state_data, "New Project", &path).await {
                 Ok(project) => Some(project.db),
                 Err(e) => match e {
                     ApiError::ProjectNotLoaded => None,
