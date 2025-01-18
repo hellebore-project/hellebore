@@ -271,5 +271,5 @@ async function deleteArticle(
     entityType: EntityType,
 ): Promise<void> {
     const command = `delete_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
-    invoke<ArticleResponse<BaseEntity>>(command, { id });
+    invoke(command, { id });
 }
