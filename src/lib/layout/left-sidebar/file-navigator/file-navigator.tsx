@@ -1,4 +1,4 @@
-import { GridProps } from "@mantine/core";
+import { Container, GridProps } from "@mantine/core";
 import {
     DragPreviewRender,
     DropOptions,
@@ -21,6 +21,7 @@ import { TextFieldSettings } from "@/shared/text-field";
 import { convertNodeIdToEntityId } from "@/utils/node";
 
 import "./file-navigator.css";
+import { OutsideClickHandler } from "@/shared/outside-click-handler";
 
 const ARTICLE_NAV_ITEM_PREFIX = "nav-item-";
 const SELECTED_NAV_ITEM_BORDER_STYLE = {
@@ -49,7 +50,8 @@ const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
     const node = fileNavigator.getNode(nodeId);
     if (!node) return;
 
-    fileNavigator.selectNode(node);
+    fileNavigator.focused = false;
+    fileNavigator.selectedNode = node;
     const id = convertNodeIdToEntityId(nodeId);
 
     if (fileNavigator.isFolderNode(node))
@@ -74,16 +76,30 @@ function renderFileNavItem({
     ...rest
 }: FileNavItemSettings) {
     const service = getService();
+    const fileNav = service.view.navigation.files;
 
-    const selected = service.view.navigation.files.selectedNodeId == node.id;
+    const selected = fileNav.selectedNodeId == node.id;
+    const open = fileNav.openedNodeId == node.id;
     const editable = node?.data?.isEditable ?? false;
 
     const onActivate = (event: MouseEvent) => {
         event.stopPropagation();
+
+        fileNav.focused = true;
+        fileNav.selectedNode = node;
+
         // if the node is editable, then its open status must remain static
         if (editable) return;
+
         toggle();
-        service.view.navigation.files.selectNode(node);
+
+        // in case of an article node, open the corresponding article in the editor
+        if (!fileNav.isFolderNode(node)) {
+            const id = convertNodeIdToEntityId(node.id);
+            service.view
+                .openArticleEditorForId(id)
+                .then(() => fileNav.openNode(node));
+        }
     };
 
     let textSettings: TextSettings | undefined = undefined;
@@ -95,12 +111,8 @@ function renderFileNavItem({
             autoFocus: true,
             error: node?.data?.error ? true : undefined,
             onChange: (event) =>
-                service.view.navigation.files.setEditableNodeText(
-                    node.id,
-                    event.target.value,
-                ),
-            onBlur: () =>
-                service.view.navigation.files.confirmNodeTextEdit(node),
+                fileNav.setEditableNodeText(node.id, event.target.value),
+            onBlur: () => fileNav.confirmNodeTextEdit(node),
             variant: "unstyled",
             size: "xs",
             styles: { input: { fontSize: 16 } },
@@ -117,7 +129,15 @@ function renderFileNavItem({
             text: node?.data?.error ?? "",
         };
 
-    const variant = selected ? "selected" : "filled";
+    let variant: string = "filled";
+    if (fileNav.focused) {
+        if (selected && open) variant = "selected";
+        else if (selected) variant = "selected-outline";
+        else if (open) variant = "selected-filled";
+    } else {
+        if (open) variant = "selected-unfocused";
+    }
+
     const bg = selected ? "none" : "var(--mantine-color-dark-7)";
     const borderStyle = selected ? SELECTED_NAV_ITEM_BORDER_STYLE : undefined;
 
@@ -148,11 +168,12 @@ export const FileNavItem = observer(renderFileNavItem);
 
 function renderFileNavigator({}: FileNavigatorSettings) {
     const service = getService();
+    const fileNav = service.view.navigation.files;
 
     const ref = useRef(null);
-    service.view.navigation.files.tree = ref;
+    fileNav.tree = ref;
 
-    const data = service.view.navigation.files.nodes;
+    const data = fileNav.nodes;
 
     const dragPreviewRender: DragPreviewRender<FileNodeData> = (
         monitorProps,
@@ -162,34 +183,47 @@ function renderFileNavigator({}: FileNavigatorSettings) {
         _: any,
         { dragSource, dropTargetId }: DropOptions<FileNodeData>,
     ) => {
-        if (dragSource)
-            service.view.navigation.files.moveNode(dragSource, dropTargetId);
+        if (dragSource) fileNav.moveNode(dragSource, dropTargetId);
     };
 
     return (
-        <DndProvider backend={MultiBackend} options={getBackendOptions()}>
-            <Tree
-                classes={{
-                    root: "article-tree-root",
-                }}
-                dragPreviewRender={dragPreviewRender}
-                listComponent="div"
-                listItemComponent="div"
-                onDrop={onDrop}
-                ref={ref}
-                render={(node, { depth, isOpen, onToggle }) => (
-                    <FileNavItem
-                        depth={depth}
-                        expanded={isOpen}
-                        key={node.id}
-                        node={node}
-                        toggle={onToggle}
-                    />
-                )}
-                rootId={ROOT_FOLDER_NODE_ID}
-                tree={data}
-            />
-        </DndProvider>
+        <OutsideClickHandler
+            display="block"
+            state={fileNav.outsideClickHandler}
+            onClick={() => {
+                fileNav.selectedNode = null;
+                fileNav.focused = true;
+            }}
+            style={{
+                height: "100%",
+                paddingLeft: "0",
+                paddingRight: "0",
+            }}
+        >
+            <DndProvider backend={MultiBackend} options={getBackendOptions()}>
+                <Tree
+                    classes={{
+                        root: "article-tree-root",
+                    }}
+                    dragPreviewRender={dragPreviewRender}
+                    listComponent="div"
+                    listItemComponent="div"
+                    onDrop={onDrop}
+                    ref={ref}
+                    render={(node, { depth, isOpen, onToggle }) => (
+                        <FileNavItem
+                            depth={depth}
+                            expanded={isOpen}
+                            key={node.id}
+                            node={node}
+                            toggle={onToggle}
+                        />
+                    )}
+                    rootId={ROOT_FOLDER_NODE_ID}
+                    tree={data}
+                />
+            </DndProvider>
+        </OutsideClickHandler>
     );
 }
 

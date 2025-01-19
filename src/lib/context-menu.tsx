@@ -25,7 +25,7 @@ function renderContextMenu() {
     return (
         <OutsideClickHandler
             display="block"
-            state={contextMenuService.outsideClickHandlerState}
+            state={contextMenuService.outsideClickHandler}
         >
             <VerticalMenu
                 left={`${contextMenuService.position.x}px`}

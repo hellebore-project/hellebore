@@ -10,12 +10,13 @@ import { IconChevronRight } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 import { forwardRef, PropsWithChildren, ReactNode } from "react";
 
+import { BaseGridColSettings, BaseGridSettings } from "@/interface";
+import { ThemeManager } from "@/theme";
 import { range } from "@/utils/array";
+
 import { TextField, TextFieldSettings } from "../text-field";
 
 import "./nav-item.css";
-import { BaseGridColSettings, BaseGridSettings } from "../common";
-import { ThemeManager } from "@/theme";
 
 const DEFAULT_NAV_ITEM_STYLES = {
     inner: {

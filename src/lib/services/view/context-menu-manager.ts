@@ -88,7 +88,7 @@ export class ContextMenuManager {
         this._selectedIndex = index;
     }
 
-    get outsideClickHandlerState() {
+    get outsideClickHandler() {
         return this._outsideClickHandlerState;
     }
 
