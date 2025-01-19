@@ -4,40 +4,34 @@ import {
     DEFAULT_THEME,
     defaultVariantColorsResolver,
     getThemeColor,
+    lighten,
     MantineColorScheme,
     MantineStyleProp,
     MantineTheme,
     mergeMantineTheme,
     parseThemeColor,
-    VariantColorsResolver,
+    VariantColorResolverResult,
+    VariantColorsResolverInput,
 } from "@mantine/core";
 
-const variantColorResolver: VariantColorsResolver = (input) => {
-    const defaultColor = defaultVariantColorsResolver(input);
+const SELECTED: VariantColorResolverResult = {
+    color: "var(--mantine-color-white)",
+    background: "var(--mantine-color-blue-light)",
+    border: "var(--mantine-color-blue-3)",
+    hoverColor: "var(--mantine-color-white)",
+    hover: "var(--mantine-color-blue-light)",
+};
 
-    if (input.variant === "selected")
-        return {
-            color: "var(--mantine-color-white)",
-            background: "var(--mantine-color-blue-light)",
-            border: "var(--mantine-color-blue-3)",
-            hoverColor: "var(--mantine-color-white)",
-            hover: "var(--mantine-color-blue-light)",
-        };
+const SELECTED_FILLED: Partial<VariantColorResolverResult> = {
+    color: "var(--mantine-color-white)",
+    background: "var(--mantine-color-blue-light)",
+    hoverColor: "var(--mantine-color-white)",
+    hover: "var(--mantine-color-blue-light)",
+};
 
-    if (input.variant.endsWith("-nohover")) {
-        const baseVariant =
-            input.variant?.slice(0, input.variant.length - 8) ?? "";
-        const defaultColor = defaultVariantColorsResolver({
-            ...input,
-            variant: baseVariant,
-        });
-        return {
-            ...defaultColor,
-            hover: defaultColor.background,
-        };
-    }
-
-    return defaultColor;
+const SELECTED_OUTLINE: Partial<VariantColorResolverResult> = {
+    color: "var(--mantine-color-white)",
+    border: "var(--mantine-color-blue-3)",
 };
 
 export class ThemeManager {
@@ -53,7 +47,7 @@ export class ThemeManager {
 
     static _buildTheme() {
         const themeOverride = createTheme({
-            variantColorResolver,
+            variantColorResolver: this._resolveVariant.bind(this),
         });
         return mergeMantineTheme(DEFAULT_THEME, themeOverride);
     }
@@ -64,6 +58,51 @@ export class ThemeManager {
 
     static getThemeColor(color: any) {
         return parseThemeColor({ color, theme: this.theme });
+    }
+
+    static _resolveVariant(input: VariantColorsResolverInput) {
+        const defaultColor = defaultVariantColorsResolver(input);
+
+        if (input.variant === "selected") return { ...SELECTED };
+
+        if (input.variant === "selected-filled")
+            return {
+                ...defaultColor,
+                ...SELECTED_FILLED,
+            };
+
+        if (input.variant === "selected-outline")
+            return {
+                ...defaultColor,
+                ...SELECTED_OUTLINE,
+            };
+
+        if (input.variant === "selected-unfocused") {
+            const bg = lighten(
+                defaultColor.background ?? this.getDefaultThemeColor(),
+                0.1,
+            );
+            return {
+                ...defaultColor,
+                background: bg,
+                hover: bg,
+            };
+        }
+
+        if (input.variant.endsWith("-nohover")) {
+            const baseVariant =
+                input.variant?.slice(0, input.variant.length - 8) ?? "";
+            const defaultColor = defaultVariantColorsResolver({
+                ...input,
+                variant: baseVariant,
+            });
+            return {
+                ...defaultColor,
+                hover: defaultColor.background,
+            };
+        }
+
+        return defaultColor;
     }
 
     static resolveVariant<P extends BoxProps>(props: Partial<P>): Partial<P> {
@@ -77,7 +116,7 @@ export class ThemeManager {
 
         if (!bg) bg = "none";
 
-        const variableColor = this.theme.variantColorResolver({
+        const variableColor = this._resolveVariant({
             color: bg as string,
             theme: this.theme,
             variant,

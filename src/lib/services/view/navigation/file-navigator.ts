@@ -19,22 +19,24 @@ import {
     folderNodeId,
 } from "@/utils/node";
 import { ViewManagerInterface } from "../view-manager-interface";
+import { OutsideClickHandlerState } from "@/shared/outside-click-handler";
 
 export class FileNavigator {
     _nodes: FileNodeModel[];
     _nodePositionCache: { [nodeId: NodeId]: number };
+    _expanded: boolean = true;
+    _focused: boolean = false;
+    _hover: boolean = false;
+    _selectedNode: FileNodeModel | null = null;
+    _openedNode: FileNodeModel | null = null;
 
     /**
      * Reference to the article tree component.
      * Its handlers must be called inside a component function to ensure that the DOM is updated.
      */
     _tree: RefObject<TreeMethods> | null = null;
-
-    expanded: boolean = true;
-    hover: boolean = false;
-    _selectedNode: FileNodeModel | null = null;
-
     _placeholderIdGenerator: Counter;
+    _outsideClickHandlerState: OutsideClickHandlerState;
     view: ViewManagerInterface;
 
     constructor(view: ViewManagerInterface) {
@@ -42,6 +44,7 @@ export class FileNavigator {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
             _tree: false,
+            _outsideClickHandlerState: false,
             view: false,
         });
 
@@ -49,6 +52,13 @@ export class FileNavigator {
         this._nodePositionCache = {};
 
         this._placeholderIdGenerator = new Counter();
+        this._outsideClickHandlerState = new OutsideClickHandlerState({
+            onOutsideClick: () => {
+                this.focused = false;
+                this.selectedNode = null;
+            },
+            disabled: false,
+        });
         this.view = view;
     }
 
@@ -81,7 +91,20 @@ export class FileNavigator {
     }
 
     get selectedNodeId() {
-        if (this.selectedNode) return this.selectedNode.id;
+        if (this._selectedNode) return this._selectedNode.id;
+        return null;
+    }
+
+    get openedNode() {
+        return this._openedNode;
+    }
+
+    set openedNode(node: FileNodeModel | null) {
+        this._openedNode = node;
+    }
+
+    get openedNodeId() {
+        if (this._openedNode) return this._openedNode.id;
         return null;
     }
 
@@ -93,6 +116,35 @@ export class FileNavigator {
             return convertNodeIdToEntityId(id);
         }
         return ROOT_FOLDER_ID;
+    }
+
+    get expanded() {
+        return this._expanded;
+    }
+
+    set expanded(expanded: boolean) {
+        if (!expanded) {
+            this.focused = false;
+            this.selectedNode = null;
+        }
+
+        this._expanded = expanded;
+    }
+
+    get focused() {
+        return this._focused;
+    }
+
+    set focused(focused: boolean) {
+        this._focused = focused;
+    }
+
+    get hover() {
+        return this._hover;
+    }
+
+    set hover(hover: boolean) {
+        this._hover = hover;
     }
 
     get canAddArticle() {
@@ -107,32 +159,8 @@ export class FileNavigator {
         return this.expanded && this.hover;
     }
 
-    setNode(node: FileNodeModel, index: number) {
-        this._nodes[index] = node;
-    }
-
-    isFolderNode(node: FileNodeModel) {
-        return node.droppable;
-    }
-
-    isPlaceholderNode(node: FileNodeModel) {
-        return node?.data?.isPlaceholder ?? false;
-    }
-
-    setNodeError(node: FileNodeModel, error: string) {
-        this._addNodeData(node, { error });
-    }
-
-    clearNodeError(node: FileNodeModel) {
-        delete node?.data?.error;
-    }
-
-    toggleExpanded() {
-        this.expanded = !this.expanded;
-    }
-
-    setHover(hover: boolean) {
-        this.hover = hover;
+    get outsideClickHandler() {
+        return this._outsideClickHandlerState;
     }
 
     initialize(articles: ArticleInfoResponse[], folders: FolderResponse[]) {
@@ -167,10 +195,18 @@ export class FileNavigator {
         this._nodePositionCache = {};
     }
 
+    toggleExpanded() {
+        this.expanded = !this.expanded;
+    }
+
     getNode(nodeId: NodeId) {
         const index = this.getNodeIndex(nodeId, true);
         if (index === null) return null;
         return this.nodes[index];
+    }
+
+    setNode(node: FileNodeModel, index: number) {
+        this._nodes[index] = node;
     }
 
     getNodeIndex(nodeId: NodeId | null, cache: boolean = true): number | null {
@@ -194,10 +230,25 @@ export class FileNavigator {
         return null;
     }
 
+    isFolderNode(node: FileNodeModel) {
+        return node.droppable;
+    }
+
+    isPlaceholderNode(node: FileNodeModel) {
+        return node?.data?.isPlaceholder ?? false;
+    }
+
+    setNodeError(node: FileNodeModel, error: string) {
+        this._addNodeData(node, { error });
+    }
+
+    clearNodeError(node: FileNodeModel) {
+        delete node?.data?.error;
+    }
+
     addNodeForCreatedArticle({ id, folder_id, title }: ArticleInfoResponse) {
         const node = this._generateArticleNode(id, folder_id, title);
         this._nodes.push(node);
-        this.selectedNode = node;
     }
 
     addPlaceholderNodeForNewFolder(): FileNodeModel {
@@ -220,20 +271,17 @@ export class FileNavigator {
         return node;
     }
 
-    selectArticleNode(id: number) {
+    openArticleNode(id: number) {
         const nodeId = articleNodeId(id);
-        if (this.selectedNode?.id == nodeId) return;
+        if (this.openedNode?.id == nodeId) return;
         const node = this._findNode(nodeId);
-        if (node) this.selectNode(node);
+        if (node) this.openNode(node);
     }
 
-    selectNode(node: FileNodeModel) {
-        this.selectedNode = node;
-        if (this.isFolderNode(node)) return;
-        else {
-            const id = convertNodeIdToEntityId(node.id);
-            this.view.openArticleEditorForId(id);
-        }
+    openNode(node: FileNodeModel) {
+        this.openedNode = node;
+        // const index = this.getNodeIndex(node.id) as number;
+        // this.setNode(node, index);
     }
 
     updateArticleNodeText(id: number, title: string) {

@@ -1,9 +1,14 @@
 import { observer } from "mobx-react-lite";
-import { PropsWithChildren, useEffect } from "react";
+import {
+    CSSProperties,
+    HTMLAttributes,
+    PropsWithChildren,
+    useEffect,
+} from "react";
 
 import { OutsideClickHandlerState } from "./state";
 
-interface OutsideClickHandlerSettings {
+interface OutsideClickHandlerSettings extends HTMLAttributes<HTMLDivElement> {
     state: OutsideClickHandlerState;
     display: string;
 }
@@ -12,6 +17,8 @@ function renderOutsideClickHandler({
     state,
     display,
     children,
+    style,
+    ...rest
 }: PropsWithChildren<OutsideClickHandlerSettings>) {
     useEffect(() => {
         if (state.disabled) state.removeEventListeners();
@@ -19,11 +26,12 @@ function renderOutsideClickHandler({
         return () => state.removeEventListeners();
     }, [state.disabled]);
 
+    const _style = { ...style } as CSSProperties;
+    if (display !== "block") _style.display = display;
+    else delete _style.display;
+
     return (
-        <div
-            ref={state.node}
-            style={display !== "block" ? { display } : undefined}
-        >
+        <div ref={state.node} style={_style} {...rest}>
             {children}
         </div>
     );

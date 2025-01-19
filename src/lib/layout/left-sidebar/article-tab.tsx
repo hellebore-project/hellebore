@@ -35,24 +35,21 @@ const ArticlesTabHeader = observer(renderArticlesTabHeader);
 
 function renderArticlesTab() {
     const service = getService();
+    const fileNav = service.view.navigation.files;
     // the components have to take up as much vertical space as possible in order to allow
     // dragging article nodes to the top level of the file tree
     return (
         <Box
             h="100%"
-            onMouseEnter={() => service.view.navigation.files.setHover(true)}
-            onMouseLeave={() => service.view.navigation.files.setHover(false)}
+            onMouseEnter={() => (fileNav.hover = true)}
+            onMouseLeave={() => (fileNav.hover = false)}
         >
             <ArticlesTabHeader />
-            <Space h="sm" />
             <Collapse
                 h="100%"
-                in={service.view.navigation.files.expanded}
+                in={fileNav.expanded}
                 transitionDuration={50}
                 transitionTimingFunction="linear"
-                onClick={() => {
-                    service.view.navigation.files.setSelectedNode(null);
-                }}
             >
                 <FileNavigator />
             </Collapse>

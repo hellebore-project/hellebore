@@ -95,12 +95,12 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     openHome() {
-        this.cleanUp();
+        this.cleanUp(ViewKey.HOME);
         this.viewKey = ViewKey.HOME;
     }
 
     openSettings() {
-        this.cleanUp();
+        this.cleanUp(ViewKey.SETTINGS);
         this.viewKey = ViewKey.SETTINGS;
     }
 
@@ -122,10 +122,10 @@ export class ViewManager implements ViewManagerInterface {
             return; // the article is already open
 
         // save any unsynced data before opening another article
-        this.cleanUp();
+        this.cleanUp(ViewKey.ARTICLE_EDITOR);
 
         this.articleEditor.initialize(article);
-        this.navigation.files.selectArticleNode(article.id);
+        this.navigation.files.openArticleNode(article.id);
         this.viewKey = ViewKey.ARTICLE_EDITOR;
     }
 
@@ -146,7 +146,7 @@ export class ViewManager implements ViewManagerInterface {
 
     async createProject(name: string, dbFilePath: string) {
         // save any unsynced data before loading a new project
-        this.cleanUp();
+        this.cleanUp(this.viewKey);
 
         const response = await this.domain.session.createProject(
             name,
@@ -166,7 +166,7 @@ export class ViewManager implements ViewManagerInterface {
         const path = await open();
         if (!path) return null;
         // save any unsynced data before loading another project
-        this.cleanUp();
+        this.cleanUp(this.viewKey);
 
         const response = await this.domain.session.loadProject(path);
         if (response) {
@@ -179,7 +179,7 @@ export class ViewManager implements ViewManagerInterface {
 
     async closeProject() {
         // save any unsynced data before closing the project
-        this.cleanUp();
+        this.cleanUp(this.viewKey);
 
         const success = await this.domain.session.closeProject();
         if (success) {
@@ -282,9 +282,22 @@ export class ViewManager implements ViewManagerInterface {
         return true;
     }
 
-    cleanUp() {
+    cleanUp(newViewKey: ViewKey | null = null) {
         if (this.modalKey) this.closeModal();
+
         if (this.viewKey == ViewKey.ARTICLE_EDITOR)
             this.articleEditor.cleanUp();
+
+        if (
+            isFileView(this.viewKey) &&
+            (!newViewKey || !isFileView(newViewKey))
+        ) {
+            this.navigation.files.openedNode = null;
+            this.navigation.files.selectedNode = null;
+        }
     }
+}
+
+function isFileView(key: ViewKey) {
+    return key == ViewKey.ARTICLE_EDITOR;
 }
