@@ -10,7 +10,7 @@ import { ViewManager } from "./view-manager";
 
 export class ArticleCreator {
     entityType: EntityType | null = null;
-    title: string = "";
+    _title: string = "";
     isTitleUnique: boolean = true;
 
     view: ViewManager;
@@ -24,8 +24,12 @@ export class ArticleCreator {
         this.entityType = entityType;
     }
 
-    setTitle(title: string) {
-        this.title = title;
+    get title() {
+        return this._title;
+    }
+
+    set title(title: string) {
+        this._title = title;
     }
 
     setIsTitleUnique(isUnique: boolean) {

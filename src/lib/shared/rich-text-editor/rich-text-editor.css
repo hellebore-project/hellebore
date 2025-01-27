@@ -1,4 +1,4 @@
 .article-reference {
-    color: dodgerblue;
+    color: var(--mantine-color-blue-4);
     cursor: pointer;
 }

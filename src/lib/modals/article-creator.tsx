@@ -66,9 +66,8 @@ function renderArticleCreator() {
                                 : "Duplicate title"
                         }
                         onChange={(event) =>
-                            service.view.articleCreator.setTitle(
-                                event.currentTarget.value,
-                            )
+                            (service.view.articleCreator.title =
+                                event.currentTarget.value)
                         }
                     />
                     <Group justify="flex-end" mt="md">

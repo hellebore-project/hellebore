@@ -12,6 +12,7 @@ function renderArticlesTabHeader() {
     const articleNavService = getService().view.navigation.files;
     return (
         <NavItem
+            c="white"
             textSettings={{
                 fw: 500,
                 value: "ARTICLES",

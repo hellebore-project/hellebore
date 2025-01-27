@@ -7,7 +7,7 @@ import {
     VerticalMenuItemData,
 } from "@/interface";
 import { OutsideClickHandlerState } from "@/shared/outside-click-handler";
-import { ViewManagerInterface } from "./view-manager-interface";
+import { ViewManagerInterface } from "./interface";
 
 type ContextMenuDataMapping = {
     [key in ContextMenuKey]: VerticalMenuItemData[];
@@ -157,7 +157,7 @@ export class ContextMenuManager {
                 label: "Delete",
                 onConfirm: () => {
                     const id = this.articleNavigator.id as number;
-                    return new Promise(() => this.view.deleteArticle(id));
+                    return new Promise(() => this.view.deleteEntity(id));
                 },
             },
         ]);

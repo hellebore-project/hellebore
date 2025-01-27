@@ -1,4 +1,4 @@
-import { Container, GridProps } from "@mantine/core";
+import { GridProps } from "@mantine/core";
 import {
     DragPreviewRender,
     DropOptions,
@@ -22,11 +22,17 @@ import { convertNodeIdToEntityId } from "@/utils/node";
 
 import "./file-navigator.css";
 import { OutsideClickHandler } from "@/shared/outside-click-handler";
+import { NAVBAR_BG_COLOR } from "@/constants";
 
 const ARTICLE_NAV_ITEM_PREFIX = "nav-item-";
 const SELECTED_NAV_ITEM_BORDER_STYLE = {
     borderStyle: "solid",
     borderWidth: "1px",
+};
+const OUTSIDE_CLICK_HANDLER_STYLE = {
+    height: "100%",
+    paddingLeft: "0",
+    paddingRight: "0",
 };
 
 interface FileNavItemSettings extends GridProps {
@@ -129,23 +135,24 @@ function renderFileNavItem({
             text: node?.data?.error ?? "",
         };
 
-    let variant: string = "filled";
+    let variant: string = "filled-hover";
     if (fileNav.focused) {
-        if (selected && open) variant = "selected";
-        else if (selected) variant = "selected-outline";
-        else if (open) variant = "selected-filled";
+        if (selected && open) variant = "selected-nohover";
+        else if (selected) variant = "selected-outline-nohover";
+        else if (open) variant = "selected-filled-nohover";
     } else {
-        if (open) variant = "selected-unfocused";
+        if (selected && !open) variant = "filled-hover";
+        if (open) variant = "highlighted-nohover";
     }
 
-    const bg = selected ? "none" : "var(--mantine-color-dark-7)";
     const borderStyle = selected ? SELECTED_NAV_ITEM_BORDER_STYLE : undefined;
 
     return (
         <NavItem
             id={`${ARTICLE_NAV_ITEM_PREFIX}${node.id}`}
             variant={variant}
-            bg={bg}
+            c="white"
+            bg={NAVBAR_BG_COLOR}
             style={borderStyle}
             indentSettings={{
                 count: depth + 1,
@@ -194,11 +201,7 @@ function renderFileNavigator({}: FileNavigatorSettings) {
                 fileNav.selectedNode = null;
                 fileNav.focused = true;
             }}
-            style={{
-                height: "100%",
-                paddingLeft: "0",
-                paddingRight: "0",
-            }}
+            style={OUTSIDE_CLICK_HANDLER_STYLE}
         >
             <DndProvider backend={MultiBackend} options={getBackendOptions()}>
                 <Tree

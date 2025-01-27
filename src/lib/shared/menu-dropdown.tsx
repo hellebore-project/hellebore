@@ -1,4 +1,5 @@
-import { Button, Menu } from "@mantine/core";
+import { BaseButtonSettings } from "@/interface";
+import { Button, Menu, MenuProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 export const DIVIDER_DATA = "DIVIDER";
@@ -14,9 +15,10 @@ interface MenuElementSettings {
     data: MenuDropdownElementData;
 }
 
-interface MenuDropdownSettings {
+interface MenuDropdownSettings extends MenuProps {
     label: string;
     elements: MenuDropdownElementData[];
+    button?: BaseButtonSettings;
 }
 
 function renderMenuDropdownElement({ data }: MenuElementSettings) {
@@ -34,7 +36,13 @@ function renderMenuDropdownElement({ data }: MenuElementSettings) {
 
 export const MenuDropdownElement = observer(renderMenuDropdownElement);
 
-function renderMenuDropdown({ label, elements }: MenuDropdownSettings) {
+function renderMenuDropdown({
+    label,
+    elements,
+    button,
+    ...rest
+}: MenuDropdownSettings) {
+    if (!button) button = {};
     return (
         <Menu
             trigger="click"
@@ -43,12 +51,14 @@ function renderMenuDropdown({ label, elements }: MenuDropdownSettings) {
             position="top-start"
             offset={0}
             shadow="md"
+            {...rest}
         >
             <Menu.Target>
                 <Button
                     variant="filled"
                     color="var(--mantine-color-dark-7)"
                     size="compact-sm"
+                    {...button}
                 >
                     {label}
                 </Button>

@@ -6,7 +6,15 @@ import "./app.css";
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { FOOTER_HEIGHT, HEADER_HEIGHT, NAVBAR_WIDTH } from "./constants";
+import {
+    CENTER_BG_COLOR,
+    FOOTER_BG_COLOR,
+    FOOTER_HEIGHT,
+    HEADER_BG_COLOR,
+    HEADER_HEIGHT,
+    NAVBAR_BG_COLOR,
+    NAVBAR_WIDTH,
+} from "./constants";
 import { Footer, Header, Center, LeftSideBar } from "./layout";
 import { ArticleCreator, ProjectCreator } from "./modals";
 import { getService } from "./services";
@@ -37,19 +45,19 @@ function renderApp() {
                 }}
                 padding="md"
             >
-                <AppShell.Header>
+                <AppShell.Header bg={HEADER_BG_COLOR}>
                     <Header />
                 </AppShell.Header>
 
-                <AppShell.Navbar>
+                <AppShell.Navbar bg={NAVBAR_BG_COLOR}>
                     <LeftSideBar />
                 </AppShell.Navbar>
 
-                <AppShell.Main>
+                <AppShell.Main bg={CENTER_BG_COLOR}>
                     <Center />
                 </AppShell.Main>
 
-                <AppShell.Footer>
+                <AppShell.Footer bg={FOOTER_BG_COLOR}>
                     <Footer />
                 </AppShell.Footer>
             </AppShell>

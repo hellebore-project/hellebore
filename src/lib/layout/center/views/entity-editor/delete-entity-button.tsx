@@ -6,16 +6,16 @@ import { getService } from "@/services";
 import { NavSubItem } from "@/shared/nav-item";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
-function renderDeleteArticleButton() {
+function renderDeleteEntityButton() {
     const service = getService();
     const onClick = () => {
-        service.view.deleteArticle(service.view.articleEditor.info.id);
+        service.view.deleteEntity(service.view.entityEditor.info.id);
     };
     return (
         <NavSubItem span="content" p="0">
-            <ToolTipWrapper label="Delete Article">
+            <ToolTipWrapper label="Delete Entity">
                 <ActionIcon
-                    key="delete-article"
+                    key="delete-entity"
                     variant="subtle"
                     color="red"
                     size="sm"
@@ -28,4 +28,4 @@ function renderDeleteArticleButton() {
     );
 }
 
-export const DeleteArticleButton = observer(renderDeleteArticleButton);
+export const DeleteEntityButton = observer(renderDeleteEntityButton);

@@ -18,7 +18,7 @@ import {
     convertNodeIdToEntityId,
     folderNodeId,
 } from "@/utils/node";
-import { ViewManagerInterface } from "../view-manager-interface";
+import { ViewManagerInterface } from "../interface";
 import { OutsideClickHandlerState } from "@/shared/outside-click-handler";
 
 export class FileNavigator {
