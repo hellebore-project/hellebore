@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { ViewManagerInterface } from "./view-manager-interface";
+import { ViewManagerInterface } from "./interface";
 
 export class HomeManager {
     _projectName: string = "";

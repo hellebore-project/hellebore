@@ -1,12 +1,13 @@
-import { Container, Title } from "@mantine/core";
+import { Box, Container, Title } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { DIVIDER, SPACE } from "@/shared/common";
+import { CENTER_BG_COLOR } from "@/constants";
 
 function renderSettingsEditor() {
     // TODO
     return (
-        <div className="container">
+        <Box className="container" bg={CENTER_BG_COLOR}>
             <Title order={1}>Settings</Title>
 
             {DIVIDER}
@@ -15,7 +16,7 @@ function renderSettingsEditor() {
             <Container ml={0} pl={0} size="xs">
                 <Title order={2}>Section...</Title>
             </Container>
-        </div>
+        </Box>
     );
 }
 

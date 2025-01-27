@@ -137,7 +137,7 @@ function renderNavItem({
         expandNode = <ExpandButton {...expandButtonSettings} />;
     else expandNode = EXPAND_BUTTON_PLACEHOLDER;
 
-    const gridProps = ThemeManager.resolveVariant<GridProps>({
+    const gridProps = ThemeManager.applyVariantToStyle<GridProps>({
         className: "nav-item variant-color",
         align: "center",
         px: "4",

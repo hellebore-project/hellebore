@@ -1,7 +1,7 @@
 import { Button } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { BaseButtonSettings } from "./common";
+import { BaseButtonSettings } from "@/interface";
 
 export interface MenuButtonSettings extends BaseButtonSettings {
     label?: string;

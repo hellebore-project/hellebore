@@ -1,7 +1,7 @@
 import { Burger, Flex } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntityType } from "@/interface";
+import { BaseButtonSettings, EntityType } from "@/interface";
 import { getService } from "@/services";
 import { MenuButton } from "@/shared/menu-button";
 import {
@@ -9,9 +9,15 @@ import {
     MenuDropdown,
     MenuDropdownElementData,
 } from "@/shared/menu-dropdown";
-import { HEADER_HEIGHT } from "@/constants";
+import { HEADER_BG_COLOR, HEADER_HEIGHT } from "@/constants";
+import { ThemeManager } from "@/theme";
 
-const FLEX_STYLE = { paddingLeft: 15 };
+const FLEX_STYLE = { paddingLeft: 8 };
+const MENU_BUTTON_SETTINGS = {
+    variant: "filled-hover",
+    c: "white",
+    bg: HEADER_BG_COLOR,
+};
 
 function renderNavBarMobileToggleButton() {
     const service = getService();
@@ -21,6 +27,7 @@ function renderNavBarMobileToggleButton() {
             onClick={() => service.view.toggleNavBar()}
             hiddenFrom="sm"
             size="sm"
+            pr="8"
         />
     );
 }
@@ -64,7 +71,17 @@ function renderAppMenuDropdown() {
             settingsButtonData,
         ];
 
-    return <MenuDropdown label="App" elements={elements} />;
+    return (
+        <MenuDropdown
+            label="App"
+            elements={elements}
+            button={{
+                ...ThemeManager.applyVariantToButtonStyle<BaseButtonSettings>(
+                    MENU_BUTTON_SETTINGS,
+                ),
+            }}
+        />
+    );
 }
 
 export const AppMenuDropdown = observer(renderAppMenuDropdown);
@@ -87,6 +104,11 @@ function renderEncyclopediaMenuDropdown() {
                     },
                 },
             ]}
+            button={{
+                ...ThemeManager.applyVariantToButtonStyle<BaseButtonSettings>(
+                    MENU_BUTTON_SETTINGS,
+                ),
+            }}
         />
     );
 }
@@ -125,6 +147,9 @@ function renderDictionaryMenuDropdown() {
                     },
                 },
             ]}
+            button={ThemeManager.applyVariantToButtonStyle<BaseButtonSettings>(
+                MENU_BUTTON_SETTINGS,
+            )}
         />
     );
 }
@@ -144,7 +169,13 @@ function renderHeader() {
             style={FLEX_STYLE}
         >
             <NavBarMobileToggleButton />
-            <MenuButton label="Home" onClick={() => service.view.openHome()} />
+            <MenuButton
+                label="Home"
+                onClick={() => service.view.openHome()}
+                {...ThemeManager.applyVariantToButtonStyle<BaseButtonSettings>(
+                    MENU_BUTTON_SETTINGS,
+                )}
+            />
             <AppMenuDropdown />
             {service.domain.hasProject && <EncyclopediaMenuDropdown />}
             {service.domain.hasProject && <DictionaryMenuDropdown />}

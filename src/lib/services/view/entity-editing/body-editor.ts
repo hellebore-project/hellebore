@@ -6,7 +6,7 @@ import { makeAutoObservable } from "mobx";
 
 import { Suggestion } from "@/interface";
 import { useReferenceExtension } from "@/shared/rich-text-editor";
-import { ViewManagerInterface } from "../view-manager-interface";
+import { ViewManagerInterface } from "../interface";
 import { ArticleInfoEditor } from "./info-editor";
 
 type ChangeHandler = () => void;

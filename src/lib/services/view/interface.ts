@@ -31,6 +31,6 @@ export interface ViewManagerInterface {
     updateArticle(
         update: ArticleUpdateArguments,
     ): Promise<ArticleUpdateResponse | null>;
-    deleteArticle(id: number, confirm?: boolean): Promise<boolean>;
+    deleteEntity(id: number, confirm?: boolean): Promise<boolean>;
     cleanUp(): void;
 }

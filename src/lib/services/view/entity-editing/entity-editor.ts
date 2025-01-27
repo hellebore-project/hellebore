@@ -11,7 +11,7 @@ import { ArticleUpdateArguments } from "@/services/domain";
 import { ArticleFieldTableEditor } from "./field-table-editor";
 import { ArticleBodyEditor } from "./body-editor";
 import { ArticleInfoEditor } from "./info-editor";
-import { ViewManagerInterface } from "../view-manager-interface";
+import { ViewManagerInterface } from "../interface";
 
 const UPDATE_DELAY_MILLISECONDS = 5000;
 
@@ -25,7 +25,7 @@ interface SyncSettings {
     syncBody?: boolean;
 }
 
-export class ArticleEditor {
+export class EntityEditor {
     syncing: boolean = false;
     lastModified: number = 0;
 
@@ -55,9 +55,13 @@ export class ArticleEditor {
         });
     }
 
-    setTitle(title: string) {
+    get title() {
+        return this.info.title;
+    }
+
+    set title(title: string) {
         if (title != this.info.title) {
-            this.info.setTitle(title);
+            this.info.title = title;
             this._sync({
                 syncTitle: true,
                 syncEntity: false,
@@ -147,7 +151,7 @@ export class ArticleEditor {
         this.syncing = false;
         if (syncTitle) {
             this.info.sync();
-            this.info.setIsTitleUnique(response.isTitleUnique ?? true);
+            this.info.isTitleUnique = response.isTitleUnique ?? true;
         }
         if (syncEntity) this.fieldTable.sync();
         if (syncBody) this.body.sync();

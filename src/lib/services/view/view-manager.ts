@@ -10,26 +10,26 @@ import {
 } from "@/interface";
 import { ArticleUpdateArguments, DomainManager } from "../domain";
 import { ArticleCreator } from "./article-creator";
-import { ArticleEditor } from "./article-editing";
+import { EntityEditor } from "./entity-editing";
 import { ContextMenuManager } from "./context-menu-manager";
 import { HomeManager } from "./home-manager";
+import { ViewManagerInterface } from "./interface";
 import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
-import { ViewManagerInterface } from "./view-manager-interface";
 
 export class ViewManager implements ViewManagerInterface {
     // state variables
     viewKey: ViewKey = ViewKey.HOME;
     modalKey: ModalKey | null = null;
-    navBarMobileOpen: boolean = true;
+    _navBarMobileOpen: boolean = true;
 
     // domain service
     domain: DomainManager;
 
     // central view services
     home: HomeManager;
-    articleEditor: ArticleEditor;
+    entityEditor: EntityEditor;
     settingsEditor: SettingsEditor;
 
     // navigation bar service
@@ -52,7 +52,7 @@ export class ViewManager implements ViewManagerInterface {
             folderRemover: false,
             articleCreator: false,
             articleRemover: false,
-            articleEditor: false,
+            entityEditor: false,
             contextMenu: false,
         };
         makeAutoObservable(this, overrides);
@@ -62,7 +62,7 @@ export class ViewManager implements ViewManagerInterface {
         // central views
         this.home = new HomeManager(this);
         this.settingsEditor = new SettingsEditor(this);
-        this.articleEditor = new ArticleEditor(this);
+        this.entityEditor = new EntityEditor(this);
 
         // navbar
         this.navigation = new NavigationService(this);
@@ -73,6 +73,28 @@ export class ViewManager implements ViewManagerInterface {
 
         // context menu
         this.contextMenu = new ContextMenuManager(this);
+    }
+
+    get isEntityEditorOpen() {
+        return (
+            this.viewKey == ViewKey.ARTICLE_EDITOR ||
+            this.viewKey == ViewKey.DICTIONARY_EDITOR
+        );
+    }
+
+    get entityType() {
+        if (this.viewKey === ViewKey.ARTICLE_EDITOR)
+            return this.entityEditor.info.entityType;
+        else if (this.viewKey === ViewKey.DICTIONARY_EDITOR) return null; // TODO
+        return null;
+    }
+
+    get navBarMobileOpen() {
+        return this._navBarMobileOpen;
+    }
+
+    set navBarMobileOpen(open: boolean) {
+        this._navBarMobileOpen = open;
     }
 
     async fetchProjectInfo() {
@@ -91,7 +113,7 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     toggleNavBar() {
-        this.navBarMobileOpen = !this.navBarMobileOpen;
+        this._navBarMobileOpen = !this._navBarMobileOpen;
     }
 
     openHome() {
@@ -117,14 +139,14 @@ export class ViewManager implements ViewManagerInterface {
     openArticleEditor(article: ArticleResponse<BaseEntity>) {
         if (
             this.viewKey == ViewKey.ARTICLE_EDITOR &&
-            this.articleEditor.info.id == article.id
+            this.entityEditor.info.id == article.id
         )
             return; // the article is already open
 
         // save any unsynced data before opening another article
         this.cleanUp(ViewKey.ARTICLE_EDITOR);
 
-        this.articleEditor.initialize(article);
+        this.entityEditor.initialize(article);
         this.navigation.files.openArticleNode(article.id);
         this.viewKey = ViewKey.ARTICLE_EDITOR;
     }
@@ -132,7 +154,7 @@ export class ViewManager implements ViewManagerInterface {
     async openArticleEditorForId(id: number) {
         if (
             this.viewKey == ViewKey.ARTICLE_EDITOR &&
-            this.articleEditor.info.id == id
+            this.entityEditor.info.id == id
         )
             return; // the article is already open
 
@@ -203,6 +225,7 @@ export class ViewManager implements ViewManagerInterface {
                     title: "Delete folder",
                     kind: "warning",
                     okLabel: "Delete",
+                    cancelLabel: "Cancel",
                 },
             );
             if (!canDelete) return null;
@@ -218,7 +241,7 @@ export class ViewManager implements ViewManagerInterface {
 
         if (
             this.viewKey == ViewKey.ARTICLE_EDITOR &&
-            fileIds.articles.includes(this.articleEditor.info.id)
+            fileIds.articles.includes(this.entityEditor.info.id)
         ) {
             // currently-open article has been deleted
             this.openHome();
@@ -250,17 +273,18 @@ export class ViewManager implements ViewManagerInterface {
         return response;
     }
 
-    async deleteArticle(id: number, confirm: boolean = true) {
+    async deleteEntity(id: number, confirm: boolean = true) {
         if (confirm) {
             const article = this.domain.articles.getInfo(id);
-            const canDelete = await ask(
-                `Are you sure you want to delete the article for '${article.title}'? This action is irreversible.`,
-                {
-                    title: "Delete article",
-                    kind: "warning",
-                    okLabel: "Delete",
-                },
-            );
+            const message =
+                `Are you sure you want to delete the article for '${article.title}' and all of its associated content?` +
+                "This action is irreversible.";
+            const canDelete = await ask(message, {
+                title: "Delete article",
+                kind: "warning",
+                okLabel: "Delete",
+                cancelLabel: "Cancel",
+            });
             if (!canDelete) return false;
         }
 
@@ -271,7 +295,7 @@ export class ViewManager implements ViewManagerInterface {
 
         if (
             this.viewKey == ViewKey.ARTICLE_EDITOR &&
-            this.articleEditor.info.id == id
+            this.entityEditor.info.id == id
         ) {
             // deleted article is currently open
             this.openHome();
@@ -285,19 +309,16 @@ export class ViewManager implements ViewManagerInterface {
     cleanUp(newViewKey: ViewKey | null = null) {
         if (this.modalKey) this.closeModal();
 
-        if (this.viewKey == ViewKey.ARTICLE_EDITOR)
-            this.articleEditor.cleanUp();
+        if (this.viewKey == ViewKey.ARTICLE_EDITOR) this.entityEditor.cleanUp();
 
         if (
-            isFileView(this.viewKey) &&
-            (!newViewKey || !isFileView(newViewKey))
+            this.isEntityEditorOpen &&
+            (!newViewKey || !this.isEntityEditorOpen)
         ) {
             this.navigation.files.openedNode = null;
             this.navigation.files.selectedNode = null;
         }
-    }
-}
 
-function isFileView(key: ViewKey) {
-    return key == ViewKey.ARTICLE_EDITOR;
+        this.navBarMobileOpen = false;
+    }
 }
