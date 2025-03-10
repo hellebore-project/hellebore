@@ -27,7 +27,7 @@ pub async fn update(
     let updated_entity = folder::ActiveModel {
         id: Unchanged(existing_entity.id),
         parent_id: convert_optional_folder_id_to_active_value(parent_id),
-        name: util::optional_value_to_active_value(name),
+        name: util::set_value_or_null(name),
     };
     updated_entity.update(db).await
 }

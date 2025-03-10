@@ -3,7 +3,7 @@ use sea_orm::*;
 
 use crate::database::folder_manager;
 use crate::database::util;
-use crate::types::{CodedType, EntityType};
+use crate::types::{CodedEnum, EntityType};
 
 #[derive(FromQueryResult)]
 pub struct ArticleItem {
@@ -48,8 +48,8 @@ pub async fn update(
         id: Unchanged(existing_entity.id),
         folder_id: folder_manager::convert_optional_folder_id_to_active_value(folder_id),
         entity_type: NotSet,
-        title: util::optional_value_to_active_value(title),
-        body: util::optional_value_to_active_value(content),
+        title: util::set_value_or_null(title),
+        body: util::set_value_or_null(content),
     };
     updated_entity.update(db).await
 }

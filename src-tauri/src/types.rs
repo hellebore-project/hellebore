@@ -5,7 +5,7 @@ use strum_macros::EnumIter;
 
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-pub trait CodedType {
+pub trait CodedEnum {
     fn code(&self) -> i8;
 }
 
@@ -39,7 +39,7 @@ pub const LANGUAGE: EntityType = EntityType::Language;
 pub const WORD: EntityType = EntityType::Word;
 pub const PERSON: EntityType = EntityType::Person;
 
-impl CodedType for EntityType {
+impl CodedEnum for EntityType {
     fn code(&self) -> i8 {
         *self as i8
     }
@@ -71,7 +71,7 @@ pub enum WordType {
     Verb = 51,
 }
 
-impl CodedType for WordType {
+impl CodedEnum for WordType {
     fn code(&self) -> i8 {
         *self as i8
     }
@@ -104,9 +104,15 @@ pub enum GrammaticalNumber {
     GreatestPlural = 23,
 }
 
-impl CodedType for GrammaticalNumber {
+impl CodedEnum for GrammaticalNumber {
     fn code(&self) -> i8 {
         *self as i8
+    }
+}
+
+impl Default for GrammaticalNumber {
+    fn default() -> Self {
+        Self::None
     }
 }
 
@@ -130,9 +136,15 @@ pub enum GrammaticalGender {
     Feminine = 12,
 }
 
-impl CodedType for GrammaticalGender {
+impl CodedEnum for GrammaticalGender {
     fn code(&self) -> i8 {
         *self as i8
+    }
+}
+
+impl Default for GrammaticalGender {
+    fn default() -> Self {
+        Self::None
     }
 }
 
@@ -156,9 +168,15 @@ pub enum GrammaticalPerson {
     Third = 3,
 }
 
-impl CodedType for GrammaticalPerson {
+impl CodedEnum for GrammaticalPerson {
     fn code(&self) -> i8 {
         *self as i8
+    }
+}
+
+impl Default for GrammaticalPerson {
+    fn default() -> Self {
+        Self::None
     }
 }
 
@@ -181,9 +199,15 @@ pub enum VerbForm {
     Finite = 2,
 }
 
-impl CodedType for VerbForm {
+impl CodedEnum for VerbForm {
     fn code(&self) -> i8 {
         *self as i8
+    }
+}
+
+impl Default for VerbForm {
+    fn default() -> Self {
+        Self::None
     }
 }
 
@@ -207,9 +231,15 @@ pub enum VerbTense {
     Future = 21,
 }
 
-impl CodedType for VerbTense {
+impl CodedEnum for VerbTense {
     fn code(&self) -> i8 {
         *self as i8
+    }
+}
+
+impl Default for VerbTense {
+    fn default() -> Self {
+        Self::None
     }
 }
 

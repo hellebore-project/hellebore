@@ -12,7 +12,7 @@ use crate::types::FOLDER;
 
 pub async fn create(
     database: &DatabaseConnection,
-    folder: &FolderCreateSchema,
+    folder: FolderCreateSchema,
 ) -> Result<FolderResponseSchema, ApiError> {
     return match folder_manager::insert(database, folder.parent_id, &folder.name).await {
         Ok(entity) => Ok(generate_response(&entity)),
@@ -22,11 +22,9 @@ pub async fn create(
 
 pub async fn update(
     database: &DatabaseConnection,
-    folder: &FolderUpdateSchema,
+    folder: FolderUpdateSchema,
 ) -> Result<FolderResponseSchema, ApiError> {
-    return match folder_manager::update(database, folder.id, folder.parent_id, folder.name.clone())
-        .await
-    {
+    return match folder_manager::update(database, folder.id, folder.parent_id, folder.name).await {
         Ok(entity) => Ok(generate_response(&entity)),
         Err(e) => Err(ApiError::not_updated(e, FOLDER)),
     };

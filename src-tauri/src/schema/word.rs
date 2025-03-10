@@ -5,15 +5,8 @@ use crate::types::{
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct WordCreateSchema {
-    pub language_id: i32,
-    pub word_type: WordType,
-    pub spelling: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WordUpdateSchema {
-    pub id: i32,
+    pub id: Option<i32>,
     pub language_id: Option<i32>,
     pub word_type: Option<WordType>,
     pub spelling: Option<String>,
@@ -22,16 +15,7 @@ pub struct WordUpdateSchema {
     pub gender: Option<GrammaticalGender>,
     pub verb_form: Option<VerbForm>,
     pub verb_tense: Option<VerbTense>,
-    pub translations: Option<String>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct WordInfoSchema {
-    pub id: i32,
-    pub language_id: i32,
-    pub word_type: WordType,
-    pub spelling: String,
-    pub translations: String,
+    pub translations: Option<Vec<String>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -45,5 +29,5 @@ pub struct WordResponseSchema {
     pub gender: GrammaticalGender,
     pub verb_form: VerbForm,
     pub verb_tense: VerbTense,
-    pub translations: String,
+    pub translations: Vec<String>,
 }

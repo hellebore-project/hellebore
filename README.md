@@ -52,4 +52,4 @@ pnpm generate:entities
 
 #### Drag and Drop
 
-On Windows systems, the `fileDropEnabled` option in the tauri config must be set to `false` in order to use drag and drop on the frontend.
+On Windows systems, the `dragDropEnabled` option in the tauri config must be set to `false` in order to use drag and drop on the frontend.
