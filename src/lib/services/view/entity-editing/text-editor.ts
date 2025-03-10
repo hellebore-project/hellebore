@@ -7,27 +7,27 @@ import { makeAutoObservable } from "mobx";
 import { Suggestion } from "@/interface";
 import { useReferenceExtension } from "@/shared/rich-text-editor";
 import { ViewManagerInterface } from "../interface";
-import { ArticleInfoEditor } from "./info-editor";
+import { EntityInfoEditor } from "./info-editor";
 
 type ChangeHandler = () => void;
 
-interface ArticleBodyServiceSettings {
+interface ArticleTextEditorSettings {
     view: ViewManagerInterface;
-    info: ArticleInfoEditor;
+    info: EntityInfoEditor;
     onChange: ChangeHandler;
 }
 
-export class ArticleBodyEditor {
+export class ArticleTextEditor {
     editor: Editor;
     changed: boolean = false;
-    _selectedRefIndex: number | null = null;
+    private _selectedRefIndex: number | null = null;
 
     view: ViewManagerInterface;
-    info: ArticleInfoEditor;
+    info: EntityInfoEditor;
 
     onChange: ChangeHandler;
 
-    constructor({ view, info, onChange }: ArticleBodyServiceSettings) {
+    constructor({ view, info, onChange }: ArticleTextEditorSettings) {
         makeAutoObservable(this, {
             view: false,
             info: false,
@@ -49,7 +49,7 @@ export class ArticleBodyEditor {
         this.editor.commands.setContent(content);
     }
 
-    get text(): string {
+    get serialized(): string {
         return JSON.stringify(this.content);
     }
 
@@ -112,8 +112,7 @@ export class ArticleBodyEditor {
     _onClickEditor(node: PMNode) {
         if (node.type.name == "mention") {
             const articleID: number | null = node.attrs["id"] ?? null;
-            if (articleID != null)
-                this.view.openArticleEditorForId?.(articleID);
+            if (articleID != null) this.view.openArticleEditor?.(articleID);
         }
     }
 }

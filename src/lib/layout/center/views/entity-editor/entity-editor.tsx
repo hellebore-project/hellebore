@@ -1,4 +1,4 @@
-import { EntityType, ViewKey } from "@/interface";
+import { EntityType, EntityViewKey } from "@/interface";
 import { getService } from "@/services";
 import { Badge, Box, Grid, Tabs } from "@mantine/core";
 import { observer } from "mobx-react-lite";
@@ -8,6 +8,7 @@ import { SPACE } from "@/shared/common";
 import { ArticleEditor } from "./article-editor";
 import { DeleteEntityButton } from "./delete-entity-button";
 import { CENTER_BG_COLOR } from "@/constants";
+import { WordEditor } from "./word-editor";
 
 function renderEntityEditorHeader() {
     const service = getService();
@@ -30,27 +31,50 @@ const EntityEditorHeader = observer(renderEntityEditorHeader);
 const OVERVIEW_TAB_KEY = "overview";
 const LEXICON_TAB_KEY = "lexicon";
 
-const VIEW_TAB_MAPPING: { [key in ViewKey]?: string } = {
-    [ViewKey.ARTICLE_EDITOR]: OVERVIEW_TAB_KEY,
-    [ViewKey.DICTIONARY_EDITOR]: LEXICON_TAB_KEY,
+const VIEW_TAB_MAPPING: { [key in EntityViewKey]?: string } = {
+    [EntityViewKey.ARTICLE_EDITOR]: OVERVIEW_TAB_KEY,
+    [EntityViewKey.WORD_EDITOR]: LEXICON_TAB_KEY,
 };
 
-const OVERVIEW_TAB = (
-    <Tabs.Tab key={OVERVIEW_TAB_KEY} value={OVERVIEW_TAB_KEY}>
-        Overview
-    </Tabs.Tab>
-);
-const LEXICON_TAB = (
-    <Tabs.Tab key={LEXICON_TAB_KEY} value={LEXICON_TAB_KEY}>
-        Lexicon
-    </Tabs.Tab>
-);
+function renderOverviewTab() {
+    const service = getService();
+    return (
+        <Tabs.Tab
+            value={OVERVIEW_TAB_KEY}
+            onClick={() =>
+                service.view.openArticleEditor(
+                    service.view.entityEditor.info.id,
+                )
+            }
+        >
+            Overview
+        </Tabs.Tab>
+    );
+}
+
+const OverviewTab = observer(renderOverviewTab);
+
+function renderLexiconTab() {
+    const service = getService();
+    return (
+        <Tabs.Tab
+            value={LEXICON_TAB_KEY}
+            onClick={() =>
+                service.view.openWordEditor(service.view.entityEditor.info.id)
+            }
+        >
+            Lexicon
+        </Tabs.Tab>
+    );
+}
+
+const LexiconTab = observer(renderLexiconTab);
 
 function renderEntityEditorContent() {
     const service = getService();
-    const viewKey = service.view.viewKey;
-    if (viewKey === ViewKey.ARTICLE_EDITOR) return <ArticleEditor />;
-    if (viewKey === ViewKey.DICTIONARY_EDITOR) return null; // TODO
+    const viewKey = service.view.entityEditor.currentView;
+    if (viewKey === EntityViewKey.ARTICLE_EDITOR) return <ArticleEditor />;
+    if (viewKey === EntityViewKey.WORD_EDITOR) return <WordEditor />;
     return null;
 }
 
@@ -61,11 +85,16 @@ function renderEntityEditorTabs({ children }: PropsWithChildren) {
     const entityType = service.view.entityType;
 
     let tabs: ReactElement[] = [];
-    if (entityType === EntityType.LANGUAGE) tabs = [OVERVIEW_TAB, LEXICON_TAB];
+    if (entityType === EntityType.LANGUAGE)
+        tabs = [
+            <OverviewTab key={OVERVIEW_TAB_KEY} />,
+            <LexiconTab key={LEXICON_TAB_KEY} />,
+        ];
 
     if (tabs.length == 0) return children;
 
-    const activeTabKey = VIEW_TAB_MAPPING?.[service.view.viewKey] ?? null;
+    const activeTabKey =
+        VIEW_TAB_MAPPING?.[service.view.entityEditor.currentView] ?? null;
     if (activeTabKey == null) return null;
 
     return (

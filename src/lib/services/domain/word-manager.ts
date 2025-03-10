@@ -3,101 +3,84 @@ import { makeAutoObservable } from "mobx";
 
 import {
     WordResponse,
-    WordUpdate,
-    WordUpdateResponse,
+    WordUpsertResponse,
     ResponseWithDiagnostics,
-    WordCreate,
     WordType,
-    IdentifiedObject,
-    GrammaticalNumber,
-    GrammaticalPerson,
-    GrammaticalGender,
-    VerbForm,
-    VerbTense,
+    Id,
+    WordUpsert,
 } from "@/interface";
 
-export interface WordUpdateArguments extends IdentifiedObject {
-    language_id?: number | null;
-    word_type?: WordType | null;
-    spelling?: string | null;
-    number?: GrammaticalNumber | null;
-    person?: GrammaticalPerson | null;
-    gender?: GrammaticalGender | null;
-    verb_form?: VerbForm | null;
-    verb_tense?: VerbTense | null;
-    translations?: string[] | null;
-}
+export type UpsertWordResponse = ResponseWithDiagnostics<Id | null>;
+export type BulkUpsertWordsResponse = Array<UpsertWordResponse>;
 
 export class WordManager {
     constructor() {
         makeAutoObservable(this);
     }
 
-    async create(
-        language_id: number,
-        word_type: WordType,
-        spelling: string,
-    ): Promise<WordResponse | null> {
-        let response: WordResponse | null;
+    async bulkUpsert(
+        words: WordUpsert[],
+    ): Promise<WordUpsertResponse[] | null> {
+        let responses: BulkUpsertWordsResponse;
         try {
-            response = await createWord({ language_id, word_type, spelling });
+            responses = await bulkUpsertWords(
+                words.map((word) => ({
+                    id: word.id,
+                    language_id: word.language_id,
+                    word_type: word.word_type,
+                    spelling: word.spelling,
+                    person: word.person,
+                    gender: word.gender,
+                    number: word.number,
+                    verb_form: word.verb_form,
+                    verb_tense: word.verb_tense,
+                    translations: word.translations,
+                })),
+            );
         } catch (error) {
             console.error(error);
             return null;
         }
-        return response;
+
+        return responses.map((response, i) => {
+            return this._buildUpsertResponse(words[i], response);
+        });
     }
 
-    async update({
-        id,
-        language_id = null,
-        word_type = null,
-        spelling = null,
-        number = null,
-        person = null,
-        gender = null,
-        verb_form = null,
-        verb_tense = null,
-        translations = null,
-    }: WordUpdateArguments): Promise<WordUpdateResponse | null> {
-        const payload: WordUpdate = {
+    _buildUpsertResponse(
+        upsertPayload: WordUpsert,
+        response: ResponseWithDiagnostics<Id | null>,
+    ): WordUpsertResponse {
+        let id = upsertPayload.id;
+        let created = false;
+        let updated = false;
+        if (id == null) {
+            id = response.data;
+            created = id != null;
+        } else updated = response.data != null;
+        return {
+            ...upsertPayload,
             id,
-            language_id,
-            word_type,
-            spelling,
-            number,
-            person,
-            gender,
-            verb_form,
-            verb_tense,
-            translations,
+            created,
+            updated,
         };
-        let response: ResponseWithDiagnostics<null> | null;
-
-        try {
-            response = await updateWord(payload);
-        } catch (error) {
-            console.error(error);
-            return null;
-        }
-        const updateResponse = this._buildUpdateResponse(payload, response);
-
-        return updateResponse;
-    }
-
-    _buildUpdateResponse(
-        wordUpdate: WordUpdate,
-        response: ResponseWithDiagnostics<null>,
-    ): WordUpdateResponse {
-        const updateResponse: WordUpdateResponse = {
-            ...wordUpdate,
-        };
-        return updateResponse;
     }
 
     async get(id: number): Promise<WordResponse | null> {
         try {
             return await getWord(id);
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
+    async getAllForLanguage(
+        languageId: number,
+        wordType?: WordType | null,
+    ): Promise<WordResponse[] | null> {
+        try {
+            return await getWords(languageId, wordType ?? null);
         } catch (error) {
             console.error(error);
             return null;
@@ -116,18 +99,21 @@ export class WordManager {
     }
 }
 
-async function createWord(word: WordCreate): Promise<WordResponse> {
-    return invoke<WordResponse>("create_word", { word });
-}
-
-async function updateWord(
-    word: WordUpdate,
-): Promise<ResponseWithDiagnostics<null>> {
-    return invoke<ResponseWithDiagnostics<null>>("update_word", { word });
+async function bulkUpsertWords(
+    words: Array<WordUpsert>,
+): Promise<BulkUpsertWordsResponse> {
+    return invoke<BulkUpsertWordsResponse>("upsert_words", { words });
 }
 
 async function getWord(id: number): Promise<WordResponse> {
     return invoke<WordResponse>("get_word", { id });
+}
+
+async function getWords(
+    languageId: number,
+    wordType: WordType | null,
+): Promise<WordResponse[]> {
+    return invoke<WordResponse[]>("get_words", { languageId, wordType });
 }
 
 async function deleteWord(id: number): Promise<void> {

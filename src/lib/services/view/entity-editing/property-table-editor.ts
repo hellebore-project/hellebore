@@ -8,26 +8,27 @@ import {
     PersonData,
     PersonProperty,
 } from "@/interface";
-import { ArticleInfoEditor } from "./info-editor";
+import { EntityInfoEditor } from "./info-editor";
 
 type FieldDataCollection = { [type: number]: FieldData[] };
 type ChangeHandler = () => void;
 
-interface ArticleFieldTableServiceSettings {
-    info: ArticleInfoEditor;
+interface PropertyTableEditorSettings {
+    info: EntityInfoEditor;
     onChange: ChangeHandler;
 }
 
-export class ArticleFieldTableEditor {
+export class PropertyTableEditor {
+    private _entity: BaseEntity | null = null;
+
     fields: FieldDataCollection;
-    entity: BaseEntity | null = null;
     changed: boolean = false;
 
-    info: ArticleInfoEditor;
+    info: EntityInfoEditor;
 
     onChange: ChangeHandler;
 
-    constructor({ info, onChange }: ArticleFieldTableServiceSettings) {
+    constructor({ info, onChange }: PropertyTableEditorSettings) {
         makeAutoObservable(this, {
             fields: false,
             onChange: false,
@@ -38,15 +39,15 @@ export class ArticleFieldTableEditor {
         this.fields = this._generateFieldData();
     }
 
-    get entityData() {
-        return toJS(this.entity);
+    get data() {
+        return toJS(this._entity);
     }
 
-    set entityData(entity: BaseEntity | null) {
-        this.entity = entity;
+    set data(entity: BaseEntity | null) {
+        this._entity = entity;
     }
 
-    setProperty(key: string, value: any) {
+    set(key: string, value: any) {
         try {
             if (this.info.entityType == EntityType.PERSON)
                 this._setPersonProperty(key, value);
@@ -65,7 +66,7 @@ export class ArticleFieldTableEditor {
     }
 
     initialize<E extends BaseEntity>(entity: E) {
-        this.entityData = entity;
+        this.data = entity;
     }
 
     sync() {
@@ -73,7 +74,7 @@ export class ArticleFieldTableEditor {
     }
 
     reset() {
-        this.entityData = null;
+        this.data = null;
     }
 
     _generateFieldData(): FieldDataCollection {
@@ -85,7 +86,7 @@ export class ArticleFieldTableEditor {
     /* Person */
 
     _setPersonProperty(key: string, value: any) {
-        if (key == PersonProperty.NAME) (<PersonData>this.entity).name = value;
+        if (key == PersonProperty.NAME) (<PersonData>this._entity).name = value;
         else throw `Unable to set property ${key} for a Person entity.`;
     }
 
@@ -95,9 +96,8 @@ export class ArticleFieldTableEditor {
                 property: PersonProperty.NAME,
                 label: "Full Name",
                 type: FieldType.TEXT,
-                getValue: () => (<PersonData>this.entity).name,
-                setValue: (name: string) =>
-                    this.setProperty(PersonProperty.NAME, name),
+                getValue: () => (<PersonData>this._entity).name,
+                setValue: (name: string) => this.set(PersonProperty.NAME, name),
             },
         ];
     }

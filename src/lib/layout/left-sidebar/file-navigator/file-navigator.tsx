@@ -18,7 +18,6 @@ import {
     TextSettings,
 } from "@/shared/nav-item/nav-item";
 import { TextFieldSettings } from "@/shared/text-field";
-import { convertNodeIdToEntityId } from "@/utils/node";
 
 import "./file-navigator.css";
 import { OutsideClickHandler } from "@/shared/outside-click-handler";
@@ -48,19 +47,19 @@ const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
 
     const service = getService();
-    const fileNavigator = service.view.navigation.files;
+    const fileNav = service.view.navigation.files;
 
     const elementId = e.currentTarget.id;
     const nodeId = elementId.slice(ARTICLE_NAV_ITEM_PREFIX.length);
 
-    const node = fileNavigator.getNode(nodeId);
+    const node = fileNav.getNode(nodeId);
     if (!node) return;
 
-    fileNavigator.focused = false;
-    fileNavigator.selectedNode = node;
-    const id = convertNodeIdToEntityId(nodeId);
+    fileNav.focused = false;
+    fileNav.selectedNode = node;
+    const id = fileNav.convertNodeIdToEntityId(nodeId);
 
-    if (fileNavigator.isFolderNode(node))
+    if (fileNav.isFolderNode(node))
         service.view.contextMenu.openForNavBarFolderNode({
             position: { x: e.pageX, y: e.pageY },
             id,
@@ -101,9 +100,9 @@ function renderFileNavItem({
 
         // in case of an article node, open the corresponding article in the editor
         if (!fileNav.isFolderNode(node)) {
-            const id = convertNodeIdToEntityId(node.id);
+            const id = fileNav.convertNodeIdToEntityId(node.id);
             service.view
-                .openArticleEditorForId(id)
+                .openArticleEditor(id)
                 .then(() => fileNav.openNode(node));
         }
     };

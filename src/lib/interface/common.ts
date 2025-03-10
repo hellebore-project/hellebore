@@ -4,8 +4,10 @@ export enum ValueChange {
     UNCHANGED,
 }
 
+export type Id = number;
+
 export interface IdentifiedObject {
-    id: number;
+    id: Id;
 }
 
 export interface Point {

@@ -4,20 +4,25 @@ import {
     BaseEntity,
     BulkData,
     EntityType,
+    Id,
     ProjectResponse,
+    ViewKey,
+    WordType,
+    WordUpsert,
+    WordUpsertResponse,
 } from "@/interface";
 import { ArticleUpdateArguments, DomainManager } from "../domain";
 
 export interface ViewManagerInterface {
     domain: DomainManager;
+    get currentView(): ViewKey;
     fetchProjectInfo(): Promise<ProjectResponse | null>;
     populateNavigator(): Promise<void>;
     openHome(): void;
     openSettings(): void;
     openProjectCreator(): void;
     openArticleCreator(entityType: EntityType | undefined): void;
-    openArticleEditor(article: ArticleResponse<BaseEntity>): void;
-    openArticleEditorForId(id: number): Promise<void>;
+    openArticleEditor(id: number): Promise<void>;
     closeModal(): void;
     createProject(
         name: string,
@@ -31,6 +36,7 @@ export interface ViewManagerInterface {
     updateArticle(
         update: ArticleUpdateArguments,
     ): Promise<ArticleUpdateResponse | null>;
+    updateLexicon(words: WordUpsert[]): Promise<WordUpsertResponse[] | null>;
     deleteEntity(id: number, confirm?: boolean): Promise<boolean>;
     cleanUp(): void;
 }
