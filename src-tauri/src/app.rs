@@ -64,5 +64,12 @@ where
         api::person::update_person,
         api::person::get_person,
         api::person::delete_person,
+        // word API
+        api::word::create_word,
+        api::word::update_word,
+        api::word::upsert_words,
+        api::word::get_word,
+        api::word::get_words,
+        api::word::delete_word,
     ])
 }

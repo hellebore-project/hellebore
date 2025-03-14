@@ -7,6 +7,7 @@ import {
     EntityType,
     ModalKey,
     ViewKey,
+    WordUpsert,
 } from "@/interface";
 import { ArticleUpdateArguments, DomainManager } from "../domain";
 import { ArticleCreator } from "./article-creator";
@@ -20,8 +21,8 @@ import { SettingsEditor } from "./settings-editor";
 
 export class ViewManager implements ViewManagerInterface {
     // state variables
-    viewKey: ViewKey = ViewKey.HOME;
-    modalKey: ModalKey | null = null;
+    _viewKey: ViewKey = ViewKey.HOME;
+    _modalKey: ModalKey | null = null;
     _navBarMobileOpen: boolean = true;
 
     // domain service
@@ -75,18 +76,29 @@ export class ViewManager implements ViewManagerInterface {
         this.contextMenu = new ContextMenuManager(this);
     }
 
+    get currentView() {
+        return this._viewKey;
+    }
+
+    set currentView(key: ViewKey) {
+        this._viewKey = key;
+    }
+
     get isEntityEditorOpen() {
-        return (
-            this.viewKey == ViewKey.ARTICLE_EDITOR ||
-            this.viewKey == ViewKey.DICTIONARY_EDITOR
-        );
+        return this._viewKey == ViewKey.ENTITY_EDITOR;
     }
 
     get entityType() {
-        if (this.viewKey === ViewKey.ARTICLE_EDITOR)
-            return this.entityEditor.info.entityType;
-        else if (this.viewKey === ViewKey.DICTIONARY_EDITOR) return null; // TODO
+        if (this.isEntityEditorOpen) return this.entityEditor.info.entityType;
         return null;
+    }
+
+    get currentModal() {
+        return this._modalKey;
+    }
+
+    set currentModal(key: ModalKey | null) {
+        this._modalKey = key;
     }
 
     get navBarMobileOpen() {
@@ -118,57 +130,67 @@ export class ViewManager implements ViewManagerInterface {
 
     openHome() {
         this.cleanUp(ViewKey.HOME);
-        this.viewKey = ViewKey.HOME;
+        this._viewKey = ViewKey.HOME;
     }
 
     openSettings() {
         this.cleanUp(ViewKey.SETTINGS);
-        this.viewKey = ViewKey.SETTINGS;
+        this._viewKey = ViewKey.SETTINGS;
     }
 
     openProjectCreator() {
         this.projectCreator.initialize();
-        this.modalKey = ModalKey.PROJECT_CREATOR;
+        this._modalKey = ModalKey.PROJECT_CREATOR;
     }
 
     openArticleCreator(entityType: EntityType | undefined = undefined) {
         this.articleCreator.initialize(entityType);
-        this.modalKey = ModalKey.ARTICLE_CREATOR;
+        this._modalKey = ModalKey.ARTICLE_CREATOR;
     }
 
-    openArticleEditor(article: ArticleResponse<BaseEntity>) {
-        if (
-            this.viewKey == ViewKey.ARTICLE_EDITOR &&
-            this.entityEditor.info.id == article.id
-        )
-            return; // the article is already open
+    _openArticleEditor(article: ArticleResponse<BaseEntity>) {
+        // save any unsynced data before opening another view
+        this.cleanUp(ViewKey.ENTITY_EDITOR);
 
-        // save any unsynced data before opening another article
-        this.cleanUp(ViewKey.ARTICLE_EDITOR);
-
-        this.entityEditor.initialize(article);
+        this.entityEditor.initializeArticleEditor(article);
         this.navigation.files.openArticleNode(article.id);
-        this.viewKey = ViewKey.ARTICLE_EDITOR;
+        this._viewKey = ViewKey.ENTITY_EDITOR;
     }
 
-    async openArticleEditorForId(id: number) {
+    async openArticleEditor(id: number) {
         if (
-            this.viewKey == ViewKey.ARTICLE_EDITOR &&
+            this.entityEditor.isArticleEditorOpen &&
             this.entityEditor.info.id == id
         )
             return; // the article is already open
 
         const article = await this.domain.articles.get(id);
-        if (article) this.openArticleEditor(article);
+        if (article) this._openArticleEditor(article);
+    }
+
+    async openWordEditor(id: number) {
+        if (
+            this.entityEditor.isWordEditorOpen &&
+            this.entityEditor.info.id == id
+        )
+            return; // the word editor is already open
+
+        // save any unsynced data before opening another view
+        this.cleanUp(ViewKey.ENTITY_EDITOR);
+
+        const article = this.domain.articles.getInfo(id);
+        this.entityEditor.initializeWordEditor(id, article.title);
+        this.navigation.files.openArticleNode(id);
+        this._viewKey = ViewKey.ENTITY_EDITOR;
     }
 
     closeModal() {
-        this.modalKey = null;
+        this._modalKey = null;
     }
 
     async createProject(name: string, dbFilePath: string) {
         // save any unsynced data before loading a new project
-        this.cleanUp(this.viewKey);
+        this.cleanUp(this._viewKey);
 
         const response = await this.domain.session.createProject(
             name,
@@ -188,7 +210,7 @@ export class ViewManager implements ViewManagerInterface {
         const path = await open();
         if (!path) return null;
         // save any unsynced data before loading another project
-        this.cleanUp(this.viewKey);
+        this.cleanUp(this._viewKey);
 
         const response = await this.domain.session.loadProject(path);
         if (response) {
@@ -201,7 +223,7 @@ export class ViewManager implements ViewManagerInterface {
 
     async closeProject() {
         // save any unsynced data before closing the project
-        this.cleanUp(this.viewKey);
+        this.cleanUp(this._viewKey);
 
         const success = await this.domain.session.closeProject();
         if (success) {
@@ -240,7 +262,7 @@ export class ViewManager implements ViewManagerInterface {
             this.navigation.files.deleteArticleNode(articleId);
 
         if (
-            this.viewKey == ViewKey.ARTICLE_EDITOR &&
+            this._viewKey == ViewKey.ENTITY_EDITOR &&
             fileIds.articles.includes(this.entityEditor.info.id)
         ) {
             // currently-open article has been deleted
@@ -257,7 +279,7 @@ export class ViewManager implements ViewManagerInterface {
         if (article) {
             this.closeModal();
             this.navigation.files.addNodeForCreatedArticle(article);
-            this.openArticleEditor(article);
+            this._openArticleEditor(article);
         }
         return article;
     }
@@ -271,6 +293,10 @@ export class ViewManager implements ViewManagerInterface {
             this.navigation.files.updateArticleNodeText(id, title);
 
         return response;
+    }
+
+    async updateLexicon(updates: WordUpsert[]) {
+        return await this.domain.words.bulkUpsert(updates);
     }
 
     async deleteEntity(id: number, confirm: boolean = true) {
@@ -294,7 +320,7 @@ export class ViewManager implements ViewManagerInterface {
             return false;
 
         if (
-            this.viewKey == ViewKey.ARTICLE_EDITOR &&
+            this._viewKey == ViewKey.ENTITY_EDITOR &&
             this.entityEditor.info.id == id
         ) {
             // deleted article is currently open
@@ -307,9 +333,9 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     cleanUp(newViewKey: ViewKey | null = null) {
-        if (this.modalKey) this.closeModal();
+        if (this._modalKey) this.closeModal();
 
-        if (this.viewKey == ViewKey.ARTICLE_EDITOR) this.entityEditor.cleanUp();
+        if (this._viewKey == ViewKey.ENTITY_EDITOR) this.entityEditor.cleanUp();
 
         if (
             this.isEntityEditorOpen &&

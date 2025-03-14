@@ -13,7 +13,7 @@ pub async fn create_folder(
     info: FolderCreateSchema,
 ) -> Result<FolderResponseSchema, ApiError> {
     let state = state.lock().await;
-    folder_service::create(util::get_database(&state)?, &info).await
+    folder_service::create(util::get_database(&state)?, info).await
 }
 
 #[tauri::command]
@@ -22,7 +22,7 @@ pub async fn update_folder(
     folder: FolderUpdateSchema,
 ) -> Result<FolderResponseSchema, ApiError> {
     let state = state.lock().await;
-    folder_service::update(util::get_database(&state)?, &folder).await
+    folder_service::update(util::get_database(&state)?, folder).await
 }
 
 #[tauri::command(rename_all = "snake_case")]

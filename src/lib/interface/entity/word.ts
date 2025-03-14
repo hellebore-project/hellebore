@@ -1,4 +1,4 @@
-import { IdentifiedObject } from "../common";
+import { Id, IdentifiedObject } from "../common";
 
 export enum WordType {
     None = 0,
@@ -54,23 +54,22 @@ export enum VerbTense {
     Future = 21,
 }
 
-interface _BaseWordInfo {
+export interface WordInfo {
     language_id: number;
     word_type: WordType;
-    spelling: string;
 }
 
-type _BaseIdentifiedWordInfo = IdentifiedObject & _BaseWordInfo;
+export interface WordProperties {
+    spelling: string;
+    number: GrammaticalNumber;
+    person: GrammaticalPerson;
+    gender: GrammaticalGender;
+    verb_form: VerbForm;
+    verb_tense: VerbTense;
+    translations: string[];
+}
 
-// Interfaces for creating words
-
-export type WordCreate = _BaseWordInfo;
-
-// Interfaces for updating words
-
-export interface WordUpdate extends IdentifiedObject {
-    language_id: number | null;
-    word_type: WordType | null;
+export interface OptionalWordProperties {
     spelling: string | null;
     number: GrammaticalNumber | null;
     person: GrammaticalPerson | null;
@@ -80,18 +79,22 @@ export interface WordUpdate extends IdentifiedObject {
     translations: string[] | null;
 }
 
-export interface WordUpdateResponse extends WordUpdate {}
+type IdentifiedWordInfo = IdentifiedObject & WordInfo;
 
-// Interfaces for creating and fetching words
+// Interfaces for creating and updating words
 
-export interface WordInfoResponse extends _BaseIdentifiedWordInfo {
-    translations: string[];
+export type WordCreate = WordInfo & OptionalWordProperties;
+
+export type WordUpdate = IdentifiedWordInfo & WordCreate;
+
+export interface WordUpsert extends WordCreate {
+    id: Id | null;
 }
 
-export interface WordResponse extends WordInfoResponse {
-    number: GrammaticalNumber;
-    person: GrammaticalPerson;
-    gender: GrammaticalGender;
-    verb_form: VerbForm;
-    verb_tense: VerbTense;
+export interface WordUpsertResponse extends WordUpsert {
+    created: boolean;
+    updated: boolean;
 }
+
+// Interfaces for fetching words
+export type WordResponse = IdentifiedWordInfo & WordProperties;

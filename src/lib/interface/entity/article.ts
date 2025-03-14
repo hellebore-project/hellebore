@@ -27,11 +27,11 @@ export interface ArticleUpdate<E extends BaseEntity> extends ArticleInfoUpdate {
 }
 
 export interface ArticleUpdateResponse extends ArticleInfoUpdate {
-    folderChange: ValueChange;
+    folderChanged: boolean;
     isTitleUnique?: boolean;
-    titleChange: ValueChange;
-    entityChange: ValueChange;
-    bodyChange: ValueChange;
+    titleChanged: boolean;
+    propertiesChanged: boolean;
+    textChanged: boolean;
 }
 
 // Interfaces for creating and fetching articles

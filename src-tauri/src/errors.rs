@@ -20,11 +20,6 @@ pub enum ApiError {
         msg: String,
         entity: EntityType,
     },
-    FieldNotUpdated {
-        msg: String,
-        entity: EntityType,
-        field: String,
-    },
     NotFound {
         msg: String,
         entity: EntityType,
@@ -37,7 +32,19 @@ pub enum ApiError {
         msg: String,
         entity: EntityType,
     },
+    FieldNotUpdated {
+        msg: String,
+        entity: EntityType,
+        key: String,
+    },
     FieldNotUnique {
+        entity: EntityType,
+        id: Option<i32>,
+        key: String,
+        value: String,
+    },
+    FieldInvalid {
+        msg: String,
         entity: EntityType,
         id: Option<i32>,
         key: String,
@@ -75,14 +82,6 @@ impl ApiError {
         };
     }
 
-    pub fn field_not_updated<M: ToString>(msg: M, entity: EntityType, field: String) -> ApiError {
-        return ApiError::FieldNotUpdated {
-            msg: msg.to_string(),
-            entity,
-            field,
-        };
-    }
-
     pub fn not_found<M: ToString>(msg: M, entity: EntityType) -> ApiError {
         return ApiError::NotFound {
             msg: msg.to_string(),
@@ -104,6 +103,14 @@ impl ApiError {
         };
     }
 
+    pub fn field_not_updated<M: ToString>(msg: M, entity: EntityType, key: String) -> ApiError {
+        return ApiError::FieldNotUpdated {
+            msg: msg.to_string(),
+            entity,
+            key,
+        };
+    }
+
     pub fn field_not_unique<V: ToString>(
         entity: EntityType,
         id: Option<i32>,
@@ -111,6 +118,22 @@ impl ApiError {
         value: V,
     ) -> ApiError {
         return ApiError::FieldNotUnique {
+            entity,
+            id,
+            key: key.to_string(),
+            value: value.to_string(),
+        };
+    }
+
+    pub fn field_invalid<M: ToString, V: ToString>(
+        msg: M,
+        entity: EntityType,
+        id: Option<i32>,
+        key: &str,
+        value: V,
+    ) -> ApiError {
+        return ApiError::FieldInvalid {
+            msg: msg.to_string(),
             entity,
             id,
             key: key.to_string(),

@@ -6,7 +6,7 @@ import { EntityEditor, Home, SettingsEditor } from "./views";
 
 function renderCenter() {
     const service = getService();
-    const viewKey = service.view.viewKey;
+    const viewKey = service.view.currentView;
     if (service.view.isEntityEditorOpen) return <EntityEditor />;
     if (viewKey === ViewKey.SETTINGS) return <SettingsEditor />;
     return <Home />;

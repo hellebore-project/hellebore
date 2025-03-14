@@ -5,6 +5,10 @@ export class Counter {
         this._index = start;
     }
 
+    get index() {
+        return this._index;
+    }
+
     increment() {
         this._index++;
         return this._index;

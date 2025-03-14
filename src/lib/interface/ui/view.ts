@@ -1,8 +1,16 @@
 export enum ViewKey {
     HOME = "HOME",
     SETTINGS = "SETTINGS",
+    ENTITY_EDITOR = "ENTITY_EDITOR",
+}
+
+export enum EntityViewKey {
     ARTICLE_EDITOR = "ARTICLE_EDITOR",
-    DICTIONARY_EDITOR = "DICTIONARY_EDITOR",
+    WORD_EDITOR = "WORD_EDITOR",
+}
+
+export enum WordViewKey {
+    ROOT_WORDS = "ROOT_WORDS",
 }
 
 export enum ModalKey {

@@ -94,7 +94,7 @@ export class ArticleManager {
         const updateResponse = this._buildUpdateResponse(payload, response);
 
         if (
-            updateResponse.folderChange &&
+            updateResponse.folderChanged &&
             updateResponse.folder_id !== null &&
             oldFolderId !== null
         ) {
@@ -107,7 +107,7 @@ export class ArticleManager {
             );
         }
         if (
-            updateResponse.titleChange == ValueChange.UPDATED &&
+            updateResponse.titleChanged == true &&
             updateResponse.title &&
             updateResponse.isTitleUnique
         )
@@ -123,27 +123,15 @@ export class ArticleManager {
         const cleanResponse: ArticleUpdateResponse = {
             id: articleUpdate.id,
             folder_id: articleUpdate.folder_id,
-            folderChange:
-                articleUpdate.folder_id == null
-                    ? ValueChange.NOT_SET
-                    : ValueChange.UPDATED,
+            folderChanged: articleUpdate.folder_id != null,
             entity_type: articleUpdate.entity_type,
             title: articleUpdate.title,
-            titleChange:
-                articleUpdate.title == null
-                    ? ValueChange.NOT_SET
-                    : ValueChange.UPDATED,
-            entityChange:
-                articleUpdate.entity == null
-                    ? ValueChange.NOT_SET
-                    : ValueChange.UPDATED,
-            bodyChange:
-                articleUpdate.body == null
-                    ? ValueChange.NOT_SET
-                    : ValueChange.UPDATED,
+            titleChanged: articleUpdate.title != null,
+            propertiesChanged: articleUpdate.entity != null,
+            textChanged: articleUpdate.body != null,
         };
 
-        if (cleanResponse.titleChange == ValueChange.UPDATED)
+        if (cleanResponse.titleChanged == true)
             cleanResponse.isTitleUnique = true;
 
         for (let error of response.errors) {

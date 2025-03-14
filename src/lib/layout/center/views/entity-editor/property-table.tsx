@@ -2,20 +2,25 @@ import { Card, CardProps, Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { FieldData, FieldType } from "@/interface";
-import { TextField } from "./text-field";
+import { TextField } from "../../../../shared/text-field";
 
-interface FieldSettings extends FieldData {}
+interface PropertyFieldSettings extends FieldData {}
 
-interface FieldRowSettings {
+interface PropertyRowSettings {
     data: FieldData;
 }
 
-interface FieldTableSettings extends CardProps {
+interface PropertyTableSettings extends CardProps {
     getData: () => FieldData[];
     stack?: StackProps;
 }
 
-function renderField({ label, type, getValue, setValue }: FieldSettings) {
+function renderPropertyField({
+    label,
+    type,
+    getValue,
+    setValue,
+}: PropertyFieldSettings) {
     if (type == FieldType.TEXT) {
         return (
             <TextField
@@ -29,24 +34,28 @@ function renderField({ label, type, getValue, setValue }: FieldSettings) {
     return "";
 }
 
-const Field = observer(renderField);
+const PropertyField = observer(renderPropertyField);
 
-function renderFieldRow({ data }: FieldRowSettings) {
+function renderPropertyFieldRow({ data }: PropertyRowSettings) {
     return (
         <Grid justify="flex-start" align="center">
             <Grid.Col span={3}>{data.label}</Grid.Col>
             <Grid.Col span={9}>
-                <Field {...data} />
+                <PropertyField {...data} />
             </Grid.Col>
         </Grid>
     );
 }
 
-const FieldRow = observer(renderFieldRow);
+const PropertyFieldRow = observer(renderPropertyFieldRow);
 
-function renderFieldTable({ getData, stack, ...rest }: FieldTableSettings) {
+function renderPropertyTable({
+    getData,
+    stack,
+    ...rest
+}: PropertyTableSettings) {
     const rows = getData().map((fieldData) => (
-        <FieldRow key={`${fieldData.property}-row`} data={fieldData} />
+        <PropertyFieldRow key={`${fieldData.property}-row`} data={fieldData} />
     ));
     if (rows.length == 0) return null;
     return (
@@ -58,4 +67,4 @@ function renderFieldTable({ getData, stack, ...rest }: FieldTableSettings) {
     );
 }
 
-export const FieldTable = observer(renderFieldTable);
+export const PropertyTable = observer(renderPropertyTable);

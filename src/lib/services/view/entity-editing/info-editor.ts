@@ -4,7 +4,7 @@ import { ENTITY_TYPE_LABELS, EntityType } from "@/interface";
 
 const ARTICLE_ID_SENTINEL = -1;
 
-export class ArticleInfoEditor {
+export class EntityInfoEditor {
     _id: number = ARTICLE_ID_SENTINEL;
     _entityType: EntityType | null = null;
     _title: string = "";
