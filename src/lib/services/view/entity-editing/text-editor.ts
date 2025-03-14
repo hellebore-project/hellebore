@@ -4,17 +4,15 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { Suggestion } from "@/interface";
+import { EntityChangeHandler, Suggestion } from "@/interface";
 import { useReferenceExtension } from "@/shared/rich-text-editor";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
 
-type ChangeHandler = () => void;
-
 interface ArticleTextEditorSettings {
     view: ViewManagerInterface;
     info: EntityInfoEditor;
-    onChange: ChangeHandler;
+    onChange: EntityChangeHandler;
 }
 
 export class ArticleTextEditor {
@@ -25,7 +23,7 @@ export class ArticleTextEditor {
     view: ViewManagerInterface;
     info: EntityInfoEditor;
 
-    onChange: ChangeHandler;
+    onChange: EntityChangeHandler;
 
     constructor({ view, info, onChange }: ArticleTextEditorSettings) {
         makeAutoObservable(this, {

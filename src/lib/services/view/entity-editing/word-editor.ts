@@ -10,33 +10,40 @@ import {
     WordResponse,
     WordData,
     WordType,
-    WordUpsertResponse,
-    Id,
+    EntityChangeHandler,
 } from "@/interface";
 import { compareStrings } from "@/utils/string";
 import { Counter } from "@/utils/counter";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
 
-type AdditionalKeys = "_modifiedWordKeys" | "_wordKeyGenerator";
+type AdditionalKeys = "_modifiedWordKeys" | "_wordKeyGenerator" | "_onChange";
+
+interface WordEditorSettings {
+    view: ViewManagerInterface;
+    info: EntityInfoEditor;
+    onChange: EntityChangeHandler;
+}
 
 export class WordEditor {
     private _wordType: WordType | null = null;
     private _words: { [key: WordKey]: WordData };
     private _filteredWordKeys: WordKey[];
     private _modifiedWordKeys: Set<WordKey>;
-    private _changed: boolean = false;
     private _wordKeyGenerator: Counter;
+    private _changed: boolean = false;
+    private _onChange: EntityChangeHandler;
 
     view: ViewManagerInterface;
     info: EntityInfoEditor;
 
-    constructor(view: ViewManagerInterface, info: EntityInfoEditor) {
+    constructor({ view, info, onChange }: WordEditorSettings) {
         makeAutoObservable<WordEditor, AdditionalKeys>(this, {
-            view: false,
-            info: false,
             _modifiedWordKeys: false,
             _wordKeyGenerator: false,
+            _onChange: false,
+            view: false,
+            info: false,
         });
 
         this._words = {};
@@ -46,6 +53,7 @@ export class WordEditor {
 
         this.view = view;
         this.info = info;
+        this._onChange = onChange;
     }
 
     get languageId() {
@@ -86,18 +94,16 @@ export class WordEditor {
 
     setSpelling(key: WordKey, spelling: string) {
         this._words[key].spelling = spelling;
-        if (key == this.newKey && spelling) this._addNewWordRow();
+        if (spelling) this._onChangeWord(key);
     }
 
     getTranslations(key: WordKey) {
-        return this._words[key].translations.join(", ");
+        return this._words[key].rawTranslations;
     }
 
-    setTranslations(key: WordKey, translations: string) {
-        this._words[key].translations = translations
-            .split(/,|;/)
-            .map((s) => s.trim());
-        if (key == this.newKey && translations) this._addNewWordRow();
+    setTranslations(key: WordKey, rawTranslations: string) {
+        this._words[key].rawTranslations = rawTranslations;
+        if (rawTranslations) this._onChangeWord(key);
     }
 
     isWordHighlighted(key: WordKey) {
@@ -114,8 +120,13 @@ export class WordEditor {
 
     claimModifiedWords() {
         const modifiedWords = [];
-        for (const key in this._modifiedWordKeys)
-            modifiedWords.push(this._words[key]);
+        for (const key of this._modifiedWordKeys) {
+            const word = toJS(this._words[key]);
+            word.translations = word.rawTranslations
+                .split(/,|;/)
+                .map((s) => s.trim());
+            modifiedWords.push(word);
+        }
         this._modifiedWordKeys.clear();
         return modifiedWords;
     }
@@ -165,6 +176,7 @@ export class WordEditor {
         return {
             key: this.idToKey(word.id),
             ...word,
+            rawTranslations: word.translations?.join(", ") ?? "",
         };
     }
 
@@ -181,8 +193,16 @@ export class WordEditor {
             verb_form: VerbForm.None,
             verb_tense: VerbTense.None,
             translations: [],
+            rawTranslations: "",
         };
         this._words[newWord.key] = newWord;
         this._filteredWordKeys.push(newWord.key);
+    }
+
+    private _onChangeWord(key: WordKey) {
+        if (key == this.newKey) this._addNewWordRow();
+        this._modifiedWordKeys.add(key);
+        this._changed = true;
+        this._onChange();
     }
 }

@@ -2,6 +2,7 @@ import { makeAutoObservable, toJS } from "mobx";
 
 import {
     BaseEntity,
+    EntityChangeHandler,
     EntityType,
     FieldData,
     FieldType,
@@ -11,11 +12,10 @@ import {
 import { EntityInfoEditor } from "./info-editor";
 
 type FieldDataCollection = { [type: number]: FieldData[] };
-type ChangeHandler = () => void;
 
 interface PropertyTableEditorSettings {
     info: EntityInfoEditor;
-    onChange: ChangeHandler;
+    onChange: EntityChangeHandler;
 }
 
 export class PropertyTableEditor {
@@ -26,7 +26,7 @@ export class PropertyTableEditor {
 
     info: EntityInfoEditor;
 
-    onChange: ChangeHandler;
+    onChange: EntityChangeHandler;
 
     constructor({ info, onChange }: PropertyTableEditorSettings) {
         makeAutoObservable(this, {

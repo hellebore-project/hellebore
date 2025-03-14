@@ -11,8 +11,6 @@ import {
     WordType,
     Id,
     WordUpsertResponse,
-    WordUpsert,
-    WordKey,
     WordData,
 } from "@/interface";
 import { ArticleUpdateArguments } from "@/services/domain";
@@ -86,16 +84,18 @@ export class EntityEditor {
 
         this.view = view;
         this.info = new EntityInfoEditor();
+
+        const onChange = () => this._onChange();
         this.properties = new PropertyTableEditor({
             info: this.info,
-            onChange: () => this._onChange(),
+            onChange,
         });
         this.articleText = new ArticleTextEditor({
             view: view,
             info: this.info,
-            onChange: () => this._onChange(),
+            onChange,
         });
-        this.lexicon = new WordEditor(view, this.info);
+        this.lexicon = new WordEditor({ view, info: this.info, onChange });
     }
 
     get currentView() {
@@ -131,8 +131,6 @@ export class EntityEditor {
             this.info.title = title;
             this.sync({
                 syncTitle: true,
-                syncProperties: false,
-                syncArticleText: false,
             });
         }
     }
@@ -159,6 +157,7 @@ export class EntityEditor {
             syncTitle: true,
             syncProperties: true,
             syncArticleText: true,
+            syncLexicon: true,
         });
     }
 
@@ -250,6 +249,8 @@ export class EntityEditor {
         // the waiting-for-sync flag is set to false to permit the creation of a delayed sync event
         this._waitingForSync = false;
 
+        console.log(this);
+        console.log(request);
         return this._sync(request).then((response) => {
             this._syncing = false;
             if (!response) return false;
@@ -336,6 +337,7 @@ export class EntityEditor {
                 syncTitle: true,
                 syncProperties: true,
                 syncArticleText: true,
+                syncLexicon: true,
             }).then(() => (this._waitingForSync = false));
         }
     }
