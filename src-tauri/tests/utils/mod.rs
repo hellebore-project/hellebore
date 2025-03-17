@@ -1,12 +1,16 @@
-use hellebore::{app, settings, state::State};
+use hellebore::schema::article::ArticleResponseSchema;
 
-pub async fn setup() -> State {
-    let settings = settings::Settings {
-        data_dir_path: String::from(""),
-        database: settings::DatabaseSettings {
-            file_path: Some(String::from("")),
-            in_memory: true,
-        },
-    };
-    return app::setup(settings).await.unwrap();
+pub fn validate_article_response<T>(
+    response: &ArticleResponseSchema<T>,
+    id: Option<i32>,
+    folder_id: i32,
+    title: &str,
+    text: &str,
+) {
+    if id.is_some() {
+        assert_eq!(id.unwrap(), response.id);
+    }
+    assert_eq!(folder_id, response.folder_id);
+    assert_eq!(title, response.title);
+    assert_eq!(text, response.body);
 }
