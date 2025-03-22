@@ -17,9 +17,10 @@ pub async fn create(
     database: &DatabaseConnection,
     article: ArticleCreateSchema<PersonDataSchema>,
 ) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
-    let _article = article_manager::insert(&database, article.folder_id, &article.title, PERSON)
-        .await
-        .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
+    let _article =
+        article_manager::insert(&database, article.folder_id, &article.title, PERSON, "")
+            .await
+            .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
     return match person_manager::insert(&database, _article.id, &article.data.name).await {
         Ok(entity) => Ok(generate_response(_article, entity)),
         Err(e) => Err(ApiError::not_inserted(e, PERSON)),

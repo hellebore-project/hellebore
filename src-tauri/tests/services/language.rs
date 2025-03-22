@@ -52,7 +52,7 @@ fn update_payload() -> ArticleUpdateSchema<LanguageDataSchema> {
 
 #[rstest]
 #[tokio::test]
-async fn create_language(
+async fn test_create_language(
     settings: &Settings,
     folder_id: i32,
     name: String,
@@ -67,7 +67,19 @@ async fn create_language(
 
 #[rstest]
 #[tokio::test]
-async fn update_language(
+async fn test_error_on_creating_duplicate_language(
+    settings: &Settings,
+    create_payload: ArticleCreateSchema<LanguageDataSchema>,
+) {
+    let database = database(settings).await;
+    let _ = language_service::create(&database, create_payload.clone()).await;
+    let response = language_service::create(&database, create_payload).await;
+    assert!(response.is_err());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_update_language(
     settings: &Settings,
     folder_id: i32,
     create_payload: ArticleCreateSchema<LanguageDataSchema>,
@@ -94,7 +106,19 @@ async fn update_language(
 
 #[rstest]
 #[tokio::test]
-async fn get_language(
+async fn test_error_on_updating_nonexistent_language(
+    settings: &Settings,
+    update_payload: ArticleUpdateSchema<LanguageDataSchema>,
+) {
+    let database = database(settings).await;
+    let response = language_service::update(&database, update_payload).await;
+    assert!(response.is_ok());
+    assert!(!response.unwrap().errors.is_empty());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_get_language(
     settings: &Settings,
     folder_id: i32,
     name: String,
@@ -113,7 +137,15 @@ async fn get_language(
 
 #[rstest]
 #[tokio::test]
-async fn delete_language(
+async fn test_error_on_getting_nonexistent_language(settings: &Settings) {
+    let database = database(settings).await;
+    let response = language_service::get(&database, 0).await;
+    assert!(response.is_err());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_delete_language(
     settings: &Settings,
     create_payload: ArticleCreateSchema<LanguageDataSchema>,
 ) {
@@ -122,10 +154,18 @@ async fn delete_language(
         .await
         .unwrap();
 
-    let result = language_service::delete(&database, article.id).await;
+    let response = language_service::delete(&database, article.id).await;
 
-    assert!(result.is_ok());
+    assert!(response.is_ok());
 
     let article = language_service::get(&database, article.id).await;
     assert!(article.is_err());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_error_on_deleting_nonexistent_language(settings: &Settings) {
+    let database = database(settings).await;
+    let response = language_service::delete(&database, 0).await;
+    assert!(response.is_err());
 }

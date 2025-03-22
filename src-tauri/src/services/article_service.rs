@@ -15,7 +15,7 @@ pub async fn update(
     id: i32,
     folder_id: Option<i32>,
     title: Option<String>,
-    body: Option<String>,
+    text: Option<String>,
 ) -> Result<ResponseDiagnosticsSchema<()>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
 
@@ -45,7 +45,7 @@ pub async fn update(
         };
     }
 
-    match article_manager::update(database, id, folder_id, title, body).await {
+    match article_manager::update(database, id, folder_id, title, text).await {
         Ok(_) => (),
         Err(e) => errors.push(ApiError::not_updated(e, ARTICLE)),
     };

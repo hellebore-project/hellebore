@@ -3,6 +3,7 @@ use sea_orm::DatabaseConnection;
 
 use hellebore::{
     database::database_manager,
+    schema::folder::FolderCreateSchema,
     settings::{DatabaseSettings, Settings},
 };
 
@@ -29,6 +30,19 @@ pub async fn database(settings: &Settings) -> DatabaseConnection {
 #[fixture]
 pub fn folder_id() -> i32 {
     return -1;
+}
+
+#[fixture]
+pub fn folder_name() -> String {
+    return "folder".to_owned();
+}
+
+#[fixture]
+pub fn folder_create_payload(folder_name: String) -> FolderCreateSchema {
+    FolderCreateSchema {
+        parent_id: -1,
+        name: folder_name,
+    }
 }
 
 #[fixture]

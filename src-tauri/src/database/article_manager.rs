@@ -18,6 +18,7 @@ pub async fn insert(
     folder_id: i32,
     title: &str,
     entity_type: EntityType,
+    text: &str,
 ) -> Result<article::Model, DbErr> {
     let new_entity = article::ActiveModel {
         id: NotSet,
@@ -26,7 +27,7 @@ pub async fn insert(
         )),
         title: Set(title.to_string()),
         entity_type: Set(entity_type.code()),
-        body: Set(String::from("")),
+        body: Set(text.to_owned()),
     };
     match new_entity.insert(db).await {
         Ok(created_entity) => created_entity.try_into_model(),
