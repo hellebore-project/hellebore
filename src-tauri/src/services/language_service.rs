@@ -61,9 +61,8 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
 }
 
 fn generate_response(article: Article) -> ArticleResponseSchema<LanguageDataSchema> {
-    return article_service::generate_article_response(
+    return article_service::generate_response(
         &article,
-        LANGUAGE,
         LanguageDataSchema {
             name: article.title.to_string(),
         },

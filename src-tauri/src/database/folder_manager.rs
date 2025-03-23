@@ -3,6 +3,8 @@ use sea_orm::*;
 
 use crate::database::util;
 
+static NO_FOLDER_SENTINEL: i32 = -1;
+
 pub async fn insert(db: &DbConn, parent_id: i32, name: &str) -> Result<folder::Model, DbErr> {
     let new_entity = folder::ActiveModel {
         id: NotSet,
@@ -74,24 +76,34 @@ pub async fn delete_many(db: &DbConn, ids: Vec<i32>) -> Result<DeleteResult, DbE
         .await
 }
 
+/// Convert a mandatory folder ID API argument into its database representation.
+/// If `id` is a positive integer, then it is returned as is.
+/// Otherwise, if `id` is a negative integer, then `None` is returned.
 pub fn convert_folder_id_sentinel_to_none(id: i32) -> Option<i32> {
-    if id >= 0 {
-        Some(id)
+    if id > NO_FOLDER_SENTINEL {
+        Some(id) // ID of existing folder
     } else {
-        None
+        None // no folder ID
     }
 }
 
-pub fn convert_null_folder_id_to_sentinel(id: Option<i32>) -> i32 {
-    match id {
-        Some(i) => i,
-        None => -1,
-    }
-}
-
+/// Convert an optional folder ID API argument into a stateful database value.
+/// If `id` is a positive integer, then it is set in the database as is.
+/// If `id` is a negative integer, then `None` is set in the database.
+/// If `id` is `None`, then the value is not set in the database.
 pub fn convert_optional_folder_id_to_active_value(id: Option<i32>) -> ActiveValue<Option<i32>> {
     match id {
-        Some(v) => ActiveValue::Set(convert_folder_id_sentinel_to_none(v)),
-        None => ActiveValue::NotSet,
+        Some(id) => ActiveValue::Set(convert_folder_id_sentinel_to_none(id)), // value is set in the DB
+        None => ActiveValue::NotSet, // no value is set in the DB
+    }
+}
+
+/// Convert the database representation of a folder ID into an API response value.
+/// If `id` is an integer, then it is returned as is. Otherwise, if `is` is `None`,
+/// then the no-folder sentinel value is returned,
+pub fn convert_null_folder_id_to_sentinel(id: Option<i32>) -> i32 {
+    match id {
+        Some(i) => i, // expect to be a positive integer
+        None => NO_FOLDER_SENTINEL,
     }
 }

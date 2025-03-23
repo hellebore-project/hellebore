@@ -114,7 +114,7 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
         .map_err(|e| ApiError::not_deleted(e, ARTICLE))
 }
 
-fn generate_info_response(item: &article_manager::ArticleItem) -> ArticleInfoSchema {
+pub fn generate_info_response(item: &article_manager::ArticleItem) -> ArticleInfoSchema {
     return ArticleInfoSchema {
         id: item.id,
         folder_id: folder_manager::convert_null_folder_id_to_sentinel(item.folder_id),
@@ -123,15 +123,11 @@ fn generate_info_response(item: &article_manager::ArticleItem) -> ArticleInfoSch
     };
 }
 
-pub fn generate_article_response<E>(
-    article: &Article,
-    entity_type: EntityType,
-    entity: E,
-) -> ArticleResponseSchema<E> {
+pub fn generate_response<E>(article: &Article, entity: E) -> ArticleResponseSchema<E> {
     ArticleResponseSchema {
         id: article.id,
         folder_id: folder_manager::convert_null_folder_id_to_sentinel(article.folder_id),
-        entity_type,
+        entity_type: EntityType::from(article.entity_type),
         title: article.title.to_string(),
         entity: Some(entity),
         body: article.body.to_string(),
