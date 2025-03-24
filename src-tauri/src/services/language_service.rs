@@ -1,7 +1,5 @@
 use sea_orm::DatabaseConnection;
 
-use ::entity::article::Model as Article;
-
 use crate::database::{article_manager, language_manager, word_manager};
 use crate::errors::ApiError;
 use crate::schema::{
@@ -60,7 +58,9 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     return Ok(());
 }
 
-fn generate_response(article: Article) -> ArticleResponseSchema<LanguageDataSchema> {
+fn generate_response(
+    article: article_manager::Article,
+) -> ArticleResponseSchema<LanguageDataSchema> {
     return article_service::generate_response(
         &article,
         LanguageDataSchema {

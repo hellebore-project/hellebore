@@ -1,6 +1,5 @@
 use sea_orm::DatabaseConnection;
 
-use ::entity::article::Model as Article;
 use ::entity::person::Model as Person;
 
 use crate::database::{article_manager, person_manager};
@@ -73,6 +72,9 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     return Ok(());
 }
 
-fn generate_response(article: Article, entity: Person) -> ArticleResponseSchema<PersonDataSchema> {
+fn generate_response(
+    article: article_manager::Article,
+    entity: Person,
+) -> ArticleResponseSchema<PersonDataSchema> {
     return article_service::generate_response(&article, PersonDataSchema { name: entity.name });
 }

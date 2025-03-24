@@ -1,4 +1,3 @@
-use ::entity::article::Model as Article;
 use hellebore::{
     database::article_manager,
     schema::{
@@ -14,7 +13,13 @@ use rstest::*;
 use crate::fixtures::{article_text, database, folder_create_payload, folder_id, settings};
 use crate::utils::validate_article_response;
 
-fn validate_model(article: &Article, id: Option<i32>, folder_id: i32, title: &str, text: &str) {
+fn validate_model(
+    article: &article_manager::Article,
+    id: Option<i32>,
+    folder_id: i32,
+    title: &str,
+    text: &str,
+) {
     let response = article_service::generate_response(article, 0);
     validate_article_response(&response, id, folder_id, title, text);
 }

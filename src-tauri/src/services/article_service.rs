@@ -1,8 +1,6 @@
 use sea_orm::DatabaseConnection;
 
-use ::entity::article::Model as Article;
-
-use crate::database::{article_manager, folder_manager};
+use crate::database::article_manager;
 use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleInfoSchema, ArticleResponseSchema},
@@ -76,7 +74,10 @@ pub async fn validate_title(
     });
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<Article, ApiError> {
+pub async fn get(
+    database: &DatabaseConnection,
+    id: i32,
+) -> Result<article_manager::Article, ApiError> {
     let article = article_manager::get(database, id)
         .await
         .map_err(|e| ApiError::not_found(e, ARTICLE))?;
@@ -114,19 +115,22 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
         .map_err(|e| ApiError::not_deleted(e, ARTICLE))
 }
 
-pub fn generate_info_response(item: &article_manager::ArticleItem) -> ArticleInfoSchema {
+pub fn generate_info_response(info: &article_manager::ArticleInfo) -> ArticleInfoSchema {
     return ArticleInfoSchema {
-        id: item.id,
-        folder_id: folder_manager::convert_null_folder_id_to_sentinel(item.folder_id),
-        title: item.title.to_string(),
-        entity_type: EntityType::from(item.entity_type),
+        id: info.id,
+        folder_id: info.folder_id(),
+        title: info.title.to_string(),
+        entity_type: EntityType::from(info.entity_type),
     };
 }
 
-pub fn generate_response<E>(article: &Article, entity: E) -> ArticleResponseSchema<E> {
+pub fn generate_response<E>(
+    article: &article_manager::Article,
+    entity: E,
+) -> ArticleResponseSchema<E> {
     ArticleResponseSchema {
         id: article.id,
-        folder_id: folder_manager::convert_null_folder_id_to_sentinel(article.folder_id),
+        folder_id: article.folder_id(),
         entity_type: EntityType::from(article.entity_type),
         title: article.title.to_string(),
         entity: Some(entity),
