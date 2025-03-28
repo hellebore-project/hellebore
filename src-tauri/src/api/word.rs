@@ -1,4 +1,4 @@
-use crate::api::util;
+use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
     response::ResponseDiagnosticsSchema,
@@ -14,7 +14,7 @@ pub async fn create_word(
     word: WordUpdateSchema,
 ) -> Result<WordResponseSchema, ApiError> {
     let state = state.lock().await;
-    word_service::create(util::get_database(&state)?, word).await
+    word_service::create(utils::get_database(&state)?, word).await
 }
 
 #[tauri::command]
@@ -23,7 +23,7 @@ pub async fn update_word(
     word: WordUpdateSchema,
 ) -> Result<ResponseDiagnosticsSchema<Option<i32>>, ApiError> {
     let state = state.lock().await;
-    word_service::update(util::get_database(&state)?, word).await
+    word_service::update(utils::get_database(&state)?, word).await
 }
 
 #[tauri::command]
@@ -32,7 +32,7 @@ pub async fn upsert_words(
     words: Vec<WordUpdateSchema>,
 ) -> Result<Vec<ResponseDiagnosticsSchema<Option<i32>>>, ApiError> {
     let state = state.lock().await;
-    word_service::bulk_upsert(util::get_database(&state)?, words).await
+    word_service::bulk_upsert(utils::get_database(&state)?, words).await
 }
 
 #[tauri::command]
@@ -41,7 +41,7 @@ pub async fn get_word(
     id: i32,
 ) -> Result<WordResponseSchema, ApiError> {
     let state = state.lock().await;
-    word_service::get(util::get_database(&state)?, id).await
+    word_service::get(utils::get_database(&state)?, id).await
 }
 
 #[tauri::command]
@@ -51,11 +51,11 @@ pub async fn get_words(
     word_type: Option<WordType>,
 ) -> Result<Vec<WordResponseSchema>, ApiError> {
     let state = state.lock().await;
-    word_service::get_all_for_language(util::get_database(&state)?, language_id, word_type).await
+    word_service::get_all_for_language(utils::get_database(&state)?, language_id, word_type).await
 }
 
 #[tauri::command]
 pub async fn delete_word(state: tauri::State<'_, State>, id: i32) -> Result<(), ApiError> {
     let state = state.lock().await;
-    word_service::delete(util::get_database(&state)?, id).await
+    word_service::delete(utils::get_database(&state)?, id).await
 }

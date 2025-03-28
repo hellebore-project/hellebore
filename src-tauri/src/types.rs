@@ -77,6 +77,12 @@ impl CodedEnum for WordType {
     }
 }
 
+impl Default for WordType {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 impl From<i8> for WordType {
     fn from(code: i8) -> Self {
         for value in Self::iter() {

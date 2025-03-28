@@ -1,4 +1,4 @@
-use crate::api::util;
+use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::project::ProjectResponseSchema;
 use crate::services::project_service;
@@ -39,7 +39,7 @@ pub async fn update_project(
     name: &str,
 ) -> Result<ProjectResponseSchema, ApiError> {
     let state = state.lock().await;
-    project_service::update(util::get_database(&state)?, &name).await
+    project_service::update(utils::get_database(&state)?, &name).await
 }
 
 #[tauri::command]
@@ -47,7 +47,7 @@ pub async fn get_project(
     state: tauri::State<'_, State>,
 ) -> Result<ProjectResponseSchema, ApiError> {
     let state = state.lock().await;
-    match project_service::get(util::get_database(&state)?).await? {
+    match project_service::get(utils::get_database(&state)?).await? {
         Some(project) => Ok(project),
         None => Err(ApiError::not_found(
             "Project not found.".to_owned(),

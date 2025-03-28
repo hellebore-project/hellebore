@@ -3,6 +3,8 @@ use sea_orm_migration::{prelude::*, schema::*};
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
+const WORD_LANGUAGE_SPELLING_INDEX_NAME: &str = "index_word_language_id_spelling";
+
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
@@ -24,10 +26,28 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+        manager
+            .create_index(
+                Index::create()
+                    .name(WORD_LANGUAGE_SPELLING_INDEX_NAME)
+                    .table(Word::Table)
+                    .col(Word::LanguageId)
+                    .col(Word::Spelling)
+                    .unique()
+                    .to_owned(),
+            )
+            .await?;
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_foreign_key(
+                ForeignKey::drop()
+                    .name(WORD_LANGUAGE_SPELLING_INDEX_NAME)
+                    .to_owned(),
+            )
+            .await?;
         manager
             .drop_table(Table::drop().table(Word::Table).to_owned())
             .await?;

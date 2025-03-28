@@ -1,7 +1,7 @@
 use ::entity::{folder, folder::Entity as FolderEntity};
 use sea_orm::*;
 
-use crate::database::util;
+use crate::database::utils;
 
 static NO_FOLDER_SENTINEL: i32 = -1;
 
@@ -47,7 +47,7 @@ pub async fn update(
     let updated_entity = folder::ActiveModel {
         id: Unchanged(existing_entity.id),
         parent_id: convert_optional_folder_id_to_active_value(parent_id),
-        name: util::set_value_or_null(name),
+        name: utils::set_value_or_null(name),
     };
     let updated_entity = updated_entity.update(db).await?;
     Ok(Folder {

@@ -2,7 +2,7 @@ use ::entity::{article, article::Entity as ArticleEntity};
 use sea_orm::*;
 
 use crate::database::folder_manager;
-use crate::database::util;
+use crate::database::utils;
 use crate::types::{CodedEnum, EntityType};
 
 #[derive(DerivePartialModel, FromQueryResult)]
@@ -80,8 +80,8 @@ pub async fn update(
         id: Unchanged(existing_entity.id),
         folder_id: folder_manager::convert_optional_folder_id_to_active_value(folder_id),
         entity_type: NotSet,
-        title: util::set_value_or_null(title),
-        body: util::set_value_or_null(content),
+        title: utils::set_value_or_null(title),
+        body: utils::set_value_or_null(content),
     };
     updated_entity.update(db).await
 }

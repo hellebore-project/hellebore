@@ -1,4 +1,4 @@
-use crate::api::util;
+use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::session::SessionResponseSchema;
 use crate::services::session_service;
@@ -9,7 +9,7 @@ pub async fn get_session(
     state: tauri::State<'_, State>,
 ) -> Result<SessionResponseSchema, ApiError> {
     let state = state.lock().await;
-    let db = match util::get_database(&state) {
+    let db = match utils::get_database(&state) {
         Ok(db) => Some(db),
         Err(_) => None,
     };
