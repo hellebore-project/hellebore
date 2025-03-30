@@ -1,67 +1,34 @@
 use ::entity::{article, article::Entity as ArticleEntity};
 use sea_orm::*;
 
-use crate::database::folder_manager;
 use crate::database::utils;
 use crate::types::{CodedEnum, EntityType};
 
 #[derive(DerivePartialModel, FromQueryResult)]
 #[sea_orm(entity = "ArticleEntity")]
-pub struct Article {
-    pub id: i32,
-    #[sea_orm(from_col = "folder_id")]
-    _folder_id: Option<i32>,
-    pub entity_type: i8,
-    pub title: String,
-    pub body: String,
-}
-
-impl Article {
-    pub fn folder_id(&self) -> i32 {
-        folder_manager::convert_null_folder_id_to_sentinel(self._folder_id)
-    }
-}
-
-#[derive(DerivePartialModel, FromQueryResult)]
-#[sea_orm(entity = "ArticleEntity")]
 pub struct ArticleInfo {
     pub id: i32,
-    #[sea_orm(from_col = "folder_id")]
-    pub _folder_id: Option<i32>,
+    pub folder_id: i32,
     pub entity_type: i8,
     pub title: String,
-}
-
-impl ArticleInfo {
-    pub fn folder_id(&self) -> i32 {
-        folder_manager::convert_null_folder_id_to_sentinel(self._folder_id)
-    }
 }
 
 pub async fn insert(
     db: &DbConn,
     folder_id: i32,
-    title: &str,
+    title: String,
     entity_type: EntityType,
-    text: &str,
-) -> Result<Article, DbErr> {
+    text: String,
+) -> Result<article::Model, DbErr> {
     let new_entity = article::ActiveModel {
         id: NotSet,
-        folder_id: Set(folder_manager::convert_folder_id_sentinel_to_none(
-            folder_id,
-        )),
-        title: Set(title.to_string()),
+        folder_id: Set(folder_id),
+        title: Set(title),
         entity_type: Set(entity_type.code()),
-        body: Set(text.to_owned()),
+        body: Set(text),
     };
     match new_entity.insert(db).await {
-        Ok(created_entity) => Ok(Article {
-            id: created_entity.id,
-            _folder_id: created_entity.folder_id,
-            entity_type: created_entity.entity_type,
-            title: created_entity.title,
-            body: created_entity.body,
-        }),
+        Ok(created_entity) => created_entity.try_into_model(),
         Err(_e) => Err(DbErr::RecordNotInserted),
     }
 }
@@ -71,17 +38,17 @@ pub async fn update(
     id: i32,
     folder_id: Option<i32>,
     title: Option<String>,
-    content: Option<String>,
+    text: Option<String>,
 ) -> Result<article::Model, DbErr> {
     let Some(existing_entity) = get(db, id).await? else {
         return Err(DbErr::RecordNotFound("Article not found.".to_owned()));
     };
     let updated_entity = article::ActiveModel {
         id: Unchanged(existing_entity.id),
-        folder_id: folder_manager::convert_optional_folder_id_to_active_value(folder_id),
+        folder_id: utils::set_value_or_null(folder_id),
         entity_type: NotSet,
         title: utils::set_value_or_null(title),
-        body: utils::set_value_or_null(content),
+        body: utils::set_value_or_null(text),
     };
     updated_entity.update(db).await
 }
@@ -109,17 +76,13 @@ pub async fn is_title_unique_for_id(
     };
 }
 
-pub async fn get(db: &DbConn, id: i32) -> Result<Option<Article>, DbErr> {
-    ArticleEntity::find_by_id(id)
-        .into_partial_model::<Article>()
-        .one(db)
-        .await
+pub async fn get(db: &DbConn, id: i32) -> Result<Option<article::Model>, DbErr> {
+    ArticleEntity::find_by_id(id).one(db).await
 }
 
-pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<Article>, DbErr> {
+pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<article::Model>, DbErr> {
     ArticleEntity::find()
         .filter(article::Column::Title.eq(title))
-        .into_partial_model::<Article>()
         .one(db)
         .await
 }
@@ -133,7 +96,7 @@ pub async fn get_all(db: &DbConn) -> Result<Vec<ArticleInfo>, DbErr> {
 }
 
 pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-    let existing_entity = ArticleEntity::find_by_id(id).one(db).await?;
+    let existing_entity = get(db, id).await?;
     let Some(existing_entity) = existing_entity else {
         return Err(DbErr::RecordNotFound(String::from("Article not found.")));
     };

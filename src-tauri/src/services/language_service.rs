@@ -1,5 +1,7 @@
 use sea_orm::DatabaseConnection;
 
+use ::entity::article::Model as Article;
+
 use crate::database::{article_manager, language_manager, word_manager};
 use crate::errors::ApiError;
 use crate::schema::{
@@ -14,10 +16,15 @@ pub async fn create(
     database: &DatabaseConnection,
     article: ArticleCreateSchema<LanguageDataSchema>,
 ) -> Result<ArticleResponseSchema<LanguageDataSchema>, ApiError> {
-    let article =
-        article_manager::insert(&database, article.folder_id, &article.title, LANGUAGE, "")
-            .await
-            .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
+    let article = article_manager::insert(
+        &database,
+        article.folder_id,
+        article.title.to_owned(),
+        LANGUAGE,
+        "".to_owned(),
+    )
+    .await
+    .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
     return match language_manager::insert(&database, article.id).await {
         Ok(_) => Ok(generate_response(article)),
         Err(e) => Err(ApiError::not_inserted(e, LANGUAGE)),
@@ -58,9 +65,7 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
     return Ok(());
 }
 
-fn generate_response(
-    article: article_manager::Article,
-) -> ArticleResponseSchema<LanguageDataSchema> {
+fn generate_response(article: Article) -> ArticleResponseSchema<LanguageDataSchema> {
     return article_service::generate_response(
         &article,
         LanguageDataSchema {

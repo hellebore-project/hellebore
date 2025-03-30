@@ -42,8 +42,8 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_foreign_key(
-                ForeignKey::drop()
+            .drop_index(
+                Index::drop()
                     .name(WORD_LANGUAGE_SPELLING_INDEX_NAME)
                     .to_owned(),
             )

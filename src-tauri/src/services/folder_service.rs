@@ -1,5 +1,7 @@
 use sea_orm::DatabaseConnection;
 
+use ::entity::folder::Model as Folder;
+
 use crate::database::folder_manager;
 use crate::errors::ApiError;
 use crate::schema::{
@@ -90,10 +92,10 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
         .map_err(|e| ApiError::not_deleted(e, FOLDER))
 }
 
-fn generate_response(folder: &folder_manager::Folder) -> FolderResponseSchema {
+fn generate_response(folder: &Folder) -> FolderResponseSchema {
     return FolderResponseSchema {
         id: folder.id,
-        parent_id: folder.parent_id(),
+        parent_id: folder.parent_id,
         name: folder.name.to_string(),
     };
 }

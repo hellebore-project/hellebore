@@ -1,5 +1,7 @@
 use sea_orm::DatabaseConnection;
 
+use ::entity::article::Model as Article;
+
 use crate::database::article_manager;
 use crate::errors::ApiError;
 use crate::schema::{
@@ -74,10 +76,7 @@ pub async fn validate_title(
     });
 }
 
-pub async fn get(
-    database: &DatabaseConnection,
-    id: i32,
-) -> Result<article_manager::Article, ApiError> {
+pub async fn get(database: &DatabaseConnection, id: i32) -> Result<Article, ApiError> {
     let article = article_manager::get(database, id)
         .await
         .map_err(|e| ApiError::not_found(e, ARTICLE))?;
@@ -118,19 +117,16 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
 pub fn generate_info_response(info: &article_manager::ArticleInfo) -> ArticleInfoSchema {
     return ArticleInfoSchema {
         id: info.id,
-        folder_id: info.folder_id(),
+        folder_id: info.folder_id,
         title: info.title.to_string(),
         entity_type: EntityType::from(info.entity_type),
     };
 }
 
-pub fn generate_response<E>(
-    article: &article_manager::Article,
-    entity: E,
-) -> ArticleResponseSchema<E> {
+pub fn generate_response<E>(article: &Article, entity: E) -> ArticleResponseSchema<E> {
     ArticleResponseSchema {
         id: article.id,
-        folder_id: article.folder_id(),
+        folder_id: article.folder_id,
         entity_type: EntityType::from(article.entity_type),
         title: article.title.to_string(),
         entity: Some(entity),

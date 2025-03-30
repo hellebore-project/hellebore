@@ -1,3 +1,4 @@
+use ::entity::article::Model as Article;
 use hellebore::{
     database::article_manager,
     schema::{
@@ -13,13 +14,7 @@ use rstest::*;
 use crate::fixtures::{article_text, database, folder_create_payload, folder_id, settings};
 use crate::utils::validate_article_response;
 
-fn validate_model(
-    article: &article_manager::Article,
-    id: Option<i32>,
-    folder_id: i32,
-    title: &str,
-    text: &str,
-) {
+fn validate_model(article: &Article, id: Option<i32>, folder_id: i32, title: &str, text: &str) {
     let response = article_service::generate_response(article, 0);
     validate_article_response(&response, id, folder_id, title, text);
 }
@@ -56,6 +51,51 @@ fn update_payload() -> ArticleUpdateSchema<()> {
 
 #[rstest]
 #[tokio::test]
+async fn test_create_article(
+    settings: &Settings,
+    folder_id: i32,
+    title: String,
+    article_text: String,
+) {
+    let database = database(settings).await;
+
+    let article = article_manager::insert(
+        &database,
+        folder_id,
+        title.to_owned(),
+        ARTICLE,
+        article_text.to_owned(),
+    )
+    .await;
+
+    assert!(article.is_ok());
+    let article = article.unwrap();
+    validate_model(&article, None, folder_id, &title, &article_text);
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_error_on_creating_article_with_duplicate_name(
+    settings: &Settings,
+    folder_id: i32,
+    title: String,
+    article_text: String,
+) {
+    let database = database(settings).await;
+    let _ = article_manager::insert(
+        &database,
+        folder_id,
+        title.to_owned(),
+        ARTICLE,
+        article_text.to_owned(),
+    )
+    .await;
+    let article = article_manager::insert(&database, folder_id, title, ARTICLE, article_text).await;
+    assert!(article.is_err());
+}
+
+#[rstest]
+#[tokio::test]
 async fn test_update_article(
     settings: &Settings,
     folder_id: i32,
@@ -64,7 +104,7 @@ async fn test_update_article(
     article_text: String,
 ) {
     let database = database(settings).await;
-    let article = article_manager::insert(&database, folder_id, &title, ARTICLE, &article_text)
+    let article = article_manager::insert(&database, folder_id, title, ARTICLE, article_text)
         .await
         .unwrap();
     let folder = folder_service::create(&database, folder_create_payload)
@@ -107,6 +147,39 @@ async fn test_error_on_updating_nonexistent_article(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
+async fn test_error_on_updating_article_with_duplicate_name(
+    settings: &Settings,
+    folder_id: i32,
+    article_text: String,
+) {
+    let database = database(settings).await;
+    let article_1 = article_manager::insert(
+        &database,
+        folder_id,
+        "article1".to_owned(),
+        ARTICLE,
+        article_text.to_owned(),
+    )
+    .await
+    .unwrap();
+    let article_2 = article_manager::insert(
+        &database,
+        folder_id,
+        "article2".to_owned(),
+        ARTICLE,
+        article_text,
+    )
+    .await
+    .unwrap();
+
+    let response =
+        article_service::update(&database, article_1.id, None, Some(article_2.title), None).await;
+    assert!(response.is_ok());
+    assert!(!response.unwrap().errors.is_empty());
+}
+
+#[rstest]
+#[tokio::test]
 async fn test_get_article(
     settings: &Settings,
     folder_id: i32,
@@ -114,9 +187,15 @@ async fn test_get_article(
     article_text: String,
 ) {
     let database = database(settings).await;
-    let article = article_manager::insert(&database, folder_id, &title, ARTICLE, &article_text)
-        .await
-        .unwrap();
+    let article = article_manager::insert(
+        &database,
+        folder_id,
+        title.to_owned(),
+        ARTICLE,
+        article_text.to_owned(),
+    )
+    .await
+    .unwrap();
 
     let article = article_service::get(&database, article.id).await;
 
@@ -136,13 +215,25 @@ async fn test_error_on_getting_nonexistent_article(settings: &Settings) {
 #[tokio::test]
 async fn test_get_all_articles(settings: &Settings, folder_id: i32, title: String) {
     let database = database(settings).await;
-    let _ = article_manager::insert(&database, folder_id, &title, ARTICLE, "")
-        .await
-        .unwrap();
+    let _ = article_manager::insert(
+        &database,
+        folder_id,
+        title.to_owned(),
+        ARTICLE,
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
     let title_2 = format!("{} 2", title);
-    let _ = article_manager::insert(&database, folder_id, &title_2, ARTICLE, "")
-        .await
-        .unwrap();
+    let _ = article_manager::insert(
+        &database,
+        folder_id,
+        title_2.to_owned(),
+        ARTICLE,
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
 
     let articles = article_service::get_all(&database).await;
 
@@ -163,9 +254,15 @@ async fn test_delete_article(
     article_text: String,
 ) {
     let database = database(settings).await;
-    let article = article_manager::insert(&database, folder_id, &title, ARTICLE, &article_text)
-        .await
-        .unwrap();
+    let article = article_manager::insert(
+        &database,
+        folder_id,
+        title.to_owned(),
+        ARTICLE,
+        article_text.to_owned(),
+    )
+    .await
+    .unwrap();
 
     let response = article_service::delete(&database, article.id).await;
 
