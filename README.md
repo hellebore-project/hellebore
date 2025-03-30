@@ -6,7 +6,9 @@ Self-hosted rust app for world-building.
 
 ### Dependencies
 
-1. sqlite 3: https://www.sqlite.org/download.html
+The following dependencies need to be installed manually for local development.
+
+-   sqlite 3: https://www.sqlite.org/download.html
 
 ### Setup
 

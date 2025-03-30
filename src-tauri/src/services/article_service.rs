@@ -2,7 +2,7 @@ use sea_orm::DatabaseConnection;
 
 use ::entity::article::Model as Article;
 
-use crate::database::{article_manager, folder_manager};
+use crate::database::article_manager;
 use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleInfoSchema, ArticleResponseSchema},
@@ -15,7 +15,7 @@ pub async fn update(
     id: i32,
     folder_id: Option<i32>,
     title: Option<String>,
-    body: Option<String>,
+    text: Option<String>,
 ) -> Result<ResponseDiagnosticsSchema<()>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
 
@@ -45,7 +45,7 @@ pub async fn update(
         };
     }
 
-    match article_manager::update(database, id, folder_id, title, body).await {
+    match article_manager::update(database, id, folder_id, title, text).await {
         Ok(_) => (),
         Err(e) => errors.push(ApiError::not_updated(e, ARTICLE)),
     };
@@ -114,24 +114,20 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
         .map_err(|e| ApiError::not_deleted(e, ARTICLE))
 }
 
-fn generate_info_response(item: &article_manager::ArticleItem) -> ArticleInfoSchema {
+pub fn generate_info_response(info: &article_manager::ArticleInfo) -> ArticleInfoSchema {
     return ArticleInfoSchema {
-        id: item.id,
-        folder_id: folder_manager::convert_null_folder_id_to_sentinel(item.folder_id),
-        title: item.title.to_string(),
-        entity_type: EntityType::from(item.entity_type),
+        id: info.id,
+        folder_id: info.folder_id,
+        title: info.title.to_string(),
+        entity_type: EntityType::from(info.entity_type),
     };
 }
 
-pub fn generate_article_response<E>(
-    article: &Article,
-    entity_type: EntityType,
-    entity: E,
-) -> ArticleResponseSchema<E> {
+pub fn generate_response<E>(article: &Article, entity: E) -> ArticleResponseSchema<E> {
     ArticleResponseSchema {
         id: article.id,
-        folder_id: folder_manager::convert_null_folder_id_to_sentinel(article.folder_id),
-        entity_type,
+        folder_id: article.folder_id,
+        entity_type: EntityType::from(article.entity_type),
         title: article.title.to_string(),
         entity: Some(entity),
         body: article.body.to_string(),

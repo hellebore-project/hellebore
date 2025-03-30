@@ -7,7 +7,7 @@ use crate::types::{
     WordType,
 };
 
-use super::util;
+use super::utils;
 
 pub async fn insert(
     db: &DbConn,
@@ -29,12 +29,12 @@ pub async fn insert(
         id: NotSet,
         language_id: Set(language_id),
         word_type: Set(word_type.code()),
-        spelling: util::set_value_or_default(spelling),
-        number: util::set_type_or_default(number),
-        person: util::set_type_or_default(person),
-        gender: util::set_type_or_default(gender),
-        verb_form: util::set_type_or_default(verb_form),
-        verb_tense: util::set_type_or_default(verb_tense),
+        spelling: utils::set_value_or_default(spelling),
+        number: utils::set_type_or_default(number),
+        person: utils::set_type_or_default(person),
+        gender: utils::set_type_or_default(gender),
+        verb_form: utils::set_type_or_default(verb_form),
+        verb_tense: utils::set_type_or_default(verb_tense),
         translations,
     };
     return new_entity.insert(db).await;
@@ -62,14 +62,14 @@ pub async fn update(
     };
     let updated_entity = word::ActiveModel {
         id: Unchanged(existing_entity.id),
-        language_id: util::set_value_or_null(language_id),
-        word_type: util::set_type_or_null(word_type),
-        spelling: util::set_value_or_null(spelling),
-        number: util::set_type_or_null(number),
-        person: util::set_type_or_null(person),
-        gender: util::set_type_or_null(gender),
-        verb_form: util::set_type_or_null(verb_form),
-        verb_tense: util::set_type_or_null(verb_tense),
+        language_id: utils::set_value_or_null(language_id),
+        word_type: utils::set_type_or_null(word_type),
+        spelling: utils::set_value_or_null(spelling),
+        number: utils::set_type_or_null(number),
+        person: utils::set_type_or_null(person),
+        gender: utils::set_type_or_null(gender),
+        verb_form: utils::set_type_or_null(verb_form),
+        verb_tense: utils::set_type_or_null(verb_tense),
         translations,
     };
     updated_entity.update(db).await

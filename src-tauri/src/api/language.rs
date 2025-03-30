@@ -1,4 +1,4 @@
-use crate::api::util;
+use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
@@ -14,7 +14,7 @@ pub async fn create_language(
     article: ArticleCreateSchema<LanguageDataSchema>,
 ) -> Result<ArticleResponseSchema<LanguageDataSchema>, ApiError> {
     let state = state.lock().await;
-    language_service::create(util::get_database(&state)?, article).await
+    language_service::create(utils::get_database(&state)?, article).await
 }
 
 #[tauri::command]
@@ -23,7 +23,7 @@ pub async fn update_language(
     article: ArticleUpdateSchema<LanguageDataSchema>,
 ) -> Result<ResponseDiagnosticsSchema<()>, ApiError> {
     let state = state.lock().await;
-    language_service::update(util::get_database(&state)?, article).await
+    language_service::update(utils::get_database(&state)?, article).await
 }
 
 #[tauri::command]
@@ -32,11 +32,11 @@ pub async fn get_language(
     id: i32,
 ) -> Result<ArticleResponseSchema<LanguageDataSchema>, ApiError> {
     let state = state.lock().await;
-    language_service::get(util::get_database(&state)?, id).await
+    language_service::get(utils::get_database(&state)?, id).await
 }
 
 #[tauri::command]
 pub async fn delete_language(state: tauri::State<'_, State>, id: i32) -> Result<(), ApiError> {
     let state = state.lock().await;
-    language_service::delete(util::get_database(&state)?, id).await
+    language_service::delete(utils::get_database(&state)?, id).await
 }

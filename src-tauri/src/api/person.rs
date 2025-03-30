@@ -1,4 +1,4 @@
-use crate::api::util;
+use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
     article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
@@ -14,7 +14,7 @@ pub async fn create_person(
     article: ArticleCreateSchema<PersonDataSchema>,
 ) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
     let state = state.lock().await;
-    person_service::create(util::get_database(&state)?, article).await
+    person_service::create(utils::get_database(&state)?, article).await
 }
 
 #[tauri::command]
@@ -23,7 +23,7 @@ pub async fn update_person(
     article: ArticleUpdateSchema<PersonDataSchema>,
 ) -> Result<ResponseDiagnosticsSchema<()>, ApiError> {
     let state = state.lock().await;
-    person_service::update(util::get_database(&state)?, article).await
+    person_service::update(utils::get_database(&state)?, article).await
 }
 
 #[tauri::command]
@@ -32,11 +32,11 @@ pub async fn get_person(
     id: i32,
 ) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
     let state = state.lock().await;
-    person_service::get(util::get_database(&state)?, id).await
+    person_service::get(utils::get_database(&state)?, id).await
 }
 
 #[tauri::command]
 pub async fn delete_person(state: tauri::State<'_, State>, id: i32) -> Result<(), ApiError> {
     let state = state.lock().await;
-    person_service::delete(util::get_database(&state)?, id).await
+    person_service::delete(utils::get_database(&state)?, id).await
 }

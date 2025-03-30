@@ -5,5 +5,5 @@ pub mod language;
 pub mod person;
 pub mod project;
 pub mod session;
-pub mod util;
+pub mod utils;
 pub mod word;

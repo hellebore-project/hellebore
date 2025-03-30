@@ -1,14 +1,14 @@
-use ::entity::{article, article::Entity as Article};
+use ::entity::{article, article::Entity as ArticleEntity};
 use sea_orm::*;
 
-use crate::database::folder_manager;
-use crate::database::util;
+use crate::database::utils;
 use crate::types::{CodedEnum, EntityType};
 
-#[derive(FromQueryResult)]
-pub struct ArticleItem {
+#[derive(DerivePartialModel, FromQueryResult)]
+#[sea_orm(entity = "ArticleEntity")]
+pub struct ArticleInfo {
     pub id: i32,
-    pub folder_id: Option<i32>,
+    pub folder_id: i32,
     pub entity_type: i8,
     pub title: String,
 }
@@ -16,17 +16,16 @@ pub struct ArticleItem {
 pub async fn insert(
     db: &DbConn,
     folder_id: i32,
-    title: &str,
+    title: String,
     entity_type: EntityType,
+    text: String,
 ) -> Result<article::Model, DbErr> {
     let new_entity = article::ActiveModel {
         id: NotSet,
-        folder_id: Set(folder_manager::convert_folder_id_sentinel_to_none(
-            folder_id,
-        )),
-        title: Set(title.to_string()),
+        folder_id: Set(folder_id),
+        title: Set(title),
         entity_type: Set(entity_type.code()),
-        body: Set(String::from("")),
+        body: Set(text),
     };
     match new_entity.insert(db).await {
         Ok(created_entity) => created_entity.try_into_model(),
@@ -39,17 +38,17 @@ pub async fn update(
     id: i32,
     folder_id: Option<i32>,
     title: Option<String>,
-    content: Option<String>,
+    text: Option<String>,
 ) -> Result<article::Model, DbErr> {
     let Some(existing_entity) = get(db, id).await? else {
         return Err(DbErr::RecordNotFound("Article not found.".to_owned()));
     };
     let updated_entity = article::ActiveModel {
         id: Unchanged(existing_entity.id),
-        folder_id: folder_manager::convert_optional_folder_id_to_active_value(folder_id),
+        folder_id: utils::set_value_or_null(folder_id),
         entity_type: NotSet,
-        title: util::set_value_or_null(title),
-        body: util::set_value_or_null(content),
+        title: utils::set_value_or_null(title),
+        body: utils::set_value_or_null(text),
     };
     updated_entity.update(db).await
 }
@@ -78,40 +77,34 @@ pub async fn is_title_unique_for_id(
 }
 
 pub async fn get(db: &DbConn, id: i32) -> Result<Option<article::Model>, DbErr> {
-    Article::find_by_id(id).one(db).await
+    ArticleEntity::find_by_id(id).one(db).await
 }
 
 pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<article::Model>, DbErr> {
-    Article::find()
+    ArticleEntity::find()
         .filter(article::Column::Title.eq(title))
         .one(db)
         .await
 }
 
-pub async fn get_all(db: &DbConn) -> Result<Vec<ArticleItem>, DbErr> {
-    Article::find()
-        .select_only()
-        .columns([
-            article::Column::Id,
-            article::Column::FolderId,
-            article::Column::Title,
-            article::Column::EntityType,
-        ])
+pub async fn get_all(db: &DbConn) -> Result<Vec<ArticleInfo>, DbErr> {
+    ArticleEntity::find()
         .order_by_asc(article::Column::Title)
-        .into_model::<ArticleItem>()
+        .into_partial_model::<ArticleInfo>()
         .all(db)
         .await
 }
 
 pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-    let Some(existing_entity) = get(db, id).await? else {
+    let existing_entity = get(db, id).await?;
+    let Some(existing_entity) = existing_entity else {
         return Err(DbErr::RecordNotFound(String::from("Article not found.")));
     };
     existing_entity.delete(db).await
 }
 
 pub async fn delete_many(db: &DbConn, ids: Vec<i32>) -> Result<DeleteResult, DbErr> {
-    Article::delete_many()
+    ArticleEntity::delete_many()
         .filter(article::Column::Id.is_in(ids))
         .exec(db)
         .await

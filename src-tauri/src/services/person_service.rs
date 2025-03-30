@@ -17,9 +17,15 @@ pub async fn create(
     database: &DatabaseConnection,
     article: ArticleCreateSchema<PersonDataSchema>,
 ) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
-    let _article = article_manager::insert(&database, article.folder_id, &article.title, PERSON)
-        .await
-        .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
+    let _article = article_manager::insert(
+        &database,
+        article.folder_id,
+        article.title.to_owned(),
+        PERSON,
+        "".to_owned(),
+    )
+    .await
+    .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
     return match person_manager::insert(&database, _article.id, &article.data.name).await {
         Ok(entity) => Ok(generate_response(_article, entity)),
         Err(e) => Err(ApiError::not_inserted(e, PERSON)),
@@ -73,9 +79,5 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
 }
 
 fn generate_response(article: Article, entity: Person) -> ArticleResponseSchema<PersonDataSchema> {
-    return article_service::generate_article_response(
-        &article,
-        PERSON,
-        PersonDataSchema { name: entity.name },
-    );
+    return article_service::generate_response(&article, PersonDataSchema { name: entity.name });
 }
