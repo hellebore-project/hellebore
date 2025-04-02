@@ -1,6 +1,6 @@
 use sea_orm::*;
 
-use ::entity::{word, word::Entity as Word};
+use ::entity::{word, word::Entity as WordEntity};
 
 use crate::types::{
     CodedEnum, GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense,
@@ -76,7 +76,7 @@ pub async fn update(
 }
 
 pub async fn get(db: &DbConn, id: i32) -> Result<Option<word::Model>, DbErr> {
-    Word::find_by_id(id).one(db).await
+    WordEntity::find_by_id(id).one(db).await
 }
 
 pub async fn get_all_for_language(
@@ -84,7 +84,7 @@ pub async fn get_all_for_language(
     language_id: i32,
     word_type: Option<WordType>,
 ) -> Result<Vec<word::Model>, DbErr> {
-    let mut query = Word::find()
+    let mut query = WordEntity::find()
         .filter(word::Column::LanguageId.eq(language_id))
         .order_by_asc(word::Column::Spelling);
     if word_type.is_some() {
@@ -101,7 +101,7 @@ pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
 }
 
 pub async fn delete_all(db: &DbConn, language_id: i32) -> Result<DeleteResult, DbErr> {
-    Word::delete_many()
+    WordEntity::delete_many()
         .filter(word::Column::LanguageId.eq(language_id))
         .exec(db)
         .await

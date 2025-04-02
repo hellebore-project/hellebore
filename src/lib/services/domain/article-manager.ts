@@ -12,12 +12,12 @@ import {
     LanguageData,
     PersonData,
     ResponseWithDiagnostics,
-    ValueChange,
     IdentifiedObject,
     ArticleCreate,
     ROOT_FOLDER_ID,
 } from "@/interface";
 import { FileStructure } from "./file-structure";
+import { is_field_unique, process_api_error } from "./utils";
 
 export interface ArticleUpdateArguments extends IdentifiedObject {
     entity_type?: EntityType | null;
@@ -134,16 +134,10 @@ export class ArticleManager {
         if (cleanResponse.titleChanged == true)
             cleanResponse.isTitleUnique = true;
 
-        for (let error of response.errors) {
-            if ("FieldNotUpdated" in error) {
-                const { msg, entity, field } = error["FieldNotUpdated"];
-                if (
-                    msg == "Title is not unique." &&
-                    entity == "Article" &&
-                    field == "title"
-                )
-                    cleanResponse.isTitleUnique = false;
-            }
+        for (let api_error of response.errors) {
+            let error = process_api_error(api_error);
+            if (!is_field_unique(error, EntityType.ARTICLE, "title"))
+                cleanResponse.isTitleUnique = false;
         }
 
         return cleanResponse;
