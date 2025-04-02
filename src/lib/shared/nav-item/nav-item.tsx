@@ -12,7 +12,7 @@ import { forwardRef, PropsWithChildren, ReactNode } from "react";
 
 import { BaseGridColSettings, BaseGridSettings } from "@/interface";
 import { ThemeManager } from "@/theme";
-import { range } from "@/utils/array";
+import { range } from "@/utils/collections";
 
 import { TextField, TextFieldSettings } from "../text-field";
 

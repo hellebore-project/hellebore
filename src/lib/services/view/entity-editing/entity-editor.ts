@@ -249,8 +249,6 @@ export class EntityEditor {
         // the waiting-for-sync flag is set to false to permit the creation of a delayed sync event
         this._waitingForSync = false;
 
-        console.log(this);
-        console.log(request);
         return this._sync(request).then((response) => {
             this._syncing = false;
             if (!response) return false;

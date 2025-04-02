@@ -22,7 +22,7 @@ pub async fn create(
     };
 }
 
-pub async fn _create(
+async fn _create(
     database: &DatabaseConnection,
     word: WordUpdateSchema,
     translations: Option<serde_json::Value>,
@@ -68,31 +68,32 @@ pub async fn update(
     return Ok(responses.remove(0));
 }
 
-pub async fn _update(
+async fn _update(
     database: &DatabaseConnection,
-    word: WordUpdateSchema,
+    word_update: WordUpdateSchema,
     translations: Option<serde_json::Value>,
 ) -> Result<Word, ApiError> {
-    if word.id.is_none() {
+    if word_update.id.is_none() {
         return Err(ApiError::field_invalid(
-            " Word ID cannot be none",
+            "Word ID cannot be none",
             WORD,
             None,
             "id",
             "None",
         ));
     }
+
     word_manager::update(
         &database,
-        word.id.unwrap(),
-        word.language_id,
-        word.word_type,
-        word.spelling,
-        word.number,
-        word.person,
-        word.gender,
-        word.verb_form,
-        word.verb_tense,
+        word_update.id.unwrap(),
+        word_update.language_id,
+        word_update.word_type,
+        word_update.spelling,
+        word_update.number,
+        word_update.person,
+        word_update.gender,
+        word_update.verb_form,
+        word_update.verb_tense,
         translations,
     )
     .await

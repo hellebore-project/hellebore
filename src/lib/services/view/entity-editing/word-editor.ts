@@ -94,7 +94,7 @@ export class WordEditor {
 
     setSpelling(key: WordKey, spelling: string) {
         this._words[key].spelling = spelling;
-        if (spelling) this._onChangeWord(key);
+        this._onChangeWord(key);
     }
 
     getTranslations(key: WordKey) {
@@ -103,7 +103,7 @@ export class WordEditor {
 
     setTranslations(key: WordKey, rawTranslations: string) {
         this._words[key].rawTranslations = rawTranslations;
-        if (rawTranslations) this._onChangeWord(key);
+        this._onChangeWord(key);
     }
 
     isWordHighlighted(key: WordKey) {
@@ -121,6 +121,7 @@ export class WordEditor {
     claimModifiedWords() {
         const modifiedWords = [];
         for (const key of this._modifiedWordKeys) {
+            console.log(toJS(this._words));
             const word = toJS(this._words[key]);
             word.translations = word.rawTranslations
                 .split(/,|;/)
@@ -129,6 +130,14 @@ export class WordEditor {
         }
         this._modifiedWordKeys.clear();
         return modifiedWords;
+    }
+
+    deleteWord(key: WordKey) {
+        const word = this._words[key];
+        if (word.id !== null) this.view.domain.words.delete(word.id);
+        delete this._words[key];
+        this._filteredWordKeys = this._filteredWordKeys.filter((k) => k != key);
+        this._modifiedWordKeys.delete(key);
     }
 
     initialize(languageId: number, wordType: WordType) {
@@ -143,8 +152,11 @@ export class WordEditor {
         if (words) {
             for (const word of words) {
                 if (!word.created && !word.updated)
+                    // word was not created or updated successfully
                     this._modifiedWordKeys.add(word.key);
-                else if (word.created) this._words[word.key].id = word.id;
+                else if (word.created)
+                    // new word was created; store the ID
+                    this._words[word.key].id = word.id;
             }
         }
     }

@@ -39,7 +39,7 @@ function renderDeleteWordButton({ wordKey }: DeleteWordButtonSettings) {
                 color="red"
                 size="sm"
                 style={{ visibility: visible }}
-                // TODO: delete word
+                onClick={() => wordEditor.deleteWord(wordKey)}
             >
                 <IconCircleMinus size={18} />
             </ActionIcon>

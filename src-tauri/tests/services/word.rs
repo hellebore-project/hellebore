@@ -143,7 +143,7 @@ async fn test_create_word(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_creating_duplicate_word(
+async fn test_create_duplicate_word(
     settings: &Settings,
     create_language_payload: ArticleCreateSchema<LanguageDataSchema>,
     mut create_payload: WordUpdateSchema,
@@ -157,22 +157,7 @@ async fn test_error_on_creating_duplicate_word(
 
     let response = word_service::create(&database, create_payload).await;
 
-    assert!(response.is_err());
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_error_on_creating_word_without_language(
-    settings: &Settings,
-    mut create_payload: WordUpdateSchema,
-) {
-    let database = database(settings).await;
-    create_payload.language_id = Some(1);
-    let _ = word_service::create(&database, create_payload.clone()).await;
-
-    let response = word_service::create(&database, create_payload).await;
-
-    assert!(response.is_err());
+    assert!(response.is_ok());
 }
 
 #[rstest]

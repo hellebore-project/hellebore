@@ -47,25 +47,6 @@ export class WordManager {
         });
     }
 
-    _buildUpsertResponse(
-        upsertPayload: WordUpsert,
-        response: ResponseWithDiagnostics<Id | null>,
-    ): WordUpsertResponse {
-        let id = upsertPayload.id;
-        let created = false;
-        let updated = false;
-        if (id == null) {
-            id = response.data;
-            created = id != null;
-        } else updated = response.data != null;
-        return {
-            ...upsertPayload,
-            id,
-            created,
-            updated,
-        };
-    }
-
     async get(id: number): Promise<WordResponse | null> {
         try {
             return await getWord(id);
@@ -96,6 +77,34 @@ export class WordManager {
             return false;
         }
         return true;
+    }
+
+    private _buildUpsertResponse(
+        upsertPayload: WordUpsert,
+        rawResponse: ResponseWithDiagnostics<Id | null>,
+    ): WordUpsertResponse {
+        let id = upsertPayload.id;
+        let created = false;
+        let updated = false;
+
+        if (id == null) {
+            id = rawResponse.data;
+            created = id != null;
+        } else updated = rawResponse.data != null;
+
+        if (rawResponse.data !== null) {
+            // upsert was successful
+            id = rawResponse.data;
+            if (upsertPayload.id === null) created = true;
+            else updated = true;
+        }
+
+        return {
+            ...upsertPayload,
+            id,
+            created,
+            updated,
+        };
     }
 }
 
