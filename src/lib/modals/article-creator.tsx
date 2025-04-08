@@ -36,7 +36,7 @@ function renderArticleCreator() {
     return (
         <Modal
             title="Create a new article"
-            opened={service.view.currentModal == ModalKey.ARTICLE_CREATOR}
+            opened={service.view.currentModal == ModalKey.ArticleCreator}
             onClose={() => service.view.closeModal()}
         >
             <Container size="xs">

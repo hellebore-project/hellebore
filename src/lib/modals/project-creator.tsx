@@ -19,7 +19,7 @@ function renderProjectLoader() {
     return (
         <Modal
             title="New project"
-            opened={service.view.currentModal == ModalKey.PROJECT_CREATOR}
+            opened={service.view.currentModal == ModalKey.ProjectCreator}
             onClose={() => service.view.closeModal()}
         >
             <Container size="xs">

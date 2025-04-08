@@ -101,7 +101,7 @@ export class ContextMenuManager {
         id: number;
         nodeId: NodeId;
     }) {
-        this.key = ContextMenuKey.NAV_BAR_FOLDER_NODE;
+        this.key = ContextMenuKey.NavBarFolderNode;
         this.position = position;
         this.articleNavigator.id = id;
         this.articleNavigator.nodeId = nodeId;
@@ -116,7 +116,7 @@ export class ContextMenuManager {
         id: number;
         nodeId: NodeId;
     }) {
-        this.key = ContextMenuKey.NAV_BAR_ARTICLE_NODE;
+        this.key = ContextMenuKey.NavBarArticleNode;
         this.position = position;
         this.articleNavigator.id = id;
         this.articleNavigator.nodeId = nodeId;
@@ -163,8 +163,8 @@ export class ContextMenuManager {
         ]);
 
         return {
-            [ContextMenuKey.NAV_BAR_FOLDER_NODE]: NAV_BAR_FOLDER_NODE_DATA,
-            [ContextMenuKey.NAV_BAR_ARTICLE_NODE]: NAV_BAR_ARTICLE_NODE_DATA,
+            [ContextMenuKey.NavBarFolderNode]: NAV_BAR_FOLDER_NODE_DATA,
+            [ContextMenuKey.NavBarArticleNode]: NAV_BAR_ARTICLE_NODE_DATA,
         };
     }
 

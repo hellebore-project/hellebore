@@ -11,13 +11,34 @@ import {
     WordData,
     WordType,
     EntityChangeHandler,
+    WordViewKey,
 } from "@/interface";
 import { compareStrings } from "@/utils/string";
 import { Counter } from "@/utils/counter";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
 
-type AdditionalKeys = "_modifiedWordKeys" | "_wordKeyGenerator" | "_onChange";
+const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
+    [WordType.RootWord, WordViewKey.RootWords],
+    [WordType.Article, WordViewKey.Articles],
+    [WordType.Preposition, WordViewKey.Prepositions],
+    [WordType.Conjunction, WordViewKey.Conjunctions],
+    [WordType.Pronoun, WordViewKey.Pronouns],
+    [WordType.Noun, WordViewKey.Nouns],
+    [WordType.Adjective, WordViewKey.Adjectives],
+    [WordType.Adverb, WordViewKey.Adverbs],
+    [WordType.Verb, WordViewKey.Verbs],
+]);
+const VIEW_TO_TYPE_MAPPING: Map<WordViewKey, WordType> = new Map(
+    Array.from(TYPE_TO_VIEW_MAPPING, (entry) => [entry[1], entry[0]]),
+);
+
+type AdditionalKeys =
+    | "_modifiedWordKeys"
+    | "_wordKeyGenerator"
+    | "_onChange"
+    | "_view"
+    | "_info";
 
 interface WordEditorSettings {
     view: ViewManagerInterface;
@@ -26,46 +47,51 @@ interface WordEditorSettings {
 }
 
 export class WordEditor {
-    private _wordType: WordType | null = null;
+    // state
+    private _wordType: WordType = WordType.None;
     private _words: { [key: WordKey]: WordData };
     private _filteredWordKeys: WordKey[];
     private _modifiedWordKeys: Set<WordKey>;
-    private _wordKeyGenerator: Counter;
     private _changed: boolean = false;
-    private _onChange: EntityChangeHandler;
+    private _size: DOMRect;
 
-    view: ViewManagerInterface;
-    info: EntityInfoEditor;
+    // utils
+    private _view: ViewManagerInterface;
+    private _info: EntityInfoEditor;
+    private _wordKeyGenerator: Counter;
+    private _onChange: EntityChangeHandler;
 
     constructor({ view, info, onChange }: WordEditorSettings) {
         makeAutoObservable<WordEditor, AdditionalKeys>(this, {
             _modifiedWordKeys: false,
             _wordKeyGenerator: false,
             _onChange: false,
-            view: false,
-            info: false,
+            _view: false,
+            _info: false,
         });
 
         this._words = {};
         this._filteredWordKeys = [];
         this._modifiedWordKeys = new Set();
-        this._wordKeyGenerator = new Counter();
+        this._size = new DOMRect(0, 0, 0, 0);
 
-        this.view = view;
-        this.info = info;
+        this._view = view;
+        this._info = info;
+        this._wordKeyGenerator = new Counter();
         this._onChange = onChange;
     }
 
+    get viewKey(): WordViewKey {
+        if (this._wordType == WordType.None) return WordViewKey.RootWords;
+        return TYPE_TO_VIEW_MAPPING.get(this._wordType) as WordViewKey;
+    }
+
     get languageId() {
-        return this.info.id;
+        return this._info.id;
     }
 
     get wordType() {
         return this._wordType;
-    }
-
-    set wordType(type: WordType | null) {
-        this._wordType = type;
     }
 
     get newKey() {
@@ -80,12 +106,14 @@ export class WordEditor {
         return this._changed;
     }
 
-    idToKey(id: number) {
-        return String(id);
+    get size() {
+        console.log(`getting ${this._size.height}`);
+        return this._size;
     }
 
-    convertIndexToWordKey(index: number) {
-        return `N${index}`;
+    set size(size: DOMRect) {
+        console.log(`setting ${size.height}`);
+        this._size = size;
     }
 
     getWord(key: WordKey) {
@@ -104,6 +132,37 @@ export class WordEditor {
     setTranslations(key: WordKey, rawTranslations: string) {
         this._words[key].rawTranslations = rawTranslations;
         this._onChangeWord(key);
+    }
+
+    initialize(languageId: number, wordType?: WordType) {
+        if (wordType !== undefined) this._wordType = wordType;
+        this._view.domain.words
+            .getAllForLanguage(languageId, wordType)
+            .then((words) => this._setWords(words));
+    }
+
+    sync(words: WordData[]) {
+        this._changed = false;
+        if (words) {
+            for (const word of words) {
+                if (!word.created && !word.updated)
+                    // word was not created or updated successfully
+                    this._modifiedWordKeys.add(word.key);
+                else if (word.created)
+                    // new word was created; store the ID
+                    this._words[word.key].id = word.id;
+            }
+        }
+    }
+
+    reset() {
+        this._words = {};
+        this._filteredWordKeys = [];
+    }
+
+    changeView(viewKey: WordViewKey) {
+        const wordType = VIEW_TO_TYPE_MAPPING.get(viewKey) as WordType;
+        return this._view.openWordEditor(this.languageId, wordType);
     }
 
     isWordHighlighted(key: WordKey) {
@@ -134,37 +193,18 @@ export class WordEditor {
 
     deleteWord(key: WordKey) {
         const word = this._words[key];
-        if (word.id !== null) this.view.domain.words.delete(word.id);
+        if (word.id !== null) this._view.domain.words.delete(word.id);
         delete this._words[key];
         this._filteredWordKeys = this._filteredWordKeys.filter((k) => k != key);
         this._modifiedWordKeys.delete(key);
     }
 
-    initialize(languageId: number, wordType: WordType) {
-        this._wordType = wordType;
-        this.view.domain.words
-            .getAllForLanguage(languageId, wordType)
-            .then((words) => this._setWords(words));
+    idToKey(id: number) {
+        return String(id);
     }
 
-    sync(words: WordData[]) {
-        this._changed = false;
-        if (words) {
-            for (const word of words) {
-                if (!word.created && !word.updated)
-                    // word was not created or updated successfully
-                    this._modifiedWordKeys.add(word.key);
-                else if (word.created)
-                    // new word was created; store the ID
-                    this._words[word.key].id = word.id;
-            }
-        }
-    }
-
-    reset() {
-        this._wordType = null;
-        this._words = {};
-        this._filteredWordKeys = [];
+    convertIndexToWordKey(index: number) {
+        return `N${index}`;
     }
 
     private _setWords(words: WordResponse[] | null) {

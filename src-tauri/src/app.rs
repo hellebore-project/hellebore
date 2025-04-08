@@ -5,6 +5,8 @@ use crate::settings::Settings;
 use crate::state::State;
 
 pub async fn setup(settings: Settings) -> Result<State, ApiError> {
+    println!("Setting up backend");
+
     let state = State::new(settings, None);
     // lock the state for the duration of this function
     let mut state_data = state.lock().await;

@@ -1,6 +1,6 @@
 import { EntityType, EntityViewKey } from "@/interface";
 import { getService } from "@/services";
-import { Badge, Box, Grid, Tabs } from "@mantine/core";
+import { Badge, Box, Container, Flex, Grid, Stack, Tabs } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { PropsWithChildren, ReactElement } from "react";
 
@@ -32,8 +32,8 @@ const OVERVIEW_TAB_KEY = "overview";
 const LEXICON_TAB_KEY = "lexicon";
 
 const VIEW_TAB_MAPPING: { [key in EntityViewKey]?: string } = {
-    [EntityViewKey.ARTICLE_EDITOR]: OVERVIEW_TAB_KEY,
-    [EntityViewKey.WORD_EDITOR]: LEXICON_TAB_KEY,
+    [EntityViewKey.ArticleEditor]: OVERVIEW_TAB_KEY,
+    [EntityViewKey.WordEditor]: LEXICON_TAB_KEY,
 };
 
 function renderOverviewTab() {
@@ -73,8 +73,8 @@ const LexiconTab = observer(renderLexiconTab);
 function renderEntityEditorContent() {
     const service = getService();
     const viewKey = service.view.entityEditor.currentView;
-    if (viewKey === EntityViewKey.ARTICLE_EDITOR) return <ArticleEditor />;
-    if (viewKey === EntityViewKey.WORD_EDITOR) return <WordEditor />;
+    if (viewKey === EntityViewKey.ArticleEditor) return <ArticleEditor />;
+    if (viewKey === EntityViewKey.WordEditor) return <WordEditor />;
     return null;
 }
 
@@ -98,10 +98,14 @@ function renderEntityEditorTabs({ children }: PropsWithChildren) {
     if (activeTabKey == null) return null;
 
     return (
-        <Tabs value={activeTabKey} orientation="vertical">
-            <Tabs.List>{tabs}</Tabs.List>
-            <Tabs.Panel value={activeTabKey}>{children}</Tabs.Panel>
-        </Tabs>
+        <Grid
+            display="flex"
+            h="100%"
+            w="100%"
+            style={{ flexDirection: "row", flexGrow: 1 }}
+        >
+            <Grid.Col>{children}</Grid.Col>
+        </Grid>
     );
 }
 
@@ -109,13 +113,20 @@ export const EntityEditorTabs = observer(renderEntityEditorTabs);
 
 function renderEntityEditor() {
     return (
-        <Box bg={CENTER_BG_COLOR}>
+        <Stack h="100%" w="100%" bg={CENTER_BG_COLOR} style={{ flexGrow: 1 }}>
             <EntityEditorHeader />
             {SPACE}
-            <EntityEditorTabs>
-                <EntityEditorContent />
-            </EntityEditorTabs>
-        </Box>
+            <Stack
+                h="100%"
+                w="100%"
+                bg={CENTER_BG_COLOR}
+                style={{ flexGrow: 1 }}
+            >
+                <EntityEditorTabs>
+                    <EntityEditorContent />
+                </EntityEditorTabs>
+            </Stack>
+        </Stack>
     );
 }
 

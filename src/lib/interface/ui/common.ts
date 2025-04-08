@@ -4,6 +4,7 @@ import {
     GridColProps,
     GridProps,
     PaperProps,
+    TableProps,
 } from "@mantine/core";
 import { ButtonHTMLAttributes, HTMLAttributes } from "react";
 
@@ -13,3 +14,4 @@ export type BaseGridSettings = GridProps;
 export type BaseGridColSettings = GridColProps;
 export type BaseButtonSettings = ButtonProps &
     ButtonHTMLAttributes<HTMLButtonElement>;
+export type BaseTableSettings = TableProps;

@@ -55,7 +55,7 @@ interface SyncResponse {
 }
 
 export class EntityEditor {
-    private _viewKey: EntityViewKey = EntityViewKey.ARTICLE_EDITOR;
+    private _viewKey: EntityViewKey = EntityViewKey.ArticleEditor;
     private _waitingForSync: boolean = false;
     private _syncing: boolean = false;
     private _lastModified: number = 0;
@@ -104,21 +104,21 @@ export class EntityEditor {
 
     set currentView(key: EntityViewKey) {
         if (this._viewKey == key) return;
-        if (this._viewKey == EntityViewKey.WORD_EDITOR) this.lexicon.reset();
+        if (this._viewKey == EntityViewKey.WordEditor) this.lexicon.reset();
         this._viewKey = key;
     }
 
     get isArticleEditorOpen() {
         return (
-            this.view.currentView == ViewKey.ENTITY_EDITOR &&
-            this.currentView == EntityViewKey.ARTICLE_EDITOR
+            this.view.currentView == ViewKey.EntityEditor &&
+            this.currentView == EntityViewKey.ArticleEditor
         );
     }
 
     get isWordEditorOpen() {
         return (
-            this.view.currentView == ViewKey.ENTITY_EDITOR &&
-            this.currentView == EntityViewKey.WORD_EDITOR
+            this.view.currentView == ViewKey.EntityEditor &&
+            this.currentView == EntityViewKey.WordEditor
         );
     }
 
@@ -140,16 +140,16 @@ export class EntityEditor {
     }
 
     initializeArticleEditor<E extends BaseEntity>(article: ArticleResponse<E>) {
-        this.currentView = EntityViewKey.ARTICLE_EDITOR;
+        this.currentView = EntityViewKey.ArticleEditor;
         this.info.initialize(article.id, article.entity_type, article.title);
         this.properties.initialize(article.entity);
         this.articleText.initialize(article.body);
     }
 
-    initializeWordEditor(id: number, title: string) {
-        this.currentView = EntityViewKey.WORD_EDITOR;
+    initializeWordEditor(id: number, title: string, wordType?: WordType) {
+        this.currentView = EntityViewKey.WordEditor;
         this.info.initialize(id, EntityType.LANGUAGE, title);
-        this.lexicon.initialize(id, WordType.RootWord);
+        this.lexicon.initialize(id, wordType);
     }
 
     cleanUp() {

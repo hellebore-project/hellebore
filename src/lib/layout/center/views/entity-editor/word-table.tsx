@@ -1,12 +1,14 @@
-import { ActionIcon, Table } from "@mantine/core";
+import { ActionIcon, Box, BoxProps, Table } from "@mantine/core";
+import { IconCircleMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
+import { CENTER_BG_COLOR } from "@/constants";
+import { BaseTableSettings, WordKey } from "@/interface";
 import { getService } from "@/services";
 import { TextField } from "@/shared/text-field";
 import { ToolTipWrapper } from "@/shared/tool-tip";
-import { IconCircleMinus } from "@tabler/icons-react";
-import { CENTER_BG_COLOR } from "@/constants";
-import { WordKey } from "@/interface";
+import { forwardRef, MutableRefObject } from "react";
+import { getSize } from "@/shared/get-size";
 
 const DATA_COLUMN_STYLE = {
     border: "calc(0.0625rem * var(--mantine-scale)) solid var(--table-border-color)",
@@ -23,6 +25,10 @@ interface WordRowSettings {
 
 interface DeleteWordButtonSettings {
     wordKey: WordKey;
+}
+
+interface WordTableSettings extends BaseTableSettings {
+    container: { h: number };
 }
 
 function renderDeleteWordButton({ wordKey }: DeleteWordButtonSettings) {
@@ -87,7 +93,7 @@ function renderWordRow({ wordKey }: WordRowSettings) {
 
 const WordRow = observer(renderWordRow);
 
-function renderWordTable() {
+function renderWordTable({ container }: WordTableSettings) {
     const service = getService();
     const wordEditor = service.view.entityEditor.lexicon;
 
@@ -96,17 +102,19 @@ function renderWordTable() {
     ));
 
     return (
-        <Table striped highlightOnHover withRowBorders={false}>
-            <Table.Thead>
-                <Table.Tr>
-                    <Table.Th style={DATA_COLUMN_STYLE}>Word</Table.Th>
-                    <Table.Th style={DATA_COLUMN_STYLE}>Meaning</Table.Th>
-                    <Table.Th></Table.Th>
-                </Table.Tr>
-            </Table.Thead>
+        <Box style={{ overflowY: "scroll" }} {...container}>
+            <Table striped highlightOnHover withRowBorders={false}>
+                <Table.Thead>
+                    <Table.Tr>
+                        <Table.Th style={DATA_COLUMN_STYLE}>Word</Table.Th>
+                        <Table.Th style={DATA_COLUMN_STYLE}>Meaning</Table.Th>
+                        <Table.Th></Table.Th>
+                    </Table.Tr>
+                </Table.Thead>
 
-            <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
+                <Table.Tbody>{rows}</Table.Tbody>
+            </Table>
+        </Box>
     );
 }
 

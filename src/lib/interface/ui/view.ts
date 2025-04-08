@@ -1,24 +1,32 @@
 export enum ViewKey {
-    HOME = "HOME",
-    SETTINGS = "SETTINGS",
-    ENTITY_EDITOR = "ENTITY_EDITOR",
+    Home = "HOME",
+    Settings = "SETTINGS",
+    EntityEditor = "ENTITY_EDITOR",
 }
 
 export enum EntityViewKey {
-    ARTICLE_EDITOR = "ARTICLE_EDITOR",
-    WORD_EDITOR = "WORD_EDITOR",
+    ArticleEditor = "ARTICLE_EDITOR",
+    WordEditor = "WORD_EDITOR",
 }
 
 export enum WordViewKey {
-    ROOT_WORDS = "ROOT_WORDS",
+    RootWords = "ROOT_WORDS",
+    Articles = "ARTICLES",
+    Prepositions = "PREPOSITIONS",
+    Conjunctions = "CONJUNCTIONS",
+    Pronouns = "PRONOUNS",
+    Nouns = "NOUNS",
+    Adjectives = "ADJECTIVES",
+    Adverbs = "ADVERBS",
+    Verbs = "VERBS",
 }
 
 export enum ModalKey {
-    PROJECT_CREATOR = "PROJECT_CREATOR",
-    ARTICLE_CREATOR = "ARTICLE_CREATOR",
+    ProjectCreator = "PROJECT_CREATOR",
+    ArticleCreator = "ARTICLE_CREATOR",
 }
 
 export enum ContextMenuKey {
-    NAV_BAR_FOLDER_NODE = "NAV_BAR_FOLDER_NODE",
-    NAV_BAR_ARTICLE_NODE = "NAV_BAR_ARTICLE_NODE",
+    NavBarFolderNode = "NAV_BAR_FOLDER_NODE",
+    NavBarArticleNode = "NAV_BAR_ARTICLE_NODE",
 }

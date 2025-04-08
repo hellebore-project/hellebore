@@ -25,6 +25,7 @@
     "@mantine/hooks": "^7.12.2",
     "@mantine/tiptap": "^7.12.2",
     "@minoru/react-dnd-treeview": "^3.4.4",
+    "@react-hook/resize-observer": "^2.0.2",
     "@tabler/icons-react": "^3.14.0",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-dialog": "~2",

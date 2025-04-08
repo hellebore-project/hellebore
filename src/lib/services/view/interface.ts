@@ -23,6 +23,7 @@ export interface ViewManagerInterface {
     openProjectCreator(): void;
     openArticleCreator(entityType: EntityType | undefined): void;
     openArticleEditor(id: number): Promise<void>;
+    openWordEditor(id: number, wordType?: WordType): Promise<void>;
     closeModal(): void;
     createProject(
         name: string,

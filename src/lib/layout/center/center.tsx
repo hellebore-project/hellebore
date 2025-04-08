@@ -8,7 +8,7 @@ function renderCenter() {
     const service = getService();
     const viewKey = service.view.currentView;
     if (service.view.isEntityEditorOpen) return <EntityEditor />;
-    if (viewKey === ViewKey.SETTINGS) return <SettingsEditor />;
+    if (viewKey === ViewKey.Settings) return <SettingsEditor />;
     return <Home />;
 }
 

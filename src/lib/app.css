@@ -1,3 +1,7 @@
+.base {
+    overflow: hidden;
+}
+
 .variant-color {
     color: var(--variant-color, unset);
     background-color: var(--variant-background, unset);

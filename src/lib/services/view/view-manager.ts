@@ -7,6 +7,7 @@ import {
     EntityType,
     ModalKey,
     ViewKey,
+    WordType,
     WordUpsert,
 } from "@/interface";
 import { ArticleUpdateArguments, DomainManager } from "../domain";
@@ -21,7 +22,7 @@ import { SettingsEditor } from "./settings-editor";
 
 export class ViewManager implements ViewManagerInterface {
     // state variables
-    _viewKey: ViewKey = ViewKey.HOME;
+    _viewKey: ViewKey = ViewKey.Home;
     _modalKey: ModalKey | null = null;
     _navBarMobileOpen: boolean = true;
 
@@ -85,7 +86,7 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     get isEntityEditorOpen() {
-        return this._viewKey == ViewKey.ENTITY_EDITOR;
+        return this._viewKey == ViewKey.EntityEditor;
     }
 
     get entityType() {
@@ -129,32 +130,32 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     openHome() {
-        this.cleanUp(ViewKey.HOME);
-        this._viewKey = ViewKey.HOME;
+        this.cleanUp(ViewKey.Home);
+        this._viewKey = ViewKey.Home;
     }
 
     openSettings() {
-        this.cleanUp(ViewKey.SETTINGS);
-        this._viewKey = ViewKey.SETTINGS;
+        this.cleanUp(ViewKey.Settings);
+        this._viewKey = ViewKey.Settings;
     }
 
     openProjectCreator() {
         this.projectCreator.initialize();
-        this._modalKey = ModalKey.PROJECT_CREATOR;
+        this._modalKey = ModalKey.ProjectCreator;
     }
 
     openArticleCreator(entityType: EntityType | undefined = undefined) {
         this.articleCreator.initialize(entityType);
-        this._modalKey = ModalKey.ARTICLE_CREATOR;
+        this._modalKey = ModalKey.ArticleCreator;
     }
 
     _openArticleEditor(article: ArticleResponse<BaseEntity>) {
         // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.ENTITY_EDITOR);
+        this.cleanUp(ViewKey.EntityEditor);
 
         this.entityEditor.initializeArticleEditor(article);
         this.navigation.files.openArticleNode(article.id);
-        this._viewKey = ViewKey.ENTITY_EDITOR;
+        this._viewKey = ViewKey.EntityEditor;
     }
 
     async openArticleEditor(id: number) {
@@ -168,20 +169,27 @@ export class ViewManager implements ViewManagerInterface {
         if (article) this._openArticleEditor(article);
     }
 
-    async openWordEditor(id: number) {
+    async openWordEditor(languageId: number, wordType?: WordType) {
         if (
             this.entityEditor.isWordEditorOpen &&
-            this.entityEditor.info.id == id
-        )
-            return; // the word editor is already open
+            this.entityEditor.info.id == languageId
+        ) {
+            if (wordType === undefined)
+                return; // the word editor is already open for this language
+            else if (wordType === this.entityEditor.lexicon.wordType) return; // the word editor is already open for this language and word type
+        }
 
         // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.ENTITY_EDITOR);
+        this.cleanUp(ViewKey.EntityEditor);
 
-        const article = this.domain.articles.getInfo(id);
-        this.entityEditor.initializeWordEditor(id, article.title);
-        this.navigation.files.openArticleNode(id);
-        this._viewKey = ViewKey.ENTITY_EDITOR;
+        const article = this.domain.articles.getInfo(languageId);
+        this.entityEditor.initializeWordEditor(
+            languageId,
+            article.title,
+            wordType,
+        );
+        this.navigation.files.openArticleNode(languageId);
+        this._viewKey = ViewKey.EntityEditor;
     }
 
     closeModal() {
@@ -262,7 +270,7 @@ export class ViewManager implements ViewManagerInterface {
             this.navigation.files.deleteArticleNode(articleId);
 
         if (
-            this._viewKey == ViewKey.ENTITY_EDITOR &&
+            this._viewKey == ViewKey.EntityEditor &&
             fileIds.articles.includes(this.entityEditor.info.id)
         ) {
             // currently-open article has been deleted
@@ -320,7 +328,7 @@ export class ViewManager implements ViewManagerInterface {
             return false;
 
         if (
-            this._viewKey == ViewKey.ENTITY_EDITOR &&
+            this._viewKey == ViewKey.EntityEditor &&
             this.entityEditor.info.id == id
         ) {
             // deleted article is currently open
@@ -335,7 +343,7 @@ export class ViewManager implements ViewManagerInterface {
     cleanUp(newViewKey: ViewKey | null = null) {
         if (this._modalKey) this.closeModal();
 
-        if (this._viewKey == ViewKey.ENTITY_EDITOR) this.entityEditor.cleanUp();
+        if (this._viewKey == ViewKey.EntityEditor) this.entityEditor.cleanUp();
 
         if (
             this.isEntityEditorOpen &&

@@ -1,7 +1,7 @@
 use sea_orm::DatabaseConnection;
+use tokio::sync::MutexGuard;
 
 use ::entity::project::Model as Project;
-use tokio::sync::MutexGuard;
 
 use crate::database::{database_manager, project_manager};
 use crate::errors::ApiError;
@@ -14,6 +14,8 @@ pub async fn create(
     name: &str,
     db_path: &str,
 ) -> Result<ProjectLoadResponseSchema, ApiError> {
+    println!("Initializing project");
+
     state.settings.database.file_path = Some(db_path.to_string());
     state.settings.write_config_file();
 
@@ -24,9 +26,12 @@ pub async fn create(
 
     let project;
     if projects.is_empty() {
+        println!("No project found; creating new project '{name}'");
         project = _create_record(&db, name).await?;
     } else {
         project = projects.remove(0);
+        let _name = project.name.to_owned();
+        println!("Found existing project '{_name}'");
     }
 
     Ok(ProjectLoadResponseSchema { info: project, db })

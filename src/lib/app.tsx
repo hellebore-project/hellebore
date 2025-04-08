@@ -53,7 +53,11 @@ function renderApp() {
                     <LeftSideBar />
                 </AppShell.Navbar>
 
-                <AppShell.Main bg={CENTER_BG_COLOR}>
+                <AppShell.Main
+                    display="flex"
+                    bg={CENTER_BG_COLOR}
+                    style={{ flexDirection: "column", overflow: "hidden" }}
+                >
                     <Center />
                 </AppShell.Main>
 
