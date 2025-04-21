@@ -1,7 +1,6 @@
 import { ActionIcon } from "@mantine/core";
 import { IconFolderPlus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
-import { MouseEvent } from "react";
 
 import { getService } from "@/services";
 import { NavSubItem } from "@/shared/nav-item/nav-item";

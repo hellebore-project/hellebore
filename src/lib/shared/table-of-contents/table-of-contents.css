@@ -1,0 +1,38 @@
+.table-of-contents-item {
+    width: 100%;
+    color: var(--button-color);
+    background-color: var(--button-bg, var(--default-bg-color));
+    border: var(--button-bd);
+    border-radius: 5px 0 0 5px;
+    border-top: 0;
+    border-bottom: 0;
+    border-right: 3px solid var(--mantine-color-dark-4);
+}
+
+.table-of-contents-item:first-child {
+    border-radius: 5px 0 0;
+}
+
+.table-of-contents-item:last-child {
+    border-radius: 0 0 0 5px;
+}
+
+.table-of-contents-item:hover {
+    color: var(--button-color);
+    background-color: color-mix(
+        in oklab,
+        var(--button-bg, var(--default-bg-color)),
+        white 5%
+    );
+}
+
+.table-of-contents-item.selected {
+    color: var(--selected-text-color);
+    background-color: var(--selected-bg-color);
+    border-right: 3px solid var(--selected-bd-color);
+}
+
+.table-of-contents-item.selected:hover {
+    color: var(--selected-text-color);
+    background-color: var(--selected-bg-color);
+}

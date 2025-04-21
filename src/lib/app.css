@@ -1,14 +1,54 @@
-.base {
+:root {
     overflow: hidden;
+
+    /* Constants */
+
+    --default-text-color: white;
+    --default-bg-color: var(--mantine-color-dark-8);
+    --selected-text-color: white;
+    --selected-bg-color: var(--mantine-color-blue-light);
+    --selected-bd-color: var(--mantine-color-blue-3);
+    --selected-bd: 1px solid var(--selected-bd-color);
+    --header-bg-color: var(--mantine-color-dark-6);
+    --sidebar-bg-color: var(--mantine-color-dark-7);
+    --main-bg-color: var(--mantine-color-dark-8);
+    --footer-bg-color: var(--mantine-color-dark-9);
 }
 
-.variant-color {
-    color: var(--variant-color, unset);
-    background-color: var(--variant-background, unset);
-    border-color: var(--variant-border, unset);
+.dynamic-div {
+    color: var(--dynamic-text-color, unset);
+    background-color: var(--dynamic-background-color, unset);
+    border-color: var(--dynamic-border, unset);
 }
 
-.variant-color:hover {
-    color: var(--variant-hover-color, unset);
-    background-color: var(--variant-hover, unset);
+.dynamic-div:hover {
+    color: var(--dynamic-hover-text-color, unset);
+    background-color: var(--dynamic-hover-background-color, unset);
+}
+
+.header-panel {
+    background-color: var(--header-bg-color);
+
+    --default-bg-color: var(--header-bg-color);
+}
+
+.left-sidebar-panel {
+    background-color: var(--sidebar-bg-color);
+
+    --default-bg-color: var(--sidebar-bg-color);
+}
+
+.main-panel {
+    background-color: var(--main-bg-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    --default-bg-color: var(--main-bg-color);
+}
+
+.footer-panel {
+    background-color: var(--footer-bg-color);
+
+    --default-bg-color: var(--footer-bg-color);
 }

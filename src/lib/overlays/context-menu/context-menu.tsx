@@ -1,10 +1,12 @@
-import { observer } from "mobx-react-lite";
+import "./context-menu.css";
 
-import { VerticalMenuItemData } from "@/interface";
-import { getService } from "@/services";
-import { VerticalMenu } from "@/shared/vertical-menu";
+import { observer } from "mobx-react-lite";
 import { SyntheticEvent } from "react";
-import { OutsideClickHandler } from "./shared/outside-click-handler";
+
+import { VerticalSelectionData } from "@/interface";
+import { getService } from "@/services";
+import { OutsideClickHandler } from "@/shared/outside-click-handler";
+import { VerticalSelection } from "@/shared/vertical-selection";
 
 function renderContextMenu() {
     const service = getService();
@@ -15,7 +17,7 @@ function renderContextMenu() {
 
     const onConfirm = async (
         e: SyntheticEvent<HTMLButtonElement>,
-        item: VerticalMenuItemData,
+        item: VerticalSelectionData,
     ) => {
         e.stopPropagation();
         contextMenuService.close();
@@ -24,28 +26,20 @@ function renderContextMenu() {
 
     return (
         <OutsideClickHandler
-            display="block"
-            state={contextMenuService.outsideClickHandler}
+            id="context-menu"
+            service={contextMenuService.outsideClickHandler}
         >
-            <VerticalMenu
+            <VerticalSelection
+                className="context-menu-selection"
                 left={`${contextMenuService.position.x}px`}
                 top={`${contextMenuService.position.y}px`}
-                display="block"
                 withBorder={true}
-                autoFocus={true}
-                style={{
-                    position: "absolute",
-                    zIndex: "var(--mantine-z-index-overlay)",
-                }}
                 data={data}
-                item={{
+                itemSettings={{
+                    className: "context-menu-item",
                     variant: "transparent",
                     size: "compact-md",
                     justify: "space-between",
-                    m: 3,
-                    style: {
-                        minWidth: 300,
-                    },
                     onMouseOver: (e) => {
                         contextMenuService.selectedIndex = Number(
                             e.currentTarget.getAttribute("data-index"),

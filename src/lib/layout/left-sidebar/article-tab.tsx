@@ -1,4 +1,4 @@
-import { Box, Collapse, Space } from "@mantine/core";
+import { Box, Collapse } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { getService } from "@/services";
@@ -12,7 +12,6 @@ function renderArticlesTabHeader() {
     const articleNavService = getService().view.navigation.files;
     return (
         <NavItem
-            c="white"
             textSettings={{
                 fw: 500,
                 value: "ARTICLES",

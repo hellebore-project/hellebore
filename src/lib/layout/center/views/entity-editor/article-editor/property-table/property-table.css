@@ -1,0 +1,7 @@
+.property-table {
+    border: 0.5px solid var(--mantine-color-dark-4);
+}
+
+.property-table-stack {
+    margin-inline: 15px;
+}

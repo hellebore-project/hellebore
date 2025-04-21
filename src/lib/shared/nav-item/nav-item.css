@@ -1,5 +1,41 @@
 .nav-item {
+    padding-inline: 4px;
+    color: var(--default-text-color);
+    background-color: var(--default-bg-color);
     cursor: pointer;
+}
+
+.nav-item:hover {
+    color: var(--default-text-color);
+    background-color: color-mix(
+        in oklab,
+        var(--dynamic-background-color, var(--default-bg-color)),
+        white 5%
+    );
+}
+
+.nav-item.selected {
+    border: 1px solid white;
+}
+
+.nav-item.active {
+    background-color: color-mix(
+        in oklab,
+        var(--dynamic-background-color, var(--default-bg-color)),
+        white 10%
+    );
+}
+
+.nav-item.active:hover {
+    color: var(--default-text-color);
+}
+
+.nav-item.selected.focused {
+    border: var(--selected-bd);
+}
+
+.nav-item.active.focused {
+    background-color: var(--selected-bg-color);
 }
 
 .nav-sub-item {

@@ -1,0 +1,18 @@
+.word-editor {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.word-editor-stack {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.word-editor-container {
+    height: 100%;
+    padding-top: sm;
+}

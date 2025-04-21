@@ -14,7 +14,7 @@ import {
 } from "@/interface";
 import { Counter } from "@/utils/counter";
 import { ViewManagerInterface } from "../interface";
-import { OutsideClickHandlerState } from "@/shared/outside-click-handler";
+import { OutsideClickHandlerService } from "@/shared/outside-click-handler";
 
 export class FileNavigator {
     _nodes: FileNodeModel[];
@@ -31,7 +31,7 @@ export class FileNavigator {
      */
     _tree: RefObject<TreeMethods> | null = null;
     _placeholderIdGenerator: Counter;
-    _outsideClickHandlerState: OutsideClickHandlerState;
+    outsideClickHandler: OutsideClickHandlerService;
     view: ViewManagerInterface;
 
     constructor(view: ViewManagerInterface) {
@@ -39,7 +39,7 @@ export class FileNavigator {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
             _tree: false,
-            _outsideClickHandlerState: false,
+            outsideClickHandler: false,
             view: false,
         });
 
@@ -47,12 +47,12 @@ export class FileNavigator {
         this._nodePositionCache = {};
 
         this._placeholderIdGenerator = new Counter();
-        this._outsideClickHandlerState = new OutsideClickHandlerState({
+        this.outsideClickHandler = new OutsideClickHandlerService({
             onOutsideClick: () => {
                 this.focused = false;
                 this.selectedNode = null;
             },
-            disabled: false,
+            enabled: true,
         });
         this.view = view;
     }
@@ -154,10 +154,6 @@ export class FileNavigator {
         return this.expanded && this.hover;
     }
 
-    get outsideClickHandler() {
-        return this._outsideClickHandlerState;
-    }
-
     initialize(articles: ArticleInfoResponse[], folders: FolderResponse[]) {
         this._nodePositionCache = {};
 
@@ -248,20 +244,17 @@ export class FileNavigator {
 
     addPlaceholderNodeForNewFolder(): FileNodeModel {
         const id = this._placeholderIdGenerator.increment();
-        const node = this._generateFolderNode(
-            `P${id}`,
-            this.activeFolderId,
-            "",
-            {
-                isPlaceholder: true,
-                isEditable: true,
-                editableText: "",
-            },
-        );
+        const nodeId = `P${id}`;
+        const node = this._generateFolderNode(nodeId, this.activeFolderId, "", {
+            isPlaceholder: true,
+            isEditable: true,
+            editableText: "",
+        });
 
         this._nodePositionCache[node.id] = this._nodes.length;
-        this._nodes.push(node);
-        this.selectedNode = node;
+        this._nodes.push(node); // add node to state
+        this.selectedNode = node; // select the node
+        this.focused = true;
 
         return node;
     }
@@ -275,8 +268,6 @@ export class FileNavigator {
 
     openNode(node: FileNodeModel) {
         this.openedNode = node;
-        // const index = this.getNodeIndex(node.id) as number;
-        // this.setNode(node, index);
     }
 
     updateArticleNodeText(id: number, title: string) {
@@ -302,7 +293,9 @@ export class FileNavigator {
         node.data.isEditable = true;
         node.data.editableText = node.text;
 
-        this._nodes[index] = node;
+        this._nodes[index] = node; // force rerender
+        this.selectedNode = node; // select the node
+        this.focused = true;
     }
 
     setEditableNodeText(nodeId: NodeId, text: string) {

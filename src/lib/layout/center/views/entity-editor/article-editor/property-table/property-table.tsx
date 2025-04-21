@@ -1,8 +1,10 @@
+import "./property-table.css";
+
 import { Card, CardProps, Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { FieldData, FieldType } from "@/interface";
-import { TextField } from "../../../../shared/text-field";
+import { TextField } from "@/shared/text-field";
 
 interface PropertyFieldSettings extends FieldData {}
 
@@ -12,7 +14,7 @@ interface PropertyRowSettings {
 
 interface PropertyTableSettings extends CardProps {
     getData: () => FieldData[];
-    stack?: StackProps;
+    stackSettings?: StackProps;
 }
 
 function renderPropertyField({
@@ -51,7 +53,7 @@ const PropertyFieldRow = observer(renderPropertyFieldRow);
 
 function renderPropertyTable({
     getData,
-    stack,
+    stackSettings,
     ...rest
 }: PropertyTableSettings) {
     const rows = getData().map((fieldData) => (
@@ -59,8 +61,13 @@ function renderPropertyTable({
     ));
     if (rows.length == 0) return null;
     return (
-        <Card {...rest}>
-            <Stack align="stretch" gap="xs" {...stack}>
+        <Card className="property-table" {...rest}>
+            <Stack
+                className="property-table-stack"
+                align="stretch"
+                gap="xs"
+                {...stackSettings}
+            >
                 {rows}
             </Stack>
         </Card>

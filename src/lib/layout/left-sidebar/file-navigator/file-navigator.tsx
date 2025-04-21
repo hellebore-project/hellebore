@@ -13,6 +13,7 @@ import { DndProvider } from "react-dnd";
 import { FileNodeData, FileNodeModel, ROOT_FOLDER_NODE_ID } from "@/interface";
 import { getService } from "@/services";
 import {
+    EditableTextSettings,
     NavItem,
     PopoverSettings,
     TextSettings,
@@ -21,18 +22,8 @@ import { TextFieldSettings } from "@/shared/text-field";
 
 import "./file-navigator.css";
 import { OutsideClickHandler } from "@/shared/outside-click-handler";
-import { NAVBAR_BG_COLOR } from "@/constants";
 
 const ARTICLE_NAV_ITEM_PREFIX = "nav-item-";
-const SELECTED_NAV_ITEM_BORDER_STYLE = {
-    borderStyle: "solid",
-    borderWidth: "1px",
-};
-const OUTSIDE_CLICK_HANDLER_STYLE = {
-    height: "100%",
-    paddingLeft: "0",
-    paddingRight: "0",
-};
 
 interface FileNavItemSettings extends GridProps {
     node: FileNodeModel;
@@ -108,12 +99,12 @@ function renderFileNavItem({
     };
 
     let textSettings: TextSettings | undefined = undefined;
-    let textInputSettings: TextFieldSettings | undefined = undefined;
-    if (selected && editable)
-        textInputSettings = {
+    let editableTextSettings: EditableTextSettings | undefined = undefined;
+
+    if (selected && editable) {
+        editableTextSettings = {
             value: node?.data?.editableText ?? node.text,
             readOnly: false,
-            autoFocus: true,
             error: node?.data?.error ? true : undefined,
             onChange: (event) =>
                 fileNav.setEditableNodeText(node.id, event.target.value),
@@ -122,47 +113,30 @@ function renderFileNavItem({
             size: "xs",
             styles: { input: { fontSize: 16 } },
         };
-    else
+
+        if (node?.data?.error)
+            editableTextSettings.popoverSettings = {
+                opened: true,
+                text: node?.data?.error ?? "",
+            };
+    } else
         textSettings = {
             value: node.text,
         };
 
-    let popoverSettings: PopoverSettings | undefined = undefined;
-    if (node?.data?.error)
-        popoverSettings = {
-            opened: true,
-            text: node?.data?.error ?? "",
-        };
-
-    let variant: string = "filled-hover";
-    if (fileNav.focused) {
-        if (selected && open) variant = "selected-nohover";
-        else if (selected) variant = "selected-outline-nohover";
-        else if (open) variant = "selected-filled-nohover";
-    } else {
-        if (selected && !open) variant = "filled-hover";
-        if (open) variant = "highlighted-nohover";
-    }
-
-    const borderStyle = selected ? SELECTED_NAV_ITEM_BORDER_STYLE : undefined;
-
     return (
         <NavItem
             id={`${ARTICLE_NAV_ITEM_PREFIX}${node.id}`}
-            variant={variant}
-            c="white"
-            bg={NAVBAR_BG_COLOR}
-            style={borderStyle}
-            indentSettings={{
-                count: depth + 1,
-            }}
+            active={open}
+            selected={selected}
+            focused={fileNav.focused}
+            rank={depth + 1}
             textSettings={textSettings}
-            textInputSettings={textInputSettings}
+            textInputSettings={editableTextSettings}
             expandButtonSettings={{
                 expandable: node.droppable,
                 expanded: expanded,
             }}
-            popoverSettings={popoverSettings}
             onClick={onActivate}
             onContextMenu={openContextMenu}
             {...rest}
@@ -194,13 +168,12 @@ function renderFileNavigator({}: FileNavigatorSettings) {
 
     return (
         <OutsideClickHandler
-            display="block"
-            state={fileNav.outsideClickHandler}
+            className="file-navigator"
+            service={fileNav.outsideClickHandler}
             onClick={() => {
                 fileNav.selectedNode = null;
                 fileNav.focused = true;
             }}
-            style={OUTSIDE_CLICK_HANDLER_STYLE}
         >
             <DndProvider backend={MultiBackend} options={getBackendOptions()}>
                 <Tree

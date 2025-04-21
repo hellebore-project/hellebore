@@ -15,7 +15,7 @@ function renderDeleteEntityButton() {
         <NavSubItem span="content" p="0">
             <ToolTipWrapper label="Delete Entity">
                 <ActionIcon
-                    key="delete-entity"
+                    key="delete-entity-button"
                     variant="subtle"
                     color="red"
                     size="sm"

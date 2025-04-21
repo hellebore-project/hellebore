@@ -1,17 +1,16 @@
-import {
-    Grid,
-    GridProps,
-    Popover,
-    PopoverProps,
-    Text,
-    TextProps,
-} from "@mantine/core";
+import { Grid, Popover, PopoverProps, Text, TextProps } from "@mantine/core";
 import { IconChevronRight } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
-import { forwardRef, PropsWithChildren, ReactNode } from "react";
+import {
+    createRef,
+    forwardRef,
+    PropsWithChildren,
+    ReactNode,
+    RefObject,
+    useEffect,
+} from "react";
 
 import { BaseGridColSettings, BaseGridSettings } from "@/interface";
-import { ThemeManager } from "@/theme";
 import { range } from "@/utils/collections";
 
 import { TextField, TextFieldSettings } from "../text-field";
@@ -50,14 +49,20 @@ export interface PopoverSettings extends PopoverProps {
     text?: string;
 }
 
+export interface EditableTextSettings extends TextFieldSettings {
+    popoverSettings?: PopoverSettings;
+}
+
 export interface NavSubItemSettings extends BaseGridColSettings {}
 
 interface NavItemSettings extends PropsWithChildren<BaseGridSettings> {
-    indentSettings?: IndentSettings;
+    selected?: boolean;
+    active?: boolean;
+    focused?: boolean;
+    rank?: number;
     expandButtonSettings?: ExpandButtonSettings;
     textSettings?: TextSettings;
-    textInputSettings?: TextFieldSettings;
-    popoverSettings?: PopoverSettings;
+    textInputSettings?: EditableTextSettings;
 }
 
 function renderExpandButton({
@@ -77,22 +82,37 @@ function renderExpandButton({
 
 const ExpandButton = observer(renderExpandButton);
 
-const renderReadOnlyText = forwardRef<HTMLParagraphElement, TextSettings>(
-    ({ value, getValue, ...rest }, _) => {
-        const _text = getValue?.() ?? value;
-        return (
-            <Text className="nav-item-text" {...rest}>
-                {_text}
-            </Text>
-        );
-    },
-);
+function renderReadOnlyText({ value, getValue, ...rest }: TextSettings) {
+    const _text = getValue?.() ?? value;
+    return (
+        <Text className="nav-item-text" {...rest}>
+            {_text}
+        </Text>
+    );
+}
 
 const ReadOnlyText = observer(renderReadOnlyText);
 
-const renderEditableText = forwardRef<HTMLInputElement, TextFieldSettings>(
-    (settings, ref) => {
-        return <TextField inputRef={ref} {...settings} />;
+const renderEditableText = forwardRef<HTMLInputElement, EditableTextSettings>(
+    ({ popoverSettings, ...rest }, ref) => {
+        return (
+            <Popover
+                width={200}
+                position="bottom-start"
+                offset={0}
+                withArrow
+                arrowPosition="side"
+                shadow="md"
+                opened={popoverSettings?.opened ?? false}
+            >
+                <Popover.Target>
+                    <TextField ref={ref} {...rest} />
+                </Popover.Target>
+                <Popover.Dropdown style={{ pointerEvents: "none" }}>
+                    <Text size="sm">{popoverSettings?.text ?? ""}</Text>
+                </Popover.Dropdown>
+            </Popover>
+        );
     },
 );
 
@@ -109,22 +129,29 @@ function renderNavSubItem({ children, ...rest }: NavSubItemSettings) {
 export const NavSubItem = observer(renderNavSubItem);
 
 function renderNavItem({
-    indentSettings = {},
-    expandButtonSettings = {},
-    textSettings = {},
-    textInputSettings = {},
-    popoverSettings = {},
-    styles = {},
+    selected = false,
+    active = false,
+    focused = false,
+    rank = 0,
+    expandButtonSettings,
+    textSettings,
+    textInputSettings,
+    styles,
     children,
     ...rest
 }: NavItemSettings) {
+    // class
+    let className = "nav-item dynamic-div";
+    if (selected) className += " selected";
+    if (active) className += " active";
+    if (focused) className += " focused";
+
     // Leading indents
     let indentItem: ReactNode = null;
-    const indentCount = indentSettings?.count ?? 0;
-    if (indentCount > 0) {
+    if (rank > 0) {
         indentItem = (
             <NavSubItem span="content" px="0" py="0">
-                {range(indentCount).map((i) => (
+                {range(rank).map((i) => (
                     <div key={i} className="nav-item-indent" />
                 ))}
             </NavSubItem>
@@ -133,45 +160,36 @@ function renderNavItem({
 
     // Expand button
     let expandNode: ReactNode;
-    if (expandButtonSettings.expandable)
+    if (expandButtonSettings?.expandable ?? false)
         expandNode = <ExpandButton {...expandButtonSettings} />;
     else expandNode = EXPAND_BUTTON_PLACEHOLDER;
 
-    const gridProps = ThemeManager.applyVariantToStyle<GridProps>({
-        className: "nav-item variant-color",
-        align: "center",
-        px: "4",
-        styles: { ...DEFAULT_NAV_ITEM_STYLES, ...styles },
-        ...rest,
-    });
+    // text field
+    const ref: RefObject<HTMLInputElement> = createRef();
+    useEffect(() => {
+        if (ref?.current) {
+            // focus the text field once it has been added to the DOM
+            ref.current.focus();
+        }
+    }, [ref]);
 
     return (
-        <Grid {...gridProps}>
+        <Grid
+            className={className}
+            align="center"
+            styles={{ ...DEFAULT_NAV_ITEM_STYLES, ...(styles ?? {}) }}
+            {...rest}
+        >
             {indentItem}
             <NavSubItem span="content" py="0">
                 {expandNode}
             </NavSubItem>
             <NavSubItem span="auto" px="0" py="0">
-                <Popover
-                    width={200}
-                    position="bottom-start"
-                    offset={0}
-                    withArrow
-                    arrowPosition="side"
-                    shadow="md"
-                    opened={popoverSettings.opened ?? false}
-                >
-                    <Popover.Target>
-                        {textInputSettings.readOnly === false ? (
-                            <EditableText {...textInputSettings} />
-                        ) : (
-                            <ReadOnlyText {...textSettings} />
-                        )}
-                    </Popover.Target>
-                    <Popover.Dropdown style={{ pointerEvents: "none" }}>
-                        <Text size="sm">{popoverSettings.text}</Text>
-                    </Popover.Dropdown>
-                </Popover>
+                {textInputSettings?.readOnly === false ? (
+                    <EditableText ref={ref} {...textInputSettings} />
+                ) : (
+                    <ReadOnlyText {...textSettings} />
+                )}
             </NavSubItem>
             {children}
         </Grid>

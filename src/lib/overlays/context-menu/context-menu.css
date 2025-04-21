@@ -1,0 +1,16 @@
+.context-menu-selection {
+    display: block;
+    position: absolute;
+    z-index: var(--mantine-z-index-overlay);
+}
+
+.context-menu-item {
+    min-width: 300px;
+    margin: 3px;
+    color: var(--default-text-color);
+}
+
+.context-menu-item:hover {
+    color: var(--default-text-color);
+    background-color: var(--selected-bg-color);
+}

@@ -1,3 +1,5 @@
+import "./reference.css";
+
 import Mention, { MentionOptions } from "@tiptap/extension-mention";
 import { mergeAttributes, ReactRenderer } from "@tiptap/react";
 import {
@@ -7,12 +9,11 @@ import {
 } from "@tiptap/suggestion";
 import tippy from "tippy.js";
 
-import { Suggestion } from "@/interface";
+import { Suggestion, VerticalSelectionData } from "@/interface";
 import {
-    VerticalMenu,
-    VerticalMenuItemData,
-    VerticalMenuSettings,
-} from "../vertical-menu";
+    VerticalSelection,
+    VerticalSelectionSettings,
+} from "@/shared/vertical-selection";
 
 type QueryResult = string;
 type DOMRectAccessor = () => DOMRect;
@@ -29,8 +30,8 @@ export interface ReferenceExtensionSettings {
 
 class ReferenceSuggestionRenderer {
     _component: ReactRenderer<
-        typeof VerticalMenu,
-        VerticalMenuSettings
+        typeof VerticalSelection,
+        VerticalSelectionSettings
     > | null = null;
     _popup: any[];
     _data: any[];
@@ -49,15 +50,21 @@ class ReferenceSuggestionRenderer {
         this.setSelectedIndex = setSelectedIndex;
     }
 
-    get component(): ReactRenderer<typeof VerticalMenu, VerticalMenuSettings> {
+    get component(): ReactRenderer<
+        typeof VerticalSelection,
+        VerticalSelectionSettings
+    > {
         return this._component as ReactRenderer<
-            typeof VerticalMenu,
-            VerticalMenuSettings
+            typeof VerticalSelection,
+            VerticalSelectionSettings
         >;
     }
 
     set component(
-        component: ReactRenderer<typeof VerticalMenu, VerticalMenuSettings>,
+        component: ReactRenderer<
+            typeof VerticalSelection,
+            VerticalSelectionSettings
+        >,
     ) {
         this._component = component;
     }
@@ -70,14 +77,14 @@ class ReferenceSuggestionRenderer {
         this._data = this.convertQueryResult(props.items);
         this._confirm = props.command;
 
-        const dropdownSettings: VerticalMenuSettings = {
+        const dropdownSettings: VerticalSelectionSettings = {
             data: this._data,
             getSelectedIndex: this.getSelectedIndex,
             onConfirm: (_, item) => this.onConfirm(item),
             placeholder: "No results",
             withBorder: true,
             radius: 0,
-            item: {
+            itemSettings: {
                 onMouseOver: (e) =>
                     this.setSelectedIndex(
                         Number(e.currentTarget.getAttribute("data-index")),
@@ -86,9 +93,9 @@ class ReferenceSuggestionRenderer {
         };
 
         this.component = new ReactRenderer<
-            typeof VerticalMenu,
-            VerticalMenuSettings
-        >(VerticalMenu, {
+            typeof VerticalSelection,
+            VerticalSelectionSettings
+        >(VerticalSelection, {
             props: dropdownSettings,
             editor: props.editor,
         });
@@ -116,7 +123,7 @@ class ReferenceSuggestionRenderer {
         });
     }
 
-    async onConfirm(item: VerticalMenuItemData) {
+    async onConfirm(item: VerticalSelectionData) {
         if (item) this._confirm?.({ id: item.value, label: item.label });
     }
 
@@ -152,8 +159,12 @@ class ReferenceSuggestionRenderer {
         this.component.destroy();
     }
 
-    convertQueryResult(result: Suggestion[]): VerticalMenuItemData[] {
-        return result.map((r, i) => ({ index: i, ...r }));
+    convertQueryResult(result: Suggestion[]): VerticalSelectionData[] {
+        return result.map((r, i) => ({
+            className: "reference-item",
+            index: i,
+            ...r,
+        }));
     }
 }
 

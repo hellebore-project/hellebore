@@ -1,23 +1,13 @@
-import { ActionIcon, Box, BoxProps, Table } from "@mantine/core";
+import "./word-table.css";
+
+import { ActionIcon, Box, Table } from "@mantine/core";
 import { IconCircleMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { CENTER_BG_COLOR } from "@/constants";
 import { BaseTableSettings, WordKey } from "@/interface";
 import { getService } from "@/services";
 import { TextField } from "@/shared/text-field";
 import { ToolTipWrapper } from "@/shared/tool-tip";
-import { forwardRef, MutableRefObject } from "react";
-import { getSize } from "@/shared/get-size";
-
-const DATA_COLUMN_STYLE = {
-    border: "calc(0.0625rem * var(--mantine-scale)) solid var(--table-border-color)",
-};
-
-const ACTION_COLUMN_STYLE = {
-    backgroundColor: CENTER_BG_COLOR,
-    border: "none",
-};
 
 interface WordRowSettings {
     wordKey: WordKey;
@@ -27,9 +17,7 @@ interface DeleteWordButtonSettings {
     wordKey: WordKey;
 }
 
-interface WordTableSettings extends BaseTableSettings {
-    container: { h: number };
-}
+export interface WordTableSettings extends BaseTableSettings {}
 
 function renderDeleteWordButton({ wordKey }: DeleteWordButtonSettings) {
     const service = getService();
@@ -63,7 +51,7 @@ function renderWordRow({ wordKey }: WordRowSettings) {
             onMouseEnter={() => wordEditor.highlightWord(wordKey)}
             onMouseLeave={() => wordEditor.unhighlightWord(wordKey)}
         >
-            <Table.Td style={DATA_COLUMN_STYLE}>
+            <Table.Td className="word-table-data-cell">
                 <TextField
                     variant="unstyled"
                     getValue={() => wordEditor.getWord(wordKey).spelling}
@@ -72,7 +60,7 @@ function renderWordRow({ wordKey }: WordRowSettings) {
                     }
                 />
             </Table.Td>
-            <Table.Td style={DATA_COLUMN_STYLE}>
+            <Table.Td className="word-table-data-cell">
                 <TextField
                     variant="unstyled"
                     getValue={() => wordEditor.getTranslations(wordKey)}
@@ -84,7 +72,7 @@ function renderWordRow({ wordKey }: WordRowSettings) {
                     }
                 />
             </Table.Td>
-            <Table.Td style={ACTION_COLUMN_STYLE}>
+            <Table.Td className="word-table-action-cell">
                 <DeleteWordButton wordKey={wordKey} />
             </Table.Td>
         </Table.Tr>
@@ -93,7 +81,7 @@ function renderWordRow({ wordKey }: WordRowSettings) {
 
 const WordRow = observer(renderWordRow);
 
-function renderWordTable({ container }: WordTableSettings) {
+function renderWordTable(settings: WordTableSettings) {
     const service = getService();
     const wordEditor = service.view.entityEditor.lexicon;
 
@@ -102,12 +90,16 @@ function renderWordTable({ container }: WordTableSettings) {
     ));
 
     return (
-        <Box style={{ overflowY: "scroll" }} {...container}>
+        <Box className="word-table" {...settings}>
             <Table striped highlightOnHover withRowBorders={false}>
                 <Table.Thead>
                     <Table.Tr>
-                        <Table.Th style={DATA_COLUMN_STYLE}>Word</Table.Th>
-                        <Table.Th style={DATA_COLUMN_STYLE}>Meaning</Table.Th>
+                        <Table.Th className="word-table-data-cell">
+                            Word
+                        </Table.Th>
+                        <Table.Th className="word-table-data-cell">
+                            Meaning
+                        </Table.Th>
                         <Table.Th></Table.Th>
                     </Table.Tr>
                 </Table.Thead>

@@ -19,6 +19,7 @@ import { ViewManagerInterface } from "./interface";
 import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
+import { StyleManager } from "./style-manager";
 
 export class ViewManager implements ViewManagerInterface {
     // state variables
@@ -44,6 +45,9 @@ export class ViewManager implements ViewManagerInterface {
     // context menu service
     contextMenu: ContextMenuManager;
 
+    // styling
+    style: StyleManager;
+
     constructor(domain: DomainManager) {
         const overrides = {
             domain: false,
@@ -56,6 +60,7 @@ export class ViewManager implements ViewManagerInterface {
             articleRemover: false,
             entityEditor: false,
             contextMenu: false,
+            style: false,
         };
         makeAutoObservable(this, overrides);
 
@@ -75,6 +80,9 @@ export class ViewManager implements ViewManagerInterface {
 
         // context menu
         this.contextMenu = new ContextMenuManager(this);
+
+        // styling
+        this.style = new StyleManager();
     }
 
     get currentView() {

@@ -1,3 +1,5 @@
+import "./title-field.css";
+
 import { observer } from "mobx-react-lite";
 
 import { getService } from "@/services";
@@ -11,8 +13,8 @@ function renderTitleField() {
     return (
         <>
             <TextField
+                className="title-field"
                 variant="unstyled"
-                mx="12"
                 styles={TITLE_FIELD_STYLES}
                 placeholder="Title"
                 getValue={() => service.view.entityEditor.title}

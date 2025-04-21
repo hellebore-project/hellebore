@@ -1,3 +1,5 @@
+import "./vertical-selection.css";
+
 import { Button, Paper, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { ReactElement, SyntheticEvent } from "react";
@@ -5,63 +7,56 @@ import { ReactElement, SyntheticEvent } from "react";
 import {
     BaseButtonSettings,
     BasePaperSettings,
-    VerticalMenuItemData,
+    VerticalSelectionData,
 } from "@/interface";
 
-interface VerticalMenuItemSettings extends BaseButtonSettings {
-    data: VerticalMenuItemData;
+interface VerticalMenuSelectionSettings extends BaseButtonSettings {
+    data: VerticalSelectionData;
     selected?: boolean;
 }
 
-export interface VerticalMenuSettings extends BasePaperSettings {
-    data: VerticalMenuItemData[];
+export interface VerticalSelectionSettings extends BasePaperSettings {
+    data: VerticalSelectionData[];
     placeholder?: string;
     getSelectedIndex: () => number | null;
     onConfirm?: (
         e: SyntheticEvent<HTMLButtonElement>,
-        item: VerticalMenuItemData,
+        item: VerticalSelectionData,
     ) => Promise<void>;
-    stack?: StackProps;
-    item?: BaseButtonSettings;
+    stackSettings?: StackProps;
+    itemSettings?: BaseButtonSettings;
 }
 
-function renderVerticalMenuItem({
+function renderVerticalSelectionItem({
     data,
     selected = false,
+    className = "",
+    style: sharedStyle,
     ...sharedAttrs
-}: VerticalMenuItemSettings) {
+}: VerticalMenuSelectionSettings) {
     let {
-        variant: sharedVariant,
-        style: sharedStyle,
-        ..._sharedAttrs
-    } = sharedAttrs;
-    let {
+        className: uniqueClassName,
         index,
         label,
         onConfirm,
-        variant: uniqueVariant,
         style: uniqueStyle,
         ...uniqueAttrs
     } = data;
 
-    let baseVariant = uniqueVariant ?? sharedVariant ?? "filled";
-
-    let unselectedVariant = baseVariant;
-    if (!baseVariant.endsWith("-nohover"))
-        unselectedVariant = `${baseVariant}-nohover`;
-    const _variant = selected ? "selected" : unselectedVariant;
+    let _className = "vertical-selection-item";
+    if (uniqueClassName) _className += ` ${uniqueClassName}`;
+    else _className += ` ${className}`;
+    if (selected) _className += " selected";
 
     return (
         <Button
-            variant={_variant}
-            color="gray"
-            radius={0}
+            className={_className}
             px="sm"
             style={{
                 ...sharedStyle,
                 ...uniqueStyle,
             }}
-            {..._sharedAttrs}
+            {...sharedAttrs}
             {...uniqueAttrs}
             {...{ "data-index": index }}
         >
@@ -70,22 +65,22 @@ function renderVerticalMenuItem({
     );
 }
 
-const VerticalMenuItem = observer(renderVerticalMenuItem);
+const VerticalSelectionItem = observer(renderVerticalSelectionItem);
 
-const renderVerticalMenu = ({
+const renderVerticalSelection = ({
     data,
     placeholder,
     getSelectedIndex,
     onConfirm,
-    stack,
-    item,
+    stackSettings,
+    itemSettings,
     ...rest
-}: VerticalMenuSettings) => {
+}: VerticalSelectionSettings) => {
     let options: ReactElement[];
     if (data.length) {
         const selectedIndex = getSelectedIndex() ?? null;
         options = data.map((itemData) => (
-            <VerticalMenuItem
+            <VerticalSelectionItem
                 key={`${itemData.value}`}
                 data={itemData}
                 selected={itemData.index == selectedIndex}
@@ -93,13 +88,13 @@ const renderVerticalMenu = ({
                     if (onConfirm) onConfirm(e, itemData);
                     else if (itemData.onConfirm) itemData.onConfirm(e);
                 }}
-                {...item}
+                {...itemSettings}
             />
         ));
     } else {
         if (placeholder)
             options = [
-                <VerticalMenuItem
+                <VerticalSelectionItem
                     key="null"
                     data={{ index: 0, label: placeholder, disabled: true }}
                 />,
@@ -107,13 +102,19 @@ const renderVerticalMenu = ({
         else options = [];
     }
 
+    const { className = "", ...stackRest } = stackSettings ?? {};
+
     return (
         <Paper {...rest}>
-            <Stack gap={0} miw={50} {...stack}>
+            <Stack
+                className={`vertical-selection-stack ${className}`}
+                gap={0}
+                {...stackRest}
+            >
                 {options}
             </Stack>
         </Paper>
     );
 };
 
-export const VerticalMenu = observer(renderVerticalMenu);
+export const VerticalSelection = observer(renderVerticalSelection);

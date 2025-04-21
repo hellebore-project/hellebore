@@ -5,8 +5,8 @@ import { getService } from "@/services";
 import { SPACE } from "@/shared/common";
 import { RichTextEditor } from "@/shared/rich-text-editor/rich-text-editor";
 import { CENTER_BG_COLOR } from "@/constants";
+import { TitleField } from "../title-field";
 import { PropertyTable } from "./property-table";
-import { TitleField } from "./title-field";
 
 const RICH_TEXT_EDITOR_STYLES = {
     root: { borderWidth: "0" },
@@ -22,9 +22,6 @@ function renderArticleEditor() {
 
                 <PropertyTable
                     getData={() => service.view.entityEditor.fieldData}
-                    bg={CENTER_BG_COLOR}
-                    bd="0.5px solid var(--mantine-color-dark-4)"
-                    stack={{ mx: "15" }}
                 />
 
                 {SPACE}

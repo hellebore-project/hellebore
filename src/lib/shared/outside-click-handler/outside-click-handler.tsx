@@ -1,37 +1,42 @@
-import { observer } from "mobx-react-lite";
-import {
-    CSSProperties,
-    HTMLAttributes,
-    PropsWithChildren,
-    useEffect,
-} from "react";
+import "./outside-click-handler.css";
 
-import { OutsideClickHandlerState } from "./state";
+import { observer } from "mobx-react-lite";
+import { HTMLAttributes, PropsWithChildren, useEffect } from "react";
+
+import { OutsideClickHandlerService } from "./outside-click-handler-service";
 
 interface OutsideClickHandlerSettings extends HTMLAttributes<HTMLDivElement> {
-    state: OutsideClickHandlerState;
-    display: string;
+    service: OutsideClickHandlerService;
 }
 
 function renderOutsideClickHandler({
-    state,
-    display,
+    service,
     children,
+    className = "",
     style,
     ...rest
 }: PropsWithChildren<OutsideClickHandlerSettings>) {
     useEffect(() => {
-        if (state.disabled) state.removeEventListeners();
-        else state.addMouseDownEventListener(state.capture);
-        return () => state.removeEventListeners();
-    }, [state.disabled]);
+        if (service.enabled) {
+            service.addMouseDownEventListener(service.capture);
+            return () => service.removeEventListeners();
+        } else {
+            service.removeEventListeners();
+        }
+    }, [service.enabled]);
 
-    const _style = { ...style } as CSSProperties;
-    if (display !== "block") _style.display = display;
-    else delete _style.display;
+    if (style && style.display == "block") {
+        const { display, ...styleRest } = style;
+        style = styleRest;
+    }
 
     return (
-        <div ref={state.node} style={_style} {...rest}>
+        <div
+            className={`outside-click-handler ${className}`}
+            ref={service.node}
+            style={style}
+            {...rest}
+        >
             {children}
         </div>
     );

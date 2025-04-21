@@ -6,27 +6,17 @@ import "./app.css";
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import {
-    CENTER_BG_COLOR,
-    FOOTER_BG_COLOR,
-    FOOTER_HEIGHT,
-    HEADER_BG_COLOR,
-    HEADER_HEIGHT,
-    NAVBAR_BG_COLOR,
-    NAVBAR_WIDTH,
-} from "./constants";
+import { FOOTER_HEIGHT, HEADER_HEIGHT, NAVBAR_WIDTH } from "./constants";
 import { Footer, Header, Center, LeftSideBar } from "./layout";
-import { ArticleCreator, ProjectCreator } from "./modals";
+import { ArticleCreator, ContextMenu, ProjectCreator } from "./overlays";
 import { getService } from "./services";
-import { ContextMenu } from "./context-menu";
-import { ThemeManager } from "./theme";
 
 function renderApp() {
     const service = getService();
     return (
         <MantineProvider
-            defaultColorScheme={ThemeManager.colorScheme}
-            theme={ThemeManager.theme}
+            defaultColorScheme={service.view.style.colorScheme}
+            theme={service.view.style.theme}
         >
             <AppShell
                 header={{ height: { base: HEADER_HEIGHT } }}
@@ -45,23 +35,19 @@ function renderApp() {
                 }}
                 padding="md"
             >
-                <AppShell.Header bg={HEADER_BG_COLOR}>
+                <AppShell.Header className="header-panel">
                     <Header />
                 </AppShell.Header>
 
-                <AppShell.Navbar bg={NAVBAR_BG_COLOR}>
+                <AppShell.Navbar className="left-sidebar-panel">
                     <LeftSideBar />
                 </AppShell.Navbar>
 
-                <AppShell.Main
-                    display="flex"
-                    bg={CENTER_BG_COLOR}
-                    style={{ flexDirection: "column", overflow: "hidden" }}
-                >
+                <AppShell.Main className="main-panel">
                     <Center />
                 </AppShell.Main>
 
-                <AppShell.Footer bg={FOOTER_BG_COLOR}>
+                <AppShell.Footer className="footer-panel">
                     <Footer />
                 </AppShell.Footer>
             </AppShell>

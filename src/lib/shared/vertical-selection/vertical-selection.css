@@ -1,0 +1,17 @@
+.vertical-selection-stack {
+    min-width: 50px;
+}
+
+.vertical-selection-item {
+    border-radius: 0;
+}
+
+.vertical-selection-item:first-child {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.vertical-selection-item:last-child {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}

@@ -1,3 +1,5 @@
+import "./menu-button.css";
+
 import { BaseButtonSettings } from "@/interface";
 import { Button, Menu, MenuProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
@@ -17,8 +19,8 @@ interface MenuElementSettings {
 
 interface MenuDropdownSettings extends MenuProps {
     label: string;
-    elements: MenuDropdownElementData[];
-    button?: BaseButtonSettings;
+    data: MenuDropdownElementData[];
+    buttonSettings?: BaseButtonSettings;
 }
 
 function renderMenuDropdownElement({ data }: MenuElementSettings) {
@@ -38,11 +40,11 @@ export const MenuDropdownElement = observer(renderMenuDropdownElement);
 
 function renderMenuDropdown({
     label,
-    elements,
-    button,
+    data,
+    buttonSettings,
     ...rest
 }: MenuDropdownSettings) {
-    if (!button) button = {};
+    if (!buttonSettings) buttonSettings = {};
     return (
         <Menu
             trigger="click"
@@ -55,16 +57,15 @@ function renderMenuDropdown({
         >
             <Menu.Target>
                 <Button
-                    variant="filled"
-                    color="var(--mantine-color-dark-7)"
+                    className="menu-button"
                     size="compact-sm"
-                    {...button}
+                    {...buttonSettings}
                 >
                     {label}
                 </Button>
             </Menu.Target>
             <Menu.Dropdown>
-                {elements.map((element, index) => (
+                {data.map((element, index) => (
                     <MenuDropdownElement
                         key={`${label}-${index}`}
                         data={element}
