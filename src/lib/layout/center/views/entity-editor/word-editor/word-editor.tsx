@@ -26,23 +26,16 @@ const TAB_DATA: TabData[] = [
 
 function renderWordEditor() {
     let wordEditor = getService().view.entityEditor.lexicon;
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    const size = getSize(
-        containerRef as MutableRefObject<HTMLDivElement>,
-        () => wordEditor.size,
-        (s) => (wordEditor.size = s),
-    );
-
     return (
         <Container className="word-editor">
-            <Stack className="word-editor-stack" justify="flex-start">
+            <Stack className="word-editor-stack" justify="flex-start" gap={0}>
                 <TitleField />
                 {SPACE}
 
                 <Tabs
                     data={TAB_DATA}
                     selectedValue={wordEditor.viewKey}
+                    className="word-editor-tabs"
                     tabSettings={{
                         onClick: (e) =>
                             wordEditor.changeView(
@@ -51,12 +44,7 @@ function renderWordEditor() {
                     }}
                 />
 
-                <div
-                    className="word-table-container"
-                    ref={containerRef as MutableRefObject<HTMLDivElement>}
-                >
-                    <WordTable style={{ h: size.height }} />
-                </div>
+                <WordTable />
             </Stack>
         </Container>
     );

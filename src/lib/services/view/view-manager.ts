@@ -1,3 +1,4 @@
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ask, open } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable } from "mobx";
 
@@ -22,6 +23,14 @@ import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
 
 export class ViewManager implements ViewManagerInterface {
+    // constants
+    HEADER_HEIGHT = 30;
+    FOOTER_HEIGHT = 25;
+    NAVBAR_WIDTH = 300;
+    MAIN_PADDING = 20;
+    DEFAULT_DIVIDER_HEIGHT = 24.8;
+    DEFAULT_SPACE_HEIGHT = 20;
+
     // state variables
     _viewKey: ViewKey = ViewKey.Home;
     _modalKey: ModalKey | null = null;
@@ -45,12 +54,14 @@ export class ViewManager implements ViewManagerInterface {
     // context menu service
     contextMenu: ContextMenuManager;
 
-    // styling
+    // miscellaneous
     style: StyleManager;
 
     constructor(domain: DomainManager) {
         const overrides = {
             domain: false,
+            dimensions: false,
+            style: false,
             home: false,
             settingsEditor: false,
             navigation: false,
@@ -60,11 +71,13 @@ export class ViewManager implements ViewManagerInterface {
             articleRemover: false,
             entityEditor: false,
             contextMenu: false,
-            style: false,
         };
         makeAutoObservable(this, overrides);
 
         this.domain = domain;
+
+        // miscellaneous
+        this.style = new StyleManager();
 
         // central views
         this.home = new HomeManager(this);
@@ -80,9 +93,30 @@ export class ViewManager implements ViewManagerInterface {
 
         // context menu
         this.contextMenu = new ContextMenuManager(this);
+    }
 
-        // styling
-        this.style = new StyleManager();
+    get headerHeight() {
+        return this.HEADER_HEIGHT;
+    }
+
+    get footerHeight() {
+        return this.FOOTER_HEIGHT;
+    }
+
+    get navbarWidth() {
+        return this.NAVBAR_WIDTH;
+    }
+
+    get mainPadding() {
+        return this.MAIN_PADDING;
+    }
+
+    get defaultDividerHeight() {
+        return this.DEFAULT_DIVIDER_HEIGHT;
+    }
+
+    get defaultSpaceHeight() {
+        return this.DEFAULT_SPACE_HEIGHT;
     }
 
     get currentView() {
@@ -116,6 +150,11 @@ export class ViewManager implements ViewManagerInterface {
 
     set navBarMobileOpen(open: boolean) {
         this._navBarMobileOpen = open;
+    }
+
+    async getViewSize() {
+        const window = getCurrentWindow();
+        return window.innerSize();
     }
 
     async fetchProjectInfo() {

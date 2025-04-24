@@ -1,14 +1,15 @@
+import "./left-sidebar.css";
+
 import { Container } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { NAVBAR_BG_COLOR } from "@/constants";
 import { ArticlesTab } from "./article-tab";
 
 function renderLeftSideBar() {
     // the components have to take up as much vertical space as possible in order to allow
     // dragging article nodes to the top level of the file tree
     return (
-        <Container fluid mx={0} px={0} py={4} h="100%" bg={NAVBAR_BG_COLOR}>
+        <Container className="left-sidebar" fluid>
             <ArticlesTab />
         </Container>
     );

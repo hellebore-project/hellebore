@@ -55,6 +55,12 @@ interface SyncResponse {
 }
 
 export class EntityEditor {
+    // constants
+    ENTITY_HEADER_SPACE_HEIGHT = 25;
+    BELOW_ENTITY_HEADER_SPACE_HEIGHT = 40;
+    TITLE_FIELD_HEIGHT = 36;
+
+    // private state variables
     private _viewKey: EntityViewKey = EntityViewKey.ArticleEditor;
     private _waitingForSync: boolean = false;
     private _syncing: boolean = false;
@@ -62,6 +68,7 @@ export class EntityEditor {
     private _lastSynced: number = 0;
     private _syncDelayTime: number = DEFAULT_SYNC_DELAY_TIME;
 
+    // services
     view: ViewManagerInterface;
     info: EntityInfoEditor;
     properties: PropertyTableEditor;
@@ -96,6 +103,14 @@ export class EntityEditor {
             onChange,
         });
         this.lexicon = new WordEditor({ view, info: this.info, onChange });
+    }
+
+    get entityHeaderSpaceHeight() {
+        return this.ENTITY_HEADER_SPACE_HEIGHT;
+    }
+
+    get belowEntityHeaderSpaceHeight() {
+        return this.BELOW_ENTITY_HEADER_SPACE_HEIGHT;
     }
 
     get currentView() {

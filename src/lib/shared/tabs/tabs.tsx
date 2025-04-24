@@ -1,5 +1,7 @@
 import "./tabs.css";
 
+import { forwardRef } from "react";
+
 import { BaseButtonSettings, BaseGroupSettings } from "@/interface";
 import { Button, Group } from "@mantine/core";
 import { observer } from "mobx-react-lite";
@@ -52,25 +54,21 @@ function renderTab({
 
 const Tab = observer(renderTab);
 
-function renderTabs({
-    data,
-    selectedValue,
-    className = "",
-    tabSettings,
-    ...rest
-}: TabsSettings) {
-    return (
-        <Group className={`tabs ${className}`} gap={0} {...rest}>
-            {data.map((d) => (
-                <Tab
-                    key={`tab-${d.value}`}
-                    data={d}
-                    selected={d.value === selectedValue}
-                    {...tabSettings}
-                />
-            ))}
-        </Group>
-    );
-}
+const renderTabs = forwardRef<HTMLDivElement, TabsSettings>(
+    ({ data, selectedValue, className = "", tabSettings, ...rest }, ref) => {
+        return (
+            <Group ref={ref} className={`tabs ${className}`} gap={0} {...rest}>
+                {data.map((d) => (
+                    <Tab
+                        key={`tab-${d.value}`}
+                        data={d}
+                        selected={d.value === selectedValue}
+                        {...tabSettings}
+                    />
+                ))}
+            </Group>
+        );
+    },
+);
 
 export const Tabs = observer(renderTabs);

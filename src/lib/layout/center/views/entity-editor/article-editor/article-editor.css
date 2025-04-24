@@ -1,11 +1,11 @@
-.word-editor {
+.article-editor {
     display: flex;
     height: 100%;
     flex-direction: column;
     flex-grow: 1;
 }
 
-.word-editor-stack {
+.article-editor-stack {
     display: flex;
     height: calc(
         100vh - var(--header-height) - var(--footer-height) - 2 *
@@ -16,6 +16,6 @@
     flex-grow: 1;
 }
 
-.word-editor-tabs {
-    margin-bottom: 20px;
+.article-editor-text {
+    overflow-y: auto;
 }

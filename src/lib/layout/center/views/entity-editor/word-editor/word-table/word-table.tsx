@@ -2,6 +2,7 @@ import "./word-table.css";
 
 import { ActionIcon, Box, Table } from "@mantine/core";
 import { IconCircleMinus } from "@tabler/icons-react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { observer } from "mobx-react-lite";
 
 import { BaseTableSettings, WordKey } from "@/interface";

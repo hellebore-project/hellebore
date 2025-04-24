@@ -1,10 +1,11 @@
+import { PhysicalSize } from "@tauri-apps/api/dpi";
+
 import {
     ArticleResponse,
     ArticleUpdateResponse,
     BaseEntity,
     BulkData,
     EntityType,
-    Id,
     ProjectResponse,
     ViewKey,
     WordType,
@@ -15,7 +16,10 @@ import { ArticleUpdateArguments, DomainManager } from "../domain";
 
 export interface ViewManagerInterface {
     domain: DomainManager;
+
     get currentView(): ViewKey;
+
+    getViewSize(): Promise<PhysicalSize>;
     fetchProjectInfo(): Promise<ProjectResponse | null>;
     populateNavigator(): Promise<void>;
     openHome(): void;

@@ -2,10 +2,9 @@ import "./entity-editor.css";
 
 import { EntityType, EntityViewKey } from "@/interface";
 import { getService } from "@/services";
-import { Badge, Grid, Stack } from "@mantine/core";
+import { Badge, Grid, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { SPACE } from "@/shared/common";
 import {
     TableOfContents,
     TableOfContentsItemData,
@@ -90,10 +89,11 @@ function renderEntityEditorTabs() {
 export const EntityEditorTabs = observer(renderEntityEditorTabs);
 
 function renderEntityEditor() {
+    const service = getService();
     return (
-        <Stack className="entity-editor">
+        <Stack className="entity-editor" gap={0}>
             <EntityEditorHeader />
-            {SPACE}
+            <Space className="entity-editor-space-below-header" />
             <Stack className="entity-editor-stack">
                 <Grid className="entity-editor-grid">
                     <Grid.Col span={1}>

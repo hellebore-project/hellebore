@@ -5,13 +5,18 @@
 
     --default-text-color: white;
     --default-bg-color: var(--mantine-color-dark-8);
+    --default-bd-color: var(--mantine-color-dark-4);
     --selected-text-color: white;
     --selected-bg-color: var(--mantine-color-blue-light);
     --selected-bd-color: var(--mantine-color-blue-3);
     --selected-bd: 1px solid var(--selected-bd-color);
+    --header-height: 30px;
     --header-bg-color: var(--mantine-color-dark-6);
+    --sidebar-width: 300px;
     --sidebar-bg-color: var(--mantine-color-dark-7);
+    --main-padding: 20px;
     --main-bg-color: var(--mantine-color-dark-8);
+    --footer-height: 25px;
     --footer-bg-color: var(--mantine-color-dark-9);
 }
 
@@ -51,4 +56,9 @@
     background-color: var(--footer-bg-color);
 
     --default-bg-color: var(--footer-bg-color);
+}
+
+.divider {
+    border-top: 0.8px solid var(--default-bd-color);
+    margin-block: 12px;
 }

@@ -108,7 +108,7 @@ const renderEditableText = forwardRef<HTMLInputElement, EditableTextSettings>(
                 <Popover.Target>
                     <TextField ref={ref} {...rest} />
                 </Popover.Target>
-                <Popover.Dropdown style={{ pointerEvents: "none" }}>
+                <Popover.Dropdown className="nav-item-popover-dropdown">
                     <Text size="sm">{popoverSettings?.text ?? ""}</Text>
                 </Popover.Dropdown>
             </Popover>

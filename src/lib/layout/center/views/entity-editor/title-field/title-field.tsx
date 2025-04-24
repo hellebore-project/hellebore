@@ -3,8 +3,8 @@ import "./title-field.css";
 import { observer } from "mobx-react-lite";
 
 import { getService } from "@/services";
-import { DIVIDER } from "@/shared/common";
 import { TextField } from "@/shared/text-field";
+import { Divider } from "@mantine/core";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 
@@ -30,7 +30,7 @@ function renderTitleField() {
                         event.currentTarget.value)
                 }
             />
-            {DIVIDER}
+            <Divider className="divider" />
         </>
     );
 }

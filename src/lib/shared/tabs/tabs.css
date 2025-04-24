@@ -1,6 +1,9 @@
+.tabs {
+    border-bottom: 2px solid var(--mantine-color-dark-4);
+}
+
 .tab {
     background-color: var(--default-bg-color);
-    border-bottom: 2px solid var(--mantine-color-dark-4);
     border-radius: 5px 5px 0 0;
 }
 
@@ -14,5 +17,5 @@
 
 .tab.selected {
     background-color: var(--selected-bg-color);
-    border-bottom: 2px solid var(--selected-bd-color);
+    border-bottom: 3px solid var(--selected-bd-color);
 }

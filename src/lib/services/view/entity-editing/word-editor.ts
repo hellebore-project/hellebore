@@ -13,8 +13,8 @@ import {
     EntityChangeHandler,
     WordViewKey,
 } from "@/interface";
-import { compareStrings } from "@/utils/string";
 import { Counter } from "@/utils/counter";
+import { compareStrings } from "@/utils/string";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
 
@@ -53,7 +53,6 @@ export class WordEditor {
     private _filteredWordKeys: WordKey[];
     private _modifiedWordKeys: Set<WordKey>;
     private _changed: boolean = false;
-    private _size: DOMRect;
 
     // utils
     private _view: ViewManagerInterface;
@@ -73,7 +72,6 @@ export class WordEditor {
         this._words = {};
         this._filteredWordKeys = [];
         this._modifiedWordKeys = new Set();
-        this._size = new DOMRect(0, 0, 0, 0);
 
         this._view = view;
         this._info = info;
@@ -104,16 +102,6 @@ export class WordEditor {
 
     get changed() {
         return this._changed;
-    }
-
-    get size() {
-        console.log(`getting ${this._size.height}`);
-        return this._size;
-    }
-
-    set size(size: DOMRect) {
-        console.log(`setting ${size.height}`);
-        this._size = size;
     }
 
     getWord(key: WordKey) {
@@ -180,7 +168,6 @@ export class WordEditor {
     claimModifiedWords() {
         const modifiedWords = [];
         for (const key of this._modifiedWordKeys) {
-            console.log(toJS(this._words));
             const word = toJS(this._words[key]);
             word.translations = word.rawTranslations
                 .split(/,|;/)

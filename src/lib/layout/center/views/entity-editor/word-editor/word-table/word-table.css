@@ -1,5 +1,6 @@
 .word-table {
-    overflow-y: scroll;
+    overflow-y: auto;
+    padding-inline: 10px;
 }
 
 .word-table-data-cell {

@@ -1,7 +1,6 @@
 import { Box } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { CENTER_BG_COLOR } from "@/constants";
 import { getService } from "@/services";
 import { DIVIDER, SPACE } from "@/shared/common";
 import { TextField } from "@/shared/text-field";
@@ -12,7 +11,7 @@ function renderHome() {
     const service = getService();
     if (!service.domain.hasProject) return null;
     return (
-        <Box className="container" bg={CENTER_BG_COLOR}>
+        <Box className="home">
             <TextField
                 variant="unstyled"
                 mx="12"

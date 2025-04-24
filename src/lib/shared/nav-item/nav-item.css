@@ -39,7 +39,7 @@
 }
 
 .nav-sub-item {
-    align-items: "center";
+    align-items: center;
 }
 
 .nav-item-indent {
@@ -54,5 +54,9 @@
 
 .nav-item-text {
     /* prevent highlighting text in nav items */
-    user-select: "none";
+    user-select: none;
+}
+
+.nav-item-popover-dropdown {
+    pointer-events: none;
 }

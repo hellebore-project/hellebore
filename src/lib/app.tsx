@@ -6,7 +6,6 @@ import "./app.css";
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { FOOTER_HEIGHT, HEADER_HEIGHT, NAVBAR_WIDTH } from "./constants";
 import { Footer, Header, Center, LeftSideBar } from "./layout";
 import { ArticleCreator, ContextMenu, ProjectCreator } from "./overlays";
 import { getService } from "./services";
@@ -19,9 +18,9 @@ function renderApp() {
             theme={service.view.style.theme}
         >
             <AppShell
-                header={{ height: { base: HEADER_HEIGHT } }}
+                header={{ height: { base: service.view.headerHeight } }}
                 navbar={{
-                    width: NAVBAR_WIDTH,
+                    width: service.view.navbarWidth,
                     breakpoint: "sm",
                     collapsed: {
                         desktop: !service.domain.hasProject,
@@ -31,9 +30,9 @@ function renderApp() {
                     },
                 }}
                 footer={{
-                    height: FOOTER_HEIGHT,
+                    height: service.view.footerHeight,
                 }}
-                padding="md"
+                padding={service.view.mainPadding}
             >
                 <AppShell.Header className="header-panel">
                     <Header />
