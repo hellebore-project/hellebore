@@ -1,0 +1,4 @@
+.title-field {
+    height: var(--title-field-height);
+    margin-inline: 12px;
+}

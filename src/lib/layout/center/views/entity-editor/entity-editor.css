@@ -1,0 +1,45 @@
+.entity-editor {
+    width: 100%;
+    height: 100%;
+    flex-grow: 1;
+
+    /* Constants */
+    --space-below-header-height: 40px;
+    --title-field-height: 36px;
+}
+
+.entity-editor-space-below-header {
+    height: var(--space-below-header-height);
+}
+
+.entity-editor-stack {
+    width: 100%;
+    height: 100%;
+    flex-grow: 1;
+}
+
+.entity-editor-grid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.entity-editor-header {
+    height: 25px;
+    margin-inline: 12px;
+}
+
+.entity-editor-header-col:last-child {
+    margin-left: auto;
+}
+
+.entity-editor-toc {
+    width: 100%;
+    flex-grow: 1;
+}
+
+.entity-editor-toc-item {
+    width: 100%;
+}

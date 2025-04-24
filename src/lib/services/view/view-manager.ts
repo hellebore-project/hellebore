@@ -1,3 +1,4 @@
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ask, open } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable } from "mobx";
 
@@ -7,6 +8,7 @@ import {
     EntityType,
     ModalKey,
     ViewKey,
+    WordType,
     WordUpsert,
 } from "@/interface";
 import { ArticleUpdateArguments, DomainManager } from "../domain";
@@ -18,10 +20,19 @@ import { ViewManagerInterface } from "./interface";
 import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
+import { StyleManager } from "./style-manager";
 
 export class ViewManager implements ViewManagerInterface {
+    // constants
+    HEADER_HEIGHT = 30;
+    FOOTER_HEIGHT = 25;
+    NAVBAR_WIDTH = 300;
+    MAIN_PADDING = 20;
+    DEFAULT_DIVIDER_HEIGHT = 24.8;
+    DEFAULT_SPACE_HEIGHT = 20;
+
     // state variables
-    _viewKey: ViewKey = ViewKey.HOME;
+    _viewKey: ViewKey = ViewKey.Home;
     _modalKey: ModalKey | null = null;
     _navBarMobileOpen: boolean = true;
 
@@ -43,9 +54,14 @@ export class ViewManager implements ViewManagerInterface {
     // context menu service
     contextMenu: ContextMenuManager;
 
+    // miscellaneous
+    style: StyleManager;
+
     constructor(domain: DomainManager) {
         const overrides = {
             domain: false,
+            dimensions: false,
+            style: false,
             home: false,
             settingsEditor: false,
             navigation: false,
@@ -59,6 +75,9 @@ export class ViewManager implements ViewManagerInterface {
         makeAutoObservable(this, overrides);
 
         this.domain = domain;
+
+        // miscellaneous
+        this.style = new StyleManager();
 
         // central views
         this.home = new HomeManager(this);
@@ -76,6 +95,30 @@ export class ViewManager implements ViewManagerInterface {
         this.contextMenu = new ContextMenuManager(this);
     }
 
+    get headerHeight() {
+        return this.HEADER_HEIGHT;
+    }
+
+    get footerHeight() {
+        return this.FOOTER_HEIGHT;
+    }
+
+    get navbarWidth() {
+        return this.NAVBAR_WIDTH;
+    }
+
+    get mainPadding() {
+        return this.MAIN_PADDING;
+    }
+
+    get defaultDividerHeight() {
+        return this.DEFAULT_DIVIDER_HEIGHT;
+    }
+
+    get defaultSpaceHeight() {
+        return this.DEFAULT_SPACE_HEIGHT;
+    }
+
     get currentView() {
         return this._viewKey;
     }
@@ -85,7 +128,7 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     get isEntityEditorOpen() {
-        return this._viewKey == ViewKey.ENTITY_EDITOR;
+        return this._viewKey == ViewKey.EntityEditor;
     }
 
     get entityType() {
@@ -109,6 +152,11 @@ export class ViewManager implements ViewManagerInterface {
         this._navBarMobileOpen = open;
     }
 
+    async getViewSize() {
+        const window = getCurrentWindow();
+        return window.innerSize();
+    }
+
     async fetchProjectInfo() {
         return this.domain.session.getSession().then((session) => {
             // TODO: trigger UI error state if the project info is unavailable
@@ -129,32 +177,32 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     openHome() {
-        this.cleanUp(ViewKey.HOME);
-        this._viewKey = ViewKey.HOME;
+        this.cleanUp(ViewKey.Home);
+        this._viewKey = ViewKey.Home;
     }
 
     openSettings() {
-        this.cleanUp(ViewKey.SETTINGS);
-        this._viewKey = ViewKey.SETTINGS;
+        this.cleanUp(ViewKey.Settings);
+        this._viewKey = ViewKey.Settings;
     }
 
     openProjectCreator() {
         this.projectCreator.initialize();
-        this._modalKey = ModalKey.PROJECT_CREATOR;
+        this._modalKey = ModalKey.ProjectCreator;
     }
 
     openArticleCreator(entityType: EntityType | undefined = undefined) {
         this.articleCreator.initialize(entityType);
-        this._modalKey = ModalKey.ARTICLE_CREATOR;
+        this._modalKey = ModalKey.ArticleCreator;
     }
 
     _openArticleEditor(article: ArticleResponse<BaseEntity>) {
         // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.ENTITY_EDITOR);
+        this.cleanUp(ViewKey.EntityEditor);
 
         this.entityEditor.initializeArticleEditor(article);
         this.navigation.files.openArticleNode(article.id);
-        this._viewKey = ViewKey.ENTITY_EDITOR;
+        this._viewKey = ViewKey.EntityEditor;
     }
 
     async openArticleEditor(id: number) {
@@ -168,20 +216,27 @@ export class ViewManager implements ViewManagerInterface {
         if (article) this._openArticleEditor(article);
     }
 
-    async openWordEditor(id: number) {
+    async openWordEditor(languageId: number, wordType?: WordType) {
         if (
             this.entityEditor.isWordEditorOpen &&
-            this.entityEditor.info.id == id
-        )
-            return; // the word editor is already open
+            this.entityEditor.info.id == languageId
+        ) {
+            if (wordType === undefined)
+                return; // the word editor is already open for this language
+            else if (wordType === this.entityEditor.lexicon.wordType) return; // the word editor is already open for this language and word type
+        }
 
         // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.ENTITY_EDITOR);
+        this.cleanUp(ViewKey.EntityEditor);
 
-        const article = this.domain.articles.getInfo(id);
-        this.entityEditor.initializeWordEditor(id, article.title);
-        this.navigation.files.openArticleNode(id);
-        this._viewKey = ViewKey.ENTITY_EDITOR;
+        const article = this.domain.articles.getInfo(languageId);
+        this.entityEditor.initializeWordEditor(
+            languageId,
+            article.title,
+            wordType,
+        );
+        this.navigation.files.openArticleNode(languageId);
+        this._viewKey = ViewKey.EntityEditor;
     }
 
     closeModal() {
@@ -262,7 +317,7 @@ export class ViewManager implements ViewManagerInterface {
             this.navigation.files.deleteArticleNode(articleId);
 
         if (
-            this._viewKey == ViewKey.ENTITY_EDITOR &&
+            this._viewKey == ViewKey.EntityEditor &&
             fileIds.articles.includes(this.entityEditor.info.id)
         ) {
             // currently-open article has been deleted
@@ -320,7 +375,7 @@ export class ViewManager implements ViewManagerInterface {
             return false;
 
         if (
-            this._viewKey == ViewKey.ENTITY_EDITOR &&
+            this._viewKey == ViewKey.EntityEditor &&
             this.entityEditor.info.id == id
         ) {
             // deleted article is currently open
@@ -335,7 +390,7 @@ export class ViewManager implements ViewManagerInterface {
     cleanUp(newViewKey: ViewKey | null = null) {
         if (this._modalKey) this.closeModal();
 
-        if (this._viewKey == ViewKey.ENTITY_EDITOR) this.entityEditor.cleanUp();
+        if (this._viewKey == ViewKey.EntityEditor) this.entityEditor.cleanUp();
 
         if (
             this.isEntityEditorOpen &&

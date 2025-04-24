@@ -1,0 +1,21 @@
+.word-editor {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.word-editor-stack {
+    display: flex;
+    height: calc(
+        100vh - var(--header-height) - var(--footer-height) - 2 *
+            var(--main-padding) - var(--space-below-header-height) -
+            var(--title-field-height)
+    );
+    flex-direction: column nowrap;
+    flex-grow: 1;
+}
+
+.word-editor-tabs {
+    margin-bottom: 20px;
+}

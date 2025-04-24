@@ -1,0 +1,7 @@
+.left-sidebar {
+    margin-inline: 0;
+    padding-inline: 0;
+    padding-block: 4px;
+    height: 100%;
+    background-color: var(--default-bg-color);
+}

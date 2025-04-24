@@ -1,0 +1,14 @@
+.word-table {
+    overflow-y: auto;
+    padding-inline: 10px;
+}
+
+.word-table-data-cell {
+    border: calc(0.0625rem * var(--mantine-scale)) solid
+        var(--table-border-color);
+}
+
+.word-table-action-cell {
+    background-color: var(--default-bg-color);
+    border: none;
+}

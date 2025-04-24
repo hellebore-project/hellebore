@@ -59,3 +59,7 @@ pnpm generate:entities
 #### Drag and Drop
 
 On Windows systems, the `dragDropEnabled` option in the tauri config must be set to `false` in order to use drag and drop on the frontend.
+
+#### Slowdown caused by `tabler/icons-react` 3.19.0
+
+Version 3.19 of `tabler/icons-react` causes a dramatic slowdown during startup in dev mode ([issue](https://github.com/tabler/tabler-icons/issues/1233)).

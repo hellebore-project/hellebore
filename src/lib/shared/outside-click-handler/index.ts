@@ -1,2 +1,2 @@
 export * from "./outside-click-handler";
-export * from "./state";
+export * from "./outside-click-handler-service";

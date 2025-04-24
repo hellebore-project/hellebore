@@ -6,32 +6,21 @@ import "./app.css";
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import {
-    CENTER_BG_COLOR,
-    FOOTER_BG_COLOR,
-    FOOTER_HEIGHT,
-    HEADER_BG_COLOR,
-    HEADER_HEIGHT,
-    NAVBAR_BG_COLOR,
-    NAVBAR_WIDTH,
-} from "./constants";
 import { Footer, Header, Center, LeftSideBar } from "./layout";
-import { ArticleCreator, ProjectCreator } from "./modals";
+import { ArticleCreator, ContextMenu, ProjectCreator } from "./overlays";
 import { getService } from "./services";
-import { ContextMenu } from "./context-menu";
-import { ThemeManager } from "./theme";
 
 function renderApp() {
     const service = getService();
     return (
         <MantineProvider
-            defaultColorScheme={ThemeManager.colorScheme}
-            theme={ThemeManager.theme}
+            defaultColorScheme={service.view.style.colorScheme}
+            theme={service.view.style.theme}
         >
             <AppShell
-                header={{ height: { base: HEADER_HEIGHT } }}
+                header={{ height: { base: service.view.headerHeight } }}
                 navbar={{
-                    width: NAVBAR_WIDTH,
+                    width: service.view.navbarWidth,
                     breakpoint: "sm",
                     collapsed: {
                         desktop: !service.domain.hasProject,
@@ -41,23 +30,23 @@ function renderApp() {
                     },
                 }}
                 footer={{
-                    height: FOOTER_HEIGHT,
+                    height: service.view.footerHeight,
                 }}
-                padding="md"
+                padding={service.view.mainPadding}
             >
-                <AppShell.Header bg={HEADER_BG_COLOR}>
+                <AppShell.Header className="header-panel">
                     <Header />
                 </AppShell.Header>
 
-                <AppShell.Navbar bg={NAVBAR_BG_COLOR}>
+                <AppShell.Navbar className="left-sidebar-panel">
                     <LeftSideBar />
                 </AppShell.Navbar>
 
-                <AppShell.Main bg={CENTER_BG_COLOR}>
+                <AppShell.Main className="main-panel">
                     <Center />
                 </AppShell.Main>
 
-                <AppShell.Footer bg={FOOTER_BG_COLOR}>
+                <AppShell.Footer className="footer-panel">
                     <Footer />
                 </AppShell.Footer>
             </AppShell>

@@ -4,13 +4,25 @@ import {
     ContextMenuKey,
     NodeId,
     Point,
-    VerticalMenuItemData,
+    VerticalSelectionData,
 } from "@/interface";
-import { OutsideClickHandlerState } from "@/shared/outside-click-handler";
+import { OutsideClickHandlerService } from "@/shared/outside-click-handler";
 import { ViewManagerInterface } from "./interface";
 
+type PrivateKeys = "_outsideClickHandler";
+
+export interface OpenArguments {
+    position: Point;
+    id: number;
+    nodeId: NodeId;
+}
+
+interface PrivateOpenArguments extends OpenArguments {
+    key: ContextMenuKey;
+}
+
 type ContextMenuDataMapping = {
-    [key in ContextMenuKey]: VerticalMenuItemData[];
+    [key in ContextMenuKey]: VerticalSelectionData[];
 };
 
 class ArticleNavigatorContextMenuManager {
@@ -39,27 +51,28 @@ class ArticleNavigatorContextMenuManager {
 }
 
 export class ContextMenuManager {
-    _key: ContextMenuKey | null = null;
-    _position: Point | null = null;
-    _selectedIndex: number | null = null;
-    _outsideClickHandlerState: OutsideClickHandlerState;
+    private _key: ContextMenuKey | null = null;
+    private _position: Point | null = null;
+    private _selectedIndex: number | null = null;
 
     menuData: ContextMenuDataMapping;
 
     view: ViewManagerInterface;
     articleNavigator: ArticleNavigatorContextMenuManager;
+    outsideClickHandler: OutsideClickHandlerService;
 
     constructor(view: ViewManagerInterface) {
         makeAutoObservable(this, {
             view: false,
             articleNavigator: false,
             menuData: false,
+            outsideClickHandler: false,
         });
         this.view = view;
         this.articleNavigator = new ArticleNavigatorContextMenuManager();
-        this._outsideClickHandlerState = new OutsideClickHandlerState({
+        this.outsideClickHandler = new OutsideClickHandlerService({
             onOutsideClick: () => this.close(),
-            disabled: false,
+            enabled: false,
         });
         this.menuData = this._generateMenuDataMapping();
     }
@@ -88,41 +101,16 @@ export class ContextMenuManager {
         this._selectedIndex = index;
     }
 
-    get outsideClickHandler() {
-        return this._outsideClickHandlerState;
+    openForNavBarFolderNode(args: OpenArguments) {
+        this._open({ key: ContextMenuKey.NavBarFolderNode, ...args });
     }
 
-    openForNavBarFolderNode({
-        position,
-        id,
-        nodeId,
-    }: {
-        position: Point;
-        id: number;
-        nodeId: NodeId;
-    }) {
-        this.key = ContextMenuKey.NAV_BAR_FOLDER_NODE;
-        this.position = position;
-        this.articleNavigator.id = id;
-        this.articleNavigator.nodeId = nodeId;
-    }
-
-    openForNavBarArticleNode({
-        position,
-        id,
-        nodeId,
-    }: {
-        position: Point;
-        id: number;
-        nodeId: NodeId;
-    }) {
-        this.key = ContextMenuKey.NAV_BAR_ARTICLE_NODE;
-        this.position = position;
-        this.articleNavigator.id = id;
-        this.articleNavigator.nodeId = nodeId;
+    openForNavBarArticleNode(args: OpenArguments) {
+        this._open({ key: ContextMenuKey.NavBarArticleNode, ...args });
     }
 
     close() {
+        this.outsideClickHandler.enabled = false;
         this.reset();
     }
 
@@ -132,7 +120,15 @@ export class ContextMenuManager {
         this.selectedIndex = null;
     }
 
-    _generateMenuDataMapping() {
+    private _open({ key, position, id, nodeId }: PrivateOpenArguments) {
+        this.key = key;
+        this.position = position;
+        this.articleNavigator.id = id;
+        this.articleNavigator.nodeId = nodeId;
+        this.outsideClickHandler.enabled = true;
+    }
+
+    private _generateMenuDataMapping() {
         // folder node in the nav bar
         const NAV_BAR_FOLDER_NODE_DATA = this._formatMenuData([
             {
@@ -163,16 +159,16 @@ export class ContextMenuManager {
         ]);
 
         return {
-            [ContextMenuKey.NAV_BAR_FOLDER_NODE]: NAV_BAR_FOLDER_NODE_DATA,
-            [ContextMenuKey.NAV_BAR_ARTICLE_NODE]: NAV_BAR_ARTICLE_NODE_DATA,
+            [ContextMenuKey.NavBarFolderNode]: NAV_BAR_FOLDER_NODE_DATA,
+            [ContextMenuKey.NavBarArticleNode]: NAV_BAR_ARTICLE_NODE_DATA,
         };
     }
 
-    _formatMenuData(data: Partial<VerticalMenuItemData>[]) {
+    _formatMenuData(data: Partial<VerticalSelectionData>[]) {
         return data.map((d, i) => ({
             index: i,
             value: d.label,
             ...d,
-        })) as VerticalMenuItemData[];
+        })) as VerticalSelectionData[];
     }
 }
