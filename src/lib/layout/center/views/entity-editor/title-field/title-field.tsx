@@ -1,35 +1,50 @@
 import "./title-field.css";
 
+import { IconExclamationCircle } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
 import { getService } from "@/services";
 import { TextField } from "@/shared/text-field";
-import { Divider } from "@mantine/core";
+import { Divider, Group, Popover, Text } from "@mantine/core";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 
 function renderTitleField() {
     const service = getService();
+    let error: string | null = null;
+    if (service.view.entityEditor.title == "") error = "Empty title";
+    if (!service.view.entityEditor.info.isTitleUnique)
+        error = "Duplicate title";
+
+    let className = "title-field";
+    if (error) className += " error";
+
     return (
         <>
-            <TextField
-                className="title-field"
-                variant="unstyled"
-                styles={TITLE_FIELD_STYLES}
-                placeholder="Title"
-                getValue={() => service.view.entityEditor.title}
-                getError={() => {
-                    if (service.view.entityEditor.title == "")
-                        return "Empty title";
-                    if (!service.view.entityEditor.info.isTitleUnique)
-                        return "Duplicate title";
-                    return null;
-                }}
-                onChange={(event) =>
-                    (service.view.entityEditor.title =
-                        event.currentTarget.value)
-                }
-            />
+            <Popover opened={Boolean(error)} position="right" withArrow>
+                <Popover.Target>
+                    <TextField
+                        className={className}
+                        variant="unstyled"
+                        styles={TITLE_FIELD_STYLES}
+                        placeholder="Title"
+                        getValue={() => service.view.entityEditor.title}
+                        onChange={(event) =>
+                            (service.view.entityEditor.title =
+                                event.currentTarget.value)
+                        }
+                    />
+                </Popover.Target>
+                <Popover.Dropdown>
+                    <Group gap="xs">
+                        <IconExclamationCircle />
+                        <Text className="title-field-error-text" size="sm">
+                            {error}
+                        </Text>
+                    </Group>
+                </Popover.Dropdown>
+            </Popover>
+
             <Divider className="divider" />
         </>
     );

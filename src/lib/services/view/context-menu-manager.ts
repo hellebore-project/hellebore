@@ -9,8 +9,6 @@ import {
 import { OutsideClickHandlerService } from "@/shared/outside-click-handler";
 import { ViewManagerInterface } from "./interface";
 
-type PrivateKeys = "_outsideClickHandler";
-
 export interface OpenArguments {
     position: Point;
     id: number;

@@ -1,21 +1,20 @@
-import { Grid, Popover, PopoverProps, Text, TextProps } from "@mantine/core";
+import "./nav-item.css";
+
+import { Grid, Group, Text } from "@mantine/core";
 import { IconChevronRight } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
-import {
-    createRef,
-    forwardRef,
-    PropsWithChildren,
-    ReactNode,
-    RefObject,
-    useEffect,
-} from "react";
+import { forwardRef, PropsWithChildren, ReactNode, RefObject } from "react";
 
-import { BaseGridColSettings, BaseGridSettings } from "@/interface";
+import {
+    BaseGridColSettings,
+    BaseGridSettings,
+    BaseGroupSettings,
+    BaseTextInputSettings,
+    BaseTextSettings,
+} from "@/interface";
 import { range } from "@/utils/collections";
 
-import { TextField, TextFieldSettings } from "../text-field";
-
-import "./nav-item.css";
+import { TextField } from "../text-field";
 
 const DEFAULT_NAV_ITEM_STYLES = {
     inner: {
@@ -40,29 +39,24 @@ export interface ExpandButtonSettings {
     isExpanded?: () => boolean;
 }
 
-export interface TextSettings extends TextProps {
-    value?: string;
-    getValue?: () => string;
-}
-
-export interface PopoverSettings extends PopoverProps {
+export interface NavItemTextSettings {
+    editable?: boolean;
     text?: string;
+    getText?: () => string;
+    error?: string;
+    textSettings?: BaseTextSettings;
+    textInputSettings?: Omit<BaseTextInputSettings, "value" | "error">;
+    ref_?: RefObject<HTMLInputElement>;
 }
 
-export interface EditableTextSettings extends TextFieldSettings {
-    popoverSettings?: PopoverSettings;
-}
-
-export interface NavSubItemSettings extends BaseGridColSettings {}
-
-interface NavItemSettings extends PropsWithChildren<BaseGridSettings> {
+interface NavItemSettings extends PropsWithChildren {
     selected?: boolean;
     active?: boolean;
     focused?: boolean;
     rank?: number;
+    groupSettings?: BaseGroupSettings;
     expandButtonSettings?: ExpandButtonSettings;
-    textSettings?: TextSettings;
-    textInputSettings?: EditableTextSettings;
+    textSettings?: NavItemTextSettings;
 }
 
 function renderExpandButton({
@@ -72,8 +66,10 @@ function renderExpandButton({
     expanded = isExpanded?.() ?? expanded;
     return (
         <IconChevronRight
+            className="nav-sub-item compact"
             size={18}
             style={{
+                paddingBlock: "0px",
                 transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
             }}
         />
@@ -82,80 +78,61 @@ function renderExpandButton({
 
 const ExpandButton = observer(renderExpandButton);
 
-function renderReadOnlyText({ value, getValue, ...rest }: TextSettings) {
-    const _text = getValue?.() ?? value;
-    return (
-        <Text className="nav-item-text" {...rest}>
-            {_text}
-        </Text>
-    );
-}
+const renderNavItemText = forwardRef<HTMLInputElement, NavItemTextSettings>(
+    (
+        { editable, text, getText, error, textSettings, textInputSettings },
+        ref,
+    ) => {
+        if (text === undefined) {
+            if (getText) text = getText();
+            else text = "";
+        }
 
-const ReadOnlyText = observer(renderReadOnlyText);
+        if (editable) {
+            let className = "nav-item-text editable";
+            if (error) className += " error";
 
-const renderEditableText = forwardRef<HTMLInputElement, EditableTextSettings>(
-    ({ popoverSettings, ...rest }, ref) => {
+            return (
+                <TextField
+                    className={className}
+                    value={text as string}
+                    ref={ref}
+                    {...textInputSettings}
+                />
+            );
+        }
+
         return (
-            <Popover
-                width={200}
-                position="bottom-start"
-                offset={0}
-                withArrow
-                arrowPosition="side"
-                shadow="md"
-                opened={popoverSettings?.opened ?? false}
-            >
-                <Popover.Target>
-                    <TextField ref={ref} {...rest} />
-                </Popover.Target>
-                <Popover.Dropdown className="nav-item-popover-dropdown">
-                    <Text size="sm">{popoverSettings?.text ?? ""}</Text>
-                </Popover.Dropdown>
-            </Popover>
+            <Text className="nav-item-text" {...textSettings}>
+                {text}
+            </Text>
         );
     },
 );
 
-const EditableText = observer(renderEditableText);
-
-function renderNavSubItem({ children, ...rest }: NavSubItemSettings) {
-    return (
-        <Grid.Col className="nav-sub-item" display="flex" {...rest}>
-            {children}
-        </Grid.Col>
-    );
-}
-
-export const NavSubItem = observer(renderNavSubItem);
+const NavItemText = observer(renderNavItemText);
 
 function renderNavItem({
     selected = false,
     active = false,
     focused = false,
     rank = 0,
+    groupSettings: groupSettings,
     expandButtonSettings,
     textSettings,
-    textInputSettings,
-    styles,
     children,
-    ...rest
 }: NavItemSettings) {
-    // class
-    let className = "nav-item dynamic-div";
-    if (selected) className += " selected";
-    if (active) className += " active";
-    if (focused) className += " focused";
+    const id = groupSettings?.id ?? "nav-item";
 
     // Leading indents
     let indentItem: ReactNode = null;
     if (rank > 0) {
-        indentItem = (
-            <NavSubItem span="content" px="0" py="0">
-                {range(rank).map((i) => (
-                    <div key={i} className="nav-item-indent" />
-                ))}
-            </NavSubItem>
-        );
+        indentItem = range(rank).map((i) => (
+            <div
+                key={`${id}-indent-${i}`}
+                className="nav-item-indent nav-sub-item compact"
+            />
+        ));
     }
 
     // Expand button
@@ -164,35 +141,32 @@ function renderNavItem({
         expandNode = <ExpandButton {...expandButtonSettings} />;
     else expandNode = EXPAND_BUTTON_PLACEHOLDER;
 
-    // text field
-    const ref: RefObject<HTMLInputElement> = createRef();
-    useEffect(() => {
-        if (ref?.current) {
-            // focus the text field once it has been added to the DOM
-            ref.current.focus();
-        }
-    }, [ref]);
+    // Text
+    const editable = textSettings?.editable ?? false;
+    const error = textSettings?.error ?? undefined;
+    const { ref_, ...textRest } = textSettings ?? {};
+
+    // Grid
+
+    let className = "nav-item dynamic-div";
+    if (active) className += " active";
+    if (!editable) {
+        // only change the colour of the item if it's read-only
+        if (focused) className += " focused";
+        // item can either be in error mode or in selected mode, but not both
+        if (error) className += " error";
+        else if (selected) className += " selected";
+    }
+
+    const { styles, ...groupRest } = groupSettings ?? {};
 
     return (
-        <Grid
-            className={className}
-            align="center"
-            styles={{ ...DEFAULT_NAV_ITEM_STYLES, ...(styles ?? {}) }}
-            {...rest}
-        >
+        <Group className={className} gap={0} {...groupRest}>
             {indentItem}
-            <NavSubItem span="content" py="0">
-                {expandNode}
-            </NavSubItem>
-            <NavSubItem span="auto" px="0" py="0">
-                {textInputSettings?.readOnly === false ? (
-                    <EditableText ref={ref} {...textInputSettings} />
-                ) : (
-                    <ReadOnlyText {...textSettings} />
-                )}
-            </NavSubItem>
+            {expandNode}
+            <NavItemText ref={ref_} {...textRest} />
             {children}
-        </Grid>
+        </Group>
     );
 }
 

@@ -2,7 +2,7 @@ import "./entity-editor.css";
 
 import { EntityType, EntityViewKey } from "@/interface";
 import { getService } from "@/services";
-import { Badge, Grid, Space, Stack } from "@mantine/core";
+import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import {
@@ -36,16 +36,13 @@ const LEXICON_TAB_DATA: TableOfContentsItemData = {
 function renderEntityEditorHeader() {
     const service = getService();
     return (
-        <Grid className="entity-editor-header" align="center">
-            <Grid.Col className="entity-editor-header-col" span="content">
-                <Badge variant="outline" color="blue">
-                    {service.view.entityEditor.info.entityTypeLabel}
-                </Badge>
-            </Grid.Col>
-            <Grid.Col className="entity-editor-header-col" span="content">
-                <DeleteEntityButton />
-            </Grid.Col>
-        </Grid>
+        <Group className="entity-editor-header">
+            <Badge variant="outline" color="blue">
+                {service.view.entityEditor.info.entityTypeLabel}
+            </Badge>
+            <div className="grow" />
+            <DeleteEntityButton />
+        </Group>
     );
 }
 

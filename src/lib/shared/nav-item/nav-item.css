@@ -18,6 +18,10 @@
     border: 1px solid white;
 }
 
+.nav-item.selected.focused {
+    border: var(--selected-bd);
+}
+
 .nav-item.active {
     background-color: color-mix(
         in oklab,
@@ -30,21 +34,22 @@
     color: var(--default-text-color);
 }
 
-.nav-item.selected.focused {
-    border: var(--selected-bd);
-}
-
 .nav-item.active.focused {
     background-color: var(--selected-bg-color);
 }
 
-.nav-sub-item {
-    align-items: center;
+.nav-item.error {
+    border: 1px solid var(--error-bd-color);
+}
+
+.nav-item.error.focused {
+    background-color: 1px solid var(--error-bg-color);
 }
 
 .nav-item-indent {
     width: 9px;
     height: 18px;
+    padding: 0;
 }
 
 .nav-item-expand-button-placeholder {
@@ -53,10 +58,17 @@
 }
 
 .nav-item-text {
+    flex-grow: 1;
+    margin-left: 2px;
+
     /* prevent highlighting text in nav items */
     user-select: none;
 }
 
-.nav-item-popover-dropdown {
-    pointer-events: none;
+.nav-item-text.editable {
+    border: var(--selected-bd);
+}
+
+.nav-item-text.error {
+    border: var(--error-bd);
 }

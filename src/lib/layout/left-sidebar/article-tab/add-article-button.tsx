@@ -3,28 +3,25 @@ import { IconFilePlus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
 import { getService } from "@/services";
-import { NavSubItem } from "@/shared/nav-item/nav-item";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
 function renderAddArticleButton() {
     const service = getService();
     return (
-        <NavSubItem span="content" p="0">
-            <ToolTipWrapper label="New Article">
-                <ActionIcon
-                    key="add-article"
-                    variant="subtle"
-                    color="gray"
-                    size="sm"
-                    onClick={(e) => {
-                        e.stopPropagation(); // don't toggle the expanded status of the tab
-                        service.view.openArticleCreator();
-                    }}
-                >
-                    <IconFilePlus size={18} />
-                </ActionIcon>
-            </ToolTipWrapper>
-        </NavSubItem>
+        <ToolTipWrapper className="nav-sub-item compact" label="New Article">
+            <ActionIcon
+                key="add-article"
+                variant="subtle"
+                color="gray"
+                size="sm"
+                onClick={(e) => {
+                    e.stopPropagation(); // don't toggle the expanded status of the tab
+                    service.view.openArticleCreator();
+                }}
+            >
+                <IconFilePlus size={18} />
+            </ActionIcon>
+        </ToolTipWrapper>
     );
 }
 
