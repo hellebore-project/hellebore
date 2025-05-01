@@ -1,7 +1,7 @@
 import { TreeMethods } from "@minoru/react-dnd-treeview";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable, toJS } from "mobx";
-import { RefObject } from "react";
+import { createRef, RefObject } from "react";
 
 import {
     ArticleInfoResponse,
@@ -15,36 +15,48 @@ import {
 import { Counter } from "@/utils/counter";
 import { ViewManagerInterface } from "../interface";
 import { OutsideClickHandlerService } from "@/shared/outside-click-handler";
+import { NavigatorErrorManager } from "./navigator-error-manager";
+
+type PrivateKeys = "_nodePositionCache" | "_tree";
 
 export class FileNavigator {
-    _nodes: FileNodeModel[];
-    _nodePositionCache: { [nodeId: NodeId]: number };
-    _expanded: boolean = true;
-    _focused: boolean = false;
-    _hover: boolean = false;
-    _selectedNode: FileNodeModel | null = null;
-    _openedNode: FileNodeModel | null = null;
+    NODE_DOM_ID_PREFIX = "file-nav-node-";
+    NODE_TEXT_DOM_ID_PREFIX = "file-nav-node-text-";
+
+    private _nodes: FileNodeModel[];
+    private _nodePositionCache: { [nodeId: NodeId]: number };
+    private _expanded: boolean = true;
+    private _focused: boolean = false;
+    private _hover: boolean = false;
+    private _selectedNode: FileNodeModel | null = null;
+    private _openedNode: FileNodeModel | null = null;
 
     /**
      * Reference to the article tree component.
      * Its handlers must be called inside a component function to ensure that the DOM is updated.
      */
-    _tree: RefObject<TreeMethods> | null = null;
+    private _tree: RefObject<TreeMethods>;
+    private _editableTextField: RefObject<HTMLInputElement> | null = null;
+
     _placeholderIdGenerator: Counter;
     outsideClickHandler: OutsideClickHandlerService;
+    errorManager: NavigatorErrorManager;
     view: ViewManagerInterface;
 
     constructor(view: ViewManagerInterface) {
-        makeAutoObservable(this, {
+        makeAutoObservable<FileNavigator, PrivateKeys>(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
             _tree: false,
             outsideClickHandler: false,
+            errorManager: false,
             view: false,
         });
 
         this._nodes = [];
         this._nodePositionCache = {};
+
+        this._tree = createRef();
 
         this._placeholderIdGenerator = new Counter();
         this.outsideClickHandler = new OutsideClickHandlerService({
@@ -54,7 +66,12 @@ export class FileNavigator {
             },
             enabled: true,
         });
+        this.errorManager = new NavigatorErrorManager(this);
         this.view = view;
+    }
+
+    get width() {
+        return this.view.navbarWidth;
     }
 
     /**
@@ -65,8 +82,16 @@ export class FileNavigator {
         return this._tree;
     }
 
-    set tree(ref: RefObject<TreeMethods> | null) {
+    set tree(ref: RefObject<TreeMethods>) {
         this._tree = ref;
+    }
+
+    get editableTextField() {
+        return this._editableTextField;
+    }
+
+    set editableTextField(ref: RefObject<HTMLInputElement> | null) {
+        this._editableTextField = ref;
     }
 
     get nodes() {
@@ -186,9 +211,37 @@ export class FileNavigator {
         this._nodePositionCache = {};
     }
 
+    // ID CONVERSION
+
+    convertNodeIdToEntityId(id: NodeId): number {
+        if (id === ROOT_FOLDER_NODE_ID) return ROOT_FOLDER_ID;
+        const _id = id.toString();
+        return Number(_id.slice(1));
+    }
+
+    convertNodeIdToDOMId(id: NodeId): string {
+        return `${this.NODE_DOM_ID_PREFIX}${id}`;
+    }
+
+    convertDOMIdToNodeId(elementId: string): NodeId {
+        return elementId.slice(this.NODE_DOM_ID_PREFIX.length);
+    }
+
+    convertNodeIdToDOMTextId(id: NodeId): string {
+        return `${this.NODE_TEXT_DOM_ID_PREFIX}${id}`;
+    }
+
+    convertDOMTextIdToNodeId(elementId: string): NodeId {
+        return elementId.slice(this.NODE_TEXT_DOM_ID_PREFIX.length);
+    }
+
+    // NAVIGATOR STATE
+
     toggleExpanded() {
         this.expanded = !this.expanded;
     }
+
+    // NODE FETCHING
 
     getNode(nodeId: NodeId) {
         const index = this.getNodeIndex(nodeId, true);
@@ -221,6 +274,32 @@ export class FileNavigator {
         return null;
     }
 
+    _findNode(
+        nodeId: NodeId | null,
+        cache: boolean = true,
+    ): FileNodeModel | null {
+        if (!nodeId) return null;
+
+        let index = this._nodePositionCache[nodeId];
+        let node = this._nodes[index];
+
+        if (node && node.id == nodeId) return node;
+
+        index = 0;
+        for (let node of this._nodes) {
+            if (node.id != nodeId) {
+                index++;
+                continue;
+            }
+            if (cache) this._nodePositionCache[nodeId] = index;
+            return node;
+        }
+
+        return null;
+    }
+
+    // NODE TYPE
+
     isFolderNode(node: FileNodeModel) {
         return node.droppable;
     }
@@ -229,46 +308,7 @@ export class FileNavigator {
         return node?.data?.isPlaceholder ?? false;
     }
 
-    setNodeError(node: FileNodeModel, error: string) {
-        this._addNodeData(node, { error });
-    }
-
-    clearNodeError(node: FileNodeModel) {
-        delete node?.data?.error;
-    }
-
-    addNodeForCreatedArticle({ id, folder_id, title }: ArticleInfoResponse) {
-        const node = this._generateArticleNode(id, folder_id, title);
-        this._nodes.push(node);
-    }
-
-    addPlaceholderNodeForNewFolder(): FileNodeModel {
-        const id = this._placeholderIdGenerator.increment();
-        const nodeId = `P${id}`;
-        const node = this._generateFolderNode(nodeId, this.activeFolderId, "", {
-            isPlaceholder: true,
-            isEditable: true,
-            editableText: "",
-        });
-
-        this._nodePositionCache[node.id] = this._nodes.length;
-        this._nodes.push(node); // add node to state
-        this.selectedNode = node; // select the node
-        this.focused = true;
-
-        return node;
-    }
-
-    openArticleNode(id: number) {
-        const nodeId = articleNodeId(id);
-        if (this.openedNode?.id == nodeId) return;
-        const node = this._findNode(nodeId);
-        if (node) this.openNode(node);
-    }
-
-    openNode(node: FileNodeModel) {
-        this.openedNode = node;
-    }
+    // NODE TEXT
 
     updateArticleNodeText(id: number, title: string) {
         this.setNodeText(articleNodeId(id), title);
@@ -279,23 +319,46 @@ export class FileNavigator {
         if (index !== null) this._nodes[index].text = text;
     }
 
-    editFolderNodeText(id: number) {
-        this.editNodeText(folderNodeId(id));
+    // NODE TEXT EDITING
+
+    toggleFolderAsEditable(id: number) {
+        this._toggleNodeIdAsEditable(folderNodeId(id));
     }
 
-    editNodeText(nodeId: NodeId) {
+    private _toggleNodeIdAsEditable(nodeId: NodeId) {
         const index = this.getNodeIndex(nodeId);
-        if (index === null) return;
+        if (index === null) {
+            console.error(`File node ${nodeId} not found.`);
+            return;
+        }
 
         const node = this._nodes[index];
+        this._toggleNodeAsEditable(node, index, node.text);
+    }
 
-        if (!node.data) node.data = {};
-        node.data.isEditable = true;
-        node.data.editableText = node.text;
+    private _toggleNodeAsEditable(
+        node: FileNodeModel,
+        index: number | null = null,
+        text: string = "",
+    ) {
+        this._addNodeData(node, { isEditable: true, editableText: text });
 
-        this._nodes[index] = node; // force rerender
+        this._editableTextField = createRef();
+
+        if (index === null) {
+            index = this._nodes.length;
+            this._nodes.push(node); // add node to state
+        } else this._nodes[index] = node; // force rerender
+
+        this._nodePositionCache[node.id] = index;
+
         this.selectedNode = node; // select the node
         this.focused = true;
+    }
+
+    private _toggleNodeAsReadOnly(node: FileNodeModel) {
+        delete node?.data?.isEditable;
+        delete node?.data?.editableText;
     }
 
     setEditableNodeText(nodeId: NodeId, text: string) {
@@ -303,18 +366,20 @@ export class FileNavigator {
         if (index === null) return;
 
         const node = this._nodes[index];
+        if (!node.data || !node.data.isEditable)
+            // node is not editable
+            return;
 
         // update the editable text of the node
-        if (!node?.data) node.data = { isEditable: true, editableText: text };
-        else node.data.editableText = text;
+        node.data.editableText = text;
 
         // update the node collection
         this._nodes[index] = node;
 
-        this.validateEditedNodeText(node);
+        this._validateEditedNodeText(node);
     }
 
-    async validateEditedNodeText(node: FileNodeModel) {
+    private async _validateEditedNodeText(node: FileNodeModel) {
         const newText = node.data?.editableText ?? "";
         if (!newText) this.setNodeError(node, "A name must be provided.");
         else if (newText != node.text) {
@@ -345,15 +410,16 @@ export class FileNavigator {
     }
 
     async confirmNodeTextEdit(node: FileNodeModel) {
-        this.validateEditedNodeText(node);
+        this._validateEditedNodeText(node);
         if (node.data?.error)
             // cancel the edit
             this._cancelNodeTextEdit(node);
         // apply the edit
         else await this._applyNodeTextEdit(node);
+        this._endNodeTextEdit(node);
     }
 
-    async _applyNodeTextEdit(node: FileNodeModel) {
+    private async _applyNodeTextEdit(node: FileNodeModel) {
         // NOTE: the node must be refreshed AFTER all of its properties have been updated
 
         const index = this.getNodeIndex(node.id, false) as number;
@@ -374,8 +440,7 @@ export class FileNavigator {
                     node.id = folderNodeId(folder.id);
                     node.text = newText;
                     delete node?.data?.isPlaceholder;
-                    delete node?.data?.isEditable;
-                    delete node?.data?.editableText;
+                    this._toggleNodeAsReadOnly(node);
                     this.selectedNode = node;
                     // force a refresh
                     this.setNode(node, index);
@@ -393,8 +458,7 @@ export class FileNavigator {
 
                 if (folder) {
                     node.text = newText;
-                    delete node?.data?.isEditable;
-                    delete node?.data?.editableText;
+                    this._toggleNodeAsReadOnly(node);
                     // force a refresh
                     this.setNode(node, index);
                 }
@@ -406,15 +470,157 @@ export class FileNavigator {
         }
     }
 
-    _cancelNodeTextEdit(node: FileNodeModel) {
+    private _cancelNodeTextEdit(node: FileNodeModel) {
         const index = this.getNodeIndex(node.id, false) as number;
         if (this.isPlaceholderNode(node)) this._deleteNodeAtIndex(index);
         else {
-            delete node?.data?.editableText;
+            if (node.data) {
+                delete node.data.editableText;
+                delete node.data.isEditable;
+            }
             this.clearNodeError(node);
             this.setNode(node, index);
         }
     }
+
+    private _endNodeTextEdit(node: FileNodeModel) {
+        this.clearNodeError(node);
+        if (this._editableTextField) this._editableTextField = null;
+    }
+
+    // NODE ERROR
+
+    setNodeError(node: FileNodeModel, error: string) {
+        this._addNodeData(node, { error });
+
+        if (!this._editableTextField) {
+            console.error(`Cannot edit node ${node.id} while it's read-only.`);
+            return;
+        }
+
+        const element = this._editableTextField.current;
+
+        const elementPos = element?.getBoundingClientRect();
+        if (!elementPos) {
+            console.error(
+                `Unable to retrieve bounding rect of editable file node ${node.id}.`,
+            );
+            return;
+        }
+
+        const errorPos = {
+            top: elementPos.bottom,
+            bottom: elementPos.bottom + elementPos.height,
+            left: elementPos.left - 1,
+            right: elementPos.right + 1,
+        };
+
+        if (!this._editableTextField) this._editableTextField = createRef();
+        this.errorManager.open(error, errorPos);
+    }
+
+    clearNodeError(node: FileNodeModel) {
+        delete node?.data?.error;
+        this.errorManager.close();
+    }
+
+    // OPEN NODE
+
+    openArticleNode(id: number) {
+        const nodeId = articleNodeId(id);
+        if (this.openedNode?.id == nodeId) return;
+        const node = this._findNode(nodeId);
+        if (node) this.openNode(node);
+    }
+
+    openNode(node: FileNodeModel) {
+        this.openedNode = node;
+    }
+
+    // NODE GENERATION
+
+    addNodeForCreatedArticle({ id, folder_id, title }: ArticleInfoResponse) {
+        const node = this._generateArticleNode(id, folder_id, title);
+        this._nodes.push(node);
+    }
+
+    addPlaceholderNodeForNewFolder(): FileNodeModel {
+        const id = this._placeholderIdGenerator.increment();
+        const nodeId = `P${id}`;
+
+        const node = this._generateFolderNode(nodeId, this.activeFolderId, "", {
+            isPlaceholder: true,
+        });
+        this._toggleNodeAsEditable(node);
+
+        return node;
+    }
+
+    _generateArticleNode(
+        id: any,
+        folder_id: any,
+        title: string,
+        data: FileNodeData | undefined = undefined,
+    ): FileNodeModel {
+        const node = {
+            id: articleNodeId(id),
+            parent: folderNodeId(folder_id, ROOT_FOLDER_NODE_ID),
+            text: title,
+        };
+        if (data) this._addNodeData(node, data);
+        return node;
+    }
+
+    _generateFolderNode(
+        id: any,
+        parentId: any,
+        name: string,
+        data: FileNodeData | undefined = undefined,
+    ): FileNodeModel {
+        const node = {
+            id: folderNodeId(id),
+            parent: folderNodeId(parentId, ROOT_FOLDER_NODE_ID),
+            text: name,
+            droppable: true,
+        };
+        if (data) this._addNodeData(node, data);
+        return node;
+    }
+
+    _addNodeData(node: FileNodeModel, data: FileNodeData) {
+        if (node.data) Object.assign(node.data, data);
+        else node.data = data;
+    }
+
+    // NODE DELETION
+
+    deleteArticleNode(id: number) {
+        this._deleteNode(articleNodeId(id));
+    }
+
+    deleteFolderNode(id: number) {
+        // child nodes should be deleted in separate calls
+        this._deleteNode(folderNodeId(id));
+    }
+
+    _deleteNode(nodeId: NodeId) {
+        const index = this.getNodeIndex(nodeId, false);
+        if (index !== null) {
+            this._nodes.splice(index, 1);
+            delete this._nodePositionCache[nodeId];
+        }
+    }
+
+    _deleteNodeAtIndex(index: number): FileNodeModel {
+        const node = this._nodes[index];
+        if (node) {
+            this._nodes.splice(index, 1);
+            delete this._nodePositionCache[node.id];
+        }
+        return node;
+    }
+
+    // NODE MOVEMENT
 
     async moveNode(node: FileNodeModel, destFolderNodeId: NodeId) {
         let index = this.getNodeIndex(node.id);
@@ -481,98 +687,6 @@ export class FileNavigator {
             console.error(
                 `Unable to move node ${node.id} to folder ${destFolderNodeId}.`,
             );
-    }
-
-    deleteArticleNode(id: number) {
-        this._deleteNode(articleNodeId(id));
-    }
-
-    deleteFolderNode(id: number) {
-        // child nodes should be deleted in separate calls
-        this._deleteNode(folderNodeId(id));
-    }
-
-    _generateArticleNode(
-        id: any,
-        folder_id: any,
-        title: string,
-        data: FileNodeData | undefined = undefined,
-    ): FileNodeModel {
-        const node = {
-            id: articleNodeId(id),
-            parent: folderNodeId(folder_id, ROOT_FOLDER_NODE_ID),
-            text: title,
-        };
-        if (data) this._addNodeData(node, data);
-        return node;
-    }
-
-    _generateFolderNode(
-        id: any,
-        parentId: any,
-        name: string,
-        data: FileNodeData | undefined = undefined,
-    ): FileNodeModel {
-        const node = {
-            id: folderNodeId(id),
-            parent: folderNodeId(parentId, ROOT_FOLDER_NODE_ID),
-            text: name,
-            droppable: true,
-        };
-        if (data) this._addNodeData(node, data);
-        return node;
-    }
-
-    _addNodeData(node: FileNodeModel, data: FileNodeData) {
-        if (node.data) node.data = { ...node.data, ...data };
-        else node.data = data;
-    }
-
-    _findNode(
-        nodeId: NodeId | null,
-        cache: boolean = true,
-    ): FileNodeModel | null {
-        if (!nodeId) return null;
-
-        let index = this._nodePositionCache[nodeId];
-        let node = this._nodes[index];
-
-        if (node && node.id == nodeId) return node;
-
-        index = 0;
-        for (let node of this._nodes) {
-            if (node.id != nodeId) {
-                index++;
-                continue;
-            }
-            if (cache) this._nodePositionCache[nodeId] = index;
-            return node;
-        }
-
-        return null;
-    }
-
-    _deleteNode(nodeId: NodeId) {
-        const index = this.getNodeIndex(nodeId, false);
-        if (index !== null) {
-            this._nodes.splice(index, 1);
-            delete this._nodePositionCache[nodeId];
-        }
-    }
-
-    _deleteNodeAtIndex(index: number): FileNodeModel {
-        const node = this._nodes[index];
-        if (node) {
-            this._nodes.splice(index, 1);
-            delete this._nodePositionCache[node.id];
-        }
-        return node;
-    }
-
-    convertNodeIdToEntityId(id: NodeId): number {
-        if (id === ROOT_FOLDER_NODE_ID) return ROOT_FOLDER_ID;
-        const _id = id.toString();
-        return Number(_id.slice(1));
     }
 }
 

@@ -24,6 +24,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src", "src/lib/services/view/navigation/file-navigator.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

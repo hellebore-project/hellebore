@@ -10,6 +10,9 @@
     --selected-bg-color: var(--mantine-color-blue-light);
     --selected-bd-color: var(--mantine-color-blue-3);
     --selected-bd: 1px solid var(--selected-bd-color);
+    --error-bg-color: #61050b;
+    --error-bd-color: var(--mantine-color-red-9);
+    --error-bd: 1px solid var(--error-bd-color);
     --header-height: 30px;
     --header-bg-color: var(--mantine-color-dark-6);
     --sidebar-width: 300px;
@@ -61,4 +64,12 @@
 .divider {
     border-top: 0.8px solid var(--default-bd-color);
     margin-block: 12px;
+}
+
+.compact {
+    flex-grow: 0;
+}
+
+.grow {
+    flex-grow: 1;
 }

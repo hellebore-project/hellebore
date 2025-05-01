@@ -1,13 +1,13 @@
-import { TextInput, TextInputProps } from "@mantine/core";
+import { BaseTextInputSettings } from "@/interface";
+import { TextInput } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { forwardRef } from "react";
 
-export interface TextFieldSettings extends TextInputProps {
+export interface TextFieldSettings extends BaseTextInputSettings {
     value?: string;
     getValue?: () => string;
     error?: boolean | string;
     getError?: () => string | null;
-    focused?: boolean;
 }
 
 const renderTextField = forwardRef<HTMLInputElement, TextFieldSettings>(

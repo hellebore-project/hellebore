@@ -290,7 +290,7 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     editFolderName(id: number) {
-        this.navigation.files.editFolderNodeText(id);
+        this.navigation.files.toggleFolderAsEditable(id);
     }
 
     async deleteFolder(id: number, confirm: boolean = true) {

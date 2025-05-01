@@ -17,6 +17,7 @@ import { ArticleUpdateArguments, DomainManager } from "../domain";
 export interface ViewManagerInterface {
     domain: DomainManager;
 
+    get navbarWidth(): number;
     get currentView(): ViewKey;
 
     getViewSize(): Promise<PhysicalSize>;

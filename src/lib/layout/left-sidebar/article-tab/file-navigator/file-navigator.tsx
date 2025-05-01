@@ -1,4 +1,6 @@
-import { GridProps } from "@mantine/core";
+import "./file-navigator.css";
+
+import { Paper, Text } from "@mantine/core";
 import {
     DragPreviewRender,
     DropOptions,
@@ -7,25 +9,20 @@ import {
     Tree,
 } from "@minoru/react-dnd-treeview";
 import { observer } from "mobx-react-lite";
-import { MouseEvent, useRef } from "react";
+import { MouseEvent, useEffect } from "react";
 import { DndProvider } from "react-dnd";
 
-import { FileNodeData, FileNodeModel, ROOT_FOLDER_NODE_ID } from "@/interface";
-import { getService } from "@/services";
 import {
-    EditableTextSettings,
-    NavItem,
-    PopoverSettings,
-    TextSettings,
-} from "@/shared/nav-item/nav-item";
-import { TextFieldSettings } from "@/shared/text-field";
-
-import "./file-navigator.css";
+    BaseGroupSettings,
+    FileNodeData,
+    FileNodeModel,
+    ROOT_FOLDER_NODE_ID,
+} from "@/interface";
+import { getService } from "@/services";
+import { NavItem, NavItemTextSettings } from "@/shared/nav-item/nav-item";
 import { OutsideClickHandler } from "@/shared/outside-click-handler";
 
-const ARTICLE_NAV_ITEM_PREFIX = "nav-item-";
-
-interface FileNavItemSettings extends GridProps {
+interface FileNavItemSettings extends BaseGroupSettings {
     node: FileNodeModel;
     depth: number;
     expanded: boolean;
@@ -41,8 +38,9 @@ const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
     const fileNav = service.view.navigation.files;
 
     const elementId = e.currentTarget.id;
-    const nodeId = elementId.slice(ARTICLE_NAV_ITEM_PREFIX.length);
+    if (!elementId) return;
 
+    const nodeId = fileNav.convertDOMIdToNodeId(elementId);
     const node = fileNav.getNode(nodeId);
     if (!node) return;
 
@@ -98,14 +96,17 @@ function renderFileNavItem({
         }
     };
 
-    let textSettings: TextSettings | undefined = undefined;
-    let editableTextSettings: EditableTextSettings | undefined = undefined;
+    let textSettings: NavItemTextSettings = {
+        editable,
+        text: editable ? (node?.data?.editableText ?? node.text) : node.text,
+        error: node?.data?.error,
+    };
+
+    const textElementId = fileNav.convertNodeIdToDOMTextId(node.id);
 
     if (selected && editable) {
-        editableTextSettings = {
-            value: node?.data?.editableText ?? node.text,
-            readOnly: false,
-            error: node?.data?.error ? true : undefined,
+        textSettings.textInputSettings = {
+            id: textElementId,
             onChange: (event) =>
                 fileNav.setEditableNodeText(node.id, event.target.value),
             onBlur: () => fileNav.confirmNodeTextEdit(node),
@@ -113,45 +114,61 @@ function renderFileNavItem({
             size: "xs",
             styles: { input: { fontSize: 16 } },
         };
-
-        if (node?.data?.error)
-            editableTextSettings.popoverSettings = {
-                opened: true,
-                text: node?.data?.error ?? "",
-            };
+        textSettings.ref_ = fileNav.editableTextField ?? undefined;
     } else
-        textSettings = {
-            value: node.text,
+        textSettings.textSettings = {
+            id: textElementId,
         };
 
     return (
         <NavItem
-            id={`${ARTICLE_NAV_ITEM_PREFIX}${node.id}`}
             active={open}
             selected={selected}
             focused={fileNav.focused}
             rank={depth + 1}
+            groupSettings={{
+                id: fileNav.convertNodeIdToDOMId(node.id),
+                onClick: onActivate,
+                onContextMenu: openContextMenu,
+                ...rest,
+            }}
             textSettings={textSettings}
-            textInputSettings={editableTextSettings}
             expandButtonSettings={{
                 expandable: node.droppable,
                 expanded: expanded,
             }}
-            onClick={onActivate}
-            onContextMenu={openContextMenu}
-            {...rest}
-        ></NavItem>
+        />
     );
 }
 
 export const FileNavItem = observer(renderFileNavItem);
 
+function renderFileNavErrorPopover() {
+    const service = getService();
+    const errorManager = service.view.navigation.files.errorManager;
+
+    if (!errorManager.visible || !errorManager.position) return null;
+    const position = errorManager.position;
+
+    return (
+        <Paper
+            className="file-navigator-error-popover"
+            left={position.left}
+            top={position.top}
+            w={position.right - position.left}
+        >
+            <Text className="file-navigator-error-text">
+                {errorManager.message}
+            </Text>
+        </Paper>
+    );
+}
+
+export const FileNavErrorPopover = observer(renderFileNavErrorPopover);
+
 function renderFileNavigator({}: FileNavigatorSettings) {
     const service = getService();
     const fileNav = service.view.navigation.files;
-
-    const ref = useRef(null);
-    fileNav.tree = ref;
 
     const data = fileNav.nodes;
 
@@ -166,39 +183,53 @@ function renderFileNavigator({}: FileNavigatorSettings) {
         if (dragSource) fileNav.moveNode(dragSource, dropTargetId);
     };
 
+    const editableTextRef = fileNav.editableTextField;
+    useEffect(() => {
+        if (editableTextRef?.current) {
+            // focus the text field once it has been added to the DOM
+            editableTextRef.current.focus();
+        }
+    }, [editableTextRef]);
+
     return (
-        <OutsideClickHandler
-            className="file-navigator"
-            service={fileNav.outsideClickHandler}
-            onClick={() => {
-                fileNav.selectedNode = null;
-                fileNav.focused = true;
-            }}
-        >
-            <DndProvider backend={MultiBackend} options={getBackendOptions()}>
-                <Tree
-                    classes={{
-                        root: "article-tree-root",
-                    }}
-                    dragPreviewRender={dragPreviewRender}
-                    listComponent="div"
-                    listItemComponent="div"
-                    onDrop={onDrop}
-                    ref={ref}
-                    render={(node, { depth, isOpen, onToggle }) => (
-                        <FileNavItem
-                            depth={depth}
-                            expanded={isOpen}
-                            key={node.id}
-                            node={node}
-                            toggle={onToggle}
-                        />
-                    )}
-                    rootId={ROOT_FOLDER_NODE_ID}
-                    tree={data}
-                />
-            </DndProvider>
-        </OutsideClickHandler>
+        <>
+            <OutsideClickHandler
+                className="file-navigator"
+                service={fileNav.outsideClickHandler}
+                onClick={() => {
+                    fileNav.selectedNode = null;
+                    fileNav.focused = true;
+                }}
+            >
+                <DndProvider
+                    backend={MultiBackend}
+                    options={getBackendOptions()}
+                >
+                    <Tree
+                        classes={{
+                            root: "article-tree-root",
+                        }}
+                        dragPreviewRender={dragPreviewRender}
+                        listComponent="div"
+                        listItemComponent="div"
+                        onDrop={onDrop}
+                        ref={fileNav.tree}
+                        render={(node, { depth, isOpen, onToggle }) => (
+                            <FileNavItem
+                                depth={depth}
+                                expanded={isOpen}
+                                key={node.id}
+                                node={node}
+                                toggle={onToggle}
+                            />
+                        )}
+                        rootId={ROOT_FOLDER_NODE_ID}
+                        tree={data}
+                    />
+                </DndProvider>
+            </OutsideClickHandler>
+            <FileNavErrorPopover />
+        </>
     );
 }
 

@@ -12,15 +12,17 @@ function renderArticlesTabHeader() {
     const articleNavService = getService().view.navigation.files;
     return (
         <NavItem
-            textSettings={{
-                fw: 500,
-                value: "ARTICLES",
+            groupSettings={{
+                onClick: () => articleNavService.toggleExpanded(),
             }}
             expandButtonSettings={{
                 expandable: true,
                 isExpanded: () => articleNavService.expanded,
             }}
-            onClick={() => articleNavService.toggleExpanded()}
+            textSettings={{
+                text: "ARTICLES",
+                textSettings: { fw: 500 },
+            }}
         >
             {articleNavService.canAddArticle && <AddArticleButton />}
             {articleNavService.canAddFolder && <AddFolderButton />}
