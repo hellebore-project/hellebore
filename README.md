@@ -1,6 +1,6 @@
 # Hellebore
 
-Self-hosted rust app for world-building.
+Self-hosted desktop app for world-building.
 
 ## Local Development
 
@@ -56,10 +56,19 @@ pnpm generate:entities
 
 ### Troubleshooting
 
-#### Drag and Drop
+#### File navigator drag and drop not working
 
 On Windows systems, the `dragDropEnabled` option in the tauri config must be set to `false` in order to use drag and drop on the frontend.
 
-#### Slowdown caused by `tabler/icons-react` 3.19.0
+#### Dev server slowdown at start-up
 
 Version 3.19 of `tabler/icons-react` causes a dramatic slowdown during startup in dev mode ([issue](https://github.com/tabler/tabler-icons/issues/1233)).
+
+#### Dev Server loading old source code
+
+Delete the webview cache for the application.
+
+```sh
+# Windows
+C:\Users\<USER>\AppData\Local\com.hellebore.dev
+```

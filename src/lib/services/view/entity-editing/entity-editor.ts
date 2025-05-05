@@ -174,6 +174,7 @@ export class EntityEditor {
             syncArticleText: true,
             syncLexicon: true,
         });
+        this.lexicon.cleanUp();
     }
 
     reset() {
@@ -219,6 +220,8 @@ export class EntityEditor {
         syncArticleText = false,
         syncLexicon = false,
     }: SyncSettings): Promise<boolean> {
+        // NOTE: this function must run synchronously
+
         if (!syncTitle && !syncProperties && !syncArticleText)
             return new Promise(() => false);
         if (

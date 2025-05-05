@@ -13,3 +13,11 @@ export interface WordData extends BaseWordData {
     created?: boolean;
     updated?: boolean;
 }
+
+export enum WordTableColumnName {
+    Spelling = "Word",
+    Number = "Number",
+    Person = "Person",
+    Gender = "Gender",
+    Translations = "Translations",
+}

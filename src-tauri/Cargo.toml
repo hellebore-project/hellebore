@@ -1,7 +1,7 @@
 [package]
 name = "hellebore"
 version = "0.0.0"
-description = "Self-hosted rust app for world-building."
+description = "Self-hosted desktop app for world-building."
 authors = ["Ariel Boucheikhchoukh"]
 edition = "2021"
 
