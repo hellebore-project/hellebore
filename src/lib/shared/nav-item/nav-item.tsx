@@ -1,13 +1,11 @@
 import "./nav-item.css";
 
-import { Grid, Group, Text } from "@mantine/core";
+import { Group, Text } from "@mantine/core";
 import { IconChevronRight } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 import { forwardRef, PropsWithChildren, ReactNode, RefObject } from "react";
 
 import {
-    BaseGridColSettings,
-    BaseGridSettings,
     BaseGroupSettings,
     BaseTextInputSettings,
     BaseTextSettings,
@@ -15,15 +13,6 @@ import {
 import { range } from "@/utils/collections";
 
 import { TextField } from "../text-field";
-
-const DEFAULT_NAV_ITEM_STYLES = {
-    inner: {
-        // margin defaults to negative value, resulting in overlap with adjacent nav items
-        margin: 0,
-        // by default, nav item overflows on the right
-        width: "100%",
-    },
-};
 
 const EXPAND_BUTTON_PLACEHOLDER = (
     <div className="nav-item-expand-button-placeholder" />

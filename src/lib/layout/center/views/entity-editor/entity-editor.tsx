@@ -86,7 +86,6 @@ function renderEntityEditorTabs() {
 export const EntityEditorTabs = observer(renderEntityEditorTabs);
 
 function renderEntityEditor() {
-    const service = getService();
     return (
         <Stack className="entity-editor" gap={0}>
             <EntityEditorHeader />

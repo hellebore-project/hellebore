@@ -1,31 +1,24 @@
-import { Select, ComboboxItem } from "@mantine/core";
+import { Select, SelectProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-interface SelectFieldSettings {
-    label: string;
-    data: ComboboxItem[];
+interface SelectFieldSettings extends SelectProps {
     getValue?: () => string | null;
-    onChange?: (value: string | null, option: ComboboxItem) => void;
-    placeholder?: string;
 }
 
 function renderSelectField({
-    label,
-    data,
     getValue,
-    onChange,
     placeholder = "Select a value",
+    clearable = true,
+    ...rest
 }: SelectFieldSettings) {
     const value = getValue ? getValue() : undefined;
     return (
         <Select
-            label={label}
             placeholder={placeholder}
-            data={data}
             value={value}
-            onChange={onChange}
             allowDeselect
-            clearable
+            clearable={clearable}
+            {...rest}
         />
     );
 }

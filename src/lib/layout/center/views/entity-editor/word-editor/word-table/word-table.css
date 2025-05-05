@@ -8,6 +8,10 @@
         var(--table-border-color);
 }
 
+.word-table-data-cell.hidden {
+    display: none;
+}
+
 .word-table-action-cell {
     background-color: var(--default-bg-color);
     border: none;
