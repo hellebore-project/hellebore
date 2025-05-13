@@ -1,7 +1,6 @@
 use ::entity::{article, article::Entity as ArticleEntity};
 use sea_orm::*;
 
-use crate::database::utils;
 use crate::types::{CodedEnum, EntityType};
 
 #[derive(DerivePartialModel, FromQueryResult)]
@@ -11,6 +10,16 @@ pub struct ArticleInfo {
     pub folder_id: i32,
     pub entity_type: i8,
     pub title: String,
+}
+
+#[derive(DerivePartialModel, FromQueryResult)]
+#[sea_orm(entity = "ArticleEntity")]
+pub struct Article {
+    pub id: i32,
+    pub folder_id: i32,
+    pub entity_type: i8,
+    pub title: String,
+    pub body: String,
 }
 
 pub async fn insert(
@@ -33,28 +42,50 @@ pub async fn insert(
     }
 }
 
-pub async fn update(
-    db: &DbConn,
-    id: i32,
-    folder_id: Option<i32>,
-    title: Option<String>,
-    text: Option<String>,
-) -> Result<article::Model, DbErr> {
-    let Some(existing_entity) = get(db, id).await? else {
+pub async fn update_title(db: &DbConn, id: i32, title: String) -> Result<article::Model, DbErr> {
+    let Some(existing_entity) = get_info(db, id).await? else {
         return Err(DbErr::RecordNotFound("Article not found.".to_owned()));
     };
     let updated_entity = article::ActiveModel {
         id: Unchanged(existing_entity.id),
-        folder_id: utils::set_value_or_null(folder_id),
+        folder_id: NotSet,
         entity_type: NotSet,
-        title: utils::set_value_or_null(title),
-        body: utils::set_value_or_null(text),
+        title: Set(title),
+        body: NotSet,
+    };
+    updated_entity.update(db).await
+}
+
+pub async fn update_folder(db: &DbConn, id: i32, folder_id: i32) -> Result<article::Model, DbErr> {
+    let Some(existing_entity) = get_info(db, id).await? else {
+        return Err(DbErr::RecordNotFound("Article not found.".to_owned()));
+    };
+    let updated_entity = article::ActiveModel {
+        id: Unchanged(existing_entity.id),
+        folder_id: Set(folder_id),
+        entity_type: NotSet,
+        title: NotSet,
+        body: NotSet,
+    };
+    updated_entity.update(db).await
+}
+
+pub async fn update_text(db: &DbConn, id: i32, text: String) -> Result<article::Model, DbErr> {
+    let Some(existing_entity) = get_info(db, id).await? else {
+        return Err(DbErr::RecordNotFound("Article not found.".to_owned()));
+    };
+    let updated_entity = article::ActiveModel {
+        id: Unchanged(existing_entity.id),
+        folder_id: NotSet,
+        entity_type: NotSet,
+        title: NotSet,
+        body: Set(text),
     };
     updated_entity.update(db).await
 }
 
 pub async fn exists(db: &DbConn, id: i32) -> Result<bool, DbErr> {
-    return Ok(get(db, id).await?.is_some());
+    return Ok(get_info(db, id).await?.is_some());
 }
 
 pub async fn title_exists(db: &DbConn, title: &str) -> Result<bool, DbErr> {
@@ -80,9 +111,24 @@ pub async fn get(db: &DbConn, id: i32) -> Result<Option<article::Model>, DbErr> 
     ArticleEntity::find_by_id(id).one(db).await
 }
 
-pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<article::Model>, DbErr> {
+pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<ArticleInfo>, DbErr> {
     ArticleEntity::find()
         .filter(article::Column::Title.eq(title))
+        .into_partial_model::<ArticleInfo>()
+        .one(db)
+        .await
+}
+
+pub async fn get_info(db: &DbConn, id: i32) -> Result<Option<ArticleInfo>, DbErr> {
+    ArticleEntity::find_by_id(id)
+        .into_partial_model::<ArticleInfo>()
+        .one(db)
+        .await
+}
+
+pub async fn get_text(db: &DbConn, id: i32) -> Result<Option<Article>, DbErr> {
+    ArticleEntity::find_by_id(id)
+        .into_partial_model::<Article>()
         .one(db)
         .await
 }
