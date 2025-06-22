@@ -13,12 +13,12 @@ import { EntityInfoEditor } from "./info-editor";
 
 type FieldDataCollection = { [type: number]: FieldData[] };
 
-interface PropertyTableEditorSettings {
+interface PropertyEditorSettings {
     info: EntityInfoEditor;
     onChange: EntityChangeHandler;
 }
 
-export class PropertyTableEditor {
+export class PropertyEditor {
     private _entity: BaseEntity | null = null;
 
     fields: FieldDataCollection;
@@ -28,7 +28,7 @@ export class PropertyTableEditor {
 
     onChange: EntityChangeHandler;
 
-    constructor({ info, onChange }: PropertyTableEditorSettings) {
+    constructor({ info, onChange }: PropertyEditorSettings) {
         makeAutoObservable(this, {
             fields: false,
             onChange: false,

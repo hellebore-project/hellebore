@@ -118,13 +118,13 @@ impl ApiError {
     pub fn field_not_unique<V: ToString>(
         entity_type: EntityType,
         id: Option<i32>,
-        key: &str,
+        key: String,
         value: V,
     ) -> ApiError {
         return ApiError::FieldNotUnique {
             entity_type,
             id,
-            key: key.to_string(),
+            key,
             value: value.to_string(),
         };
     }

@@ -1,39 +1,13 @@
 use hellebore::{
-    schema::{
-        article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
-        language::LanguageDataSchema,
-    },
+    database::language_manager,
+    schema::{article::ArticleCreateSchema, language::LanguageDataSchema},
     services::language_service,
     settings::Settings,
-    types::LANGUAGE,
 };
 use rstest::*;
 
 use crate::fixtures::{create_language_payload, database, folder_id, language_name, settings};
-use crate::utils::validate_article_response;
-
-fn validate_language_response(
-    article: &ArticleResponseSchema<LanguageDataSchema>,
-    id: Option<i32>,
-    folder_id: i32,
-    title: &str,
-    text: &str,
-) {
-    assert_eq!(title, &article.entity.as_ref().unwrap().name);
-    validate_article_response(article, id, folder_id, title, text);
-}
-
-#[fixture]
-fn update_payload() -> ArticleUpdateSchema<LanguageDataSchema> {
-    ArticleUpdateSchema {
-        id: 0,
-        folder_id: None,
-        entity_type: LANGUAGE,
-        title: None,
-        entity: None,
-        body: None,
-    }
-}
+use crate::utils::validate_article_info_response;
 
 #[rstest]
 #[tokio::test]
@@ -47,7 +21,7 @@ async fn test_create_language(
     let article = language_service::create(&database, create_language_payload).await;
 
     assert!(article.is_ok());
-    validate_language_response(&article.unwrap(), None, folder_id, &language_name, "");
+    validate_article_info_response(&article.unwrap(), None, folder_id, &language_name);
 }
 
 #[rstest]
@@ -59,72 +33,6 @@ async fn test_error_on_creating_duplicate_language(
     let database = database(settings).await;
     let _ = language_service::create(&database, create_language_payload.clone()).await;
     let response = language_service::create(&database, create_language_payload).await;
-    assert!(response.is_err());
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_update_language(
-    settings: &Settings,
-    folder_id: i32,
-    create_language_payload: ArticleCreateSchema<LanguageDataSchema>,
-    mut update_payload: ArticleUpdateSchema<LanguageDataSchema>,
-) {
-    let database = database(settings).await;
-    let article = language_service::create(&database, create_language_payload)
-        .await
-        .unwrap();
-
-    update_payload.id = article.id;
-    update_payload.title = Some("Spanish".to_owned());
-    let response = language_service::update(&database, update_payload).await;
-
-    assert!(response.is_ok());
-    let response = response.unwrap();
-    assert!(response.errors.is_empty());
-
-    let article = language_service::get(&database, article.id).await;
-
-    assert!(article.is_ok());
-    validate_language_response(&article.unwrap(), None, folder_id, "Spanish", "");
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_error_on_updating_nonexistent_language(
-    settings: &Settings,
-    update_payload: ArticleUpdateSchema<LanguageDataSchema>,
-) {
-    let database = database(settings).await;
-    let response = language_service::update(&database, update_payload).await;
-    assert!(response.is_ok());
-    assert!(!response.unwrap().errors.is_empty());
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_get_language(
-    settings: &Settings,
-    folder_id: i32,
-    language_name: String,
-    create_language_payload: ArticleCreateSchema<LanguageDataSchema>,
-) {
-    let database = database(settings).await;
-    let article = language_service::create(&database, create_language_payload)
-        .await
-        .unwrap();
-
-    let article = language_service::get(&database, article.id).await;
-
-    assert!(article.is_ok());
-    validate_language_response(&article.unwrap(), None, folder_id, &language_name, "");
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_error_on_getting_nonexistent_language(settings: &Settings) {
-    let database = database(settings).await;
-    let response = language_service::get(&database, 0).await;
     assert!(response.is_err());
 }
 
@@ -143,8 +51,9 @@ async fn test_delete_language(
 
     assert!(response.is_ok());
 
-    let article = language_service::get(&database, article.id).await;
-    assert!(article.is_err());
+    let article = language_manager::get(&database, article.id).await;
+    assert!(article.is_ok());
+    assert!(article.unwrap().is_none());
 }
 
 #[rstest]

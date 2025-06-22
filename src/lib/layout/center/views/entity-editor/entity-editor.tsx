@@ -12,6 +12,7 @@ import {
 import { ArticleEditor } from "./article-editor";
 import { DeleteEntityButton } from "./delete-entity-button";
 import { WordEditor } from "./word-editor/word-editor";
+import { PropertyEditor } from "./property-editor";
 
 const ARTICLE_TAB_DATA: TableOfContentsItemData = {
     label: "Article",
@@ -20,6 +21,16 @@ const ARTICLE_TAB_DATA: TableOfContentsItemData = {
     onClick: () => {
         const service = getService();
         service.view.openArticleEditor(service.view.entityEditor.info.id);
+    },
+};
+
+const PROPERTY_TAB_DATA: TableOfContentsItemData = {
+    label: "Properties",
+    value: EntityViewKey.PropertyEditor,
+    rank: 1,
+    onClick: () => {
+        const service = getService();
+        service.view.openPropertyEditor(service.view.entityEditor.info.id);
     },
 };
 
@@ -52,6 +63,7 @@ function renderEntityEditorContent() {
     const service = getService();
     const viewKey = service.view.entityEditor.currentView;
     if (viewKey === EntityViewKey.ArticleEditor) return <ArticleEditor />;
+    if (viewKey === EntityViewKey.PropertyEditor) return <PropertyEditor />;
     if (viewKey === EntityViewKey.WordEditor) return <WordEditor />;
     return null;
 }
@@ -62,11 +74,11 @@ function renderEntityEditorTabs() {
     const service = getService();
     const entityType = service.view.entityType;
 
-    let tabData: TableOfContentsItemData[] = [];
-    if (entityType === EntityType.LANGUAGE)
-        tabData = [ARTICLE_TAB_DATA, LEXICON_TAB_DATA];
-
-    if (tabData.length == 0) return null;
+    let tabData: TableOfContentsItemData[] = [
+        ARTICLE_TAB_DATA,
+        PROPERTY_TAB_DATA,
+    ];
+    if (entityType === EntityType.LANGUAGE) tabData.push(LEXICON_TAB_DATA);
 
     const activeTabKey = service.view.entityEditor.currentView;
 

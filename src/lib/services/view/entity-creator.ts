@@ -1,16 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
-import {
-    ArticleResponse,
-    BaseEntity,
-    EntityType,
-    ROOT_FOLDER_ID,
-} from "@/interface";
+import { EntityInfoResponse, EntityType, ROOT_FOLDER_ID } from "@/interface";
 import { ViewManager } from "./view-manager";
 
-export class ArticleCreator {
+export class EntityCreator {
+    private _title: string = "";
+
     entityType: EntityType | null = null;
-    _title: string = "";
     isTitleUnique: boolean = true;
 
     view: ViewManager;
@@ -36,13 +32,13 @@ export class ArticleCreator {
         this.isTitleUnique = isUnique;
     }
 
-    async createArticle(
-        folder_id: number = ROOT_FOLDER_ID,
-    ): Promise<ArticleResponse<BaseEntity> | null> {
-        const article = await this.view.domain.articles.create(
+    async createEntity(
+        folderId: number = ROOT_FOLDER_ID,
+    ): Promise<EntityInfoResponse | null> {
+        const article = await this.view.domain.entities.create(
             this.entityType as EntityType,
             this.title,
-            folder_id,
+            folderId,
         );
 
         if (article == null) {

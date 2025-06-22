@@ -30,7 +30,7 @@ function renderArticleCreator() {
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
         event.preventDefault();
-        service.view.createArticle();
+        service.view.createEntity();
     };
 
     return (
@@ -46,11 +46,11 @@ function renderArticleCreator() {
                         placeholder="Select an entity type (optional)"
                         data={ENTITY_TYPE_DROPDOWN_DATA}
                         getValue={() =>
-                            service.view.articleCreator.entityType?.toString() ??
+                            service.view.entityCreator.entityType?.toString() ??
                             null
                         }
                         onChange={(entityType) =>
-                            service.view.articleCreator.setEntityType(
+                            service.view.entityCreator.setEntityType(
                                 Number(entityType),
                             )
                         }
@@ -59,14 +59,14 @@ function renderArticleCreator() {
                     <TextField
                         label={"Title"}
                         placeholder="Enter a unique title"
-                        getValue={() => service.view.articleCreator.title}
+                        getValue={() => service.view.entityCreator.title}
                         getError={() =>
-                            service.view.articleCreator.isTitleUnique
+                            service.view.entityCreator.isTitleUnique
                                 ? null
                                 : "Duplicate title"
                         }
                         onChange={(event) =>
-                            (service.view.articleCreator.title =
+                            (service.view.entityCreator.title =
                                 event.currentTarget.value)
                         }
                     />

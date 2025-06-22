@@ -1,20 +1,21 @@
 import { makeAutoObservable } from "mobx";
 
 import {
-    ArticleResponse,
     BaseEntity,
     EntityType,
-    ArticleUpdateResponse,
     FieldData,
     EntityViewKey,
-    ViewKey,
     WordType,
     Id,
     WordUpsertResponse,
     WordData,
 } from "@/interface";
-import { ArticleUpdateArguments } from "@/services/domain";
-import { PropertyTableEditor } from "./property-table-editor";
+import {
+    ArticleTextUpdateResponse,
+    ArticleTitleUpdateResponse,
+    EntityUpdateResponse,
+} from "@/services/domain";
+import { PropertyEditor } from "./property-editor";
 import { ArticleTextEditor } from "./text-editor";
 import { EntityInfoEditor } from "./info-editor";
 import { ViewManagerInterface } from "../interface";
@@ -28,10 +29,6 @@ type PrivateKeys =
     | "_lastModified"
     | "_lastSynced"
     | "_syncDelayTime";
-
-export type UpdateArticleHandler = (
-    update: ArticleUpdateArguments,
-) => Promise<ArticleUpdateResponse | null>;
 
 interface SyncSettings {
     syncTitle?: boolean;
@@ -50,7 +47,9 @@ interface SyncRequest {
 }
 
 interface SyncResponse {
-    article: ArticleUpdateResponse | null;
+    articleTitle: ArticleTitleUpdateResponse | null;
+    articleText: ArticleTextUpdateResponse | null;
+    properties: EntityUpdateResponse | null;
     lexicon: WordUpsertResponse[] | null;
 }
 
@@ -71,7 +70,7 @@ export class EntityEditor {
     // services
     view: ViewManagerInterface;
     info: EntityInfoEditor;
-    properties: PropertyTableEditor;
+    properties: PropertyEditor;
     articleText: ArticleTextEditor;
     lexicon: WordEditor;
 
@@ -90,10 +89,10 @@ export class EntityEditor {
         });
 
         this.view = view;
-        this.info = new EntityInfoEditor();
+        this.info = new EntityInfoEditor(view);
 
         const onChange = () => this._onChange();
-        this.properties = new PropertyTableEditor({
+        this.properties = new PropertyEditor({
             info: this.info,
             onChange,
         });
@@ -123,20 +122,6 @@ export class EntityEditor {
         this._viewKey = key;
     }
 
-    get isArticleEditorOpen() {
-        return (
-            this.view.currentView == ViewKey.EntityEditor &&
-            this.currentView == EntityViewKey.ArticleEditor
-        );
-    }
-
-    get isWordEditorOpen() {
-        return (
-            this.view.currentView == ViewKey.EntityEditor &&
-            this.currentView == EntityViewKey.WordEditor
-        );
-    }
-
     get title() {
         return this.info.title;
     }
@@ -154,16 +139,21 @@ export class EntityEditor {
         return this.properties.fields[this.info.entityType as EntityType] ?? [];
     }
 
-    initializeArticleEditor<E extends BaseEntity>(article: ArticleResponse<E>) {
+    initializeArticleEditor(id: Id, title: string, text: string) {
         this.currentView = EntityViewKey.ArticleEditor;
-        this.info.initialize(article.id, article.entity_type, article.title);
-        this.properties.initialize(article.entity);
-        this.articleText.initialize(article.body);
+        this.info.initialize(id, title);
+        this.articleText.initialize(text);
+    }
+
+    initializePropertyEditor(id: Id, title: string, properties: BaseEntity) {
+        this.currentView = EntityViewKey.PropertyEditor;
+        this.info.initialize(id, title);
+        this.properties.initialize(properties);
     }
 
     initializeWordEditor(id: number, title: string, wordType?: WordType) {
         this.currentView = EntityViewKey.WordEditor;
-        this.info.initialize(id, EntityType.LANGUAGE, title);
+        this.info.initialize(id, title, EntityType.LANGUAGE);
         this.lexicon.initialize(id, wordType);
     }
 
@@ -277,26 +267,28 @@ export class EntityEditor {
 
     private async _sync({
         id,
-        entityType,
         title,
         properties,
         articleText,
         words,
     }: SyncRequest): Promise<SyncResponse> {
-        let articleResponse: ArticleUpdateResponse | null = null;
-        try {
-            articleResponse = await this.view.updateArticle({
+        let titleUpdateResponse: ArticleTitleUpdateResponse | null = null;
+        if (typeof title === "string")
+            titleUpdateResponse = await this.view.updateArticleTitle(id, title);
+
+        let textUpdateResponse: ArticleTextUpdateResponse | null = null;
+        if (typeof articleText === "string")
+            textUpdateResponse = await this.view.domain.articles.updateText(
                 id,
-                entity_type: entityType,
-                title,
-                entity: properties,
-                body: articleText,
-            });
-        } catch (error) {
-            console.error("Failed to update article.");
-            console.error(error);
-        }
-        if (articleResponse == null) console.error("Failed to update article.");
+                articleText,
+            );
+
+        let propertiesResponse: EntityUpdateResponse | null = null;
+        if (properties)
+            propertiesResponse = await this.view.domain.entities.update(
+                id,
+                properties,
+            );
 
         let lexiconResponse: WordUpsertResponse[] | null = null;
         if (words) {
@@ -306,30 +298,32 @@ export class EntityEditor {
                 console.error("Failed to update lexicon.");
                 console.error(error);
             }
-            if (lexiconResponse == null)
+            if (lexiconResponse?.length)
                 console.error("Failed to update lexicon.");
         }
 
         return {
-            article: articleResponse,
+            articleTitle: titleUpdateResponse,
+            articleText: textUpdateResponse,
+            properties: propertiesResponse,
             lexicon: lexiconResponse,
         };
     }
 
     private _afterSync(
         request: SyncRequest,
-        { article, lexicon }: SyncResponse,
+        { articleTitle, articleText, properties, lexicon }: SyncResponse,
     ) {
         if (this.info.id != request.id) return;
 
-        if (article) {
-            if (article.titleChanged) {
-                this.info.sync();
-                this.info.isTitleUnique = article.isTitleUnique ?? true;
-            }
-            if (article.propertiesChanged) this.properties.sync();
-            if (article.textChanged) this.articleText.sync();
+        if (articleTitle && articleTitle.updated) {
+            this.info.sync();
+            this.info.isTitleUnique = articleTitle.isUnique ?? true;
         }
+
+        if (articleText && articleText.updated) this.articleText.sync();
+
+        if (properties && properties.updated) this.properties.sync();
 
         if (request.words && lexicon) {
             const words: WordData[] = request.words.map((word, i) => {

@@ -21,7 +21,7 @@ export class DataManager {
         for (const folderId of data.folders)
             this._structure.deleteFolder(folderId);
         for (const articleId of data.articles)
-            this._structure.deleteArticle(articleId);
+            this._structure.deleteFile(articleId);
 
         return true;
     }

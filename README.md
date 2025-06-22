@@ -64,7 +64,7 @@ On Windows systems, the `dragDropEnabled` option in the tauri config must be set
 
 Version 3.19 of `tabler/icons-react` causes a dramatic slowdown during startup in dev mode ([issue](https://github.com/tabler/tabler-icons/issues/1233)).
 
-#### Dev Server loading old source code
+#### Dev server loading old source code
 
 Delete the webview cache for the application.
 

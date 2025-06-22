@@ -45,8 +45,12 @@ where
         api::project::update_project,
         api::project::get_project,
         // article API
+        api::article::update_article_title,
+        api::article::update_article_folder,
+        api::article::update_article_text,
         api::article::validate_article_title,
         api::article::get_articles,
+        api::article::get_article_text,
         // folder API
         api::folder::create_folder,
         api::folder::update_folder,
@@ -58,8 +62,6 @@ where
         api::data::delete_bulk_data,
         // language API
         api::language::create_language,
-        api::language::update_language,
-        api::language::get_language,
         api::language::delete_language,
         // person API
         api::person::create_person,

@@ -5,6 +5,7 @@ import { observer } from "mobx-react-lite";
 
 import { FieldData, FieldType } from "@/interface";
 import { TextField } from "@/shared/text-field";
+import { getService } from "@/services";
 
 interface PropertyFieldSettings extends FieldData {}
 
@@ -13,7 +14,6 @@ interface PropertyRowSettings {
 }
 
 interface PropertyTableSettings extends CardProps {
-    getData: () => FieldData[];
     stackSettings?: StackProps;
 }
 
@@ -52,14 +52,15 @@ function renderPropertyFieldRow({ data }: PropertyRowSettings) {
 const PropertyFieldRow = observer(renderPropertyFieldRow);
 
 function renderPropertyTable({
-    getData,
     stackSettings,
     ...rest
 }: PropertyTableSettings) {
-    const rows = getData().map((fieldData) => (
+    const data = getService().view.entityEditor.fieldData;
+    if (data.length == 0) return null;
+    const rows = data.map((fieldData) => (
         <PropertyFieldRow key={`${fieldData.property}-row`} data={fieldData} />
     ));
-    if (rows.length == 0) return null;
+
     return (
         <Card className="property-table" {...rest}>
             <Stack

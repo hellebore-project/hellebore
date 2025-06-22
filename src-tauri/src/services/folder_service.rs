@@ -44,7 +44,7 @@ pub async fn validate_name(
         errors.push(ApiError::field_not_unique(
             FOLDER,
             id,
-            &String::from("name"),
+            "name".to_owned(),
             name,
         ));
     }

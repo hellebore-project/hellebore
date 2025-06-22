@@ -1,5 +1,4 @@
 import { IdentifiedObject } from "../common";
-import { ArticleNode } from "./article";
 
 export const ROOT_FOLDER_ID = -1;
 
@@ -29,9 +28,4 @@ export interface FolderNameCollisionResponse {
 export interface FolderValidateResponse extends FolderProperties {
     id: number | null;
     nameCollision?: FolderNameCollisionResponse | null;
-}
-
-export interface FolderNode extends FolderResponse {
-    subFolders: { [id: number]: FolderNode };
-    articles: { [id: number]: ArticleNode };
 }

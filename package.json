@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "test:be": "cargo test --manifest-path ./src-tauri/Cargo.toml",
     "build:db": "sqlite3 src-tauri/data/db.sqlite \"VACUUM;\" && sea-orm-cli migrate fresh -d src-tauri/migration",
     "build:entities": "pnpm build:db && sea-orm-cli generate entity -l --with-serde both -o src-tauri/entity/src",
     "build:fe": "tsc && vite build",

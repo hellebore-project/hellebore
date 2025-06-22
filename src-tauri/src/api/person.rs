@@ -1,9 +1,9 @@
 use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
-    article::{ArticleCreateSchema, ArticleResponseSchema, ArticleUpdateSchema},
+    article::{ArticleCreateSchema, ArticleInfoSchema},
+    entity::{EntityResponseSchema, EntityUpdateSchema},
     person::PersonDataSchema,
-    response::ResponseDiagnosticsSchema,
 };
 use crate::services::person_service;
 use crate::state::State;
@@ -12,7 +12,7 @@ use crate::state::State;
 pub async fn create_person(
     state: tauri::State<'_, State>,
     article: ArticleCreateSchema<PersonDataSchema>,
-) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
+) -> Result<ArticleInfoSchema, ApiError> {
     let state = state.lock().await;
     person_service::create(utils::get_database(&state)?, article).await
 }
@@ -20,17 +20,17 @@ pub async fn create_person(
 #[tauri::command]
 pub async fn update_person(
     state: tauri::State<'_, State>,
-    article: ArticleUpdateSchema<PersonDataSchema>,
-) -> Result<ResponseDiagnosticsSchema<()>, ApiError> {
+    entity: EntityUpdateSchema<PersonDataSchema>,
+) -> Result<(), ApiError> {
     let state = state.lock().await;
-    person_service::update(utils::get_database(&state)?, article).await
+    person_service::update(utils::get_database(&state)?, entity).await
 }
 
 #[tauri::command]
 pub async fn get_person(
     state: tauri::State<'_, State>,
     id: i32,
-) -> Result<ArticleResponseSchema<PersonDataSchema>, ApiError> {
+) -> Result<EntityResponseSchema<PersonDataSchema>, ApiError> {
     let state = state.lock().await;
     person_service::get(utils::get_database(&state)?, id).await
 }

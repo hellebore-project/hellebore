@@ -1,27 +1,37 @@
 import {
-    ArticleInfoResponse,
-    ArticleNode,
+    EntityInfoResponse,
     BulkData,
-    FolderNode,
     FolderResponse,
+    Id,
     ROOT_FOLDER_ID,
 } from "@/interface";
+
+export type FileNode = EntityInfoResponse;
+
+export interface FolderNode extends FolderResponse {
+    subFolders: { [id: number]: FolderNode };
+    files: { [id: number]: FileNode };
+}
 
 export class FileStructure {
     folders: { [id: number]: FolderNode };
     /**
-     * The high-level information of each article is cached. This information is used for:
+     * The high-level information of each file is cached. This information is used for:
      *  - entity type look-ups
      *  - querying articles by title
      *  - updating references in article bodies (TODO)
      */
-    articles: { [id: number]: ArticleNode };
+    files: { [id: number]: FileNode };
 
     constructor() {
         this.folders = {};
-        this.articles = {};
+        this.files = {};
 
         this.addFolderById(ROOT_FOLDER_ID);
+    }
+
+    getInfo(id: Id): EntityInfoResponse {
+        return this.files[id];
     }
 
     addFolder(folder: FolderResponse) {
@@ -35,7 +45,7 @@ export class FileStructure {
             node = {
                 ...folder,
                 subFolders: [],
-                articles: [],
+                files: [],
             };
             this.folders[folder.id] = node;
         }
@@ -48,12 +58,12 @@ export class FileStructure {
 
     addFolderById(id: number) {
         if (id in this.folders) return this.folders[id];
-        const node = {
+        const node: FolderNode = {
             id: id,
             parent_id: ROOT_FOLDER_ID,
             name: "",
             subFolders: [],
-            articles: [],
+            files: [],
         };
         this.folders[id] = node;
         return node;
@@ -75,26 +85,26 @@ export class FileStructure {
         if (parentNode) delete parentNode.subFolders[id];
     }
 
-    addArticle(article: ArticleInfoResponse) {
-        const folder = this.addFolderById(article.folder_id);
-        folder.articles[article.id] = article;
-        this.articles[article.id] = article;
+    addFile(file: EntityInfoResponse) {
+        const folder = this.addFolderById(file.folder_id);
+        folder.files[file.id] = file;
+        this.files[file.id] = file;
     }
 
-    moveArticle(id: number, sourceId: number, destId: number) {
+    moveFile(id: number, sourceId: number, destId: number) {
         const sourceNode = this.addFolderById(sourceId);
         const destNode = this.addFolderById(destId);
 
-        destNode.articles[id] = sourceNode.articles[id];
-        delete sourceNode.articles[id];
+        destNode.files[id] = sourceNode.files[id];
+        delete sourceNode.files[id];
     }
 
-    deleteArticle(id: number) {
-        const articleNode = this.articles[id];
+    deleteFile(id: number) {
+        const articleNode = this.files[id];
         const folderNode = this.folders[articleNode.folder_id];
 
-        delete this.articles[id];
-        if (folderNode) delete folderNode.articles[id];
+        delete this.files[id];
+        if (folderNode) delete folderNode.files[id];
     }
 
     collectFileIds(rootId: number = ROOT_FOLDER_ID) {
@@ -106,8 +116,8 @@ export class FileStructure {
         bulkData.folders.push(folder.id);
         for (const subFolder of Object.values(folder.subFolders))
             this._collectFileIds(subFolder, bulkData);
-        for (const articleId of Object.keys(folder.articles))
-            bulkData.articles.push(Number(articleId));
+        for (const entityId of Object.keys(folder.files))
+            bulkData.articles.push(Number(entityId));
         return bulkData;
     }
 

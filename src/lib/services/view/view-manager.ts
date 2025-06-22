@@ -3,16 +3,16 @@ import { ask, open } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable } from "mobx";
 
 import {
-    ArticleResponse,
-    BaseEntity,
     EntityType,
+    EntityViewKey,
+    Id,
     ModalKey,
     ViewKey,
     WordType,
     WordUpsert,
 } from "@/interface";
-import { ArticleUpdateArguments, DomainManager } from "../domain";
-import { ArticleCreator } from "./article-creator";
+import { DomainManager } from "../domain";
+import { EntityCreator } from "./entity-creator";
 import { EntityEditor } from "./entity-editing";
 import { ContextMenuManager } from "./context-menu-manager";
 import { HomeManager } from "./home-manager";
@@ -49,7 +49,7 @@ export class ViewManager implements ViewManagerInterface {
 
     // modal services
     projectCreator: ProjectCreator;
-    articleCreator: ArticleCreator;
+    entityCreator: EntityCreator;
 
     // context menu service
     contextMenu: ContextMenuManager;
@@ -67,7 +67,7 @@ export class ViewManager implements ViewManagerInterface {
             navigation: false,
             projectCreator: false,
             folderRemover: false,
-            articleCreator: false,
+            entityCreator: false,
             articleRemover: false,
             entityEditor: false,
             contextMenu: false,
@@ -89,7 +89,7 @@ export class ViewManager implements ViewManagerInterface {
 
         // modals
         this.projectCreator = new ProjectCreator();
-        this.articleCreator = new ArticleCreator(this);
+        this.entityCreator = new EntityCreator(this);
 
         // context menu
         this.contextMenu = new ContextMenuManager(this);
@@ -129,6 +129,27 @@ export class ViewManager implements ViewManagerInterface {
 
     get isEntityEditorOpen() {
         return this._viewKey == ViewKey.EntityEditor;
+    }
+
+    get isArticleEditorOpen() {
+        return (
+            this.currentView == ViewKey.EntityEditor &&
+            this.entityEditor.currentView == EntityViewKey.ArticleEditor
+        );
+    }
+
+    get isPropertyEditorOpen() {
+        return (
+            this.currentView == ViewKey.EntityEditor &&
+            this.entityEditor.currentView == EntityViewKey.PropertyEditor
+        );
+    }
+
+    get isWordEditorOpen() {
+        return (
+            this.currentView == ViewKey.EntityEditor &&
+            this.entityEditor.currentView == EntityViewKey.WordEditor
+        );
     }
 
     get entityType() {
@@ -191,36 +212,51 @@ export class ViewManager implements ViewManagerInterface {
         this._modalKey = ModalKey.ProjectCreator;
     }
 
-    openArticleCreator(entityType: EntityType | undefined = undefined) {
-        this.articleCreator.initialize(entityType);
+    openEntityCreator(entityType: EntityType | undefined = undefined) {
+        this.entityCreator.initialize(entityType);
         this._modalKey = ModalKey.ArticleCreator;
     }
 
-    _openArticleEditor(article: ArticleResponse<BaseEntity>) {
+    async openArticleEditor(id: Id) {
+        if (this.isArticleEditorOpen && this.entityEditor.info.id == id) return; // the article is already open
+
+        const title = this.domain.structure.getInfo(id).title;
+        const text = await this.domain.articles.getText(id);
+        if (text) this._openArticleEditor(id, title, text);
+    }
+
+    _openArticleEditor(id: Id, title: string, text: string) {
         // save any unsynced data before opening another view
         this.cleanUp(ViewKey.EntityEditor);
 
-        this.entityEditor.initializeArticleEditor(article);
-        this.navigation.files.openArticleNode(article.id);
+        this.entityEditor.initializeArticleEditor(id, title, text);
+        this.navigation.files.openArticleNode(id);
         this._viewKey = ViewKey.EntityEditor;
     }
 
-    async openArticleEditor(id: number) {
-        if (
-            this.entityEditor.isArticleEditorOpen &&
-            this.entityEditor.info.id == id
-        )
-            return; // the article is already open
+    async openPropertyEditor(id: Id) {
+        if (this.isPropertyEditorOpen && this.entityEditor.info.id == id)
+            return; // the property editor is already open
 
-        const article = await this.domain.articles.get(id);
-        if (article) this._openArticleEditor(article);
+        const info = this.domain.structure.getInfo(id);
+        const properties = await this.domain.entities.get(id, info.entity_type);
+
+        if (properties !== null) {
+            // save any unsynced data before opening another view
+            this.cleanUp(ViewKey.EntityEditor);
+
+            this.entityEditor.initializePropertyEditor(
+                id,
+                info.title,
+                properties,
+            );
+            this.navigation.files.openArticleNode(id);
+            this.currentView = ViewKey.EntityEditor;
+        }
     }
 
-    async openWordEditor(languageId: number, wordType?: WordType) {
-        if (
-            this.entityEditor.isWordEditorOpen &&
-            this.entityEditor.info.id == languageId
-        ) {
+    async openWordEditor(languageId: Id, wordType?: WordType) {
+        if (this.isWordEditorOpen && this.entityEditor.info.id == languageId) {
             if (wordType === undefined)
                 return; // the word editor is already open for this language
             else if (wordType === this.entityEditor.lexicon.wordType) return; // the word editor is already open for this language and word type
@@ -229,10 +265,10 @@ export class ViewManager implements ViewManagerInterface {
         // save any unsynced data before opening another view
         this.cleanUp(ViewKey.EntityEditor);
 
-        const article = this.domain.articles.getInfo(languageId);
+        const info = this.domain.structure.getInfo(languageId);
         this.entityEditor.initializeWordEditor(
             languageId,
-            article.title,
+            info.title,
             wordType,
         );
         this.navigation.files.openArticleNode(languageId);
@@ -327,26 +363,22 @@ export class ViewManager implements ViewManagerInterface {
         return fileIds;
     }
 
-    async createArticle() {
-        let article = await this.articleCreator.createArticle(
+    async createEntity() {
+        let entity = await this.entityCreator.createEntity(
             this.navigation.files.activeFolderId,
         );
-        if (article) {
+        if (entity) {
             this.closeModal();
-            this.navigation.files.addNodeForCreatedArticle(article);
-            this._openArticleEditor(article);
+            this.navigation.files.addNodeForCreatedArticle(entity);
+            this._openArticleEditor(entity.id, entity.title, "");
         }
-        return article;
+        return entity;
     }
 
-    async updateArticle(update: ArticleUpdateArguments) {
-        const response = await this.domain.articles.update(update);
-        if (!response) return null;
-
-        const { id, title } = update;
-        if (title && title != "" && response.isTitleUnique)
+    async updateArticleTitle(id: Id, title: string) {
+        const response = await this.domain.articles.updateTitle(id, title);
+        if (title != "" && response.isUnique)
             this.navigation.files.updateArticleNodeText(id, title);
-
         return response;
     }
 
@@ -356,9 +388,9 @@ export class ViewManager implements ViewManagerInterface {
 
     async deleteEntity(id: number, confirm: boolean = true) {
         if (confirm) {
-            const article = this.domain.articles.getInfo(id);
+            const info = this.domain.structure.getInfo(id);
             const message =
-                `Are you sure you want to delete the article for '${article.title}' and all of its associated content?` +
+                `Are you sure you want to delete the article '${info.title}' and all of its associated content?` +
                 "This action is irreversible.";
             const canDelete = await ask(message, {
                 title: "Delete article",
@@ -369,7 +401,7 @@ export class ViewManager implements ViewManagerInterface {
             if (!canDelete) return false;
         }
 
-        const success = await this.domain.articles.delete(id);
+        const success = await this.domain.entities.delete(id);
         if (!success)
             // failed to delete the article; aborting
             return false;
