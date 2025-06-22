@@ -1,5 +1,9 @@
 import { NodeModel } from "@minoru/react-dnd-treeview";
 
+import { EntityInfoResponse, FolderResponse } from "../api";
+
+export const ROOT_FOLDER_NODE_ID = "R";
+
 export type NodeId = number | string;
 
 export interface FileNodeData {
@@ -10,5 +14,3 @@ export interface FileNodeData {
     error?: string;
 }
 export type FileNodeModel = NodeModel<FileNodeData>;
-
-export const ROOT_FOLDER_NODE_ID = "R";

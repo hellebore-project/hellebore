@@ -2,30 +2,22 @@ import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
 import {
-    BaseEntity,
-    ArticleInfoResponse,
+    EntityInfoResponse,
     ArticleResponse,
-    ArticleUpdate,
-    ArticleUpdateResponse,
-    ENTITY_TYPE_LABELS,
     EntityType,
-    LanguageData,
-    PersonData,
-    ResponseWithDiagnostics,
-    IdentifiedObject,
-    ArticleCreate,
-    ROOT_FOLDER_ID,
+    Id,
+    ApiError,
 } from "@/interface";
 import { FileStructure } from "./file-structure";
 import { is_field_unique, process_api_error } from "./utils";
 
-export interface ArticleUpdateArguments extends IdentifiedObject {
-    entity_type?: EntityType | null;
-    folderId?: number | null;
-    oldFolderId?: number | null;
-    title?: string | null;
-    body?: string | null;
-    entity?: BaseEntity | null;
+export interface ArticleTitleUpdateResponse {
+    updated: boolean;
+    isUnique: boolean;
+}
+
+export interface ArticleTextUpdateResponse {
+    updated: boolean;
 }
 
 export class ArticleManager {
@@ -36,135 +28,81 @@ export class ArticleManager {
         this._structure = structure;
     }
 
-    async create(
-        entityType: EntityType,
+    async updateTitle(
+        id: Id,
         title: string,
-        folder_id: number = ROOT_FOLDER_ID,
-    ): Promise<ArticleResponse<BaseEntity> | null> {
-        let response: ArticleResponse<BaseEntity> | null;
+    ): Promise<ArticleTitleUpdateResponse> {
+        let response: ArticleTitleUpdateResponse = {
+            updated: true,
+            isUnique: true,
+        };
 
         try {
-            if (entityType === EntityType.LANGUAGE)
-                response = await createLanguage(title, folder_id);
-            else if (entityType === EntityType.PERSON)
-                response = await createPerson(title, folder_id);
-            else {
-                console.error(
-                    `Unable to create article with entity type ${entityType}.`,
-                );
-                return null;
-            }
+            await invoke("update_article_title", { id, title });
         } catch (error) {
+            response.updated = false;
             console.error(error);
-            return null;
+
+            let _error = process_api_error(error as ApiError);
+            if (!is_field_unique(_error, EntityType.ARTICLE, "title"))
+                response.isUnique = false;
         }
 
-        this._structure.addArticle(response);
+        if (title && response.updated)
+            this._structure.getInfo(id).title = title;
 
         return response;
     }
 
-    async update({
-        id,
-        entity_type = null,
-        folderId = null,
-        oldFolderId = null,
-        title = null,
-        body = null,
-        entity = null,
-    }: ArticleUpdateArguments): Promise<ArticleUpdateResponse | null> {
-        if (!entity_type) entity_type = this.getInfo(id).entity_type;
-
-        const payload: ArticleUpdate<BaseEntity> = {
-            id: id as number,
-            entity_type: entity_type as EntityType,
-            folder_id: folderId,
-            title,
-            body,
-            entity,
-        };
-        let response: ResponseWithDiagnostics<null> | null;
+    async updateFolder(
+        id: Id,
+        folderId: Id,
+        oldFolderId: Id,
+    ): Promise<boolean> {
+        let updated = true;
 
         try {
-            response = await updateArticle(payload);
+            await invoke("update_article_folder", { id, folder_id: folderId });
+        } catch (error) {
+            updated = false;
+            console.error(error);
+        }
+
+        if (updated) {
+            this._structure.getInfo(id).folder_id = folderId;
+            this._structure.moveFile(id, oldFolderId, folderId);
+        }
+
+        return updated;
+    }
+
+    async updateText(id: Id, text: string): Promise<ArticleTextUpdateResponse> {
+        let updated = true;
+        try {
+            await invoke("update_article_text", { id, text });
         } catch (error) {
             console.error(error);
-            return null;
+            updated = false;
         }
-        const updateResponse = this._buildUpdateResponse(payload, response);
-
-        if (
-            updateResponse.folderChanged &&
-            updateResponse.folder_id !== null &&
-            oldFolderId !== null
-        ) {
-            this.getInfo(updateResponse.id).folder_id =
-                updateResponse.folder_id;
-            this._structure.moveArticle(
-                updateResponse.id,
-                oldFolderId,
-                updateResponse.folder_id,
-            );
-        }
-        if (
-            updateResponse.titleChanged == true &&
-            updateResponse.title &&
-            updateResponse.isTitleUnique
-        )
-            this.getInfo(updateResponse.id).title = updateResponse.title;
-
-        return updateResponse;
+        return { updated };
     }
 
-    _buildUpdateResponse(
-        articleUpdate: ArticleUpdate<BaseEntity>,
-        response: ResponseWithDiagnostics<null>,
-    ): ArticleUpdateResponse {
-        const cleanResponse: ArticleUpdateResponse = {
-            id: articleUpdate.id,
-            folder_id: articleUpdate.folder_id,
-            folderChanged: articleUpdate.folder_id != null,
-            entity_type: articleUpdate.entity_type,
-            title: articleUpdate.title,
-            titleChanged: articleUpdate.title != null,
-            propertiesChanged: articleUpdate.entity != null,
-            textChanged: articleUpdate.body != null,
-        };
-
-        if (cleanResponse.titleChanged == true)
-            cleanResponse.isTitleUnique = true;
-
-        for (let api_error of response.errors) {
-            let error = process_api_error(api_error);
-            if (!is_field_unique(error, EntityType.ARTICLE, "title"))
-                cleanResponse.isTitleUnique = false;
-        }
-
-        return cleanResponse;
-    }
-
-    async get(
-        id: number,
-        entityType?: EntityType | null,
-    ): Promise<ArticleResponse<BaseEntity> | null> {
-        if (!entityType) entityType = this.getInfo(id).entity_type;
-
+    async getText(id: Id): Promise<string | null> {
         try {
-            return await getArticle(id, entityType);
+            const response = await invoke<ArticleResponse>("get_article_text", {
+                id,
+            });
+            return response.body;
         } catch (error) {
             console.error(error);
             return null;
         }
     }
 
-    getInfo(id: number) {
-        return this._structure.articles[id];
-    }
-
-    async getAll(): Promise<ArticleInfoResponse[] | null> {
-        let response: ArticleInfoResponse[] | null;
+    async getAll(): Promise<EntityInfoResponse[] | null> {
+        let response: EntityInfoResponse[] | null;
         try {
-            response = await invoke<ArticleInfoResponse[]>("get_articles");
+            response = await invoke<EntityInfoResponse[]>("get_articles");
         } catch (error) {
             console.error(error);
             console.error("Failed to fetch all articles from the backend.");
@@ -172,7 +110,7 @@ export class ArticleManager {
         }
 
         for (const info of response) {
-            this._structure.addArticle(info);
+            this._structure.addFile(info);
         }
 
         return response;
@@ -181,77 +119,10 @@ export class ArticleManager {
     queryByTitle(
         titleFragment: string,
         maxResults: number = 5,
-    ): ArticleInfoResponse[] {
+    ): EntityInfoResponse[] {
         const arg = titleFragment.toLowerCase();
-        return Object.values(this._structure.articles)
+        return Object.values(this._structure.files)
             .filter((info) => info.title.toLowerCase().startsWith(arg))
             .slice(0, maxResults);
     }
-
-    async delete(id: number, entityType?: EntityType | null): Promise<boolean> {
-        if (!entityType) entityType = this.getInfo(id).entity_type;
-
-        try {
-            await deleteArticle(id, entityType);
-        } catch (error) {
-            console.error(error);
-            console.error(
-                `Unable to delete article ${id} with entity type ${entityType}.`,
-            );
-            return false;
-        }
-
-        this._structure.deleteArticle(id);
-
-        return true;
-    }
-}
-
-async function createLanguage(
-    name: string,
-    folder_id: number,
-): Promise<ArticleResponse<LanguageData>> {
-    const article: ArticleCreate<LanguageData> = {
-        folder_id,
-        title: name,
-        data: { name },
-    };
-    return invoke<ArticleResponse<LanguageData>>("create_language", {
-        article,
-    });
-}
-
-async function createPerson(
-    name: string,
-    folder_id: number,
-): Promise<ArticleResponse<PersonData>> {
-    const article: ArticleCreate<LanguageData> = {
-        folder_id,
-        title: name,
-        data: { name },
-    };
-    return invoke<ArticleResponse<PersonData>>("create_person", { article });
-}
-
-async function updateArticle(
-    article: ArticleUpdate<BaseEntity>,
-): Promise<ResponseWithDiagnostics<null>> {
-    const command = `update_${ENTITY_TYPE_LABELS[article.entity_type].toLowerCase()}`;
-    return invoke<ResponseWithDiagnostics<null>>(command, { article });
-}
-
-async function getArticle(
-    id: number,
-    entityType: EntityType,
-): Promise<ArticleResponse<BaseEntity>> {
-    const command = `get_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
-    return invoke<ArticleResponse<BaseEntity>>(command, { id });
-}
-
-async function deleteArticle(
-    id: number,
-    entityType: EntityType,
-): Promise<void> {
-    const command = `delete_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
-    invoke(command, { id });
 }

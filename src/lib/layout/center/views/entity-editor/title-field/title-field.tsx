@@ -29,10 +29,10 @@ function renderTitleField() {
                         styles={TITLE_FIELD_STYLES}
                         placeholder="Title"
                         getValue={() => service.view.entityEditor.title}
-                        onChange={(event) =>
-                            (service.view.entityEditor.title =
-                                event.currentTarget.value)
-                        }
+                        onChange={(event) => {
+                            service.view.entityEditor.title =
+                                event.currentTarget.value;
+                        }}
                     />
                 </Popover.Target>
                 <Popover.Dropdown>

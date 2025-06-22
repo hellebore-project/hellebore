@@ -4,7 +4,7 @@ import { makeAutoObservable, toJS } from "mobx";
 import { createRef, RefObject } from "react";
 
 import {
-    ArticleInfoResponse,
+    EntityInfoResponse,
     FileNodeData,
     FileNodeModel,
     FolderResponse,
@@ -179,7 +179,7 @@ export class FileNavigator {
         return this.expanded && this.hover;
     }
 
-    initialize(articles: ArticleInfoResponse[], folders: FolderResponse[]) {
+    initialize(articles: EntityInfoResponse[], folders: FolderResponse[]) {
         this._nodePositionCache = {};
 
         const nodes: FileNodeModel[] = [];
@@ -539,7 +539,7 @@ export class FileNavigator {
 
     // NODE GENERATION
 
-    addNodeForCreatedArticle({ id, folder_id, title }: ArticleInfoResponse) {
+    addNodeForCreatedArticle({ id, folder_id, title }: EntityInfoResponse) {
         const node = this._generateArticleNode(id, folder_id, title);
         this._nodes.push(node);
     }
@@ -672,11 +672,11 @@ export class FileNavigator {
             });
         } else {
             // article
-            response = await this.view.updateArticle({
+            response = await this.view.domain.articles.updateFolder(
                 id,
-                folderId: destParentId,
-                oldFolderId: sourceParentId,
-            });
+                destParentId,
+                sourceParentId,
+            );
         }
 
         if (response) {

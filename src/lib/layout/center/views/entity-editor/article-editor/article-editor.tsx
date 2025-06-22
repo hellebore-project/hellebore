@@ -7,7 +7,6 @@ import { getService } from "@/services";
 import { SPACE } from "@/shared/common";
 import { RichTextEditor } from "@/shared/rich-text-editor/rich-text-editor";
 import { TitleField } from "../title-field";
-import { PropertyTable } from "./property-table";
 
 const RICH_TEXT_EDITOR_STYLES = {
     root: { borderWidth: "0" },
@@ -24,10 +23,6 @@ function renderArticleEditor() {
                 gap={0}
             >
                 <TitleField />
-
-                <PropertyTable
-                    getData={() => service.view.entityEditor.fieldData}
-                />
 
                 {SPACE}
 

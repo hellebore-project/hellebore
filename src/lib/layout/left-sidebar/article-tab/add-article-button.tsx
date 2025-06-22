@@ -16,7 +16,7 @@ function renderAddArticleButton() {
                 size="sm"
                 onClick={(e) => {
                     e.stopPropagation(); // don't toggle the expanded status of the tab
-                    service.view.openArticleCreator();
+                    service.view.openEntityCreator();
                 }}
             >
                 <IconFilePlus size={18} />

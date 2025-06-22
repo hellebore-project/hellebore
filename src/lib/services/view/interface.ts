@@ -1,18 +1,17 @@
 import { PhysicalSize } from "@tauri-apps/api/dpi";
 
 import {
-    ArticleResponse,
-    ArticleUpdateResponse,
-    BaseEntity,
+    EntityInfoResponse,
     BulkData,
     EntityType,
+    Id,
     ProjectResponse,
     ViewKey,
     WordType,
     WordUpsert,
     WordUpsertResponse,
 } from "@/interface";
-import { ArticleUpdateArguments, DomainManager } from "../domain";
+import { ArticleTitleUpdateResponse, DomainManager } from "../domain";
 
 export interface ViewManagerInterface {
     domain: DomainManager;
@@ -26,9 +25,10 @@ export interface ViewManagerInterface {
     openHome(): void;
     openSettings(): void;
     openProjectCreator(): void;
-    openArticleCreator(entityType: EntityType | undefined): void;
-    openArticleEditor(id: number): Promise<void>;
-    openWordEditor(id: number, wordType?: WordType): Promise<void>;
+    openEntityCreator(entityType: EntityType | undefined): void;
+    openArticleEditor(id: Id): Promise<void>;
+    openPropertyEditor(id: Id): Promise<void>;
+    openWordEditor(languageId: Id, wordType?: WordType): Promise<void>;
     closeModal(): void;
     createProject(
         name: string,
@@ -38,10 +38,11 @@ export interface ViewManagerInterface {
     closeProject(): Promise<boolean>;
     editFolderName(id: number): void;
     deleteFolder(id: number, confirm?: boolean): Promise<BulkData | null>;
-    createArticle(): Promise<ArticleResponse<BaseEntity> | null>;
-    updateArticle(
-        update: ArticleUpdateArguments,
-    ): Promise<ArticleUpdateResponse | null>;
+    createEntity(): Promise<EntityInfoResponse | null>;
+    updateArticleTitle(
+        id: Id,
+        title: string,
+    ): Promise<ArticleTitleUpdateResponse>;
     updateLexicon(words: WordUpsert[]): Promise<WordUpsertResponse[] | null>;
     deleteEntity(id: number, confirm?: boolean): Promise<boolean>;
     cleanUp(): void;

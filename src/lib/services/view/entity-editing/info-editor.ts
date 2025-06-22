@@ -1,6 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { ENTITY_TYPE_LABELS, EntityType } from "@/interface";
+import { ViewManagerInterface } from "../interface";
 
 const ARTICLE_ID_SENTINEL = -1;
 
@@ -11,8 +12,12 @@ export class EntityInfoEditor {
     _isTitleUnique: boolean = true;
     _titleChanged: boolean = false;
 
-    constructor() {
-        makeAutoObservable(this);
+    // services
+    view: ViewManagerInterface;
+
+    constructor(view: ViewManagerInterface) {
+        makeAutoObservable(this, { view: false });
+        this.view = view;
     }
 
     get id() {
@@ -60,9 +65,10 @@ export class EntityInfoEditor {
         this._titleChanged = changed;
     }
 
-    initialize(id: number, type: EntityType, title: string) {
+    initialize(id: number, title: string, type?: EntityType | null) {
         this.id = id;
-        this.entityType = type;
+        this.entityType =
+            type ?? this.view.domain.structure.getInfo(id).entity_type;
         this.title = title;
         this.isTitleUnique = true;
         this.titleChanged = false;
