@@ -8,7 +8,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/lib/*"]
+      "@/*": ["./src/lib/*"],
+      "@tests/*": ["./tests/*"]
     },
 
     /* Bundler mode */
@@ -24,6 +25,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "src/lib/services/view/navigation/file-navigator.ts"],
+  "include": ["src", "tests"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
