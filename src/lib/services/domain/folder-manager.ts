@@ -30,7 +30,7 @@ export class FolderManager {
     async create(name: string, parentId: number = ROOT_FOLDER_ID) {
         let response: FolderResponse | null;
         try {
-            response = await createFolder(parentId, name);
+            response = await this._create(parentId, name);
         } catch (error) {
             console.error(error);
             return null;
@@ -75,7 +75,7 @@ export class FolderManager {
 
         let response: FolderResponse | null;
         try {
-            response = await updateFolder({ id, parent_id: parentId, name });
+            response = await this._update({ id, parent_id: parentId, name });
         } catch (error) {
             console.error(error);
             return null;
@@ -99,7 +99,7 @@ export class FolderManager {
     async getAll(): Promise<FolderResponse[] | null> {
         let response: FolderResponse[] | null;
         try {
-            response = await getFolders();
+            response = await this._getAll();
         } catch (error) {
             console.error(error);
             console.error("Failed to fetch all folders from the backend.");
@@ -121,21 +121,18 @@ export class FolderManager {
         }
         return fileIds;
     }
-}
 
-async function createFolder(
-    parentId: number,
-    name: string,
-): Promise<FolderResponse> {
-    return invoke<FolderResponse>("create_folder", {
-        info: { parent_id: parentId, name },
-    });
-}
+    async _create(parentId: number, name: string): Promise<FolderResponse> {
+        return invoke<FolderResponse>("create_folder", {
+            info: { parent_id: parentId, name },
+        });
+    }
 
-async function updateFolder(update: FolderUpdate): Promise<FolderResponse> {
-    return invoke<FolderResponse>("update_folder", { folder: update });
-}
+    async _update(update: FolderUpdate): Promise<FolderResponse> {
+        return invoke<FolderResponse>("update_folder", { folder: update });
+    }
 
-async function getFolders() {
-    return invoke<FolderResponse[]>("get_folders");
+    async _getAll() {
+        return invoke<FolderResponse[]>("get_folders");
+    }
 }

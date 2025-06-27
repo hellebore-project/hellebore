@@ -38,7 +38,7 @@ export class ArticleManager {
         };
 
         try {
-            await invoke("update_article_title", { id, title });
+            await this._updateTitle(id, title);
         } catch (error) {
             response.updated = false;
             console.error(error);
@@ -62,7 +62,7 @@ export class ArticleManager {
         let updated = true;
 
         try {
-            await invoke("update_article_folder", { id, folder_id: folderId });
+            await this._updateFolder(id, folderId);
         } catch (error) {
             updated = false;
             console.error(error);
@@ -79,7 +79,7 @@ export class ArticleManager {
     async updateText(id: Id, text: string): Promise<ArticleTextUpdateResponse> {
         let updated = true;
         try {
-            await invoke("update_article_text", { id, text });
+            await this._updateText(id, text);
         } catch (error) {
             console.error(error);
             updated = false;
@@ -102,7 +102,7 @@ export class ArticleManager {
     async getAll(): Promise<EntityInfoResponse[] | null> {
         let response: EntityInfoResponse[] | null;
         try {
-            response = await invoke<EntityInfoResponse[]>("get_articles");
+            response = await this._getAll();
         } catch (error) {
             console.error(error);
             console.error("Failed to fetch all articles from the backend.");
@@ -124,5 +124,24 @@ export class ArticleManager {
         return Object.values(this._structure.files)
             .filter((info) => info.title.toLowerCase().startsWith(arg))
             .slice(0, maxResults);
+    }
+
+    async _updateTitle(id: Id, title: string) {
+        return invoke<void>("update_article_title", { id, title });
+    }
+
+    async _updateFolder(id: Id, folderId: Id) {
+        return invoke<void>("update_article_folder", {
+            id,
+            folder_id: folderId,
+        });
+    }
+
+    async _updateText(id: Id, text: string) {
+        return invoke<void>("update_article_text", { id, text });
+    }
+
+    async _getAll() {
+        return invoke<EntityInfoResponse[]>("get_articles");
     }
 }

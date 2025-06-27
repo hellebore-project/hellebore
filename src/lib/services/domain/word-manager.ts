@@ -23,7 +23,7 @@ export class WordManager {
     ): Promise<WordUpsertResponse[] | null> {
         let responses: BulkUpsertWordsResponse;
         try {
-            responses = await bulkUpsertWords(
+            responses = await this._bulkUpsertWords(
                 words.map((word) => ({
                     id: word.id,
                     language_id: word.language_id,
@@ -49,7 +49,7 @@ export class WordManager {
 
     async get(id: number): Promise<WordResponse | null> {
         try {
-            return await getWord(id);
+            return await this._getWord(id);
         } catch (error) {
             console.error(error);
             return null;
@@ -61,7 +61,7 @@ export class WordManager {
         wordType?: WordType | null,
     ): Promise<WordResponse[] | null> {
         try {
-            return await getWords(languageId, wordType ?? null);
+            return await this._getWords(languageId, wordType ?? null);
         } catch (error) {
             console.error(error);
             return null;
@@ -70,7 +70,7 @@ export class WordManager {
 
     async delete(id: number): Promise<boolean> {
         try {
-            await deleteWord(id);
+            await this._deleteWord(id);
         } catch (error) {
             console.error(error);
             console.error(`Unable to delete word ${id}.`);
@@ -106,25 +106,25 @@ export class WordManager {
             updated,
         };
     }
-}
 
-async function bulkUpsertWords(
-    words: Array<WordUpsert>,
-): Promise<BulkUpsertWordsResponse> {
-    return invoke<BulkUpsertWordsResponse>("upsert_words", { words });
-}
+    async _bulkUpsertWords(
+        words: Array<WordUpsert>,
+    ): Promise<BulkUpsertWordsResponse> {
+        return invoke<BulkUpsertWordsResponse>("upsert_words", { words });
+    }
 
-async function getWord(id: number): Promise<WordResponse> {
-    return invoke<WordResponse>("get_word", { id });
-}
+    async _getWord(id: number): Promise<WordResponse> {
+        return invoke<WordResponse>("get_word", { id });
+    }
 
-async function getWords(
-    languageId: number,
-    wordType: WordType | null,
-): Promise<WordResponse[]> {
-    return invoke<WordResponse[]>("get_words", { languageId, wordType });
-}
+    async _getWords(
+        languageId: number,
+        wordType: WordType | null,
+    ): Promise<WordResponse[]> {
+        return invoke<WordResponse[]>("get_words", { languageId, wordType });
+    }
 
-async function deleteWord(id: number): Promise<void> {
-    invoke<null>("delete_word", { id });
+    async _deleteWord(id: number): Promise<void> {
+        return invoke<void>("delete_word", { id });
+    }
 }

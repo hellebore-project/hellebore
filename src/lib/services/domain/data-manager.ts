@@ -12,7 +12,7 @@ export class DataManager {
 
     async delete(data: BulkData): Promise<boolean> {
         try {
-            await deleteBulkData(data);
+            await this._delete(data);
         } catch (error) {
             console.error(error);
             return false;
@@ -25,9 +25,9 @@ export class DataManager {
 
         return true;
     }
-}
 
-async function deleteBulkData(data: BulkData): Promise<void> {
-    const command = "delete_bulk_data";
-    return invoke<void>(command, { data });
+    async _delete(data: BulkData): Promise<void> {
+        const command = "delete_bulk_data";
+        return invoke<void>(command, { data });
+    }
 }
