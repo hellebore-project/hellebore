@@ -8,7 +8,9 @@ export class AppManager {
     constructor() {
         this.domain = new DomainManager();
         this.view = new ViewManager(this.domain);
+    }
 
+    initialize() {
         this.view.fetchProjectInfo().then((project) => {
             if (project) this.view.populateNavigator();
         });

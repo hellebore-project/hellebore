@@ -30,7 +30,7 @@ export class SessionManager {
     async getSession() {
         let response: SessionResponse | null;
         try {
-            response = await getSession();
+            response = await this._getSession();
         } catch (error) {
             console.error(error);
             return null;
@@ -43,7 +43,7 @@ export class SessionManager {
     async createProject(name: string, dbFilePath: string) {
         let response: ProjectResponse | null;
         try {
-            response = await createProject(name, dbFilePath);
+            response = await this._createProject(name, dbFilePath);
         } catch (error) {
             console.error(error);
             return null;
@@ -56,7 +56,7 @@ export class SessionManager {
     async loadProject(dbFilePath: string) {
         let response: ProjectResponse | null;
         try {
-            response = await loadProject(dbFilePath);
+            response = await this._loadProject(dbFilePath);
         } catch (error) {
             console.error(error);
             return null;
@@ -68,7 +68,7 @@ export class SessionManager {
 
     async closeProject() {
         try {
-            await closeProject();
+            await this._closeProject();
         } catch (error) {
             console.error(error);
             return false;
@@ -81,7 +81,7 @@ export class SessionManager {
     async updateProject(name: string) {
         let response: ProjectResponse | null;
         try {
-            response = await updateProject(name);
+            response = await this._updateProject(name);
         } catch (error) {
             console.error(error);
             return null;
@@ -93,38 +93,38 @@ export class SessionManager {
     async getProject() {
         let response: ProjectResponse | null;
         try {
-            response = await getProject();
+            response = await this._getProject();
         } catch (error) {
             console.error(error);
             return null;
         }
         return response;
     }
-}
 
-async function getSession(): Promise<SessionResponse> {
-    return invoke<SessionResponse>("get_session");
-}
+    async _getSession(): Promise<SessionResponse> {
+        return invoke<SessionResponse>("get_session");
+    }
 
-async function createProject(
-    name: string,
-    dbPath: string,
-): Promise<ProjectResponse> {
-    return invoke<ProjectResponse>("create_project", { name, dbPath });
-}
+    async _createProject(
+        name: string,
+        dbPath: string,
+    ): Promise<ProjectResponse> {
+        return invoke<ProjectResponse>("create_project", { name, dbPath });
+    }
 
-async function loadProject(dbPath: string): Promise<ProjectResponse> {
-    return invoke<ProjectResponse>("load_project", { dbPath });
-}
+    async _loadProject(dbPath: string): Promise<ProjectResponse> {
+        return invoke<ProjectResponse>("load_project", { dbPath });
+    }
 
-async function closeProject(): Promise<void> {
-    return invoke<void>("close_project");
-}
+    async _closeProject(): Promise<void> {
+        return invoke<void>("close_project");
+    }
 
-async function updateProject(name: string): Promise<ProjectResponse> {
-    return invoke<ProjectResponse>("update_project", { name });
-}
+    async _updateProject(name: string): Promise<ProjectResponse> {
+        return invoke<ProjectResponse>("update_project", { name });
+    }
 
-async function getProject(): Promise<ProjectResponse> {
-    return invoke<ProjectResponse>("get_project");
+    async _getProject(): Promise<ProjectResponse> {
+        return invoke<ProjectResponse>("get_project");
+    }
 }
