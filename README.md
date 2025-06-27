@@ -43,7 +43,7 @@ DATABASE_URL="sqlite://src-tauri/data/db.sqlite?mode=rwc"
 5. Serve the app.
 
 ```sh
-pnpm dev:app
+pnpm run dev
 ```
 
 ### Entity Generation
@@ -51,7 +51,7 @@ pnpm dev:app
 After running the migrations, run the following command:
 
 ```sh
-pnpm generate:entities
+pnpm run generate:entities
 ```
 
 ### Troubleshooting

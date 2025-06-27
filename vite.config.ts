@@ -19,20 +19,23 @@ export default defineConfig(async () => ({
     resolve: {
         alias: {
             "@": "/src/lib",
+            "@tests": "/tests",
         },
     },
 
+    test: {
+        environment: "jsdom",
+        setupFiles: "./vitest.setup.mjs",
+        include: ["./tests/{unit,functional}/**/*.tsx"],
+    },
+
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
-    //
-    // 1. prevent vite from obscuring rust errors
-    clearScreen: false,
-    // 2. tauri expects a fixed port, fail if that port is not available
+    clearScreen: false, // prevent vite from obscuring rust errors
     server: {
-        port: 1420,
+        port: 1420, // tauri expects a fixed port, fail if that port is not available
         strictPort: true,
         watch: {
-            // 3. tell vite to ignore watching `src-tauri`
-            ignored: ["**/src-tauri/**"],
+            ignored: ["**/src-tauri/**", "**/tests/**"],
         },
     },
 }));
