@@ -1,14 +1,14 @@
 import "./entity-editor.css";
 
 import { EntityType, EntityViewKey } from "@/interface";
-import { getService } from "src/services";
+import { getService } from "@/services";
 import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import {
     TableOfContents,
     TableOfContentsItemData,
-} from "src/shared/table-of-contents";
+} from "@/shared/table-of-contents";
 import { ArticleEditor } from "./article-editor";
 import { DeleteEntityButton } from "./delete-entity-button";
 import { WordEditor } from "./word-editor/word-editor";

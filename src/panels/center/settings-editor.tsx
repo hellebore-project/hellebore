@@ -1,7 +1,7 @@
 import { Box, Container, Title } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { DIVIDER, SPACE } from "src/shared/common";
+import { DIVIDER, SPACE } from "@/shared/common";
 
 function renderSettingsEditor() {
     // TODO

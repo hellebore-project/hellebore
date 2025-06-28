@@ -3,8 +3,8 @@ import "./title-field.css";
 import { IconExclamationCircle } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "src/services";
-import { TextField } from "src/shared/text-field";
+import { getService } from "@/services";
+import { TextField } from "@/shared/text-field";
 import { Divider, Group, Popover, Text } from "@mantine/core";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };

@@ -1,14 +1,13 @@
-import { state } from "src/services";
-import { AppManager } from "src/services/app-manager";
-
-import { mockGetSession } from "./session-manager";
 import {
     EntityInfoResponse,
     FolderResponse,
     ProjectResponse,
 } from "@/interface";
+import { state } from "@/services";
+import { AppManager } from "@/services/app-manager";
 import { mockGetArticles } from "./article-manager";
 import { mockGetFolders } from "./folder-manager";
+import { mockGetSession } from "./session-manager";
 
 export interface MockServiceArguments {
     dbFilePath: string;

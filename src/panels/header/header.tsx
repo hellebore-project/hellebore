@@ -4,12 +4,12 @@ import { Burger, Button, Flex } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { EntityType } from "@/interface";
-import { getService } from "src/services";
+import { getService } from "@/services";
 import {
     DIVIDER_DATA,
     MenuDropdown,
     MenuDropdownElementData,
-} from "src/shared/menu-dropdown";
+} from "@/shared/menu-dropdown";
 
 function renderNavBarMobileToggleButton() {
     const service = getService();

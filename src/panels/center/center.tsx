@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 
 import { ViewKey } from "@/interface";
-import { getService } from "src/services";
+import { getService } from "@/services";
 import { EntityEditor } from "./entity-editor";
 import { Home } from "./home";
 import { SettingsEditor } from "./settings-editor";

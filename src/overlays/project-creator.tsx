@@ -2,9 +2,9 @@ import { Button, Container, Group, Modal } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { ModalKey } from "@/interface";
-import { getService } from "src/services";
-import { FileField } from "src/shared/file-field";
-import { TextField } from "src/shared/text-field";
+import { getService } from "@/services";
+import { FileField } from "@/shared/file-field";
+import { TextField } from "@/shared/text-field";
 
 function renderProjectLoader() {
     const service = getService();

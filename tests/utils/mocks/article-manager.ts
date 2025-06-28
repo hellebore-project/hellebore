@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 
-import { ArticleManager } from "src/services/domain";
 import { EntityInfoResponse } from "@/interface";
+import { ArticleManager } from "@/services/domain";
 
 export interface MockGetArticlesArguments {
     manager: ArticleManager;

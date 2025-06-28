@@ -3,9 +3,9 @@ import "./article-editor.css";
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "src/services";
-import { SPACE } from "src/shared/common";
-import { RichTextEditor } from "src/shared/rich-text-editor/rich-text-editor";
+import { getService } from "@/services";
+import { SPACE } from "@/shared/common";
+import { RichTextEditor } from "@/shared/rich-text-editor/rich-text-editor";
 import { TitleField } from "../title-field";
 
 const RICH_TEXT_EDITOR_STYLES = {

@@ -1,6 +1,6 @@
 import { test as baseTest } from "vitest";
 
-import { AppManager } from "src/services/app-manager";
+import { AppManager } from "@/services/app-manager";
 import { mockServices } from "@tests/utils/mocks";
 import {
     EntityInfoResponse,

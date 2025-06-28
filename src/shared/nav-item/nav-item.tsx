@@ -10,7 +10,7 @@ import {
     BaseTextInputSettings,
     BaseTextSettings,
 } from "@/interface";
-import { range } from "src/utils/collections";
+import { range } from "@/utils/collections";
 
 import { TextField } from "../text-field";
 

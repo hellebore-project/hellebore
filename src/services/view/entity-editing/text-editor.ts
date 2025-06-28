@@ -5,7 +5,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { EntityChangeHandler, Suggestion } from "@/interface";
-import { useReferenceExtension } from "src/shared/rich-text-editor";
+import { useReferenceExtension } from "@/shared/rich-text-editor";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
 

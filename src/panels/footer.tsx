@@ -1,7 +1,7 @@
 import { Group, Text } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "src/services";
+import { getService } from "@/services";
 
 function renderFooter() {
     const service = getService();

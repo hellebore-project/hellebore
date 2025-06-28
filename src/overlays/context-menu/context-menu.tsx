@@ -4,9 +4,9 @@ import { observer } from "mobx-react-lite";
 import { SyntheticEvent } from "react";
 
 import { VerticalSelectionData } from "@/interface";
-import { getService } from "src/services";
-import { OutsideClickHandler } from "src/shared/outside-click-handler";
-import { VerticalSelection } from "src/shared/vertical-selection";
+import { getService } from "@/services";
+import { OutsideClickHandler } from "@/shared/outside-click-handler";
+import { VerticalSelection } from "@/shared/vertical-selection";
 
 function renderContextMenu() {
     const service = getService();

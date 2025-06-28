@@ -12,9 +12,9 @@ import {
     ROOT_FOLDER_ID,
     ROOT_FOLDER_NODE_ID,
 } from "@/interface";
-import { Counter } from "src/utils/counter";
+import { Counter } from "@/utils/counter";
 import { ViewManagerInterface } from "../interface";
-import { OutsideClickHandlerService } from "src/shared/outside-click-handler";
+import { OutsideClickHandlerService } from "@/shared/outside-click-handler";
 import { NavigatorErrorManager } from "./navigator-error-manager";
 
 type PrivateKeys = "_nodePositionCache" | "_tree";

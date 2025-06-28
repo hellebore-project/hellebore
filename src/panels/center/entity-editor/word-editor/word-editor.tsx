@@ -4,11 +4,11 @@ import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { WordViewKey } from "@/interface";
-import { getService } from "src/services";
-import { SPACE } from "src/shared/common";
+import { getService } from "@/services";
+import { SPACE } from "@/shared/common";
 import { TitleField } from "../title-field";
 import { WordTable } from "./word-table";
-import { TabData, Tabs } from "src/shared/tabs";
+import { TabData, Tabs } from "@/shared/tabs";
 
 const TAB_DATA: TabData[] = [
     { label: "Root Words", value: WordViewKey.RootWords },

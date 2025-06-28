@@ -1,8 +1,8 @@
 import { Box, Collapse } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "src/services";
-import { NavItem } from "src/shared/nav-item/nav-item";
+import { getService } from "@/services";
+import { NavItem } from "@/shared/nav-item/nav-item";
 import { FileNavigator } from "./file-navigator";
 import { AddFolderButton } from "./add-folder-button";
 import { CollapseFoldersButton } from "./collapse-folders-button";

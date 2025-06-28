@@ -1,9 +1,9 @@
 import { Box } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "src/services";
-import { DIVIDER, SPACE } from "src/shared/common";
-import { TextField } from "src/shared/text-field";
+import { getService } from "@/services";
+import { DIVIDER, SPACE } from "@/shared/common";
+import { TextField } from "@/shared/text-field";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 

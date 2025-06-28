@@ -2,8 +2,8 @@ import { ActionIcon } from "@mantine/core";
 import { IconFolderPlus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "src/services";
-import { ToolTipWrapper } from "src/shared/tool-tip";
+import { getService } from "@/services";
+import { ToolTipWrapper } from "@/shared/tool-tip";
 
 function renderAddFolderButton() {
     const service = getService();

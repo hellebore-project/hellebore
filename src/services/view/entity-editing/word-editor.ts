@@ -14,8 +14,8 @@ import {
     WordViewKey,
     WordTableColumnName,
 } from "@/interface";
-import { Counter } from "src/utils/counter";
-import { compareStrings } from "src/utils/string";
+import { Counter } from "@/utils/counter";
+import { compareStrings } from "@/utils/string";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
 

@@ -12,12 +12,12 @@ import {
     WordKey,
     WordTableColumnName,
 } from "@/interface";
-import { getService } from "src/services";
-import { TextField } from "src/shared/text-field";
-import { ToolTipWrapper } from "src/shared/tool-tip";
+import { getService } from "@/services";
+import { TextField } from "@/shared/text-field";
+import { ToolTipWrapper } from "@/shared/tool-tip";
 import { ReactNode } from "react";
-import { SelectField } from "src/shared/select-field";
-import { numericEnumMapping } from "src/utils/enums";
+import { SelectField } from "@/shared/select-field";
+import { numericEnumMapping } from "@/utils/enums";
 
 const GRAMMATICAL_NUMBERS = Object.entries(
     numericEnumMapping(GrammaticalNumber),

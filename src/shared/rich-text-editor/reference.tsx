@@ -13,7 +13,7 @@ import { Suggestion, VerticalSelectionData } from "@/interface";
 import {
     VerticalSelection,
     VerticalSelectionSettings,
-} from "src/shared/vertical-selection";
+} from "@/shared/vertical-selection";
 
 type QueryResult = string;
 type DOMRectAccessor = () => DOMRect;

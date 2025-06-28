@@ -18,9 +18,9 @@ import {
     FileNodeModel,
     ROOT_FOLDER_NODE_ID,
 } from "@/interface";
-import { getService } from "src/services";
-import { NavItem, NavItemTextSettings } from "src/shared/nav-item/nav-item";
-import { OutsideClickHandler } from "src/shared/outside-click-handler";
+import { getService } from "@/services";
+import { NavItem, NavItemTextSettings } from "@/shared/nav-item/nav-item";
+import { OutsideClickHandler } from "@/shared/outside-click-handler";
 
 interface FileNavItemSettings extends BaseGroupSettings {
     node: FileNodeModel;

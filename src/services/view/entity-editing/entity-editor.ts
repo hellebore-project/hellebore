@@ -14,7 +14,7 @@ import {
     ArticleTextUpdateResponse,
     ArticleTitleUpdateResponse,
     EntityUpdateResponse,
-} from "src/services/domain";
+} from "@/services/domain";
 import { PropertyEditor } from "./property-editor";
 import { ArticleTextEditor } from "./text-editor";
 import { EntityInfoEditor } from "./info-editor";

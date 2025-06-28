@@ -6,7 +6,7 @@ import {
     Point,
     VerticalSelectionData,
 } from "@/interface";
-import { OutsideClickHandlerService } from "src/shared/outside-click-handler";
+import { OutsideClickHandlerService } from "@/shared/outside-click-handler";
 import { ViewManagerInterface } from "./interface";
 
 export interface OpenArguments {
