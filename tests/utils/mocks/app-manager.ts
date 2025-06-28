@@ -1,5 +1,5 @@
-import { state } from "@/services";
-import { AppManager } from "@/services/app-manager";
+import { state } from "src/services";
+import { AppManager } from "src/services/app-manager";
 
 import { mockGetSession } from "./session-manager";
 import {

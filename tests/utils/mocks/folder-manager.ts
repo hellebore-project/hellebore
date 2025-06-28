@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-import { FolderManager } from "@/services/domain";
+import { FolderManager } from "src/services/domain";
 import { FolderResponse } from "@/interface";
 
 export interface MockGetFoldersArguments {
