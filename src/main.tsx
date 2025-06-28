@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 
-import { App } from "@/app";
+import { Shell } from "@/shell";
 
 ReactDOM.createRoot(document.getElementById("app-root") as HTMLElement).render(
     <React.StrictMode>
-        <App />
+        <Shell />
     </React.StrictMode>,
 );

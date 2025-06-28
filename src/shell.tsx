@@ -1,16 +1,16 @@
 // mantine package styles must be imported before the application styles
 import "@mantine/core/styles.css";
 import "@mantine/tiptap/styles.css";
-import "./app.css";
+import "./shell.css";
 
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { Footer, Header, Center, LeftSideBar } from "./layout";
+import { Footer, Header, Center, LeftSideBar } from "./panels";
 import { ArticleCreator, ContextMenu, ProjectCreator } from "./overlays";
 import { getService } from "./services";
 
-function renderApp() {
+function renderShell() {
     const service = getService();
     return (
         <MantineProvider
@@ -59,4 +59,4 @@ function renderApp() {
     );
 }
 
-export const App = observer(renderApp);
+export const Shell = observer(renderShell);
