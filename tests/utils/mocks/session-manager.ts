@@ -1,29 +1,39 @@
 import { vi } from "vitest";
 
 import { SessionManager } from "@/services/domain/session-manager";
-import { SessionResponse } from "@/interface";
+import { ProjectResponse, SessionResponse } from "@/interface";
 
-export interface MockGetSessionArguments {
+interface MockSessionArguments {
     manager: SessionManager;
-    projectName: string;
+}
+
+export interface MockGetSessionArguments extends MockSessionArguments {
+    project: ProjectResponse;
     dbFilePath: string;
+}
+
+export interface MockUpdateProjectArguments extends MockSessionArguments {
+    id: number;
 }
 
 export function mockGetSession({
     manager,
-    projectName,
+    project,
     dbFilePath,
 }: MockGetSessionArguments) {
     let response: SessionResponse = {
-        project: {
-            id: 0,
-            name: projectName,
-        },
+        project,
         db_file_path: dbFilePath,
     };
     const spy = vi
         .spyOn(manager, "_getSession")
         .mockImplementation(async () => response);
+    return spy;
+}
 
+export function mockUpdateProject({ manager, id }: MockUpdateProjectArguments) {
+    const spy = vi
+        .spyOn(manager, "_updateProject")
+        .mockImplementation(async (name) => ({ id, name }));
     return spy;
 }
