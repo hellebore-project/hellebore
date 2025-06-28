@@ -2,19 +2,24 @@ import { test as baseTest } from "vitest";
 
 import { AppManager } from "@/services/app-manager";
 import { mockServices } from "@tests/utils/mocks";
-import { EntityInfoResponse, EntityType, FolderResponse } from "@/interface";
+import {
+    EntityInfoResponse,
+    EntityType,
+    FolderResponse,
+    ProjectResponse,
+} from "@/interface";
 
 export interface BaseUnitFixtures {
-    projectName: string;
     dbFilePath: string;
+    project: ProjectResponse;
     entities: EntityInfoResponse[];
     folders: FolderResponse[];
     service: AppManager;
 }
 
 export const test = baseTest.extend<BaseUnitFixtures>({
-    projectName: ["mock-project", { injected: true }],
     dbFilePath: ["mocked/db/file/path", { injected: true }],
+    project: [{ id: 1, name: "mocked-project" }, { injected: true }],
     entities: [
         [
             {
@@ -28,10 +33,10 @@ export const test = baseTest.extend<BaseUnitFixtures>({
     ],
     folders: [[], { injected: true }],
     service: [
-        ({ projectName, dbFilePath, entities, folders }, use) => {
+        ({ dbFilePath, project, entities, folders }, use) => {
             const appManager = mockServices({
-                projectName,
                 dbFilePath,
+                project,
                 entities,
                 folders,
             });
