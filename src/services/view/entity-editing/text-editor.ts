@@ -4,7 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { EntityChangeHandler, Suggestion } from "@/interface";
+import { EntityChangeHandler, SuggestionData } from "@/interface";
 import { useReferenceExtension } from "@/shared/rich-text-editor";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
@@ -99,7 +99,7 @@ export class ArticleTextEditor {
         this.onChange();
     }
 
-    _queryByTitle(titleFragment: string): Suggestion[] {
+    _queryByTitle(titleFragment: string): SuggestionData[] {
         this.selectedRefIndex = 0;
         return this.view.domain.articles
             .queryByTitle(titleFragment)

@@ -9,7 +9,7 @@ import {
 } from "@tiptap/suggestion";
 import tippy from "tippy.js";
 
-import { Suggestion, VerticalSelectionData } from "@/interface";
+import { SuggestionData, VerticalSelectionData } from "@/interface";
 import {
     VerticalSelection,
     VerticalSelectionSettings,
@@ -159,7 +159,7 @@ class ReferenceSuggestionRenderer {
         this.component.destroy();
     }
 
-    convertQueryResult(result: Suggestion[]): VerticalSelectionData[] {
+    convertQueryResult(result: SuggestionData[]): VerticalSelectionData[] {
         return result.map((r, i) => ({
             className: "reference-item",
             index: i,
@@ -169,7 +169,7 @@ class ReferenceSuggestionRenderer {
 }
 
 function generateSuggestionOptions(
-    queryItems: (settings: QuerySettings) => Suggestion[],
+    queryItems: (settings: QuerySettings) => SuggestionData[],
     getSelectedIndex: () => number | null,
     setSelectedIndex: (value: any) => void,
 ): Partial<SuggestionOptions> {

@@ -6,16 +6,17 @@ interface SelectFieldSettings extends SelectProps {
 }
 
 function renderSelectField({
+    value,
     getValue,
     placeholder = "Select a value",
     clearable = true,
     ...rest
 }: SelectFieldSettings) {
-    const value = getValue ? getValue() : undefined;
+    const _value = value ?? getValue?.() ?? undefined;
     return (
         <Select
             placeholder={placeholder}
-            value={value}
+            value={_value}
             allowDeselect
             clearable={clearable}
             {...rest}

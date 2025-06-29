@@ -1,0 +1,18 @@
+.spreadsheet {
+    overflow-y: auto;
+    padding-inline: 10px;
+}
+
+.spreadsheet-data-cell {
+    border: calc(0.0625rem * var(--mantine-scale)) solid
+        var(--table-border-color);
+}
+
+.spreadsheet-data-cell.hidden {
+    display: none;
+}
+
+.spreadsheet-action-cell {
+    background-color: var(--default-bg-color);
+    border: none;
+}
