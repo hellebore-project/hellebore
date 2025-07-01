@@ -150,6 +150,10 @@ export class WordEditor {
         return this._wordType;
     }
 
+    get words() {
+        return toJS(this._words);
+    }
+
     get viewKey(): WordViewKey {
         if (this._wordType == WordType.None) return WordViewKey.RootWords;
         return TYPE_TO_VIEW_MAPPING.get(this._wordType) as WordViewKey;
@@ -199,10 +203,10 @@ export class WordEditor {
 
     // STATE MANAGEMENT
 
-    initialize(languageId: number, wordType?: WordType) {
+    async initialize(languageId: number, wordType?: WordType) {
         if (wordType !== undefined) this._wordType = wordType;
         this._visibleColumns = this._determineVisibleProperties();
-        this._view.domain.words
+        return this._view.domain.words
             .getAllForLanguage(languageId, wordType)
             .then((words) => this._setWords(words));
     }

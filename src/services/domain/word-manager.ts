@@ -10,8 +10,8 @@ import {
     WordUpsert,
 } from "@/interface";
 
-export type UpsertWordResponse = ResponseWithDiagnostics<Id | null>;
-export type BulkUpsertWordsResponse = Array<UpsertWordResponse>;
+type _UpsertWordResponse = ResponseWithDiagnostics<Id | null>;
+type _BulkUpsertWordsResponse = Array<_UpsertWordResponse>;
 
 export class WordManager {
     constructor() {
@@ -21,7 +21,7 @@ export class WordManager {
     async bulkUpsert(
         words: WordUpsert[],
     ): Promise<WordUpsertResponse[] | null> {
-        let responses: BulkUpsertWordsResponse;
+        let responses: _BulkUpsertWordsResponse;
         try {
             responses = await this._bulkUpsertWords(
                 words.map((word) => ({
@@ -109,8 +109,8 @@ export class WordManager {
 
     async _bulkUpsertWords(
         words: Array<WordUpsert>,
-    ): Promise<BulkUpsertWordsResponse> {
-        return invoke<BulkUpsertWordsResponse>("upsert_words", { words });
+    ): Promise<_BulkUpsertWordsResponse> {
+        return invoke<_BulkUpsertWordsResponse>("upsert_words", { words });
     }
 
     async _getWord(id: number): Promise<WordResponse> {
