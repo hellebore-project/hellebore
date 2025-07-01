@@ -15,9 +15,9 @@ export interface WordData extends BaseWordData {
 }
 
 export enum WordTableColumnName {
-    Spelling = "Word",
-    Number = "Number",
-    Person = "Person",
-    Gender = "Gender",
-    Translations = "Translations",
+    Spelling = "spelling",
+    Number = "number",
+    Person = "person",
+    Gender = "gender",
+    Translations = "translations",
 }

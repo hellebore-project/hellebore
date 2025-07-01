@@ -151,10 +151,10 @@ export class EntityEditor {
         this.properties.initialize(properties);
     }
 
-    initializeWordEditor(id: number, title: string, wordType?: WordType) {
+    async initializeWordEditor(id: number, title: string, wordType?: WordType) {
         this.currentView = EntityViewKey.WordEditor;
         this.info.initialize(id, title, EntityType.LANGUAGE);
-        this.lexicon.initialize(id, wordType);
+        return this.lexicon.initialize(id, wordType);
     }
 
     cleanUp() {
@@ -298,7 +298,7 @@ export class EntityEditor {
                 console.error("Failed to update lexicon.");
                 console.error(error);
             }
-            if (lexiconResponse?.length)
+            if (lexiconResponse === null)
                 console.error("Failed to update lexicon.");
         }
 

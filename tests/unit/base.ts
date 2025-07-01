@@ -8,6 +8,8 @@ import {
     FolderResponse,
     ProjectResponse,
 } from "@/interface";
+import { state } from "@/services";
+import { cleanup } from "@testing-library/react";
 
 export interface BaseUnitFixtures {
     dbFilePath: string;
@@ -15,6 +17,7 @@ export interface BaseUnitFixtures {
     entities: EntityInfoResponse[];
     folders: FolderResponse[];
     service: AppManager;
+    cleanup: null;
 }
 
 export const test = baseTest.extend<BaseUnitFixtures>({
@@ -33,14 +36,23 @@ export const test = baseTest.extend<BaseUnitFixtures>({
     ],
     folders: [[], { injected: true }],
     service: [
-        ({ dbFilePath, project, entities, folders }, use) => {
+        async ({ dbFilePath, project, entities, folders }, use) => {
             const appManager = mockServices({
                 dbFilePath,
                 project,
                 entities,
                 folders,
             });
-            return use(appManager);
+            state.manager = appManager;
+            await use(appManager);
+            state.manager = null;
+        },
+        { auto: true },
+    ],
+    cleanup: [
+        async ({}, use) => {
+            await use(null);
+            cleanup();
         },
         { auto: true },
     ],
