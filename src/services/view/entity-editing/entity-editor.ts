@@ -298,7 +298,7 @@ export class EntityEditor {
                 console.error("Failed to update lexicon.");
                 console.error(error);
             }
-            if (lexiconResponse?.length)
+            if (lexiconResponse === null)
                 console.error("Failed to update lexicon.");
         }
 

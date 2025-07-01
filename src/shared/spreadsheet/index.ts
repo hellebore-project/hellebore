@@ -1,1 +1,1 @@
-export { Spreadsheet, SpreadsheetSettings } from "./spreadsheet";
+export * from "./spreadsheet";

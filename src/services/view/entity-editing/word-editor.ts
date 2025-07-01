@@ -12,12 +12,16 @@ import {
     WordType,
     EntityChangeHandler,
     WordViewKey,
-    WordTableColumnName,
+    WordTableColumnName as WordTableColumnKey,
+    SpreadsheetRowData,
+    SpreadsheetColumnData,
+    FieldType,
 } from "@/interface";
 import { Counter } from "@/utils/counter";
 import { compareStrings } from "@/utils/string";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
+import { numericEnumMapping } from "@/utils/enums";
 
 const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.RootWord, WordViewKey.RootWords],
@@ -33,6 +37,59 @@ const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
 const VIEW_TO_TYPE_MAPPING: Map<WordViewKey, WordType> = new Map(
     Array.from(TYPE_TO_VIEW_MAPPING, (entry) => [entry[1], entry[0]]),
 );
+
+const GRAMMATICAL_NUMBERS = Object.entries(
+    numericEnumMapping(GrammaticalNumber),
+).map(([k, v]) => ({ label: k, value: String(v) }));
+const GRAMMATICAL_GENDERS = Object.entries(
+    numericEnumMapping(GrammaticalGender),
+).map(([k, v]) => ({ label: k, value: String(v) }));
+const GRAMMATICAL_PERSONS = Object.entries(
+    numericEnumMapping(GrammaticalPerson),
+).map(([k, v]) => ({ label: k, value: String(v) }));
+
+const COLUMN_ORDER = [
+    WordTableColumnKey.Spelling,
+    WordTableColumnKey.Translations,
+    WordTableColumnKey.Gender,
+    WordTableColumnKey.Number,
+    WordTableColumnKey.Person,
+];
+const COLUMN_DATA_MAPPING = {
+    [WordTableColumnKey.Spelling]: {
+        key: WordTableColumnKey.Spelling,
+        label: "Spelling",
+        type: FieldType.TEXT,
+        visible: true,
+    },
+    [WordTableColumnKey.Translations]: {
+        key: WordTableColumnKey.Translations,
+        label: "Translations",
+        type: FieldType.TEXT,
+        visible: true,
+    },
+    [WordTableColumnKey.Gender]: {
+        key: WordTableColumnKey.Gender,
+        label: "Gender",
+        type: FieldType.SELECT,
+        visible: true,
+        options: GRAMMATICAL_GENDERS,
+    },
+    [WordTableColumnKey.Number]: {
+        key: WordTableColumnKey.Number,
+        label: "Number",
+        type: FieldType.SELECT,
+        visible: true,
+        options: GRAMMATICAL_NUMBERS,
+    },
+    [WordTableColumnKey.Person]: {
+        key: WordTableColumnKey.Person,
+        label: "Person",
+        type: FieldType.SELECT,
+        visible: true,
+        options: GRAMMATICAL_PERSONS,
+    },
+};
 
 type AdditionalKeys =
     | "_modifiedWordKeys"
@@ -53,7 +110,7 @@ export class WordEditor {
     private _words: { [key: WordKey]: WordData };
     private _filteredWordKeys: WordKey[];
     private _modifiedWordKeys: Set<WordKey>;
-    private _visibleProperties: Set<WordTableColumnName>;
+    private _visibleColumns: Set<WordTableColumnKey>;
     private _changed: boolean = false;
 
     // SERVICES
@@ -75,7 +132,7 @@ export class WordEditor {
         this._words = {};
         this._filteredWordKeys = [];
         this._modifiedWordKeys = new Set();
-        this._visibleProperties = this._determineVisibleProperties();
+        this._visibleColumns = this._determineVisibleProperties();
 
         this._view = view;
         this._info = info;
@@ -98,16 +155,42 @@ export class WordEditor {
         return TYPE_TO_VIEW_MAPPING.get(this._wordType) as WordViewKey;
     }
 
-    get visibleProperties(): Set<WordTableColumnName> {
-        return this._visibleProperties;
-    }
-
     get newKey() {
         return this.convertIndexToWordKey(this._wordKeyGenerator.index);
     }
 
     get filteredKeys() {
         return toJS(this._filteredWordKeys);
+    }
+
+    get rowData(): SpreadsheetRowData[] {
+        return this._filteredWordKeys.map((key) => {
+            const word = this._words[key];
+            return {
+                key: word.key,
+                highlighted: !!word.highlighted,
+                values: {
+                    spelling: word.spelling,
+                    translations: word.rawTranslations,
+                    gender: String(word.gender),
+                    number: String(word.number),
+                    person: String(word.person),
+                },
+            };
+        });
+    }
+
+    get visibleColumns(): Set<WordTableColumnKey> {
+        return this._visibleColumns;
+    }
+
+    get columnData(): SpreadsheetColumnData[] {
+        const columns: SpreadsheetColumnData[] = [];
+        const visible = this.visibleColumns;
+        for (const col of COLUMN_ORDER) {
+            if (visible.has(col)) columns.push(COLUMN_DATA_MAPPING[col]);
+        }
+        return columns;
     }
 
     get changed() {
@@ -118,7 +201,7 @@ export class WordEditor {
 
     initialize(languageId: number, wordType?: WordType) {
         if (wordType !== undefined) this._wordType = wordType;
-        this._visibleProperties = this._determineVisibleProperties();
+        this._visibleColumns = this._determineVisibleProperties();
         this._view.domain.words
             .getAllForLanguage(languageId, wordType)
             .then((words) => this._setWords(words));
@@ -178,7 +261,6 @@ export class WordEditor {
         const modifiedWords = [];
         for (const key of this._modifiedWordKeys) {
             const word = toJS(this._words[key]);
-            console.log(word);
             if (word.rawTranslations)
                 word.translations = word.rawTranslations
                     .split(/,|;/)
@@ -222,8 +304,6 @@ export class WordEditor {
     }
 
     setTranslations(key: WordKey, rawTranslations: string) {
-        console.log("Setting translations");
-        console.log(key);
         this._words[key].rawTranslations = rawTranslations;
         this._onChangeWord(key);
     }
@@ -253,6 +333,30 @@ export class WordEditor {
     setPerson(key: WordKey, person: number) {
         this._words[key].person = person;
         this._onChangeWord(key);
+    }
+
+    editCell(rowIndex: number, colKey: string, value: number | string | null) {
+        const key = this._filteredWordKeys[rowIndex];
+        if (!key) return;
+        switch (colKey) {
+            case WordTableColumnKey.Spelling:
+                this.setSpelling(key, String(value ?? ""));
+                break;
+            case WordTableColumnKey.Translations:
+                this.setTranslations(key, String(value ?? ""));
+                break;
+            case WordTableColumnKey.Gender:
+                this.setGender(key, Number(value));
+                break;
+            case WordTableColumnKey.Number:
+                this.setNumber(key, Number(value));
+                break;
+            case WordTableColumnKey.Person:
+                this.setPerson(key, Number(value));
+                break;
+            default:
+                break;
+        }
     }
 
     // WORD CREATION
@@ -314,29 +418,29 @@ export class WordEditor {
         switch (this.wordType) {
             case WordType.Article:
                 return new Set([
-                    WordTableColumnName.Spelling,
-                    WordTableColumnName.Translations,
-                    WordTableColumnName.Gender,
-                    WordTableColumnName.Number,
+                    WordTableColumnKey.Spelling,
+                    WordTableColumnKey.Translations,
+                    WordTableColumnKey.Gender,
+                    WordTableColumnKey.Number,
                 ]);
             case WordType.Pronoun:
                 return new Set([
-                    WordTableColumnName.Person,
-                    WordTableColumnName.Gender,
-                    WordTableColumnName.Number,
-                    WordTableColumnName.Spelling,
-                    WordTableColumnName.Translations,
+                    WordTableColumnKey.Person,
+                    WordTableColumnKey.Gender,
+                    WordTableColumnKey.Number,
+                    WordTableColumnKey.Spelling,
+                    WordTableColumnKey.Translations,
                 ]);
             case WordType.Noun:
                 return new Set([
-                    WordTableColumnName.Spelling,
-                    WordTableColumnName.Translations,
-                    WordTableColumnName.Gender,
+                    WordTableColumnKey.Spelling,
+                    WordTableColumnKey.Translations,
+                    WordTableColumnKey.Gender,
                 ]);
             default:
                 return new Set([
-                    WordTableColumnName.Spelling,
-                    WordTableColumnName.Translations,
+                    WordTableColumnKey.Spelling,
+                    WordTableColumnKey.Translations,
                 ]);
         }
     }

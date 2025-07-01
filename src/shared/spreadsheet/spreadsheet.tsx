@@ -87,9 +87,9 @@ function renderSpreadsheetCell({
     value,
     onChange,
 }: CellSettings) {
-    let className = "word-table-data-cell";
+    let className = "spreadsheet-data-cell";
 
-    if (colData.visible) return <Table.Td className={className + " hidden"} />;
+    if (!colData.visible) return <Table.Td className={className + " hidden"} />;
 
     let field: ReactNode;
 
@@ -134,7 +134,7 @@ function renderSpreadsheetRow({
         const value = String(data.values[column.key]);
         return (
             <SpreadsheetCell
-                key={`spreadsheet-cell-${data.key}-${column}`}
+                key={`spreadsheet-cell-${data.key}-${column.key}`}
                 rowKey={data.key}
                 rowIndex={index}
                 colIndex={j}
@@ -151,7 +151,7 @@ function renderSpreadsheetRow({
             onMouseLeave={() => onUnhighlightRow(data.key)}
         >
             {cells}
-            <Table.Td className="word-table-action-cell">
+            <Table.Td className="spreadsheet-action-cell">
                 <DeleteRowButton
                     rowKey={data.key}
                     visible={data.highlighted}
@@ -178,7 +178,7 @@ function renderSpreadsheet({
         if (!column.visible) className += " hidden";
         return (
             <Table.Th
-                key={`spreadsheet-header-${column}`}
+                key={`spreadsheet-header-${column.key}`}
                 className={className}
             >
                 {column.label}
