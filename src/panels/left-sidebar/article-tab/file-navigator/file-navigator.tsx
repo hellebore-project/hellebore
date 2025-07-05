@@ -183,14 +183,6 @@ function renderFileNavigator({}: FileNavigatorSettings) {
         if (dragSource) fileNav.moveNode(dragSource, dropTargetId);
     };
 
-    const editableTextRef = fileNav.editableTextField;
-    useEffect(() => {
-        if (editableTextRef?.current) {
-            // focus the text field once it has been added to the DOM
-            editableTextRef.current.focus();
-        }
-    }, [editableTextRef]);
-
     return (
         <>
             <OutsideClickHandler

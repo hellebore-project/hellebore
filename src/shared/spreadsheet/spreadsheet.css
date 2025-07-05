@@ -1,18 +1,42 @@
 .spreadsheet {
     overflow-y: auto;
     padding-inline: 10px;
+    padding-block: 5px 10px;
 }
 
-.spreadsheet-data-cell {
+.spreadsheet-table {
+    table-layout: fixed;
+}
+
+.spreadsheet-column-hidden {
+    width: 0;
+}
+
+.spreadsheet-column-action {
+    width: 5px;
+}
+
+.spreadsheet-row {
+    border: none;
+}
+
+.spreadsheet-cell-data {
     border: calc(0.0625rem * var(--mantine-scale)) solid
         var(--table-border-color);
 }
 
-.spreadsheet-data-cell.hidden {
-    display: none;
+.spreadsheet-cell-data.compact {
+    padding-block: 0;
 }
 
-.spreadsheet-action-cell {
+.spreadsheet-cell-data.selected {
+    background-color: var(--selected-bg-color);
+    color: var(--selected-text-color);
+    outline: calc(0.125rem * var(--mantine-scale)) solid
+        var(--selected-bd-color);
+}
+
+.spreadsheet-cell-action {
     background-color: var(--default-bg-color);
     border: none;
 }

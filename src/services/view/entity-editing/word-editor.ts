@@ -22,6 +22,7 @@ import { compareStrings } from "@/utils/string";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
 import { numericEnumMapping } from "@/utils/enums";
+import { SpreadsheetService } from "@/shared/spreadsheet";
 
 const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.RootWord, WordViewKey.RootWords],
@@ -60,33 +61,28 @@ const COLUMN_DATA_MAPPING = {
         key: WordTableColumnKey.Spelling,
         label: "Spelling",
         type: FieldType.TEXT,
-        visible: true,
     },
     [WordTableColumnKey.Translations]: {
         key: WordTableColumnKey.Translations,
         label: "Translations",
         type: FieldType.TEXT,
-        visible: true,
     },
     [WordTableColumnKey.Gender]: {
         key: WordTableColumnKey.Gender,
         label: "Gender",
         type: FieldType.SELECT,
-        visible: true,
         options: GRAMMATICAL_GENDERS,
     },
     [WordTableColumnKey.Number]: {
         key: WordTableColumnKey.Number,
         label: "Number",
         type: FieldType.SELECT,
-        visible: true,
         options: GRAMMATICAL_NUMBERS,
     },
     [WordTableColumnKey.Person]: {
         key: WordTableColumnKey.Person,
         label: "Person",
         type: FieldType.SELECT,
-        visible: true,
         options: GRAMMATICAL_PERSONS,
     },
 };
@@ -106,17 +102,22 @@ interface WordEditorSettings {
 
 export class WordEditor {
     // STATE VARIABLES
-    private _wordType: WordType = WordType.None;
+    private _wordType: WordType = WordType.RootWord;
     private _words: { [key: WordKey]: WordData };
     private _filteredWordKeys: WordKey[];
     private _modifiedWordKeys: Set<WordKey>;
-    private _visibleColumns: Set<WordTableColumnKey>;
+    private _visibleColumns: Set<WordTableColumnKey> = new Set();
     private _changed: boolean = false;
 
     // SERVICES
     private _view: ViewManagerInterface;
     private _info: EntityInfoEditor;
+    spreadsheet: SpreadsheetService;
+
+    // UTILITIES
     private _wordKeyGenerator: Counter;
+
+    // CALLBACKS
     private _onChange: EntityChangeHandler;
 
     // CONSTRUCTION
@@ -127,17 +128,23 @@ export class WordEditor {
             _onChange: false,
             _view: false,
             _info: false,
+            spreadsheet: false,
         });
 
         this._words = {};
         this._filteredWordKeys = [];
         this._modifiedWordKeys = new Set();
-        this._visibleColumns = this._determineVisibleProperties();
 
         this._view = view;
         this._info = info;
+        this.spreadsheet = new SpreadsheetService({
+            onEditCell: (i, k, v) => this.editCell(i, k, v),
+            onDeleteRow: (k) => this.deleteWord(k),
+        });
         this._wordKeyGenerator = new Counter();
         this._onChange = onChange;
+
+        this._configureTableLayout();
     }
 
     // PROPERTIES
@@ -168,20 +175,9 @@ export class WordEditor {
     }
 
     get rowData(): SpreadsheetRowData[] {
-        return this._filteredWordKeys.map((key) => {
-            const word = this._words[key];
-            return {
-                key: word.key,
-                highlighted: !!word.highlighted,
-                values: {
-                    spelling: word.spelling,
-                    translations: word.rawTranslations,
-                    gender: String(word.gender),
-                    number: String(word.number),
-                    person: String(word.person),
-                },
-            };
-        });
+        return this._filteredWordKeys.map((key) =>
+            this._convertWordToRow(this._words[key]),
+        );
     }
 
     get visibleColumns(): Set<WordTableColumnKey> {
@@ -203,9 +199,12 @@ export class WordEditor {
 
     // STATE MANAGEMENT
 
-    async initialize(languageId: number, wordType?: WordType) {
+    async initialize(
+        languageId: number,
+        wordType: WordType = WordType.RootWord,
+    ) {
         if (wordType !== undefined) this._wordType = wordType;
-        this._visibleColumns = this._determineVisibleProperties();
+        this._configureTableLayout();
         return this._view.domain.words
             .getAllForLanguage(languageId, wordType)
             .then((words) => this._setWords(words));
@@ -216,7 +215,7 @@ export class WordEditor {
 
         const mapping: { [key: WordKey]: WordData } = {};
         for (const word of words) {
-            const wordRow = this._createWordRow(word);
+            const wordRow = this._convertResponseToData(word);
             mapping[wordRow.key] = wordRow;
         }
 
@@ -224,6 +223,8 @@ export class WordEditor {
         this._filteredWordKeys = Object.values(mapping)
             .sort((a, b) => compareStrings(a.spelling, b.spelling))
             .map((w) => w.key);
+
+        this.spreadsheet.initialize(this.rowData, this.columnData);
 
         this._addNewWordRow();
     }
@@ -292,7 +293,7 @@ export class WordEditor {
         return `N${index}`;
     }
 
-    // WORD PROPERTIES
+    // WORD EDITING
 
     getWord(key: WordKey) {
         return this._words[key];
@@ -365,14 +366,6 @@ export class WordEditor {
 
     // WORD CREATION
 
-    private _createWordRow(word: WordResponse): WordData {
-        return {
-            key: this.idToKey(word.id),
-            ...word,
-            rawTranslations: word.translations?.join(", ") ?? "",
-        };
-    }
-
     private _addNewWordRow() {
         const newWord: WordData = {
             key: this.convertIndexToWordKey(this._wordKeyGenerator.increment()),
@@ -390,6 +383,7 @@ export class WordEditor {
         };
         this._words[newWord.key] = newWord;
         this._filteredWordKeys.push(newWord.key);
+        this.spreadsheet.addRow(this._convertWordToRow(newWord));
     }
 
     // WORD DELETION
@@ -418,7 +412,11 @@ export class WordEditor {
 
     // LAYOUT
 
-    private _determineVisibleProperties() {
+    private _configureTableLayout() {
+        this._visibleColumns = this._getVisibleColumnKeys();
+    }
+
+    private _getVisibleColumnKeys() {
         switch (this.wordType) {
             case WordType.Article:
                 return new Set([
@@ -447,5 +445,39 @@ export class WordEditor {
                     WordTableColumnKey.Translations,
                 ]);
         }
+    }
+
+    // UTILITIES
+
+    private _convertResponseToData(word: WordResponse): WordData {
+        return {
+            key: this.idToKey(word.id),
+            ...word,
+            rawTranslations: word.translations?.join(", ") ?? "",
+        };
+    }
+
+    private _convertWordToRow(word: WordData): SpreadsheetRowData {
+        return {
+            key: word.key,
+            highlighted: !!word.highlighted,
+            cells: {
+                spelling: { value: word.spelling },
+                translations: { value: word.rawTranslations },
+                // NOTE: generating the label depends on typescript's reverse mapping for numeric enums
+                gender: {
+                    label: GrammaticalGender[word.gender],
+                    value: String(word.gender),
+                },
+                number: {
+                    label: GrammaticalNumber[word.number],
+                    value: String(word.number),
+                },
+                person: {
+                    label: GrammaticalPerson[word.person],
+                    value: String(word.person),
+                },
+            },
+        };
     }
 }

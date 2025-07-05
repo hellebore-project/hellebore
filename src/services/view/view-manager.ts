@@ -186,6 +186,13 @@ export class ViewManager implements ViewManagerInterface {
         });
     }
 
+    injectHooks() {
+        this.navigation.files.hookEditableNodeEffect();
+
+        const wordSpreadsheet = this.entityEditor.lexicon.spreadsheet;
+        wordSpreadsheet.hookEditableCellEffect();
+    }
+
     async populateNavigator() {
         const articles = await this.domain.articles.getAll();
         const folders = await this.domain.folders.getAll();
@@ -258,8 +265,12 @@ export class ViewManager implements ViewManagerInterface {
     async openWordEditor(languageId: Id, wordType?: WordType) {
         if (this.isWordEditorOpen && this.entityEditor.info.id == languageId) {
             if (wordType === undefined)
-                return; // the word editor is already open for this language
-            else if (wordType === this.entityEditor.lexicon.wordType) return; // the word editor is already open for this language and word type
+                // don't care about which word type is displayed;
+                // since the word editor is already open for this language, don't reload it
+                return;
+            else if (wordType === this.entityEditor.lexicon.wordType)
+                // the word editor is already open for this language and word type
+                return;
         }
 
         // save any unsynced data before opening another view
