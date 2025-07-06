@@ -18,7 +18,6 @@ import {
     FieldType,
 } from "@/interface";
 import { Counter } from "@/utils/counter";
-import { compareStrings } from "@/utils/string";
 import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
 import { numericEnumMapping } from "@/utils/enums";
@@ -87,7 +86,8 @@ const COLUMN_DATA_MAPPING = {
     },
 };
 
-type AdditionalKeys =
+type PrivateKeys =
+    | "_columnData"
     | "_modifiedWordKeys"
     | "_wordKeyGenerator"
     | "_onChange"
@@ -103,11 +103,8 @@ interface WordEditorSettings {
 export class WordEditor {
     // STATE VARIABLES
     private _wordType: WordType = WordType.RootWord;
-    // TODO: the spreadsheet service should be the source of truth for the word data
     private _words: { [key: WordKey]: WordData };
-    private _filteredWordKeys: WordKey[];
     private _modifiedWordKeys: Set<WordKey>;
-    private _visibleColumns: Set<WordTableColumnKey> = new Set();
     private _changed: boolean = false;
 
     // SERVICES
@@ -123,8 +120,9 @@ export class WordEditor {
 
     // CONSTRUCTION
     constructor({ view, info, onChange }: WordEditorSettings) {
-        makeAutoObservable<WordEditor, AdditionalKeys>(this, {
+        makeAutoObservable<WordEditor, PrivateKeys>(this, {
             _modifiedWordKeys: false,
+            _columnData: false,
             _wordKeyGenerator: false,
             _onChange: false,
             _view: false,
@@ -133,19 +131,16 @@ export class WordEditor {
         });
 
         this._words = {};
-        this._filteredWordKeys = [];
         this._modifiedWordKeys = new Set();
 
         this._view = view;
         this._info = info;
         this.spreadsheet = new SpreadsheetService({
-            onEditCell: (i, k, v) => this.editCell(i, k, v),
+            onEditCell: (r, c, v) => this.editWord(r, c, v),
             onDeleteRow: (k) => this.deleteWord(k),
         });
         this._wordKeyGenerator = new Counter();
         this._onChange = onChange;
-
-        this._configureTableLayout();
     }
 
     // PROPERTIES
@@ -158,10 +153,6 @@ export class WordEditor {
         return this._wordType;
     }
 
-    get words() {
-        return toJS(this._words);
-    }
-
     get viewKey(): WordViewKey {
         if (this._wordType == WordType.None) return WordViewKey.RootWords;
         return TYPE_TO_VIEW_MAPPING.get(this._wordType) as WordViewKey;
@@ -169,29 +160,6 @@ export class WordEditor {
 
     get newKey() {
         return this.convertIndexToWordKey(this._wordKeyGenerator.index);
-    }
-
-    get filteredKeys() {
-        return toJS(this._filteredWordKeys);
-    }
-
-    get rowData(): SpreadsheetRowData[] {
-        return this._filteredWordKeys.map((key) =>
-            this._convertWordToRow(this._words[key]),
-        );
-    }
-
-    get visibleColumns(): Set<WordTableColumnKey> {
-        return this._visibleColumns;
-    }
-
-    get columnData(): SpreadsheetColumnData[] {
-        const columns: SpreadsheetColumnData[] = [];
-        const visible = this.visibleColumns;
-        for (const col of COLUMN_ORDER) {
-            if (visible.has(col)) columns.push(COLUMN_DATA_MAPPING[col]);
-        }
-        return columns;
     }
 
     get changed() {
@@ -205,14 +173,13 @@ export class WordEditor {
         wordType: WordType = WordType.RootWord,
     ) {
         if (wordType !== undefined) this._wordType = wordType;
-        this._configureTableLayout();
         return this._view.domain.words
             .getAllForLanguage(languageId, wordType)
             .then((words) => this._setWords(words));
     }
 
     private _setWords(words: WordResponse[] | null) {
-        if (!words) return;
+        if (!words) words = [];
 
         const mapping: { [key: WordKey]: WordData } = {};
         for (const word of words) {
@@ -221,18 +188,19 @@ export class WordEditor {
         }
 
         this._words = mapping;
-        this._filteredWordKeys = Object.values(mapping)
-            .sort((a, b) => compareStrings(a.spelling, b.spelling))
-            .map((w) => w.key);
 
-        this.spreadsheet.initialize(this.rowData, this.columnData);
+        this._initializeSpreadsheet(Object.values(mapping));
+    }
 
+    private _initializeSpreadsheet(words: WordData[]) {
+        const rowData = words.map((w) => this._convertWordToRow(w));
+        const colData = this._getColumnData();
+        this.spreadsheet.initialize(rowData, colData);
         this._addNewWordRow();
     }
 
     reset() {
         this._words = {};
-        this._filteredWordKeys = [];
     }
 
     changeView(viewKey: WordViewKey) {
@@ -280,7 +248,6 @@ export class WordEditor {
 
     cleanUp() {
         this._words = {};
-        this._filteredWordKeys = [];
         this._modifiedWordKeys.clear();
     }
 
@@ -341,24 +308,22 @@ export class WordEditor {
         this._onChangeWord(key);
     }
 
-    editCell(rowIndex: number, colKey: string, value: number | string | null) {
-        const key = this._filteredWordKeys[rowIndex];
-        if (!key) return;
+    editWord(rowKey: string, colKey: string, value: number | string | null) {
         switch (colKey) {
             case WordTableColumnKey.Spelling:
-                this.setSpelling(key, String(value ?? ""));
+                this.setSpelling(rowKey, String(value ?? ""));
                 break;
             case WordTableColumnKey.Translations:
-                this.setTranslations(key, String(value ?? ""));
+                this.setTranslations(rowKey, String(value ?? ""));
                 break;
             case WordTableColumnKey.Gender:
-                this.setGender(key, Number(value));
+                this.setGender(rowKey, Number(value));
                 break;
             case WordTableColumnKey.Number:
-                this.setNumber(key, Number(value));
+                this.setNumber(rowKey, Number(value));
                 break;
             case WordTableColumnKey.Person:
-                this.setPerson(key, Number(value));
+                this.setPerson(rowKey, Number(value));
                 break;
             default:
                 break;
@@ -383,7 +348,6 @@ export class WordEditor {
             rawTranslations: "",
         };
         this._words[newWord.key] = newWord;
-        this._filteredWordKeys.push(newWord.key);
         this.spreadsheet.addRow(this._convertWordToRow(newWord));
     }
 
@@ -393,28 +357,18 @@ export class WordEditor {
         const word = this._words[key];
         if (word.id !== null) this._view.domain.words.delete(word.id);
         delete this._words[key];
-        this._filteredWordKeys = this._filteredWordKeys.filter((k) => k != key);
         this._modifiedWordKeys.delete(key);
-    }
-
-    // WORD HIGHLIGHTING
-
-    isWordHighlighted(key: WordKey) {
-        return Boolean(this._words[key].highlighted);
-    }
-
-    highlightWord(key: WordKey) {
-        this._words[key].highlighted = true;
-    }
-
-    unhighlightWord(key: WordKey) {
-        this._words[key].highlighted = false;
     }
 
     // LAYOUT
 
-    private _configureTableLayout() {
-        this._visibleColumns = this._getVisibleColumnKeys();
+    private _getColumnData(): SpreadsheetColumnData[] {
+        const keys = this._getVisibleColumnKeys();
+        const columns: SpreadsheetColumnData[] = [];
+        for (const key of COLUMN_ORDER) {
+            if (keys.has(key)) columns.push(COLUMN_DATA_MAPPING[key]);
+        }
+        return columns;
     }
 
     private _getVisibleColumnKeys() {
@@ -461,7 +415,7 @@ export class WordEditor {
     private _convertWordToRow(word: WordData): SpreadsheetRowData {
         return {
             key: word.key,
-            highlighted: !!word.highlighted,
+            highlighted: false,
             cells: {
                 spelling: { value: word.spelling },
                 translations: { value: word.rawTranslations },

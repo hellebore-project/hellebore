@@ -18,7 +18,7 @@ type PrivateKeys =
     | "_onDeleteRow";
 
 type EditCellHandler = (
-    rowIndex: number,
+    rowKey: string,
     colKey: string,
     value: number | string | null,
 ) => void;
@@ -97,18 +97,14 @@ export class SpreadsheetService {
         return this._sheet;
     }
 
+    // STATE MANAGEMENT
+
     initialize(
         rowData: SpreadsheetRowData[],
         columnData: SpreadsheetColumnData[],
     ) {
         this._rowData = rowData;
         this._columnData = columnData;
-    }
-
-    focus() {
-        if (this._sheet?.current) {
-            this._sheet.current.focus();
-        }
     }
 
     // ROWS
@@ -210,7 +206,21 @@ export class SpreadsheetService {
         const col = this._columnData[colIndex];
         if (!row || !col) return;
         row.cells[col.key].value = String(value ?? "");
-        if (this._onEditCell) this._onEditCell(rowIndex, col.key, value);
+        if (this._onEditCell) this._onEditCell(row.key, col.key, value);
+    }
+
+    private _restoreCellValue(
+        rowIndex: number,
+        colIndex: number,
+        cell: SpreadsheetCellData,
+    ) {
+        const row = this._rowData[rowIndex];
+        const col = this._columnData[colIndex];
+        if (!row || !col) return;
+
+        const oldValue = cell.oldValue ?? "";
+        cell.value = oldValue;
+        if (this._onEditCell) this._onEditCell(row.key, col.key, oldValue);
     }
 
     toggleCellEditMode(rowIndex: number, colIndex: number, editable: boolean) {
@@ -232,6 +242,14 @@ export class SpreadsheetService {
         }
 
         cell.editable = editable;
+    }
+
+    // FOCUS
+
+    focus() {
+        if (this._sheet?.current) {
+            this._sheet.current.focus();
+        }
     }
 
     // SCROLLING
@@ -289,7 +307,7 @@ export class SpreadsheetService {
         if (event.key === "Escape") {
             if (cell.editable) {
                 // Restore original value
-                if (cell.oldValue) cell.value = cell.oldValue;
+                this._restoreCellValue(rowIndex, colIndex, cell);
                 this.toggleCellEditMode(rowIndex, colIndex, false);
                 // Focus spreadsheet container after edit
                 this.focus();
