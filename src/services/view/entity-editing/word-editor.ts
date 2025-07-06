@@ -103,6 +103,7 @@ interface WordEditorSettings {
 export class WordEditor {
     // STATE VARIABLES
     private _wordType: WordType = WordType.RootWord;
+    // TODO: the spreadsheet service should be the source of truth for the word data
     private _words: { [key: WordKey]: WordData };
     private _filteredWordKeys: WordKey[];
     private _modifiedWordKeys: Set<WordKey>;

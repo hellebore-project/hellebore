@@ -3,7 +3,7 @@ import "./spreadsheet.css";
 import { ActionIcon, Box, Table } from "@mantine/core";
 import { IconCircleMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 
 import {
     BaseTableSettings,
@@ -95,6 +95,7 @@ function renderSpreadsheetCell({
                     onBlur={() =>
                         service.toggleCellEditMode(rowIndex, colIndex, false)
                     }
+                    onKeyDown={(e) => service.handleKeyDown(e)}
                     variant="unstyled"
                 />
             );
@@ -110,21 +111,23 @@ function renderSpreadsheetCell({
                     onBlur={() =>
                         service.toggleCellEditMode(rowIndex, colIndex, false)
                     }
+                    onKeyDown={(e) => service.handleKeyDown(e)}
                     variant="unstyled"
                 />
             );
         }
-    } else
+    } else {
         onClick = () => {
             if (!data.selected) {
-                service.selectCell(rowIndex, colData.key);
+                service.selectCell(rowIndex, colIndex);
             } else {
                 service.toggleCellEditMode(rowIndex, colIndex, true);
             }
         };
+    }
 
     return (
-        <Table.Td className={className} onClick={onClick}>
+        <Table.Td className={className} tabIndex={0} onClick={onClick}>
             {field}
         </Table.Td>
     );
@@ -170,7 +173,6 @@ const SpreadsheetRow = observer(renderSpreadsheetRow);
 
 function renderSpreadsheet({ service, ...rest }: SpreadsheetSettings) {
     const headers: ReactNode[] = [];
-    const columns: ReactNode[] = [];
 
     for (const colData of service.columnData) {
         headers.push(
@@ -202,17 +204,20 @@ function renderSpreadsheet({ service, ...rest }: SpreadsheetSettings) {
     ));
 
     return (
-        <Box className="spreadsheet" {...rest}>
+        <Box
+            className="spreadsheet"
+            ref={service.sheet}
+            tabIndex={0}
+            onKeyDown={(e) => service.handleKeyDown(e)}
+            {...rest}
+        >
             <Table
+                layout="fixed"
                 striped
                 highlightOnHover
                 withRowBorders={false}
-                layout="fixed"
             >
-                <colgroup>
-                    {columns}
-                    {actionColumn}
-                </colgroup>
+                <colgroup>{actionColumn}</colgroup>
                 <Table.Thead>
                     <Table.Tr>
                         {headers}
