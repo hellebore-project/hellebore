@@ -43,8 +43,8 @@ test("renders WordTable with correct columns and rows", async ({ service }) => {
     expect(screen.getByText("Translations")).toBeTruthy();
 
     // Check row content
-    expect(screen.getByDisplayValue(word.spelling)).toBeTruthy();
-    expect(screen.getByDisplayValue(word.translations[0])).toBeTruthy();
+    expect(screen.getByText(word.spelling)).toBeTruthy();
+    expect(screen.getByText(word.translations[0])).toBeTruthy();
 });
 
 test("can edit a cell in WordTable", async ({ service }) => {
@@ -54,13 +54,27 @@ test("can edit a cell in WordTable", async ({ service }) => {
     const wordEditor = service.view.entityEditor.lexicon;
     await wordEditor.initialize(1, WordType.Noun);
 
-    const { debug } = render(<WordTable />);
+    render(<WordTable />);
 
-    const a = screen.getAllByDisplayValue(word.spelling);
+    const cell = screen.getByText(word.spelling);
+
+    // click the cell to select it
+    fireEvent.click(cell);
+
+    // click the cell again to toggle edit mode
+    fireEvent.click(cell);
+
     const spellingInput = screen.getByDisplayValue(word.spelling);
+
+    // edit the cell value
     fireEvent.change(spellingInput, { target: { value: "edited" } });
 
+    // select another cell to deselect the first cell
+    const otherCell = screen.getByText(word.translations[0]);
+    fireEvent.click(otherCell);
+
     expect(wordEditor.getWord("1").spelling).toBe("edited");
+    expect(screen.getByText("edited")).toBeTruthy();
 });
 
 test("can delete a row in WordTable", async ({ service }) => {
@@ -70,8 +84,8 @@ test("can delete a row in WordTable", async ({ service }) => {
     const wordEditor = service.view.entityEditor.lexicon;
     await wordEditor.initialize(1, WordType.Noun);
 
-    const word = wordEditor["_words"]["1"];
-    word.highlighted = true;
+    const row = wordEditor.spreadsheet["_rowData"][0];
+    row.highlighted = true;
 
     render(<WordTable />);
 

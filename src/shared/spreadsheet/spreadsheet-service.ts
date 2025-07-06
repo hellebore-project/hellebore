@@ -123,8 +123,6 @@ export class SpreadsheetService {
     }
 
     toggleCellEditMode(rowIndex: number, colIndex: number, editable: boolean) {
-        console.log(rowIndex);
-        console.log(colIndex);
         const row = this._rowData[rowIndex];
         const col = this._columnData[colIndex];
         if (!row || !col) return;
@@ -156,8 +154,6 @@ export class SpreadsheetService {
         const ref = this.editableCellField;
         useEffect(() => {
             if (ref?.current) {
-                console.log(ref.current);
-
                 if (document.activeElement === ref.current) return;
 
                 // focus the cell field once it has been added to the DOM
