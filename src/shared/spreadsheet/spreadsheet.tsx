@@ -8,60 +8,42 @@ import { ReactNode } from "react";
 import {
     BaseTableSettings,
     FieldType,
+    SpreadsheetCellData,
     SpreadsheetColumnData,
-    SpreadsheetRowData,
 } from "@/interface";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
 import { ToolTipWrapper } from "@/shared/tool-tip";
+import { SpreadsheetService } from "./spreadsheet-service";
 
-type EditCellHandler = (
-    rowIndex: number,
-    colKey: string,
-    value: number | string | null,
-) => void;
-type HighlightRowHandler = (rowKey: string) => void;
-type DeleteRowHandler = (rowKey: string) => void;
-
-interface DeleteRowButtonSettings {
-    rowKey: string;
-    visible: boolean;
-    onClick: DeleteRowHandler;
-}
-
-interface CellSettings {
-    rowKey: string;
+interface SpreadsheetCellSettings {
     rowIndex: number;
     colIndex: number;
     colData: SpreadsheetColumnData;
-    value: string;
-    onChange: EditCellHandler;
+    data: SpreadsheetCellData;
+    service: SpreadsheetService;
 }
 
-interface RowSettings {
+interface DeleteSpreadsheetRowButton {
+    rowKey: string;
+    visible: boolean;
+    onClick: (rowKey: string) => void;
+}
+
+interface SpreadsheetRowSettings {
     index: number;
-    data: SpreadsheetRowData;
-    colData: SpreadsheetColumnData[];
-    onEditCell: EditCellHandler;
-    onHighlightRow: HighlightRowHandler;
-    onUnhighlightRow: HighlightRowHandler;
-    onDeleteRow: DeleteRowHandler;
+    service: SpreadsheetService;
 }
 
-export interface SpreadsheetSettings extends BaseTableSettings {
-    rowData: SpreadsheetRowData[];
-    columnData: SpreadsheetColumnData[];
-    onEditCell: EditCellHandler;
-    onHighlightRow: HighlightRowHandler;
-    onUnhighlightRow: HighlightRowHandler;
-    onDeleteRow: DeleteRowHandler;
+interface SpreadsheetSettings extends BaseTableSettings {
+    service: SpreadsheetService;
 }
 
 function renderDeleteRowButton({
     rowKey,
     visible,
     onClick,
-}: DeleteRowButtonSettings) {
+}: DeleteSpreadsheetRowButton) {
     const visibility = visible ? "visible" : "hidden";
     return (
         <ToolTipWrapper label="Delete">
@@ -83,79 +65,101 @@ const DeleteRowButton = observer(renderDeleteRowButton);
 
 function renderSpreadsheetCell({
     rowIndex,
+    colIndex,
     colData,
-    value,
-    onChange,
-}: CellSettings) {
-    let className = "spreadsheet-data-cell";
+    data,
+    service,
+}: SpreadsheetCellSettings) {
+    let className = "spreadsheet-cell-data";
+    if (data.selected) className += " selected";
 
-    if (!colData.visible) return <Table.Td className={className + " hidden"} />;
+    let onClick: React.MouseEventHandler | undefined = undefined;
 
-    let field: ReactNode;
+    let field: ReactNode = data?.label ?? data.value;
 
-    if (colData.type == FieldType.TEXT)
-        field = (
-            <TextField
-                value={value}
-                onChange={(e) =>
-                    onChange(rowIndex, colData.key, e.currentTarget.value)
-                }
-                variant="unstyled"
-            />
-        );
-    else if (colData.type == FieldType.SELECT)
-        field = (
-            <SelectField
-                placeholder=""
-                clearable={false}
-                data={colData.options}
-                value={value}
-                onChange={(v) => onChange(rowIndex, colData.key, v)}
-                variant="unstyled"
-            />
-        );
-    else field = null;
+    if (data.editable) {
+        className += " compact";
 
-    return <Table.Td className={className}>{field}</Table.Td>;
+        if (colData.type === FieldType.TEXT) {
+            field = (
+                <TextField
+                    ref={service.editableCellField}
+                    value={data.value}
+                    onChange={(e) =>
+                        service.editCell(
+                            rowIndex,
+                            colIndex,
+                            e.currentTarget.value,
+                        )
+                    }
+                    onBlur={() =>
+                        service.toggleCellEditMode(rowIndex, colIndex, false)
+                    }
+                    variant="unstyled"
+                />
+            );
+        } else if (colData.type === FieldType.SELECT) {
+            field = (
+                <SelectField
+                    ref={service.editableCellField}
+                    placeholder=""
+                    clearable={false}
+                    data={colData.options}
+                    value={data.value}
+                    onChange={(v) => service.editCell(rowIndex, colIndex, v)}
+                    onBlur={() =>
+                        service.toggleCellEditMode(rowIndex, colIndex, false)
+                    }
+                    variant="unstyled"
+                />
+            );
+        }
+    } else
+        onClick = () => {
+            if (!data.selected) {
+                service.selectCell(rowIndex, colData.key);
+            } else {
+                service.toggleCellEditMode(rowIndex, colIndex, true);
+            }
+        };
+
+    return (
+        <Table.Td className={className} onClick={onClick}>
+            {field}
+        </Table.Td>
+    );
 }
 
 const SpreadsheetCell = observer(renderSpreadsheetCell);
 
-function renderSpreadsheetRow({
-    index,
-    data,
-    colData,
-    onEditCell,
-    onHighlightRow,
-    onUnhighlightRow,
-    onDeleteRow,
-}: RowSettings) {
-    const cells: ReactNode[] = colData.map((column, j) => {
-        const value = String(data.values[column.key]);
+function renderSpreadsheetRow({ index, service }: SpreadsheetRowSettings) {
+    const row = service.rowData[index];
+    const cells: ReactNode[] = service.columnData.map((col, j) => {
+        const cellData = row.cells[col.key];
         return (
             <SpreadsheetCell
-                key={`spreadsheet-cell-${data.key}-${column.key}`}
-                rowKey={data.key}
+                key={`spreadsheet-cell-${row.key}-${col.key}`}
                 rowIndex={index}
                 colIndex={j}
-                colData={column}
-                value={value}
-                onChange={onEditCell}
+                colData={col}
+                data={cellData}
+                service={service}
             />
         );
     });
 
     return (
         <Table.Tr
-            onMouseEnter={() => onHighlightRow(data.key)}
-            onMouseLeave={() => onUnhighlightRow(data.key)}
+            className="spreadsheet-row"
+            onMouseEnter={() => service.highlightRow(row.key)}
+            onMouseLeave={() => service.unhighlightRow(row.key)}
         >
             {cells}
-            <Table.Td className="spreadsheet-action-cell">
+            <Table.Td className="spreadsheet-cell-action">
                 <DeleteRowButton
-                    rowKey={data.key}
-                    visible={data.highlighted}
-                    onClick={onDeleteRow}
+                    rowKey={row.key}
+                    visible={row.highlighted}
+                    onClick={(rowKey) => service.deleteRow(rowKey)}
                 />
             </Table.Td>
         </Table.Tr>
@@ -164,45 +168,51 @@ function renderSpreadsheetRow({
 
 const SpreadsheetRow = observer(renderSpreadsheetRow);
 
-function renderSpreadsheet({
-    rowData,
-    columnData,
-    onEditCell,
-    onHighlightRow,
-    onUnhighlightRow,
-    onDeleteRow,
-    ...rest
-}: SpreadsheetSettings) {
-    const headers = columnData.map((column) => {
-        let className = "spreadsheet-data-cell";
-        if (!column.visible) className += " hidden";
-        return (
-            <Table.Th
-                key={`spreadsheet-header-${column.key}`}
-                className={className}
-            >
-                {column.label}
-            </Table.Th>
-        );
-    });
-    const actionHeader = <Table.Th key="spreadsheet-header-action" />;
+function renderSpreadsheet({ service, ...rest }: SpreadsheetSettings) {
+    const headers: ReactNode[] = [];
+    const columns: ReactNode[] = [];
 
-    const rows = rowData.map((row, i) => (
+    for (const colData of service.columnData) {
+        headers.push(
+            <Table.Th
+                key={`spreadsheet-header-${colData.key}`}
+                className="spreadsheet-cell-data"
+            >
+                {colData.label}
+            </Table.Th>,
+        );
+    }
+
+    const actionHeader = (
+        <Table.Th
+            key="spreadsheet-header-action"
+            className="spreadsheet-cell-action"
+        />
+    );
+    const actionColumn = (
+        <col span={headers.length + 1} className="spreadsheet-column-action" />
+    );
+
+    const rows = service.rowData.map((row, i) => (
         <SpreadsheetRow
             key={`spreadsheet-row-${row.key}`}
             index={i}
-            data={row}
-            colData={columnData}
-            onEditCell={onEditCell}
-            onHighlightRow={onHighlightRow}
-            onUnhighlightRow={onUnhighlightRow}
-            onDeleteRow={onDeleteRow}
+            service={service}
         />
     ));
 
     return (
         <Box className="spreadsheet" {...rest}>
-            <Table striped highlightOnHover withRowBorders={false}>
+            <Table
+                striped
+                highlightOnHover
+                withRowBorders={false}
+                layout="fixed"
+            >
+                <colgroup>
+                    {columns}
+                    {actionColumn}
+                </colgroup>
                 <Table.Thead>
                     <Table.Tr>
                         {headers}

@@ -14,9 +14,16 @@ export interface SuggestionData {
     value: any;
 }
 
+export interface SpreadsheetCellData {
+    label?: string;
+    value: string;
+    selected?: boolean;
+    editable?: boolean;
+}
+
 export interface SpreadsheetRowData {
     key: string;
-    values: { [key: string]: number | string };
+    cells: { [key: string]: SpreadsheetCellData };
     highlighted: boolean;
 }
 
@@ -25,7 +32,6 @@ export interface SpreadsheetColumnData {
     type: FieldType;
     label: string;
     options?: OptionData[];
-    visible: boolean;
 }
 
 export interface VerticalSelectionData extends BaseButtonSettings {

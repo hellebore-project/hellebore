@@ -5,18 +5,8 @@ import { Spreadsheet } from "@/shared/spreadsheet";
 
 function renderWordTable() {
     const service = getService();
-    const wordEditor = service.view.entityEditor.lexicon;
-
-    return (
-        <Spreadsheet
-            rowData={wordEditor.rowData}
-            columnData={wordEditor.columnData}
-            onEditCell={(i, k, v) => wordEditor.editCell(i, k, v)}
-            onHighlightRow={(k) => wordEditor.highlightWord(k)}
-            onUnhighlightRow={(k) => wordEditor.unhighlightWord(k)}
-            onDeleteRow={(k) => wordEditor.deleteWord(k)}
-        />
-    );
+    const spreadsheetManager = service.view.entityEditor.lexicon.spreadsheet;
+    return <Spreadsheet service={spreadsheetManager} />;
 }
 
 export const WordTable = observer(renderWordTable);

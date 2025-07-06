@@ -1,7 +1,7 @@
 import { TreeMethods } from "@minoru/react-dnd-treeview";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable, toJS } from "mobx";
-import { createRef, RefObject } from "react";
+import { createRef, RefObject, useEffect } from "react";
 
 import {
     EntityInfoResponse,
@@ -687,6 +687,18 @@ export class FileNavigator {
             console.error(
                 `Unable to move node ${node.id} to folder ${destFolderNodeId}.`,
             );
+    }
+
+    // HOOKS
+
+    hookEditableNodeEffect() {
+        const editableTextRef = this.editableTextField;
+        useEffect(() => {
+            if (editableTextRef?.current) {
+                // focus the text field once it has been added to the DOM
+                editableTextRef.current.focus();
+            }
+        }, [editableTextRef]);
     }
 }
 
