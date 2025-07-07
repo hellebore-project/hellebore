@@ -1,5 +1,5 @@
 import { screen, fireEvent } from "@testing-library/react";
-import { expect } from "vitest";
+import { expect, describe } from "vitest";
 
 import {
     WordType,
@@ -11,15 +11,19 @@ import {
 } from "@/interface";
 import { WordTable } from "@/panels/center/entity-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
-import { mockDeleteWord, mockGetWords } from "@tests/utils/mocks/word-manager";
+import {
+    mockDeleteWord,
+    mockGetWords,
+    mockUpsertWords,
+} from "@tests/utils/mocks/word-manager";
 import { render } from "@tests/utils/render";
 
-const createWordData = () => {
+const createWordData = (wordType: WordType = WordType.Noun) => {
     return {
         id: 1,
         language_id: 1,
-        word_type: WordType.Noun,
-        spelling: "testword",
+        word_type: wordType,
+        spelling: "test-word",
         number: GrammaticalNumber.Singular,
         person: GrammaticalPerson.First,
         gender: GrammaticalGender.Masculine,
@@ -29,30 +33,93 @@ const createWordData = () => {
     };
 };
 
-test("renders WordTable with correct columns and rows", async ({ service }) => {
+describe("headers", () => {
+    for (const { case_, wordType, headers } of [
+        {
+            case_: "root word",
+            wordType: WordType.RootWord,
+            headers: ["Spelling", "Translations"],
+        },
+        {
+            case_: "preposition",
+            wordType: WordType.Preposition,
+            headers: ["Spelling", "Translations"],
+        },
+        {
+            case_: "conjunction",
+            wordType: WordType.Conjunction,
+            headers: ["Spelling", "Translations"],
+        },
+        {
+            case_: "article",
+            wordType: WordType.Article,
+            headers: ["Spelling", "Translations", "Gender", "Number"],
+        },
+        {
+            case_: "pronoun",
+            wordType: WordType.Pronoun,
+            headers: ["Spelling", "Translations", "Gender", "Person", "Number"],
+        },
+        {
+            case_: "noun",
+            wordType: WordType.Noun,
+            headers: ["Spelling", "Translations", "Gender"],
+        },
+        {
+            case_: "adjective",
+            wordType: WordType.Adjective,
+            headers: ["Spelling", "Translations"],
+        },
+        {
+            case_: "adverb",
+            wordType: WordType.Adverb,
+            headers: ["Spelling", "Translations"],
+        },
+        {
+            case_: "verb",
+            wordType: WordType.Verb,
+            headers: ["Spelling", "Translations"],
+        },
+    ]) {
+        test(`renders ${case_} table with correct columns`, async ({
+            service,
+        }) => {
+            const word = createWordData(wordType);
+            mockGetWords(service.domain.words, [word]);
+
+            const wordEditor = service.view.entityEditor.lexicon;
+            await wordEditor.initialize(1, word.word_type);
+
+            render(<WordTable />);
+
+            // Check column headers
+            for (const header of headers)
+                expect(screen.getByText(header)).toBeTruthy();
+        });
+    }
+});
+
+test("renders WordTable with correct rows", async ({ service }) => {
     const word = createWordData();
     mockGetWords(service.domain.words, [word]);
 
     const wordEditor = service.view.entityEditor.lexicon;
-    await wordEditor.initialize(1, WordType.Noun);
+    await wordEditor.initialize(1, word.word_type);
 
     render(<WordTable />);
-
-    // Check column headers
-    expect(screen.getByText("Spelling")).toBeTruthy();
-    expect(screen.getByText("Translations")).toBeTruthy();
 
     // Check row content
     expect(screen.getByText(word.spelling)).toBeTruthy();
     expect(screen.getByText(word.translations[0])).toBeTruthy();
 });
 
-test("can edit a cell in WordTable", async ({ service }) => {
+test("can edit a text cell in WordTable", async ({ service }) => {
     const word = createWordData();
+
+    mockUpsertWords(service.domain.words);
     mockGetWords(service.domain.words, [word]);
 
-    const wordEditor = service.view.entityEditor.lexicon;
-    await wordEditor.initialize(1, WordType.Noun);
+    await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
     render(<WordTable />);
 
@@ -73,16 +140,57 @@ test("can edit a cell in WordTable", async ({ service }) => {
     const otherCell = screen.getByText(word.translations[0]);
     fireEvent.click(otherCell);
 
-    expect(wordEditor.getWord("1").spelling).toBe("edited");
+    expect(service.view.entityEditor.lexicon["_words"]["1"].spelling).toBe(
+        "edited",
+    );
     expect(screen.getByText("edited")).toBeTruthy();
 });
 
+test("can edit a select cell in WordTable", async ({ service }) => {
+    const word = createWordData();
+    word.gender = GrammaticalGender.Masculine;
+
+    mockUpsertWords(service.domain.words);
+    mockGetWords(service.domain.words, [word]);
+
+    await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+
+    render(<WordTable />);
+
+    const cell = screen.getByText("Masculine");
+
+    // click the cell to select it
+    fireEvent.click(cell);
+
+    // click the cell again to toggle edit mode
+    fireEvent.click(cell);
+
+    const genderInput = screen.getByDisplayValue(word.gender);
+
+    // edit the cell value
+    fireEvent.change(genderInput, {
+        target: { value: GrammaticalGender.Feminine },
+    });
+
+    // select another cell to deselect the first cell
+    const otherCell = screen.getByText(word.translations[0]);
+    fireEvent.click(otherCell);
+
+    // FIXME
+    expect(service.view.entityEditor.lexicon["_words"]["1"].gender).toBe(
+        GrammaticalGender.Feminine,
+    );
+    expect(screen.getByText("Feminine")).toBeTruthy();
+});
+
 test("can delete a row in WordTable", async ({ service }) => {
-    mockGetWords(service.domain.words, [createWordData()]);
+    const word = createWordData();
+
+    mockGetWords(service.domain.words, [word]);
     mockDeleteWord(service.domain.words);
 
     const wordEditor = service.view.entityEditor.lexicon;
-    await wordEditor.initialize(1, WordType.Noun);
+    await wordEditor.initialize(1, word.word_type);
 
     const row = wordEditor.spreadsheet["_rowData"][0];
     row.highlighted = true;
@@ -94,5 +202,5 @@ test("can delete a row in WordTable", async ({ service }) => {
     const deleteBtn = screen.getByRole("button");
     fireEvent.click(deleteBtn);
 
-    expect(wordEditor.getWord("1")).toBeUndefined();
+    expect(wordEditor["_words"]["1"]).toBeUndefined();
 });

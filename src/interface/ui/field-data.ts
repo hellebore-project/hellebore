@@ -31,6 +31,7 @@ export interface SpreadsheetCellData {
     oldValue?: string;
     selected?: boolean;
     editable?: boolean;
+    finalEdit?: boolean;
 }
 
 export interface SpreadsheetRowData {
@@ -43,6 +44,7 @@ export interface SpreadsheetColumnData {
     key: string;
     type: FieldType;
     label: string;
+    defaultValue?: string;
     options?: OptionData[];
 }
 

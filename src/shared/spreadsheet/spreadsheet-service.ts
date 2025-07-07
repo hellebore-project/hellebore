@@ -105,6 +105,8 @@ export class SpreadsheetService {
     ) {
         this._rowData = rowData;
         this._columnData = columnData;
+        this._selection = null;
+        this._editableCellData = null;
     }
 
     // ROWS
@@ -122,8 +124,6 @@ export class SpreadsheetService {
         }
     }
 
-    // ROW HIGHLIGHTING
-
     highlightRow(rowKey: string) {
         const row = this._rowData.find((r) => r.key === rowKey);
         if (row) {
@@ -136,7 +136,13 @@ export class SpreadsheetService {
         if (row) row.highlighted = false;
     }
 
-    // CELL RETRIEVAL
+    // COLUMNS
+
+    getColumnData(colIndex: number) {
+        return this._columnData[colIndex];
+    }
+
+    // CELLS
 
     getCell(rowIndex: number, colIndex: number) {
         if (!this.sheet.current) return null;
@@ -193,6 +199,8 @@ export class SpreadsheetService {
         if (row1 + rowChange < 0) this._scrollToTop();
 
         this.selectCell(i, j);
+
+        this.focus();
     }
 
     // CELL EDITING
@@ -205,8 +213,20 @@ export class SpreadsheetService {
         const row = this._rowData[rowIndex];
         const col = this._columnData[colIndex];
         if (!row || !col) return;
-        row.cells[col.key].value = String(value ?? "");
+
+        const cell = row.cells[col.key];
+
+        cell.value = String(value ?? "");
+
+        if (col.type == FieldType.SELECT && col.options) {
+            // TODO: cache this
+            const option = col.options.filter((o) => o.value == value)[0];
+            cell.label = option.label;
+        }
+
         if (this._onEditCell) this._onEditCell(row.key, col.key, value);
+
+        if (cell.finalEdit) this.finalizeCellEditing(rowIndex, colIndex);
     }
 
     private _restoreCellValue(
@@ -239,9 +259,15 @@ export class SpreadsheetService {
             this._editableCellData = null;
             this._editableCellField = null;
             delete cell.oldValue;
+            delete cell.finalEdit;
         }
 
         cell.editable = editable;
+    }
+
+    finalizeCellEditing(rowIndex: number, colIndex: number) {
+        this.toggleCellEditMode(rowIndex, colIndex, false);
+        this.moveSelection(1, 0); // move selection down by 1 row
     }
 
     // FOCUS
@@ -277,62 +303,115 @@ export class SpreadsheetService {
     // KEYBOARD
 
     handleKeyDown(event: React.KeyboardEvent) {
-        const handled = this._handleKeyDown(event);
-        if (handled) {
+        console.log("handling key down");
+        const propagate = this._handleKeyDown(event);
+        if (!propagate) {
             event.preventDefault();
             event.stopPropagation();
         }
     }
 
     private _handleKeyDown(event: React.KeyboardEvent) {
-        if (!this._selection) return false;
+        if (!this._selection) return true;
 
         const { row1: rowIndex, col1: colIndex } = this._selection;
         const cell = this.getCellData(rowIndex, colIndex);
 
-        if (event.key === "Enter") {
-            if (!cell.editable) {
-                this.toggleCellEditMode(rowIndex, colIndex, true);
-                // Do NOT change focus to spreadsheet container
-                return true;
-            } else {
-                this.toggleCellEditMode(rowIndex, colIndex, false);
-                this.moveSelection(1, 0); // move selection down by 1 row
-                // Focus spreadsheet container after edit
-                this.focus();
-                return true;
-            }
-        }
+        if (cell.editable)
+            return this._handleKeyDownForEditableCell(
+                event,
+                cell,
+                rowIndex,
+                colIndex,
+            );
+        else
+            return this._handleKeyDownForReadOnlyCell(
+                event,
+                rowIndex,
+                colIndex,
+            );
+    }
 
-        if (event.key === "Escape") {
-            if (cell.editable) {
-                // Restore original value
-                this._restoreCellValue(rowIndex, colIndex, cell);
-                this.toggleCellEditMode(rowIndex, colIndex, false);
-                // Focus spreadsheet container after edit
-                this.focus();
-                return true;
-            }
+    private _handleKeyDownForReadOnlyCell(
+        event: React.KeyboardEvent,
+        rowIndex: number,
+        colIndex: number,
+    ) {
+        if (event.key === "Enter") {
+            this.toggleCellEditMode(rowIndex, colIndex, true);
+            // Do NOT change focus to spreadsheet container
+            return false;
+        } else if (event.key === "ArrowDown") {
+            this.moveSelection(1, 0);
+            return false;
+        } else if (event.key === "ArrowUp") {
+            this.moveSelection(-1, 0);
+            return false;
+        } else if (event.key === "ArrowLeft") {
+            this.moveSelection(0, -1);
+            return false;
+        } else if (event.key === "ArrowRight") {
+            this.moveSelection(0, 1);
             return false;
         }
 
-        if (event.key === "ArrowDown") {
+        return true;
+    }
+
+    private _handleKeyDownForEditableCell(
+        event: React.KeyboardEvent,
+        cell: SpreadsheetCellData,
+        rowIndex: number,
+        colIndex: number,
+    ) {
+        const col = this.getColumnData(colIndex);
+
+        if (event.key === "Enter") {
+            this.finalizeCellEditing(rowIndex, colIndex);
+            return false;
+        } else if (event.key === "Escape") {
+            // Restore original value
+            this._restoreCellValue(rowIndex, colIndex, cell);
+            this.toggleCellEditMode(rowIndex, colIndex, false);
+            // Focus spreadsheet container after edit
+            this.focus();
+
+            return false;
+        } else if (event.key === "ArrowDown") {
+            if (col.type == FieldType.SELECT)
+                // don't handle when a select field is being edited
+                return true;
+
             this.moveSelection(1, 0);
-            this.focus();
-            return true;
+
+            return false;
         } else if (event.key === "ArrowUp") {
+            if (col.type == FieldType.SELECT)
+                // don't handle when a select field is being edited
+                return true;
+
             this.moveSelection(-1, 0);
-            this.focus();
-            return true;
+
+            return false;
         } else if (event.key === "ArrowLeft") {
+            if (col.type == FieldType.TEXT)
+                // don't handle when a text field is being edited
+                return true;
+
             this.moveSelection(0, -1);
-            this.focus();
-            return true;
+
+            return false;
         } else if (event.key === "ArrowRight") {
+            if (col.type == FieldType.TEXT)
+                // don't handle when a text field is being edited
+                return true;
+
             this.moveSelection(0, 1);
-            this.focus();
-            return true;
+
+            return false;
         }
+
+        return true;
     }
 
     // HOOKS

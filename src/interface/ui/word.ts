@@ -13,7 +13,7 @@ export interface WordData extends BaseWordData {
     updated?: boolean;
 }
 
-export enum WordTableColumnName {
+export enum WordTableColumnKey {
     Spelling = "spelling",
     Number = "number",
     Person = "person",

@@ -12,7 +12,7 @@ import {
     WordType,
     EntityChangeHandler,
     WordViewKey,
-    WordTableColumnName as WordTableColumnKey,
+    WordTableColumnKey,
     SpreadsheetRowData,
     SpreadsheetColumnData,
     FieldType,
@@ -58,31 +58,34 @@ const COLUMN_ORDER = [
 const COLUMN_DATA_MAPPING = {
     [WordTableColumnKey.Spelling]: {
         key: WordTableColumnKey.Spelling,
-        label: "Spelling",
         type: FieldType.TEXT,
+        label: "Spelling",
     },
     [WordTableColumnKey.Translations]: {
         key: WordTableColumnKey.Translations,
-        label: "Translations",
         type: FieldType.TEXT,
+        label: "Translations",
     },
     [WordTableColumnKey.Gender]: {
         key: WordTableColumnKey.Gender,
-        label: "Gender",
         type: FieldType.SELECT,
+        label: "Gender",
         options: GRAMMATICAL_GENDERS,
+        defaultValue: String(GrammaticalGender.None),
     },
     [WordTableColumnKey.Number]: {
         key: WordTableColumnKey.Number,
-        label: "Number",
         type: FieldType.SELECT,
+        label: "Number",
         options: GRAMMATICAL_NUMBERS,
+        defaultValue: String(GrammaticalNumber.None),
     },
     [WordTableColumnKey.Person]: {
         key: WordTableColumnKey.Person,
-        label: "Person",
         type: FieldType.SELECT,
+        label: "Person",
         options: GRAMMATICAL_PERSONS,
+        defaultValue: String(GrammaticalPerson.None),
     },
 };
 
@@ -263,17 +266,9 @@ export class WordEditor {
 
     // WORD EDITING
 
-    getWord(key: WordKey) {
-        return this._words[key];
-    }
-
     setSpelling(key: WordKey, spelling: string) {
         this._words[key].spelling = spelling;
         this._onChangeWord(key);
-    }
-
-    getTranslations(key: WordKey) {
-        return this._words[key].rawTranslations;
     }
 
     setTranslations(key: WordKey, rawTranslations: string) {
@@ -281,26 +276,14 @@ export class WordEditor {
         this._onChangeWord(key);
     }
 
-    getNumber(key: WordKey) {
-        return String(this.getWord(key).number);
-    }
-
     setNumber(key: WordKey, number_: number) {
         this._words[key].number = number_;
         this._onChangeWord(key);
     }
 
-    getGender(key: WordKey) {
-        return String(this.getWord(key).gender);
-    }
-
     setGender(key: WordKey, gender: number) {
         this._words[key].gender = gender;
         this._onChangeWord(key);
-    }
-
-    getPerson(key: WordKey) {
-        return String(this.getWord(key).person);
     }
 
     setPerson(key: WordKey, person: number) {
