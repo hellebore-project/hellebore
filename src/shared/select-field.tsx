@@ -1,3 +1,4 @@
+import { getService } from "@/services";
 import { Select, SelectProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { forwardRef } from "react";
@@ -13,11 +14,17 @@ const renderSelectField = forwardRef<HTMLInputElement, SelectFieldSettings>(
             getValue,
             placeholder = "Select a value",
             clearable = true,
+            comboboxProps,
             ...rest
         },
         ref,
     ) => {
+        const service = getService();
         const _value = value ?? getValue?.() ?? undefined;
+        comboboxProps = {
+            portalProps: { target: service.view.sharedPortalSelector },
+            ...(comboboxProps ?? {}),
+        };
         return (
             <Select
                 ref={ref}
@@ -25,6 +32,7 @@ const renderSelectField = forwardRef<HTMLInputElement, SelectFieldSettings>(
                 value={_value}
                 allowDeselect
                 clearable={clearable}
+                comboboxProps={comboboxProps}
                 {...rest}
             />
         );

@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { expect } from "vitest";
 
 import { Home } from "@/panels/center/home";
@@ -15,7 +15,7 @@ test("can render the home view", async ({ service, project }) => {
     expect(titleInput).toBeTruthy();
 });
 
-test("can edit the project name", async ({ service, project }) => {
+test("can edit the project name", async ({ user, service, project }) => {
     const spy = mockUpdateProject({
         manager: service.domain.session,
         id: project.id,
@@ -28,11 +28,13 @@ test("can edit the project name", async ({ service, project }) => {
     let titleInput = screen.getByDisplayValue(project.name);
     expect(titleInput).toBeTruthy();
 
-    fireEvent.change(titleInput, { target: { value: "edited" } });
+    await user.click(titleInput);
+    await user.keyboard("[Backspace>14/]");
+    await user.keyboard("edited");
 
     titleInput = screen.getByDisplayValue("edited");
     expect(titleInput).toBeTruthy();
 
     expect(service.view.home.projectName).toBe("edited");
-    expect(spy).toHaveBeenCalledExactlyOnceWith("edited");
+    expect(spy).toHaveBeenCalledWith("edited");
 });

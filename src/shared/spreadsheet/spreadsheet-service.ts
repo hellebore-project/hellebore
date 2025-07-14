@@ -303,7 +303,6 @@ export class SpreadsheetService {
     // KEYBOARD
 
     handleKeyDown(event: React.KeyboardEvent) {
-        console.log("handling key down");
         const propagate = this._handleKeyDown(event);
         if (!propagate) {
             event.preventDefault();
@@ -370,8 +369,9 @@ export class SpreadsheetService {
             this.finalizeCellEditing(rowIndex, colIndex);
             return false;
         } else if (event.key === "Escape") {
-            // Restore original value
-            this._restoreCellValue(rowIndex, colIndex, cell);
+            if (col.type == FieldType.TEXT)
+                // Restore original value
+                this._restoreCellValue(rowIndex, colIndex, cell);
             this.toggleCellEditMode(rowIndex, colIndex, false);
             // Focus spreadsheet container after edit
             this.focus();

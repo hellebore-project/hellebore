@@ -109,9 +109,9 @@ function renderSpreadsheetCell({
                     value={data.value}
                     defaultValue={colData.defaultValue}
                     onChange={(v) => service.editCell(rowIndex, colIndex, v)}
-                    onBlur={() =>
-                        service.toggleCellEditMode(rowIndex, colIndex, false)
-                    }
+                    // onBlur={() =>
+                    //     service.toggleCellEditMode(rowIndex, colIndex, false)
+                    // }
                     variant="unstyled"
                 />
             );

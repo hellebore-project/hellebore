@@ -21,6 +21,7 @@ function renderProjectLoader() {
             title="New project"
             opened={service.view.currentModal == ModalKey.ProjectCreator}
             onClose={() => service.view.closeModal()}
+            portalProps={{ target: service.view.sharedPortalSelector }}
         >
             <Container size="xs">
                 <form onSubmit={onSubmit}>

@@ -21,7 +21,12 @@ function renderTitleField() {
 
     return (
         <>
-            <Popover opened={Boolean(error)} position="right" withArrow>
+            <Popover
+                opened={Boolean(error)}
+                position="right"
+                withArrow
+                portalProps={{ target: service.view.sharedPortalSelector }}
+            >
                 <Popover.Target>
                     <TextField
                         className={className}
