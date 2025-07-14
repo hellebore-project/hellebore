@@ -9,12 +9,11 @@ export interface WordData extends BaseWordData {
     id: Id | null;
     key: WordKey;
     rawTranslations: string;
-    highlighted?: boolean | null;
     created?: boolean;
     updated?: boolean;
 }
 
-export enum WordTableColumnName {
+export enum WordTableColumnKey {
     Spelling = "spelling",
     Number = "number",
     Person = "person",

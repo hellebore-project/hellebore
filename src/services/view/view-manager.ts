@@ -30,6 +30,7 @@ export class ViewManager implements ViewManagerInterface {
     MAIN_PADDING = 20;
     DEFAULT_DIVIDER_HEIGHT = 24.8;
     DEFAULT_SPACE_HEIGHT = 20;
+    SHARED_PORTAL_ID = "shared-portal";
 
     // state variables
     _viewKey: ViewKey = ViewKey.Home;
@@ -117,6 +118,14 @@ export class ViewManager implements ViewManagerInterface {
 
     get defaultSpaceHeight() {
         return this.DEFAULT_SPACE_HEIGHT;
+    }
+
+    get sharedPortalId() {
+        return this.SHARED_PORTAL_ID;
+    }
+
+    get sharedPortalSelector() {
+        return `#${this.sharedPortalId}`;
     }
 
     get currentView() {

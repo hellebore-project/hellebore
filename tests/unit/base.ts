@@ -1,3 +1,4 @@
+import userEvent, { UserEvent } from "@testing-library/user-event";
 import { test as baseTest } from "vitest";
 
 import { AppManager } from "@/services/app-manager";
@@ -17,7 +18,8 @@ export interface BaseUnitFixtures {
     entities: EntityInfoResponse[];
     folders: FolderResponse[];
     service: AppManager;
-    cleanup: null;
+    user: UserEvent;
+    setup: null;
 }
 
 export const test = baseTest.extend<BaseUnitFixtures>({
@@ -49,8 +51,15 @@ export const test = baseTest.extend<BaseUnitFixtures>({
         },
         { auto: true },
     ],
-    cleanup: [
+    user: [
         async ({}, use) => {
+            await use(userEvent.setup());
+        },
+        { auto: true },
+    ],
+    setup: [
+        async ({ user }, use) => {
+            user; // instantiate the user during setup
             await use(null);
             cleanup();
         },

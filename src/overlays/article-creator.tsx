@@ -38,6 +38,7 @@ function renderArticleCreator() {
             title="Create a new article"
             opened={service.view.currentModal == ModalKey.ArticleCreator}
             onClose={() => service.view.closeModal()}
+            portalProps={{ target: service.view.sharedPortalSelector }}
         >
             <Container size="xs">
                 <form onSubmit={onSubmit}>

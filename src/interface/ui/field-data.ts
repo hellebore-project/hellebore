@@ -14,11 +14,24 @@ export interface SuggestionData {
     value: any;
 }
 
+export interface SpreadsheetSelection {
+    row1: number;
+    col1: number;
+}
+
+export interface SpreadsheetCellPosition {
+    row: number;
+    col: number;
+}
+
 export interface SpreadsheetCellData {
+    position?: SpreadsheetCellPosition;
     label?: string;
     value: string;
+    oldValue?: string;
     selected?: boolean;
     editable?: boolean;
+    finalEdit?: boolean;
 }
 
 export interface SpreadsheetRowData {
@@ -31,6 +44,7 @@ export interface SpreadsheetColumnData {
     key: string;
     type: FieldType;
     label: string;
+    defaultValue?: string;
     options?: OptionData[];
 }
 
