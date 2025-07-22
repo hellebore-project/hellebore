@@ -1,13 +1,13 @@
 # Hellebore
 
-Self-hosted desktop app for world-building.
+Hellebore is a self-hosted desktop app that helps creatives track their fictional settings. Great for DMs and writers.
 
 ## Local Development
 
 ### Dependencies
 
-The following dependencies need to be installed manually for local development.
-
+-   rust: https://www.rust-lang.org/tools/install
+-   pnpm: https://pnpm.io/installation
 -   sqlite 3: https://www.sqlite.org/download.html
 
 ### Setup
@@ -46,12 +46,12 @@ DATABASE_URL="sqlite://src-tauri/data/db.sqlite?mode=rwc"
 pnpm run dev
 ```
 
-### Entity Generation
+### DB Entity Generation
 
-After running the migrations, run the following command:
+To regenerate the DB entity models, run the following:
 
 ```sh
-pnpm run generate:entities
+pnpm run build:entities
 ```
 
 ### Troubleshooting
