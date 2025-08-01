@@ -1,21 +1,21 @@
-import "./outside-click-handler.css";
+import "./outside-event-handler.css";
 
 import { observer } from "mobx-react-lite";
 import { HTMLAttributes, PropsWithChildren, useEffect } from "react";
 
-import { OutsideClickHandlerService } from "./outside-click-handler-service";
+import { OutsideEventHandlerService } from "./outside-event-handler.service";
 
-interface OutsideClickHandlerSettings extends HTMLAttributes<HTMLDivElement> {
-    service: OutsideClickHandlerService;
+interface OutsideEventHandlerSettings extends HTMLAttributes<HTMLDivElement> {
+    service: OutsideEventHandlerService;
 }
 
-function renderOutsideClickHandler({
+function renderOutsideEventHandler({
     service,
     children,
     className = "",
     style,
     ...rest
-}: PropsWithChildren<OutsideClickHandlerSettings>) {
+}: PropsWithChildren<OutsideEventHandlerSettings>) {
     useEffect(() => {
         if (service.enabled) {
             service.addMouseDownEventListener(service.capture);
@@ -32,7 +32,7 @@ function renderOutsideClickHandler({
 
     return (
         <div
-            className={`outside-click-handler ${className}`}
+            className={`outside-event-handler ${className}`}
             ref={service.node}
             style={style}
             {...rest}
@@ -42,4 +42,4 @@ function renderOutsideClickHandler({
     );
 }
 
-export const OutsideClickHandler = observer(renderOutsideClickHandler);
+export const OutsideEventHandler = observer(renderOutsideEventHandler);

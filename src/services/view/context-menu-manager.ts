@@ -6,7 +6,7 @@ import {
     Point,
     VerticalSelectionData,
 } from "@/interface";
-import { OutsideClickHandlerService } from "@/shared/outside-click-handler";
+import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { ViewManagerInterface } from "./interface";
 
 export interface OpenArguments {
@@ -57,19 +57,19 @@ export class ContextMenuManager {
 
     view: ViewManagerInterface;
     articleNavigator: ArticleNavigatorContextMenuManager;
-    outsideClickHandler: OutsideClickHandlerService;
+    outsideEventHandler: OutsideEventHandlerService;
 
     constructor(view: ViewManagerInterface) {
         makeAutoObservable(this, {
             view: false,
             articleNavigator: false,
             menuData: false,
-            outsideClickHandler: false,
+            outsideEventHandler: false,
         });
         this.view = view;
         this.articleNavigator = new ArticleNavigatorContextMenuManager();
-        this.outsideClickHandler = new OutsideClickHandlerService({
-            onOutsideClick: () => this.close(),
+        this.outsideEventHandler = new OutsideEventHandlerService({
+            onOutsideEvent: () => this.close(),
             enabled: false,
         });
         this.menuData = this._generateMenuDataMapping();
@@ -108,7 +108,7 @@ export class ContextMenuManager {
     }
 
     close() {
-        this.outsideClickHandler.enabled = false;
+        this.outsideEventHandler.enabled = false;
         this.reset();
     }
 
@@ -123,7 +123,7 @@ export class ContextMenuManager {
         this.position = position;
         this.articleNavigator.id = id;
         this.articleNavigator.nodeId = nodeId;
-        this.outsideClickHandler.enabled = true;
+        this.outsideEventHandler.enabled = true;
     }
 
     private _generateMenuDataMapping() {

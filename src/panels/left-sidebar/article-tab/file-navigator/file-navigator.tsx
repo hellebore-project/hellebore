@@ -9,7 +9,7 @@ import {
     Tree,
 } from "@minoru/react-dnd-treeview";
 import { observer } from "mobx-react-lite";
-import { MouseEvent, useEffect } from "react";
+import { MouseEvent } from "react";
 import { DndProvider } from "react-dnd";
 
 import {
@@ -20,7 +20,7 @@ import {
 } from "@/interface";
 import { getService } from "@/services";
 import { NavItem, NavItemTextSettings } from "@/shared/nav-item/nav-item";
-import { OutsideClickHandler } from "@/shared/outside-click-handler";
+import { OutsideEventHandler } from "@/shared/outside-event-handler";
 
 interface FileNavItemSettings extends BaseGroupSettings {
     node: FileNodeModel;
@@ -185,9 +185,9 @@ function renderFileNavigator({}: FileNavigatorSettings) {
 
     return (
         <>
-            <OutsideClickHandler
+            <OutsideEventHandler
                 className="file-navigator"
-                service={fileNav.outsideClickHandler}
+                service={fileNav.outsideEventHandler}
                 onClick={() => {
                     fileNav.selectedNode = null;
                     fileNav.focused = true;
@@ -219,7 +219,7 @@ function renderFileNavigator({}: FileNavigatorSettings) {
                         tree={data}
                     />
                 </DndProvider>
-            </OutsideClickHandler>
+            </OutsideEventHandler>
             <FileNavErrorPopover />
         </>
     );

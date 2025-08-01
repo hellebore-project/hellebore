@@ -5,7 +5,7 @@ import { SyntheticEvent } from "react";
 
 import { VerticalSelectionData } from "@/interface";
 import { getService } from "@/services";
-import { OutsideClickHandler } from "@/shared/outside-click-handler";
+import { OutsideEventHandler } from "@/shared/outside-event-handler";
 import { VerticalSelection } from "@/shared/vertical-selection";
 
 function renderContextMenu() {
@@ -25,9 +25,9 @@ function renderContextMenu() {
     };
 
     return (
-        <OutsideClickHandler
+        <OutsideEventHandler
             id="context-menu"
-            service={contextMenuService.outsideClickHandler}
+            service={contextMenuService.outsideEventHandler}
         >
             <VerticalSelection
                 className="context-menu-selection"
@@ -56,7 +56,7 @@ function renderContextMenu() {
                 getSelectedIndex={() => contextMenuService.selectedIndex}
                 onConfirm={onConfirm}
             />
-        </OutsideClickHandler>
+        </OutsideEventHandler>
     );
 }
 
