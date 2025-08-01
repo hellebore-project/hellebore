@@ -6,9 +6,9 @@ Hellebore is a self-hosted desktop app that helps creatives track their fictiona
 
 ### Dependencies
 
--   rust: https://www.rust-lang.org/tools/install
--   pnpm: https://pnpm.io/installation
--   sqlite 3: https://www.sqlite.org/download.html
+- rust: https://www.rust-lang.org/tools/install
+- pnpm: https://pnpm.io/installation
+- sqlite 3: https://www.sqlite.org/download.html
 
 ### Setup
 
@@ -59,10 +59,6 @@ pnpm run build:entities
 #### File navigator drag and drop not working
 
 On Windows systems, the `dragDropEnabled` option in the tauri config must be set to `false` in order to use drag and drop on the frontend.
-
-#### Dev server slowdown at start-up
-
-Version 3.19 of `tabler/icons-react` causes a dramatic slowdown during startup in dev mode ([issue](https://github.com/tabler/tabler-icons/issues/1233)).
 
 #### Dev server loading old source code
 
