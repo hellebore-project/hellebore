@@ -14,7 +14,7 @@ import {
 } from "@/interface";
 import { Counter } from "@/utils/counter";
 import { ViewManagerInterface } from "../interface";
-import { OutsideClickHandlerService } from "@/shared/outside-click-handler";
+import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { NavigatorErrorManager } from "./navigator-error-manager";
 
 type PrivateKeys = "_nodePositionCache" | "_tree";
@@ -39,7 +39,7 @@ export class FileNavigator {
     private _editableTextField: RefObject<HTMLInputElement> | null = null;
 
     _placeholderIdGenerator: Counter;
-    outsideClickHandler: OutsideClickHandlerService;
+    outsideEventHandler: OutsideEventHandlerService;
     errorManager: NavigatorErrorManager;
     view: ViewManagerInterface;
 
@@ -48,7 +48,7 @@ export class FileNavigator {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
             _tree: false,
-            outsideClickHandler: false,
+            outsideEventHandler: false,
             errorManager: false,
             view: false,
         });
@@ -59,8 +59,8 @@ export class FileNavigator {
         this._tree = createRef();
 
         this._placeholderIdGenerator = new Counter();
-        this.outsideClickHandler = new OutsideClickHandlerService({
-            onOutsideClick: () => {
+        this.outsideEventHandler = new OutsideEventHandlerService({
+            onOutsideEvent: () => {
                 this.focused = false;
                 this.selectedNode = null;
             },

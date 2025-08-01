@@ -4,29 +4,29 @@ import { addEventListener } from "consolidated-events";
 type StateEventHandler = () => void;
 type RemoveEventListener = () => void;
 
-export class OutsideClickHandlerService {
+export class OutsideEventHandlerService {
     node: RefObject<HTMLDivElement>;
 
     capture: boolean;
     enabled: boolean;
 
-    onOutsideClick: (e: Event) => void;
+    onOutsideEvent: (e: Event) => void;
     onEnable: StateEventHandler | null = null;
     onDisable: StateEventHandler | null = null;
     removeMouseDown: RemoveEventListener | null = null;
     removeMouseUp: RemoveEventListener | null = null;
 
     constructor({
-        onOutsideClick,
+        onOutsideEvent,
         capture = true,
         enabled = true,
     }: {
-        onOutsideClick: (e: Event) => void;
+        onOutsideEvent: (e: Event) => void;
         capture?: boolean;
         enabled?: boolean;
     }) {
         this.node = createRef();
-        this.onOutsideClick = onOutsideClick;
+        this.onOutsideEvent = onOutsideEvent;
         this.capture = capture;
         this.enabled = enabled;
         this.onMouseDown = this.onMouseDown.bind(this);
@@ -64,7 +64,7 @@ export class OutsideClickHandlerService {
         }
 
         if (!this.isDescendant(e.target as Node)) {
-            this.onOutsideClick(e);
+            this.onOutsideEvent(e);
         }
     }
 

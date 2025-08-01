@@ -14,7 +14,7 @@ import {
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
 import { ToolTipWrapper } from "@/shared/tool-tip";
-import { SpreadsheetService } from "./spreadsheet-service";
+import { SpreadsheetService } from "./spreadsheet.service";
 
 interface SpreadsheetCellSettings {
     rowIndex: number;
