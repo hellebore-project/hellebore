@@ -1,16 +1,16 @@
 import "./spreadsheet.css";
 
-import { ActionIcon, Box, Table } from "@mantine/core";
+import { ActionIcon, Table } from "@mantine/core";
 import { IconCircleMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
-import { ReactNode, useEffect, useRef } from "react";
+import { HTMLAttributes, ReactNode } from "react";
 
 import {
-    BaseTableSettings,
     FieldType,
     SpreadsheetCellData,
     SpreadsheetColumnData,
 } from "@/interface";
+import { OutsideEventHandler } from "@/shared/outside-event-handler";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
 import { ToolTipWrapper } from "@/shared/tool-tip";
@@ -35,7 +35,7 @@ interface SpreadsheetRowSettings {
     service: SpreadsheetService;
 }
 
-interface SpreadsheetSettings extends BaseTableSettings {
+interface SpreadsheetSettings extends HTMLAttributes<HTMLDivElement> {
     service: SpreadsheetService;
 }
 
@@ -109,9 +109,6 @@ function renderSpreadsheetCell({
                     value={data.value}
                     defaultValue={colData.defaultValue}
                     onChange={(v) => service.editCell(rowIndex, colIndex, v)}
-                    // onBlur={() =>
-                    //     service.toggleCellEditMode(rowIndex, colIndex, false)
-                    // }
                     variant="unstyled"
                 />
             );
@@ -204,9 +201,9 @@ function renderSpreadsheet({ service, ...rest }: SpreadsheetSettings) {
     ));
 
     return (
-        <Box
+        <OutsideEventHandler
             className="spreadsheet"
-            ref={service.sheet}
+            service={service.outsideEventHandler}
             tabIndex={0}
             onKeyDown={(e) => service.handleKeyDown(e)}
             {...rest}
@@ -226,7 +223,7 @@ function renderSpreadsheet({ service, ...rest }: SpreadsheetSettings) {
                 </Table.Thead>
                 <Table.Tbody>{rows}</Table.Tbody>
             </Table>
-        </Box>
+        </OutsideEventHandler>
     );
 }
 

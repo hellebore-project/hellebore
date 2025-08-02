@@ -8,6 +8,7 @@ import {
     SpreadsheetSelection,
     SpreadsheetCellData,
 } from "@/interface";
+import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { isFullyContained } from "@/utils/math-utils";
 
 type PrivateKeys =
@@ -36,6 +37,7 @@ export class SpreadsheetService {
     private _columnData: SpreadsheetColumnData[];
 
     private _sheet: RefObject<HTMLDivElement>;
+    outsideEventHandler: OutsideEventHandlerService;
 
     private _selection: SpreadsheetSelection | null = null;
 
@@ -53,6 +55,7 @@ export class SpreadsheetService {
     }: SpreadsheetServiceArguments) {
         makeAutoObservable<SpreadsheetService, PrivateKeys>(this, {
             _sheet: false,
+            outsideEventHandler: false,
             _editableCellData: false,
             _onEditCell: false,
             _onAddRow: false,
@@ -67,6 +70,12 @@ export class SpreadsheetService {
         this._onEditCell = onEditCell;
         this._onAddRow = onAddRow;
         this._onDeleteRow = onDeleteRow;
+
+        this.outsideEventHandler = new OutsideEventHandlerService({
+            onOutsideEvent: () => this.clearSelection(),
+            node: this._sheet,
+            enabled: true,
+        });
     }
 
     get rowCount() {

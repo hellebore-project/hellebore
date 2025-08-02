@@ -4,6 +4,13 @@ import { addEventListener } from "consolidated-events";
 type StateEventHandler = () => void;
 type RemoveEventListener = () => void;
 
+interface OutsideEventHandlerServiceArgs {
+    onOutsideEvent: (e: Event) => void;
+    node?: RefObject<HTMLDivElement>;
+    capture?: boolean;
+    enabled?: boolean;
+}
+
 export class OutsideEventHandlerService {
     node: RefObject<HTMLDivElement>;
 
@@ -18,14 +25,11 @@ export class OutsideEventHandlerService {
 
     constructor({
         onOutsideEvent,
+        node,
         capture = true,
         enabled = true,
-    }: {
-        onOutsideEvent: (e: Event) => void;
-        capture?: boolean;
-        enabled?: boolean;
-    }) {
-        this.node = createRef();
+    }: OutsideEventHandlerServiceArgs) {
+        this.node = node ?? createRef();
         this.onOutsideEvent = onOutsideEvent;
         this.capture = capture;
         this.enabled = enabled;
