@@ -8,39 +8,80 @@ import { mockGetWords } from "@tests/utils/mocks/word-manager";
 import { render } from "@tests/utils/render";
 import { createWordData } from "@tests/utils/word";
 
-test("arrow keys move selection", async ({ service, user }) => {
-    const word = {
-        ...createWordData(),
-        spelling: "cell1",
-        translations: ["cell2"],
-    };
-    mockGetWords(service.domain.words, [word]);
-    await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+describe("cell selection", () => {
+    test("arrow keys move selection", async ({ service, user }) => {
+        const word = {
+            ...createWordData(),
+            spelling: "cell1",
+            translations: ["cell2"],
+        };
+        mockGetWords(service.domain.words, [word]);
+        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
-    render(<WordTable />);
+        render(<WordTable />);
 
-    const cell1 = screen.getByText("cell1");
-    const cell2 = screen.getByText("cell2");
+        const cell1 = screen.getByText("cell1");
+        const cell2 = screen.getByText("cell2");
 
-    // Select first cell
-    await user.click(cell1);
-    expect(cell1.className.includes("selected")).toBeTruthy();
+        // Select first cell
+        await user.click(cell1);
+        expect(cell1.className.includes("selected")).toBeTruthy();
 
-    // Arrow right to cell2
-    await user.keyboard("{ArrowRight}");
-    expect(cell2.className.includes("selected")).toBeTruthy();
+        // Arrow right to cell2
+        await user.keyboard("{ArrowRight}");
+        expect(cell2.className.includes("selected")).toBeTruthy();
 
-    // Arrow left back to cell1
-    await user.keyboard("{ArrowLeft}");
-    expect(cell1.className.includes("selected")).toBeTruthy();
+        // Arrow left back to cell1
+        await user.keyboard("{ArrowLeft}");
+        expect(cell1.className.includes("selected")).toBeTruthy();
 
-    // Arrow down to new row
-    await user.keyboard("{ArrowDown}");
-    expect(cell1.className.includes("selected")).toBeFalsy();
+        // Arrow down to new row
+        await user.keyboard("{ArrowDown}");
+        expect(cell1.className.includes("selected")).toBeFalsy();
 
-    // Arrow up to first row
-    await user.keyboard("{ArrowUp}");
-    expect(cell1.className.includes("selected")).toBeTruthy();
+        // Arrow up to first row
+        await user.keyboard("{ArrowUp}");
+        expect(cell1.className.includes("selected")).toBeTruthy();
+    });
+
+    test("arrow keys reduce the selection to a single cell before moving", async ({
+        service,
+        user,
+    }) => {
+        const word = {
+            ...createWordData(),
+            spelling: "cell1",
+            translations: ["cell2"],
+        };
+        mockGetWords(service.domain.words, [word]);
+        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+
+        render(<WordTable />);
+
+        const cell1 = screen.getByText("cell1");
+        const cell2 = screen.getByText("cell2");
+
+        // Select cell1
+        await user.click(cell1);
+
+        // Shift+click cell2 to select both cells
+        await user.keyboard("{Shift>}");
+        await user.click(cell2);
+
+        // Both cells should be selected
+        expect(cell1.className.includes("selected")).toBeTruthy();
+        expect(cell2.className.includes("selected")).toBeTruthy();
+
+        // Arrow right: selection should reduce to cell2 only
+        await user.keyboard("{ArrowRight}");
+        expect(cell1.className.includes("selected")).toBeFalsy();
+        expect(cell2.className.includes("selected")).toBeTruthy();
+
+        // Arrow left: selection should reduce to cell1 only
+        await user.keyboard("{ArrowLeft}");
+        expect(cell1.className.includes("selected")).toBeTruthy();
+        expect(cell2.className.includes("selected")).toBeFalsy();
+    });
 });
 
 describe("cell editing", () => {
@@ -159,5 +200,42 @@ describe("cell editing", () => {
         // Escape to cancel edit
         await user.keyboard("{Escape}");
         expect(screen.getByText("Masculine")).toBeTruthy();
+    });
+
+    test("enter reduces the selection to a single cell before toggling it to edit mode", async ({
+        service,
+        user,
+    }) => {
+        const word = {
+            ...createWordData(),
+            spelling: "cell1",
+            translations: ["cell2"],
+        };
+        mockGetWords(service.domain.words, [word]);
+        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+
+        render(<WordTable />);
+
+        const cell1 = screen.getByText("cell1");
+        const cell2 = screen.getByText("cell2");
+
+        // Select cell1
+        await user.click(cell1);
+
+        // Shift+click cell2 to select both cells
+        await user.keyboard("{Shift>}");
+        await user.click(cell2);
+
+        // Both cells should be selected
+        expect(cell1.className.includes("selected")).toBeTruthy();
+        expect(cell2.className.includes("selected")).toBeTruthy();
+
+        // Press enter: selection should reduce to cell2 only and enter edit mode
+        await user.keyboard("{Enter}");
+
+        // Only cell2 should be selected and in edit mode
+        expect(cell1.className.includes("selected")).toBeTruthy();
+        expect(cell2.className.includes("selected")).toBeFalsy();
+        expect(screen.getByDisplayValue("cell1")).toBeTruthy();
     });
 });
