@@ -331,7 +331,7 @@ export class WordEditor {
             rawTranslations: "",
         };
         this._words[newWord.key] = newWord;
-        this.spreadsheet.addRow(this._convertWordToRow(newWord));
+        this.spreadsheet.data.addRow(this._convertWordToRow(newWord));
     }
 
     // WORD DELETION
@@ -398,7 +398,6 @@ export class WordEditor {
     private _convertWordToRow(word: WordData): SpreadsheetRowData {
         return {
             key: word.key,
-            highlighted: false,
             cells: {
                 spelling: { value: word.spelling },
                 translations: { value: word.rawTranslations },
