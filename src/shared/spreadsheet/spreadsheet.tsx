@@ -5,11 +5,7 @@ import { IconCircleMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 import { HTMLAttributes, ReactNode } from "react";
 
-import {
-    FieldType,
-    SpreadsheetCellData,
-    SpreadsheetColumnData,
-} from "@/interface";
+import { FieldType } from "@/interface";
 import { OutsideEventHandler } from "@/shared/outside-event-handler";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
@@ -19,8 +15,6 @@ import { SpreadsheetService } from "./spreadsheet.service";
 interface SpreadsheetCellSettings {
     rowIndex: number;
     colIndex: number;
-    colData: SpreadsheetColumnData;
-    data: SpreadsheetCellData;
     service: SpreadsheetService;
 }
 
@@ -66,16 +60,21 @@ const DeleteRowButton = observer(renderDeleteRowButton);
 function renderSpreadsheetCell({
     rowIndex,
     colIndex,
-    colData,
-    data,
     service,
 }: SpreadsheetCellSettings) {
+    // const data = service.data.getCell(rowIndex, colIndex);
+    const data = service.data.getCell(rowIndex, colIndex);
+    const colData = service.data.getColumnData(colIndex);
+
     let className = "spreadsheet-cell-data";
     if (data.selected) className += " selected";
+    // if (service.selection.isActive(rowIndex, colIndex))
+    //     className += " active";
 
-    let onClick: React.MouseEventHandler | undefined = undefined;
+    let onMouseDown: React.MouseEventHandler | undefined = undefined;
+    let onMouseEnter: React.MouseEventHandler | undefined = undefined;
 
-    let field: ReactNode = data?.label ?? data.value;
+    let field: ReactNode = data.label;
 
     if (data.editable) {
         className += " compact";
@@ -83,17 +82,21 @@ function renderSpreadsheetCell({
         if (colData.type === FieldType.TEXT) {
             field = (
                 <TextField
-                    ref={service.editableCellField}
+                    ref={service.data.editableCellElement}
                     value={data.value}
                     onChange={(e) =>
-                        service.editCell(
+                        service.data.editCell(
                             rowIndex,
                             colIndex,
                             e.currentTarget.value,
                         )
                     }
                     onBlur={() =>
-                        service.toggleCellEditMode(rowIndex, colIndex, false)
+                        service.data.toggleCellEditMode(
+                            rowIndex,
+                            colIndex,
+                            false,
+                        )
                     }
                     variant="unstyled"
                 />
@@ -101,30 +104,32 @@ function renderSpreadsheetCell({
         } else if (colData.type === FieldType.SELECT) {
             field = (
                 <SelectField
-                    ref={service.editableCellField}
+                    ref={service.data.editableCellElement}
                     placeholder=""
                     clearable={false}
                     allowDeselect={false}
                     data={colData.options}
                     value={data.value}
                     defaultValue={colData.defaultValue}
-                    onChange={(v) => service.editCell(rowIndex, colIndex, v)}
+                    onChange={(v) =>
+                        service.data.editCell(rowIndex, colIndex, v)
+                    }
                     variant="unstyled"
                 />
             );
         }
     } else {
-        onClick = () => {
-            if (!data.selected) {
-                service.selectCell(rowIndex, colIndex);
-            } else {
-                service.toggleCellEditMode(rowIndex, colIndex, true);
-            }
-        };
+        onMouseDown = (e) => service.onCellMouseDown(e, rowIndex, colIndex);
+        onMouseEnter = (e) => service.onCellMouseEnter(e, rowIndex, colIndex);
     }
 
     return (
-        <Table.Td className={className} tabIndex={0} onClick={onClick}>
+        <Table.Td
+            className={className}
+            tabIndex={0}
+            onMouseDown={onMouseDown}
+            onMouseEnter={onMouseEnter}
+        >
             {field}
         </Table.Td>
     );
@@ -133,16 +138,13 @@ function renderSpreadsheetCell({
 const SpreadsheetCell = observer(renderSpreadsheetCell);
 
 function renderSpreadsheetRow({ index, service }: SpreadsheetRowSettings) {
-    const row = service.rowData[index];
-    const cells: ReactNode[] = service.columnData.map((col, j) => {
-        const cellData = row.cells[col.key];
+    const row = service.data.rowData[index];
+    const cells: ReactNode[] = service.data.columnData.map((col, j) => {
         return (
             <SpreadsheetCell
                 key={`spreadsheet-cell-${row.key}-${col.key}`}
                 rowIndex={index}
                 colIndex={j}
-                colData={col}
-                data={cellData}
                 service={service}
             />
         );
@@ -151,15 +153,15 @@ function renderSpreadsheetRow({ index, service }: SpreadsheetRowSettings) {
     return (
         <Table.Tr
             className="spreadsheet-row"
-            onMouseEnter={() => service.highlightRow(row.key)}
-            onMouseLeave={() => service.unhighlightRow(row.key)}
+            onMouseEnter={() => service.data.highlightRow(row.key)}
+            onMouseLeave={() => service.data.unhighlightRow(row.key)}
         >
             {cells}
             <Table.Td className="spreadsheet-cell-action">
                 <DeleteRowButton
                     rowKey={row.key}
-                    visible={row.highlighted}
-                    onClick={(rowKey) => service.deleteRow(rowKey)}
+                    visible={row.highlighted ?? false}
+                    onClick={(rowKey) => service.data.deleteRow(rowKey)}
                 />
             </Table.Td>
         </Table.Tr>
@@ -171,7 +173,7 @@ const SpreadsheetRow = observer(renderSpreadsheetRow);
 function renderSpreadsheet({ service, ...rest }: SpreadsheetSettings) {
     const headers: ReactNode[] = [];
 
-    for (const colData of service.columnData) {
+    for (const colData of service.data.columnData) {
         headers.push(
             <Table.Th
                 key={`spreadsheet-header-${colData.key}`}
@@ -192,7 +194,7 @@ function renderSpreadsheet({ service, ...rest }: SpreadsheetSettings) {
         <col span={headers.length + 1} className="spreadsheet-column-action" />
     );
 
-    const rows = service.rowData.map((row, i) => (
+    const rows = service.data.rowData.map((row, i) => (
         <SpreadsheetRow
             key={`spreadsheet-row-${row.key}`}
             index={i}
@@ -203,7 +205,7 @@ function renderSpreadsheet({ service, ...rest }: SpreadsheetSettings) {
     return (
         <OutsideEventHandler
             className="spreadsheet"
-            service={service.outsideEventHandler}
+            service={service.outsideEvent}
             tabIndex={0}
             onKeyDown={(e) => service.handleKeyDown(e)}
             {...rest}

@@ -36,6 +36,10 @@
         var(--selected-bd-color);
 }
 
+.spreadsheet-cell-data.active {
+    outline: calc(0.25rem * var(--mantine-scale)) solid var(--selected-bd-color);
+}
+
 .spreadsheet-cell-action {
     background-color: var(--default-bg-color);
     border: none;
