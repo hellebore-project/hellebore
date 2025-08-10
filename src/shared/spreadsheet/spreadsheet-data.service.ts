@@ -168,16 +168,6 @@ export class SpreadsheetDataService {
         return row.cells[col.key];
     }
 
-    setCell(
-        rowIndex: number,
-        colIndex: number,
-        cell: MutableSpreadsheetCellData,
-    ) {
-        const row = this._rows[rowIndex];
-        const col = this._columns[colIndex];
-        row.cells[col.key] = cell;
-    }
-
     private _createCell(
         key: string,
         { label, value }: SpreadsheetCellData,
@@ -224,14 +214,7 @@ export class SpreadsheetDataService {
         if (!row || !col) return null;
 
         const cell = row.cells[col.key];
-
-        cell.value = String(value ?? "");
-
-        if (col.type == FieldType.SELECT && col.options) {
-            // TODO: cache this
-            const option = col.options.filter((o) => o.value == value)[0];
-            cell.label = option.label;
-        }
+        this._setCellValue(cell, col, value);
 
         if (this._onEditCell) this._onEditCell(row.key, col.key, value);
 
@@ -248,8 +231,27 @@ export class SpreadsheetDataService {
         if (!row || !col) return;
 
         const oldValue = cell.oldValue ?? "";
-        cell.value = oldValue;
+        this._setCellValue(cell, col, oldValue);
+
         if (this._onEditCell) this._onEditCell(row.key, col.key, oldValue);
+    }
+
+    private _setCellValue(
+        cell: MutableSpreadsheetCellData,
+        col: SpreadsheetColumnData,
+        value: number | string | null,
+    ) {
+        value = String(value ?? "");
+        cell.value = value;
+
+        // the label is what actually gets rendered when the cell is read-only,
+        // so it needs to be update for all field types
+        if (col.type == FieldType.TEXT) cell.label = value;
+        else if (col.type == FieldType.SELECT && col.options) {
+            // TODO: cache this
+            const option = col.options.filter((o) => o.value == value)[0];
+            cell.label = option.label;
+        }
     }
 
     toggleCellEditMode(rowIndex: number, colIndex: number, editable: boolean) {

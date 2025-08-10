@@ -62,14 +62,11 @@ function renderSpreadsheetCell({
     colIndex,
     service,
 }: SpreadsheetCellSettings) {
-    // const data = service.data.getCell(rowIndex, colIndex);
     const data = service.data.getCell(rowIndex, colIndex);
     const colData = service.data.getColumnData(colIndex);
 
     let className = "spreadsheet-cell-data";
     if (data.selected) className += " selected";
-    // if (service.selection.isActive(rowIndex, colIndex))
-    //     className += " active";
 
     let onMouseDown: React.MouseEventHandler | undefined = undefined;
     let onMouseEnter: React.MouseEventHandler | undefined = undefined;

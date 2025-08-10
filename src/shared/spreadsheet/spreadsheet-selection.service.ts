@@ -134,13 +134,6 @@ export class SpreadsheetSelectionService {
         const pos = { row: j, col: i };
         this._updateActiveSelection({ start: pos, end: pos, positive: true });
 
-        console.log(`{${i}, ${j}}`);
-        console.log(
-            `Cells to deselect: ${Array.from(this._negativeDiff).join(" ")}`,
-        );
-        console.log(
-            `Cells to select: ${Array.from(this._positiveDiff).join(" ")}`,
-        );
         this._applyDiffs();
         this._activePosition = pos;
 

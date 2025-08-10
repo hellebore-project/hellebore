@@ -8,6 +8,7 @@ export default defineConfig(async () => ({
     plugins: [react()],
 
     build: {
+        target: "esnext",
         manifest: true,
         rollupOptions: {
             input: {
