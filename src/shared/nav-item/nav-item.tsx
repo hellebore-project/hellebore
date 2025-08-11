@@ -1,42 +1,18 @@
 import "./nav-item.css";
 
-import { Group, Text } from "@mantine/core";
-import { IconChevronRight } from "@tabler/icons-react";
+import { Group } from "@mantine/core";
 import { observer } from "mobx-react-lite";
-import { forwardRef, PropsWithChildren, ReactNode, RefObject } from "react";
+import { PropsWithChildren, ReactNode } from "react";
+
+import { BaseGroupSettings } from "@/interface";
 
 import {
-    BaseGroupSettings,
-    BaseTextInputSettings,
-    BaseTextSettings,
-} from "@/interface";
-import { range } from "@/utils/collections";
-
-import { TextField } from "../text-field";
-
-const EXPAND_BUTTON_PLACEHOLDER = (
-    <div className="nav-item-expand-button-placeholder" />
-);
-
-export interface IndentSettings {
-    count?: number;
-}
-
-export interface ExpandButtonSettings {
-    expandable?: boolean;
-    expanded?: boolean;
-    isExpanded?: () => boolean;
-}
-
-export interface NavItemTextSettings {
-    editable?: boolean;
-    text?: string;
-    getText?: () => string;
-    error?: string;
-    textSettings?: BaseTextSettings;
-    textInputSettings?: Omit<BaseTextInputSettings, "value" | "error">;
-    ref_?: RefObject<HTMLInputElement>;
-}
+    EXPAND_BUTTON_PLACEHOLDER,
+    ExpandButton,
+    ExpandButtonSettings,
+} from "./nav-item-expand-button";
+import { NavItemIndents } from "./nav-item-indents";
+import { NavItemText, NavItemTextSettings } from "./nav-item-text";
 
 interface NavItemSettings extends PropsWithChildren {
     selected?: boolean;
@@ -47,59 +23,6 @@ interface NavItemSettings extends PropsWithChildren {
     expandButtonSettings?: ExpandButtonSettings;
     textSettings?: NavItemTextSettings;
 }
-
-function renderExpandButton({
-    expanded = false,
-    isExpanded,
-}: ExpandButtonSettings) {
-    expanded = isExpanded?.() ?? expanded;
-    return (
-        <IconChevronRight
-            className="nav-sub-item compact"
-            size={18}
-            style={{
-                paddingBlock: "0px",
-                transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
-            }}
-        />
-    );
-}
-
-const ExpandButton = observer(renderExpandButton);
-
-const renderNavItemText = forwardRef<HTMLInputElement, NavItemTextSettings>(
-    (
-        { editable, text, getText, error, textSettings, textInputSettings },
-        ref,
-    ) => {
-        if (text === undefined) {
-            if (getText) text = getText();
-            else text = "";
-        }
-
-        if (editable) {
-            let className = "nav-item-text editable";
-            if (error) className += " error";
-
-            return (
-                <TextField
-                    className={className}
-                    value={text as string}
-                    ref={ref}
-                    {...textInputSettings}
-                />
-            );
-        }
-
-        return (
-            <Text className="nav-item-text" {...textSettings}>
-                {text}
-            </Text>
-        );
-    },
-);
-
-const NavItemText = observer(renderNavItemText);
 
 function renderNavItem({
     selected = false,
@@ -112,17 +35,6 @@ function renderNavItem({
     children,
 }: NavItemSettings) {
     const id = groupSettings?.id ?? "nav-item";
-
-    // Leading indents
-    let indentItem: ReactNode = null;
-    if (rank > 0) {
-        indentItem = range(rank).map((i) => (
-            <div
-                key={`${id}-indent-${i}`}
-                className="nav-item-indent nav-sub-item compact"
-            />
-        ));
-    }
 
     // Expand button
     let expandNode: ReactNode;
@@ -150,8 +62,8 @@ function renderNavItem({
     const { styles, ...groupRest } = groupSettings ?? {};
 
     return (
-        <Group className={className} gap={0} {...groupRest}>
-            {indentItem}
+        <Group className={className} gap={0} align="stretch" {...groupRest}>
+            <NavItemIndents itemKey={id} rank={rank} />
             {expandNode}
             <NavItemText ref={ref_} {...textRest} />
             {children}
