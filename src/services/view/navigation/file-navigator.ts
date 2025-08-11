@@ -624,7 +624,7 @@ export class FileNavigator {
 
     async moveNode(node: FileNodeModel, destFolderNodeId: NodeId) {
         let index = this.getNodeIndex(node.id);
-        if (index === null) return;
+        if (index === null) return false;
 
         const sourceFolderNodeId = node.parent;
 
@@ -648,7 +648,7 @@ export class FileNavigator {
                         kind: "warning",
                     },
                 );
-                if (!replace) return;
+                if (!replace) return false;
 
                 const deleteResponse = await this.view.deleteFolder(
                     validateResponse.nameCollision.collidingFolderId,
@@ -658,7 +658,7 @@ export class FileNavigator {
                     console.error(
                         "Failed to delete colliding folder. Aborting move.",
                     );
-                    return;
+                    return false;
                 }
 
                 // need to fetch the index of the node again because the original index may be outdated following the delete request
@@ -679,14 +679,18 @@ export class FileNavigator {
             );
         }
 
-        if (response) {
-            node.parent = destFolderNodeId;
-            // setting the node at its current index forces a refresh of the tree component
-            this.setNode(node, index);
-        } else
+        if (!response) {
             console.error(
                 `Unable to move node ${node.id} to folder ${destFolderNodeId}.`,
             );
+            return false;
+        }
+
+        node.parent = destFolderNodeId;
+        // setting the node at its current index forces a refresh of the tree component
+        this.setNode(node, index);
+
+        return true;
     }
 
     // HOOKS

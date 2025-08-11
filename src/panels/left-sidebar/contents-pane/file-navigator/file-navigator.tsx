@@ -179,7 +179,12 @@ function renderFileNavigator({}: FileNavigatorSettings) {
         _: any,
         { dragSource, dropTargetId }: DropOptions<FileNodeData>,
     ) => {
-        if (dragSource) fileNav.moveNode(dragSource, dropTargetId);
+        if (dragSource)
+            fileNav.moveNode(dragSource, dropTargetId).then((moved) => {
+                if (moved)
+                    // NOTE: the `open` function can't be called inside a service
+                    fileNav.tree?.current?.open(dropTargetId);
+            });
     };
 
     return (
