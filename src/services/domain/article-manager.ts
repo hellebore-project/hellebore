@@ -133,7 +133,7 @@ export class ArticleManager {
     async _updateFolder(id: Id, folderId: Id) {
         return invoke<void>("update_article_folder", {
             id,
-            folder_id: folderId,
+            folderId,
         });
     }
 
