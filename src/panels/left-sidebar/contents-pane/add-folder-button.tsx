@@ -16,12 +16,11 @@ function renderAddFolderButton() {
                 size="sm"
                 onClick={(e) => {
                     e.stopPropagation(); // don't toggle the expanded status of the tab
-                    const articleNavService = service.view.navigation.files;
-                    const node =
-                        articleNavService.addPlaceholderNodeForNewFolder();
+                    const fileNav = service.view.navigation.files;
+                    const node = fileNav.addPlaceholderNodeForNewFolder();
                     // the parent folder needs to be open
                     // NOTE: the `open` function can't be called inside a service
-                    articleNavService.tree?.current?.open(node.parent);
+                    fileNav.tree?.current?.open(node.parent);
                 }}
             >
                 <IconFolderPlus size={18} />

@@ -32,7 +32,7 @@ export class FileNavigator {
     private _openedNode: FileNodeModel | null = null;
 
     /**
-     * Reference to the article tree component.
+     * Reference to the file tree element.
      * Its handlers must be called inside a component function to ensure that the DOM is updated.
      */
     private _tree: RefObject<TreeMethods>;
@@ -75,7 +75,7 @@ export class FileNavigator {
     }
 
     /**
-     * Reference to the article tree component.
+     * Reference to the file tree element.
      * Its handlers must be called inside a component function to ensure that the DOM is updated.
      */
     get tree() {
@@ -167,7 +167,7 @@ export class FileNavigator {
         this._hover = hover;
     }
 
-    get canAddArticle() {
+    get canAddEntity() {
         return this.expanded && this.hover;
     }
 
@@ -179,17 +179,17 @@ export class FileNavigator {
         return this.expanded && this.hover;
     }
 
-    initialize(articles: EntityInfoResponse[], folders: FolderResponse[]) {
+    initialize(entities: EntityInfoResponse[], folders: FolderResponse[]) {
         this._nodePositionCache = {};
 
         const nodes: FileNodeModel[] = [];
 
-        for (let article of articles) {
+        for (let entity of entities) {
             nodes.push(
-                this._generateArticleNode(
-                    article.id,
-                    article.folder_id,
-                    article.title,
+                this._generateEntityNode(
+                    entity.id,
+                    entity.folder_id,
+                    entity.title,
                 ),
             );
         }
@@ -310,8 +310,8 @@ export class FileNavigator {
 
     // NODE TEXT
 
-    updateArticleNodeText(id: number, title: string) {
-        this.setNodeText(articleNodeId(id), title);
+    updateEntityNodeText(id: number, title: string) {
+        this.setNodeText(entityNodeId(id), title);
     }
 
     setNodeText(nodeId: NodeId, text: string) {
@@ -403,7 +403,7 @@ export class FileNavigator {
                     );
                 else this.clearNodeError(node);
             } else {
-                // article
+                // entity
                 // TODO
             }
         } else this.clearNodeError(node);
@@ -464,7 +464,7 @@ export class FileNavigator {
                 }
             }
         }
-        // article
+        // entity
         else {
             // TODO
         }
@@ -526,8 +526,8 @@ export class FileNavigator {
 
     // OPEN NODE
 
-    openArticleNode(id: number) {
-        const nodeId = articleNodeId(id);
+    openEntityNode(id: number) {
+        const nodeId = entityNodeId(id);
         if (this.openedNode?.id == nodeId) return;
         const node = this._findNode(nodeId);
         if (node) this.openNode(node);
@@ -539,8 +539,8 @@ export class FileNavigator {
 
     // NODE GENERATION
 
-    addNodeForCreatedArticle({ id, folder_id, title }: EntityInfoResponse) {
-        const node = this._generateArticleNode(id, folder_id, title);
+    addNodeForCreatedEntity({ id, folder_id, title }: EntityInfoResponse) {
+        const node = this._generateEntityNode(id, folder_id, title);
         this._nodes.push(node);
     }
 
@@ -556,14 +556,14 @@ export class FileNavigator {
         return node;
     }
 
-    _generateArticleNode(
+    _generateEntityNode(
         id: any,
         folder_id: any,
         title: string,
         data: FileNodeData | undefined = undefined,
     ): FileNodeModel {
         const node = {
-            id: articleNodeId(id),
+            id: entityNodeId(id),
             parent: folderNodeId(folder_id, ROOT_FOLDER_NODE_ID),
             text: title,
         };
@@ -594,8 +594,8 @@ export class FileNavigator {
 
     // NODE DELETION
 
-    deleteArticleNode(id: number) {
-        this._deleteNode(articleNodeId(id));
+    deleteEntityNode(id: number) {
+        this._deleteNode(entityNodeId(id));
     }
 
     deleteFolderNode(id: number) {
@@ -624,7 +624,7 @@ export class FileNavigator {
 
     async moveNode(node: FileNodeModel, destFolderNodeId: NodeId) {
         let index = this.getNodeIndex(node.id);
-        if (index === null) return;
+        if (index === null) return false;
 
         const sourceFolderNodeId = node.parent;
 
@@ -648,7 +648,7 @@ export class FileNavigator {
                         kind: "warning",
                     },
                 );
-                if (!replace) return;
+                if (!replace) return false;
 
                 const deleteResponse = await this.view.deleteFolder(
                     validateResponse.nameCollision.collidingFolderId,
@@ -658,7 +658,7 @@ export class FileNavigator {
                     console.error(
                         "Failed to delete colliding folder. Aborting move.",
                     );
-                    return;
+                    return false;
                 }
 
                 // need to fetch the index of the node again because the original index may be outdated following the delete request
@@ -671,7 +671,7 @@ export class FileNavigator {
                 oldParentId: sourceParentId,
             });
         } else {
-            // article
+            // entity
             response = await this.view.domain.articles.updateFolder(
                 id,
                 destParentId,
@@ -679,14 +679,18 @@ export class FileNavigator {
             );
         }
 
-        if (response) {
-            node.parent = destFolderNodeId;
-            // setting the node at its current index forces a refresh of the tree component
-            this.setNode(node, index);
-        } else
+        if (!response) {
             console.error(
                 `Unable to move node ${node.id} to folder ${destFolderNodeId}.`,
             );
+            return false;
+        }
+
+        node.parent = destFolderNodeId;
+        // setting the node at its current index forces a refresh of the tree component
+        this.setNode(node, index);
+
+        return true;
     }
 
     // HOOKS
@@ -702,7 +706,7 @@ export class FileNavigator {
     }
 }
 
-function articleNodeId(id: any) {
+function entityNodeId(id: any) {
     if (typeof id === "string" && id.substring(0, 1) == "A") return id;
     return `A${id}`;
 }

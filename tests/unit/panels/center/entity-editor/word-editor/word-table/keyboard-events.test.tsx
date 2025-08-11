@@ -110,13 +110,6 @@ describe("cell editing", () => {
 
         // Enter again to finish edit and move selection down
         await user.keyboard("{Enter}");
-        console.log(
-            JSON.stringify(
-                service.view.entityEditor.lexicon.spreadsheet.data.rowData,
-                null,
-                2,
-            ),
-        );
         expect(screen.getByText("cell1-edited")).toBeTruthy();
         expect(cell1.className.includes("selected")).toBeFalsy();
     });

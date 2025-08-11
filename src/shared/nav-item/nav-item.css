@@ -47,9 +47,15 @@
 }
 
 .nav-item-indent {
-    width: 9px;
-    height: 18px;
+    width: 18px;
     padding: 0;
+}
+
+.nav-item-indent.scaffold {
+    background-image: linear-gradient(white, white);
+    background-size: 0.5px 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
 }
 
 .nav-item-expand-button-placeholder {
@@ -59,7 +65,7 @@
 
 .nav-item-text {
     flex-grow: 1;
-    margin-left: 2px;
+    margin-left: 6px;
 
     /* prevent highlighting text in nav items */
     user-select: none;

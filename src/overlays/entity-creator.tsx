@@ -8,40 +8,35 @@ import {
 } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import {
-    ARTICLE_ENTITY_TYPES,
-    ENTITY_TYPE_LABELS,
-    ModalKey,
-} from "@/interface";
+import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS, ModalKey } from "@/interface";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
 import { getService } from "@/services";
 import { compareStrings } from "@/utils/string";
 
-const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = ARTICLE_ENTITY_TYPES.map(
+const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = FILE_ENTITY_TYPES.map(
     (entityType) => ({
         label: ENTITY_TYPE_LABELS[entityType],
         value: entityType.toString(),
     }),
 ).sort((a, b) => compareStrings(a.label, b.label));
 
-function renderArticleCreator() {
+function renderEntityCreator() {
     const service = getService();
-
-    const onSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
-        event.preventDefault();
-        service.view.createEntity();
-    };
 
     return (
         <Modal
-            title="Create a new article"
-            opened={service.view.currentModal == ModalKey.ArticleCreator}
+            title="Create a new entity"
+            opened={service.view.currentModal == ModalKey.EntityCreator}
             onClose={() => service.view.closeModal()}
             portalProps={{ target: service.view.sharedPortalSelector }}
         >
             <Container size="xs">
-                <form onSubmit={onSubmit}>
+                <form
+                    onSubmit={(event) =>
+                        service.view.entityCreator.submit(event)
+                    }
+                >
                     <SelectField
                         label="Entity"
                         placeholder="Select an entity type (optional)"
@@ -80,4 +75,4 @@ function renderArticleCreator() {
     );
 }
 
-export const ArticleCreator = observer(renderArticleCreator);
+export const EntityCreator = observer(renderEntityCreator);

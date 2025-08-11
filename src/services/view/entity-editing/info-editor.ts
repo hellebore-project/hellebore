@@ -3,10 +3,10 @@ import { makeAutoObservable } from "mobx";
 import { ENTITY_TYPE_LABELS, EntityType } from "@/interface";
 import { ViewManagerInterface } from "../interface";
 
-const ARTICLE_ID_SENTINEL = -1;
+const ENTITY_ID_SENTINEL = -1;
 
 export class EntityInfoEditor {
-    _id: number = ARTICLE_ID_SENTINEL;
+    _id: number = ENTITY_ID_SENTINEL;
     _entityType: EntityType | null = null;
     _title: string = "";
     _isTitleUnique: boolean = true;
@@ -79,7 +79,7 @@ export class EntityInfoEditor {
     }
 
     reset() {
-        this.id = ARTICLE_ID_SENTINEL;
+        this.id = ENTITY_ID_SENTINEL;
         this.entityType = null;
         this.title = "";
         this.isTitleUnique = true;

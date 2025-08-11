@@ -109,8 +109,8 @@ export class ArticleTextEditor {
 
     _onClickEditor(node: PMNode) {
         if (node.type.name == "mention") {
-            const articleID: number | null = node.attrs["id"] ?? null;
-            if (articleID != null) this.view.openArticleEditor?.(articleID);
+            const id: number | null = node.attrs["id"] ?? null;
+            if (id !== null) this.view.openArticleEditor?.(id);
         }
     }
 }
