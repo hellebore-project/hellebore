@@ -7,7 +7,7 @@ import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { Footer, Header, Center, LeftSideBar } from "./panels";
-import { ArticleCreator, ContextMenu, ProjectCreator } from "./overlays";
+import { EntityCreator, ContextMenu, ProjectCreator } from "./overlays";
 import { getService } from "./services";
 
 function renderPortalContainer() {
@@ -60,7 +60,7 @@ function renderApp() {
             </AppShell>
 
             <ProjectCreator />
-            <ArticleCreator />
+            <EntityCreator />
 
             <ContextMenu />
 

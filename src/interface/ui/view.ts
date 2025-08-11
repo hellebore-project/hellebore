@@ -24,10 +24,10 @@ export enum WordViewKey {
 
 export enum ModalKey {
     ProjectCreator = "PROJECT_CREATOR",
-    ArticleCreator = "ARTICLE_CREATOR",
+    EntityCreator = "ENTITY_CREATOR",
 }
 
 export enum ContextMenuKey {
     NavBarFolderNode = "NAV_BAR_FOLDER_NODE",
-    NavBarArticleNode = "NAV_BAR_ARTICLE_NODE",
+    NavBarEntityNode = "NAV_BAR_ENTITY_NODE",
 }

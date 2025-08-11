@@ -5,18 +5,20 @@ import { observer } from "mobx-react-lite";
 import { getService } from "@/services";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
-function renderAddArticleButton() {
+function renderAddEntityButton() {
     const service = getService();
     return (
-        <ToolTipWrapper className="nav-sub-item compact" label="New Article">
+        <ToolTipWrapper className="nav-sub-item compact" label="New Entity">
             <ActionIcon
-                key="add-article"
+                key="add-entity"
                 variant="subtle"
                 color="gray"
                 size="sm"
                 onClick={(e) => {
                     e.stopPropagation(); // don't toggle the expanded status of the tab
-                    service.view.openEntityCreator();
+                    service.view.openEntityCreator({
+                        folderId: service.view.navigation.files.activeFolderId,
+                    });
                 }}
             >
                 <IconFilePlus size={18} />
@@ -25,4 +27,4 @@ function renderAddArticleButton() {
     );
 }
 
-export const AddArticleButton = observer(renderAddArticleButton);
+export const AddEntityButton = observer(renderAddEntityButton);

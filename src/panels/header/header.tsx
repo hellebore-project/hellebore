@@ -75,7 +75,7 @@ function renderEncyclopediaMenuDropdown() {
             label="Encyclopedia"
             data={[
                 {
-                    label: "New Article",
+                    label: "New Entity",
                     onClick: () => service.view.openEntityCreator(),
                 },
                 DIVIDER_DATA,
@@ -103,12 +103,16 @@ function renderDictionaryMenuDropdown() {
                 {
                     label: "New Language",
                     onClick: () =>
-                        service.view.openEntityCreator(EntityType.LANGUAGE),
+                        service.view.openEntityCreator({
+                            entityType: EntityType.LANGUAGE,
+                        }),
                 },
                 {
                     label: "New Word",
                     onClick: () =>
-                        service.view.openEntityCreator(EntityType.WORD),
+                        service.view.openEntityCreator({
+                            entityType: EntityType.WORD,
+                        }),
                 },
                 DIVIDER_DATA,
                 {

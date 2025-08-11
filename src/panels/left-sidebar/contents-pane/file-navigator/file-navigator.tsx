@@ -19,8 +19,7 @@ import {
     ROOT_FOLDER_NODE_ID,
 } from "@/interface";
 import { getService } from "@/services";
-import { NavItem, NavItemTextSettings } from "@/shared/nav-item/nav-item";
-import { OutsideEventHandler } from "@/shared/outside-event-handler";
+import { NavItem, NavItemTextSettings } from "@/shared/nav-item";
 
 interface FileNavItemSettings extends BaseGroupSettings {
     node: FileNodeModel;
@@ -55,7 +54,7 @@ const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
             nodeId,
         });
     else
-        service.view.contextMenu.openForNavBarArticleNode({
+        service.view.contextMenu.openForNavBarEntityNode({
             position: { x: e.pageX, y: e.pageY },
             id,
             nodeId,
@@ -87,7 +86,7 @@ function renderFileNavItem({
 
         toggle();
 
-        // in case of an article node, open the corresponding article in the editor
+        // in case of an entity node, open the corresponding entity in the editor
         if (!fileNav.isFolderNode(node)) {
             const id = fileNav.convertNodeIdToEntityId(node.id);
             service.view
@@ -185,21 +184,14 @@ function renderFileNavigator({}: FileNavigatorSettings) {
 
     return (
         <>
-            <OutsideEventHandler
-                className="file-navigator"
-                service={fileNav.outsideEventHandler}
-                onClick={() => {
-                    fileNav.selectedNode = null;
-                    fileNav.focused = true;
-                }}
-            >
+            <div className="file-navigator">
                 <DndProvider
                     backend={MultiBackend}
                     options={getBackendOptions()}
                 >
                     <Tree
                         classes={{
-                            root: "article-tree-root",
+                            root: "file-tree-root",
                         }}
                         dragPreviewRender={dragPreviewRender}
                         listComponent="div"
@@ -219,7 +211,7 @@ function renderFileNavigator({}: FileNavigatorSettings) {
                         tree={data}
                     />
                 </DndProvider>
-            </OutsideEventHandler>
+            </div>
             <FileNavErrorPopover />
         </>
     );

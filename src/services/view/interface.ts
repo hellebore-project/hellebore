@@ -13,6 +13,11 @@ import {
 } from "@/interface";
 import { ArticleTitleUpdateResponse, DomainManager } from "../domain";
 
+export interface OpenEntityCreatorArguments {
+    entityType?: EntityType;
+    folderId?: Id;
+}
+
 export interface ViewManagerInterface {
     domain: DomainManager;
 
@@ -25,7 +30,7 @@ export interface ViewManagerInterface {
     openHome(): void;
     openSettings(): void;
     openProjectCreator(): void;
-    openEntityCreator(entityType: EntityType | undefined): void;
+    openEntityCreator(args?: OpenEntityCreatorArguments): void;
     openArticleEditor(id: Id): Promise<void>;
     openPropertyEditor(id: Id): Promise<void>;
     openWordEditor(languageId: Id, wordType?: WordType): Promise<void>;
@@ -38,8 +43,12 @@ export interface ViewManagerInterface {
     closeProject(): Promise<boolean>;
     editFolderName(id: number): void;
     deleteFolder(id: number, confirm?: boolean): Promise<BulkData | null>;
-    createEntity(): Promise<EntityInfoResponse | null>;
-    updateArticleTitle(
+    createEntity(
+        entityType: EntityType,
+        title: string,
+        folderId: Id,
+    ): Promise<EntityInfoResponse | null>;
+    updateEntityTitle(
         id: Id,
         title: string,
     ): Promise<ArticleTitleUpdateResponse>;

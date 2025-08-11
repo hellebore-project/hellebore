@@ -23,7 +23,7 @@ type ContextMenuDataMapping = {
     [key in ContextMenuKey]: VerticalSelectionData[];
 };
 
-class ArticleNavigatorContextMenuManager {
+class FileNavigatorContextMenuManager {
     _id: number | null = null;
     _nodeId: NodeId | null = null;
 
@@ -56,18 +56,18 @@ export class ContextMenuManager {
     menuData: ContextMenuDataMapping;
 
     view: ViewManagerInterface;
-    articleNavigator: ArticleNavigatorContextMenuManager;
+    fileNavigator: FileNavigatorContextMenuManager;
     outsideEventHandler: OutsideEventHandlerService;
 
     constructor(view: ViewManagerInterface) {
         makeAutoObservable(this, {
             view: false,
-            articleNavigator: false,
+            fileNavigator: false,
             menuData: false,
             outsideEventHandler: false,
         });
         this.view = view;
-        this.articleNavigator = new ArticleNavigatorContextMenuManager();
+        this.fileNavigator = new FileNavigatorContextMenuManager();
         this.outsideEventHandler = new OutsideEventHandlerService({
             onOutsideEvent: () => this.close(),
             enabled: false,
@@ -103,8 +103,8 @@ export class ContextMenuManager {
         this._open({ key: ContextMenuKey.NavBarFolderNode, ...args });
     }
 
-    openForNavBarArticleNode(args: OpenArguments) {
-        this._open({ key: ContextMenuKey.NavBarArticleNode, ...args });
+    openForNavBarEntityNode(args: OpenArguments) {
+        this._open({ key: ContextMenuKey.NavBarEntityNode, ...args });
     }
 
     close() {
@@ -121,36 +121,34 @@ export class ContextMenuManager {
     private _open({ key, position, id, nodeId }: PrivateOpenArguments) {
         this.key = key;
         this.position = position;
-        this.articleNavigator.id = id;
-        this.articleNavigator.nodeId = nodeId;
+        this.fileNavigator.id = id;
+        this.fileNavigator.nodeId = nodeId;
         this.outsideEventHandler.enabled = true;
     }
 
     private _generateMenuDataMapping() {
-        // folder node in the nav bar
         const NAV_BAR_FOLDER_NODE_DATA = this._formatMenuData([
             {
                 label: "Rename",
                 onConfirm: () => {
-                    const id = this.articleNavigator.id as number;
+                    const id = this.fileNavigator.id as number;
                     return new Promise(() => this.view.editFolderName(id));
                 },
             },
             {
                 label: "Delete",
                 onConfirm: () => {
-                    const id = this.articleNavigator.id as number;
+                    const id = this.fileNavigator.id as number;
                     return new Promise(() => this.view.deleteFolder(id));
                 },
             },
         ]);
 
-        // article node in the nav bar
-        const NAV_BAR_ARTICLE_NODE_DATA = this._formatMenuData([
+        const NAV_BAR_ENTITY_NODE_DATA = this._formatMenuData([
             {
                 label: "Delete",
                 onConfirm: () => {
-                    const id = this.articleNavigator.id as number;
+                    const id = this.fileNavigator.id as number;
                     return new Promise(() => this.view.deleteEntity(id));
                 },
             },
@@ -158,7 +156,7 @@ export class ContextMenuManager {
 
         return {
             [ContextMenuKey.NavBarFolderNode]: NAV_BAR_FOLDER_NODE_DATA,
-            [ContextMenuKey.NavBarArticleNode]: NAV_BAR_ARTICLE_NODE_DATA,
+            [ContextMenuKey.NavBarEntityNode]: NAV_BAR_ENTITY_NODE_DATA,
         };
     }
 

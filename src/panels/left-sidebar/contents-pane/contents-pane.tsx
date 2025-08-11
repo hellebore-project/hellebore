@@ -1,4 +1,6 @@
-import { Box, Collapse } from "@mantine/core";
+import "./contents-pane.css";
+
+import { Collapse } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { getService } from "@/services";
@@ -6,47 +8,51 @@ import { NavItem } from "@/shared/nav-item/nav-item";
 import { FileNavigator } from "./file-navigator";
 import { AddFolderButton } from "./add-folder-button";
 import { CollapseFoldersButton } from "./collapse-folders-button";
-import { AddArticleButton } from "./add-article-button";
+import { AddEntityButton } from "./add-entity-button";
+import { OutsideEventHandler } from "@/shared/outside-event-handler";
 
-function renderArticlesTabHeader() {
-    const articleNavService = getService().view.navigation.files;
+function renderContentsPaneHeader() {
+    const fileNav = getService().view.navigation.files;
     return (
         <NavItem
             groupSettings={{
-                onClick: () => articleNavService.toggleExpanded(),
+                onClick: () => fileNav.toggleExpanded(),
             }}
             expandButtonSettings={{
                 expandable: true,
-                isExpanded: () => articleNavService.expanded,
+                isExpanded: () => fileNav.expanded,
             }}
             textSettings={{
-                text: "ARTICLES",
+                text: "CONTENTS",
                 textSettings: { fw: 500 },
             }}
         >
-            {articleNavService.canAddArticle && <AddArticleButton />}
-            {articleNavService.canAddFolder && <AddFolderButton />}
-            {articleNavService.canCollapseAllFolders && (
-                <CollapseFoldersButton />
-            )}
+            {fileNav.canAddEntity && <AddEntityButton />}
+            {fileNav.canAddFolder && <AddFolderButton />}
+            {fileNav.canCollapseAllFolders && <CollapseFoldersButton />}
         </NavItem>
     );
 }
 
-const ArticlesTabHeader = observer(renderArticlesTabHeader);
+const ContentsPaneHeader = observer(renderContentsPaneHeader);
 
-function renderArticlesTab() {
+function renderContentsPane() {
     const service = getService();
     const fileNav = service.view.navigation.files;
     // the components have to take up as much vertical space as possible in order to allow
-    // dragging article nodes to the top level of the file tree
+    // dragging entity nodes to the top level of the file tree
     return (
-        <Box
-            h="100%"
+        <OutsideEventHandler
+            className="contents-pane"
+            service={fileNav.outsideEventHandler}
+            onClick={() => {
+                fileNav.selectedNode = null;
+                fileNav.focused = true;
+            }}
             onMouseEnter={() => (fileNav.hover = true)}
             onMouseLeave={() => (fileNav.hover = false)}
         >
-            <ArticlesTabHeader />
+            <ContentsPaneHeader />
             <Collapse
                 h="100%"
                 in={fileNav.expanded}
@@ -55,8 +61,8 @@ function renderArticlesTab() {
             >
                 <FileNavigator />
             </Collapse>
-        </Box>
+        </OutsideEventHandler>
     );
 }
 
-export const ArticlesTab = observer(renderArticlesTab);
+export const ContentsPane = observer(renderContentsPane);

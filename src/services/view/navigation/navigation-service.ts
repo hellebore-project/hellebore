@@ -12,8 +12,8 @@ export class NavigationService {
         this.files = new FileNavigator(view);
     }
 
-    initialize(articles: EntityInfoResponse[], folders: FolderResponse[]) {
-        this.files.initialize(articles, folders);
+    initialize(entities: EntityInfoResponse[], folders: FolderResponse[]) {
+        this.files.initialize(entities, folders);
     }
 
     reset() {

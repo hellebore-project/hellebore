@@ -54,12 +54,12 @@ interface SyncResponse {
 }
 
 export class EntityEditor {
-    // constants
+    // CONSTANTS
     ENTITY_HEADER_SPACE_HEIGHT = 25;
     BELOW_ENTITY_HEADER_SPACE_HEIGHT = 40;
     TITLE_FIELD_HEIGHT = 36;
 
-    // private state variables
+    // STATE
     private _viewKey: EntityViewKey = EntityViewKey.ArticleEditor;
     private _waitingForSync: boolean = false;
     private _syncing: boolean = false;
@@ -67,7 +67,7 @@ export class EntityEditor {
     private _lastSynced: number = 0;
     private _syncDelayTime: number = DEFAULT_SYNC_DELAY_TIME;
 
-    // services
+    // SERVICES
     view: ViewManagerInterface;
     info: EntityInfoEditor;
     properties: PropertyEditor;
@@ -274,7 +274,7 @@ export class EntityEditor {
     }: SyncRequest): Promise<SyncResponse> {
         let titleUpdateResponse: ArticleTitleUpdateResponse | null = null;
         if (typeof title === "string")
-            titleUpdateResponse = await this.view.updateArticleTitle(id, title);
+            titleUpdateResponse = await this.view.updateEntityTitle(id, title);
 
         let textUpdateResponse: ArticleTextUpdateResponse | null = null;
         if (typeof articleText === "string")

@@ -7,6 +7,7 @@ import {
     EntityViewKey,
     Id,
     ModalKey,
+    ROOT_FOLDER_ID,
     ViewKey,
     WordType,
     WordUpsert,
@@ -16,7 +17,7 @@ import { EntityCreator } from "./entity-creator";
 import { EntityEditor } from "./entity-editing";
 import { ContextMenuManager } from "./context-menu-manager";
 import { HomeManager } from "./home-manager";
-import { ViewManagerInterface } from "./interface";
+import { OpenEntityCreatorArguments, ViewManagerInterface } from "./interface";
 import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
@@ -69,7 +70,6 @@ export class ViewManager implements ViewManagerInterface {
             projectCreator: false,
             folderRemover: false,
             entityCreator: false,
-            articleRemover: false,
             entityEditor: false,
             contextMenu: false,
         };
@@ -203,10 +203,10 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     async populateNavigator() {
-        const articles = await this.domain.articles.getAll();
+        const entities = await this.domain.articles.getAll();
         const folders = await this.domain.folders.getAll();
 
-        if (articles && folders) this.navigation.initialize(articles, folders);
+        if (entities && folders) this.navigation.initialize(entities, folders);
     }
 
     toggleNavBar() {
@@ -228,25 +228,26 @@ export class ViewManager implements ViewManagerInterface {
         this._modalKey = ModalKey.ProjectCreator;
     }
 
-    openEntityCreator(entityType: EntityType | undefined = undefined) {
-        this.entityCreator.initialize(entityType);
-        this._modalKey = ModalKey.ArticleCreator;
+    openEntityCreator(args?: OpenEntityCreatorArguments) {
+        this.entityCreator.initialize(
+            args?.entityType,
+            args?.folderId ?? ROOT_FOLDER_ID,
+        );
+        this._modalKey = ModalKey.EntityCreator;
     }
 
     async openArticleEditor(id: Id) {
         if (this.isArticleEditorOpen && this.entityEditor.info.id == id) return; // the article is already open
-
         const title = this.domain.structure.getInfo(id).title;
         const text = await this.domain.articles.getText(id);
-        if (text) this._openArticleEditor(id, title, text);
+        if (text !== null) this._openArticleEditor(id, title, text);
     }
 
     _openArticleEditor(id: Id, title: string, text: string) {
         // save any unsynced data before opening another view
         this.cleanUp(ViewKey.EntityEditor);
-
         this.entityEditor.initializeArticleEditor(id, title, text);
-        this.navigation.files.openArticleNode(id);
+        this.navigation.files.openEntityNode(id);
         this._viewKey = ViewKey.EntityEditor;
     }
 
@@ -266,7 +267,7 @@ export class ViewManager implements ViewManagerInterface {
                 info.title,
                 properties,
             );
-            this.navigation.files.openArticleNode(id);
+            this.navigation.files.openEntityNode(id);
             this.currentView = ViewKey.EntityEditor;
         }
     }
@@ -291,7 +292,7 @@ export class ViewManager implements ViewManagerInterface {
             info.title,
             wordType,
         );
-        this.navigation.files.openArticleNode(languageId);
+        this.navigation.files.openEntityNode(languageId);
         this._viewKey = ViewKey.EntityEditor;
     }
 
@@ -369,36 +370,39 @@ export class ViewManager implements ViewManagerInterface {
 
         for (const folderId of fileIds.folders)
             this.navigation.files.deleteFolderNode(folderId);
-        for (const articleId of fileIds.articles)
-            this.navigation.files.deleteArticleNode(articleId);
+        for (const entityId of fileIds.articles)
+            this.navigation.files.deleteEntityNode(entityId);
 
         if (
             this._viewKey == ViewKey.EntityEditor &&
             fileIds.articles.includes(this.entityEditor.info.id)
         ) {
-            // currently-open article has been deleted
+            // currently-open entity has been deleted
             this.openHome();
         }
 
         return fileIds;
     }
 
-    async createEntity() {
-        let entity = await this.entityCreator.createEntity(
-            this.navigation.files.activeFolderId,
+    async createEntity(entityType: EntityType, title: string, folderId: Id) {
+        const entity = await this.domain.entities.create(
+            entityType,
+            title,
+            folderId,
         );
+
         if (entity) {
-            this.closeModal();
-            this.navigation.files.addNodeForCreatedArticle(entity);
+            this.navigation.files.addNodeForCreatedEntity(entity);
             this._openArticleEditor(entity.id, entity.title, "");
         }
+
         return entity;
     }
 
-    async updateArticleTitle(id: Id, title: string) {
+    async updateEntityTitle(id: Id, title: string) {
         const response = await this.domain.articles.updateTitle(id, title);
         if (title != "" && response.isUnique)
-            this.navigation.files.updateArticleNodeText(id, title);
+            this.navigation.files.updateEntityNodeText(id, title);
         return response;
     }
 
@@ -410,10 +414,10 @@ export class ViewManager implements ViewManagerInterface {
         if (confirm) {
             const info = this.domain.structure.getInfo(id);
             const message =
-                `Are you sure you want to delete the article '${info.title}' and all of its associated content?` +
+                `Are you sure you want to delete the entity '${info.title}' and all of its associated content? ` +
                 "This action is irreversible.";
             const canDelete = await ask(message, {
-                title: "Delete article",
+                title: "Delete entity",
                 kind: "warning",
                 okLabel: "Delete",
                 cancelLabel: "Cancel",
@@ -423,18 +427,18 @@ export class ViewManager implements ViewManagerInterface {
 
         const success = await this.domain.entities.delete(id);
         if (!success)
-            // failed to delete the article; aborting
+            // failed to delete the entity; aborting
             return false;
 
         if (
             this._viewKey == ViewKey.EntityEditor &&
             this.entityEditor.info.id == id
         ) {
-            // deleted article is currently open
+            // deleted entity is currently open
             this.openHome();
         }
 
-        this.navigation.files.deleteArticleNode(id);
+        this.navigation.files.deleteEntityNode(id);
 
         return true;
     }
