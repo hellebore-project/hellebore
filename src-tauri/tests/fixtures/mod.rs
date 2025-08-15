@@ -3,9 +3,7 @@ use sea_orm::DatabaseConnection;
 
 use hellebore::{
     database::database_manager,
-    schema::{
-        article::ArticleCreateSchema, folder::FolderCreateSchema, language::LanguageDataSchema,
-    },
+    schema::{entry::EntryCreateSchema, folder::FolderCreateSchema, language::LanguageDataSchema},
     settings::{DatabaseSettings, Settings},
 };
 
@@ -53,7 +51,7 @@ pub fn folder_create_payload(parent_folder_id: i32, folder_name: String) -> Fold
 }
 
 #[fixture]
-pub fn article_text() -> String {
+pub fn entry_text() -> String {
     return "".to_string();
 }
 
@@ -66,11 +64,11 @@ pub fn language_name() -> String {
 pub fn create_language_payload(
     folder_id: i32,
     language_name: String,
-) -> ArticleCreateSchema<LanguageDataSchema> {
+) -> EntryCreateSchema<LanguageDataSchema> {
     let language = LanguageDataSchema {
         name: language_name,
     };
-    ArticleCreateSchema {
+    EntryCreateSchema {
         folder_id,
         title: language.name.to_string(),
         data: language,

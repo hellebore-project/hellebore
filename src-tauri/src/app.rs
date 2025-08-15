@@ -44,13 +44,13 @@ where
         api::project::close_project,
         api::project::update_project,
         api::project::get_project,
-        // article API
-        api::article::update_article_title,
-        api::article::update_article_folder,
-        api::article::update_article_text,
-        api::article::validate_article_title,
-        api::article::get_articles,
-        api::article::get_article_text,
+        // entry API
+        api::entry::update_entry_title,
+        api::entry::update_entry_folder,
+        api::entry::update_entry_text,
+        api::entry::validate_entry_title,
+        api::entry::get_entries,
+        api::entry::get_entry_text,
         // folder API
         api::folder::create_folder,
         api::folder::update_folder,

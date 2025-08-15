@@ -1,4 +1,4 @@
-mod article;
+mod entry;
 mod folder;
 mod language;
 mod person;

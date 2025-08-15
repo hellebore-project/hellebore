@@ -1,16 +1,16 @@
 use crate::fixtures::{database, folder_id, settings};
-use crate::utils::validate_article_info_response;
+use crate::utils::validate_entry_info_response;
 
-use hellebore::schema::entity::{EntityResponseSchema, EntityUpdateSchema};
+use hellebore::schema::entry::{EntryDataResponseSchema, EntryUpdateSchema};
 use hellebore::{
-    schema::{article::ArticleCreateSchema, person::PersonDataSchema},
+    schema::{entry::EntryCreateSchema, person::PersonDataSchema},
     services::person_service,
     settings::Settings,
 };
 use rstest::*;
 
 fn validate_person_response(
-    person: &EntityResponseSchema<PersonDataSchema>,
+    person: &EntryDataResponseSchema<PersonDataSchema>,
     id: Option<i32>,
     name: &str,
 ) {
@@ -26,9 +26,9 @@ fn name() -> String {
 }
 
 #[fixture]
-fn create_payload(folder_id: i32, name: String) -> ArticleCreateSchema<PersonDataSchema> {
+fn create_payload(folder_id: i32, name: String) -> EntryCreateSchema<PersonDataSchema> {
     let person = PersonDataSchema { name };
-    ArticleCreateSchema {
+    EntryCreateSchema {
         folder_id,
         title: person.name.to_string(),
         data: person,
@@ -36,8 +36,8 @@ fn create_payload(folder_id: i32, name: String) -> ArticleCreateSchema<PersonDat
 }
 
 #[fixture]
-fn update_payload() -> EntityUpdateSchema<PersonDataSchema> {
-    EntityUpdateSchema {
+fn update_payload() -> EntryUpdateSchema<PersonDataSchema> {
+    EntryUpdateSchema {
         id: 0,
         data: PersonDataSchema {
             name: "".to_owned(),
@@ -51,20 +51,20 @@ async fn test_create_person(
     settings: &Settings,
     folder_id: i32,
     name: String,
-    create_payload: ArticleCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonDataSchema>,
 ) {
     let database = database(settings).await;
-    let article = person_service::create(&database, create_payload).await;
+    let entry = person_service::create(&database, create_payload).await;
 
-    assert!(article.is_ok());
-    validate_article_info_response(&article.unwrap(), None, folder_id, &name);
+    assert!(entry.is_ok());
+    validate_entry_info_response(&entry.unwrap(), None, folder_id, &name);
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_error_on_creating_duplicate_person(
     settings: &Settings,
-    create_payload: ArticleCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonDataSchema>,
 ) {
     let database = database(settings).await;
     let _ = person_service::create(&database, create_payload.clone()).await;
@@ -76,31 +76,31 @@ async fn test_error_on_creating_duplicate_person(
 #[tokio::test]
 async fn test_update_person(
     settings: &Settings,
-    create_payload: ArticleCreateSchema<PersonDataSchema>,
-    mut update_payload: hellebore::schema::entity::EntityUpdateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonDataSchema>,
+    mut update_payload: hellebore::schema::entry::EntryUpdateSchema<PersonDataSchema>,
 ) {
     let database = database(settings).await;
-    let article = person_service::create(&database, create_payload)
+    let entry = person_service::create(&database, create_payload)
         .await
         .unwrap();
 
-    update_payload.id = article.id;
+    update_payload.id = entry.id;
     update_payload.data.name = "Jane Doe".to_owned();
     let response = person_service::update(&database, update_payload).await;
 
     assert!(response.is_ok());
 
-    let person = person_service::get(&database, article.id).await;
+    let person = person_service::get(&database, entry.id).await;
 
     assert!(person.is_ok());
-    validate_person_response(&person.unwrap(), Some(article.id), "Jane Doe");
+    validate_person_response(&person.unwrap(), Some(entry.id), "Jane Doe");
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_error_on_updating_nonexistent_person(
     settings: &Settings,
-    update_payload: EntityUpdateSchema<PersonDataSchema>,
+    update_payload: EntryUpdateSchema<PersonDataSchema>,
 ) {
     let database = database(settings).await;
     let response = person_service::update(&database, update_payload).await;
@@ -112,17 +112,17 @@ async fn test_error_on_updating_nonexistent_person(
 async fn test_get_person(
     settings: &Settings,
     name: String,
-    create_payload: ArticleCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonDataSchema>,
 ) {
     let database = database(settings).await;
-    let article = person_service::create(&database, create_payload)
+    let entry = person_service::create(&database, create_payload)
         .await
         .unwrap();
 
-    let person = person_service::get(&database, article.id).await;
+    let person = person_service::get(&database, entry.id).await;
 
     assert!(person.is_ok());
-    validate_person_response(&person.unwrap(), Some(article.id), &name);
+    validate_person_response(&person.unwrap(), Some(entry.id), &name);
 }
 
 #[rstest]
@@ -137,19 +137,19 @@ async fn test_error_on_getting_nonexistent_person(settings: &Settings) {
 #[tokio::test]
 async fn test_delete_person(
     settings: &Settings,
-    create_payload: ArticleCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonDataSchema>,
 ) {
     let database = database(settings).await;
-    let article = person_service::create(&database, create_payload)
+    let entry = person_service::create(&database, create_payload)
         .await
         .unwrap();
 
-    let response = person_service::delete(&database, article.id).await;
+    let response = person_service::delete(&database, entry.id).await;
 
     assert!(response.is_ok());
 
-    let article = person_service::get(&database, article.id).await;
-    assert!(article.is_err());
+    let entry = person_service::get(&database, entry.id).await;
+    assert!(entry.is_err());
 }
 
 #[rstest]

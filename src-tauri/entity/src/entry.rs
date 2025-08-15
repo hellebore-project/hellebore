@@ -4,7 +4,7 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "article")]
+#[sea_orm(table_name = "entry")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
@@ -12,7 +12,7 @@ pub struct Model {
     pub entity_type: i8,
     #[sea_orm(unique)]
     pub title: String,
-    pub body: String,
+    pub text: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
