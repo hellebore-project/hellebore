@@ -1,11 +1,11 @@
-use ::entity::{article, article::Entity as ArticleEntity};
+use ::entity::{entry, entry::Entity as EntryModel};
 use sea_orm::*;
 
 use crate::types::{CodedEnum, EntityType};
 
 #[derive(DerivePartialModel, FromQueryResult)]
-#[sea_orm(entity = "ArticleEntity")]
-pub struct ArticleInfo {
+#[sea_orm(entity = "EntryModel")]
+pub struct EntityInfo {
     pub id: i32,
     pub folder_id: i32,
     pub entity_type: i8,
@@ -13,13 +13,9 @@ pub struct ArticleInfo {
 }
 
 #[derive(DerivePartialModel, FromQueryResult)]
-#[sea_orm(entity = "ArticleEntity")]
-pub struct Article {
-    pub id: i32,
-    pub folder_id: i32,
-    pub entity_type: i8,
-    pub title: String,
-    pub body: String,
+#[sea_orm(entity = "EntryModel")]
+pub struct EntityText {
+    pub text: String,
 }
 
 pub async fn insert(
@@ -28,13 +24,13 @@ pub async fn insert(
     title: String,
     entity_type: EntityType,
     text: String,
-) -> Result<article::Model, DbErr> {
-    let new_entity = article::ActiveModel {
+) -> Result<entry::Model, DbErr> {
+    let new_entity = entry::ActiveModel {
         id: NotSet,
         folder_id: Set(folder_id),
         title: Set(title),
         entity_type: Set(entity_type.code()),
-        body: Set(text),
+        text: Set(text),
     };
     match new_entity.insert(db).await {
         Ok(created_entity) => created_entity.try_into_model(),
@@ -42,44 +38,44 @@ pub async fn insert(
     }
 }
 
-pub async fn update_title(db: &DbConn, id: i32, title: String) -> Result<article::Model, DbErr> {
+pub async fn update_title(db: &DbConn, id: i32, title: String) -> Result<entry::Model, DbErr> {
     let Some(existing_entity) = get_info(db, id).await? else {
-        return Err(DbErr::RecordNotFound("Article not found.".to_owned()));
+        return Err(DbErr::RecordNotFound("Entity not found.".to_owned()));
     };
-    let updated_entity = article::ActiveModel {
+    let updated_entity = entry::ActiveModel {
         id: Unchanged(existing_entity.id),
         folder_id: NotSet,
         entity_type: NotSet,
         title: Set(title),
-        body: NotSet,
+        text: NotSet,
     };
     updated_entity.update(db).await
 }
 
-pub async fn update_folder(db: &DbConn, id: i32, folder_id: i32) -> Result<article::Model, DbErr> {
+pub async fn update_folder(db: &DbConn, id: i32, folder_id: i32) -> Result<entry::Model, DbErr> {
     let Some(existing_entity) = get_info(db, id).await? else {
-        return Err(DbErr::RecordNotFound("Article not found.".to_owned()));
+        return Err(DbErr::RecordNotFound("Entity not found.".to_owned()));
     };
-    let updated_entity = article::ActiveModel {
+    let updated_entity = entry::ActiveModel {
         id: Unchanged(existing_entity.id),
         folder_id: Set(folder_id),
         entity_type: NotSet,
         title: NotSet,
-        body: NotSet,
+        text: NotSet,
     };
     updated_entity.update(db).await
 }
 
-pub async fn update_text(db: &DbConn, id: i32, text: String) -> Result<article::Model, DbErr> {
+pub async fn update_text(db: &DbConn, id: i32, text: String) -> Result<entry::Model, DbErr> {
     let Some(existing_entity) = get_info(db, id).await? else {
-        return Err(DbErr::RecordNotFound("Article not found.".to_owned()));
+        return Err(DbErr::RecordNotFound("Entity not found.".to_owned()));
     };
-    let updated_entity = article::ActiveModel {
+    let updated_entity = entry::ActiveModel {
         id: Unchanged(existing_entity.id),
         folder_id: NotSet,
         entity_type: NotSet,
         title: NotSet,
-        body: Set(text),
+        text: Set(text),
     };
     updated_entity.update(db).await
 }
@@ -97,8 +93,8 @@ pub async fn is_title_unique_for_id(
     id: Option<i32>,
     title: &str,
 ) -> Result<bool, DbErr> {
-    let article = get_by_title(db, title).await?;
-    return match article {
+    let entity = get_by_title(db, title).await?;
+    return match entity {
         Some(a) => match id {
             Some(id) => Ok(a.id == id),
             None => Ok(false),
@@ -107,36 +103,41 @@ pub async fn is_title_unique_for_id(
     };
 }
 
-pub async fn get(db: &DbConn, id: i32) -> Result<Option<article::Model>, DbErr> {
-    ArticleEntity::find_by_id(id).one(db).await
+pub async fn get(db: &DbConn, id: i32) -> Result<Option<entry::Model>, DbErr> {
+    EntryModel::find_by_id(id).one(db).await
 }
 
-pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<ArticleInfo>, DbErr> {
-    ArticleEntity::find()
-        .filter(article::Column::Title.eq(title))
-        .into_partial_model::<ArticleInfo>()
+pub async fn get_by_title(db: &DbConn, title: &str) -> Result<Option<EntityInfo>, DbErr> {
+    EntryModel::find()
+        .filter(entry::Column::Title.eq(title))
+        .into_partial_model::<EntityInfo>()
         .one(db)
         .await
 }
 
-pub async fn get_info(db: &DbConn, id: i32) -> Result<Option<ArticleInfo>, DbErr> {
-    ArticleEntity::find_by_id(id)
-        .into_partial_model::<ArticleInfo>()
+pub async fn get_info(db: &DbConn, id: i32) -> Result<Option<EntityInfo>, DbErr> {
+    EntryModel::find_by_id(id)
+        .into_partial_model::<EntityInfo>()
         .one(db)
         .await
 }
 
-pub async fn get_text(db: &DbConn, id: i32) -> Result<Option<Article>, DbErr> {
-    ArticleEntity::find_by_id(id)
-        .into_partial_model::<Article>()
+pub async fn get_text(db: &DbConn, id: i32) -> Result<Option<String>, DbErr> {
+    let entity_text = EntryModel::find_by_id(id)
+        .into_partial_model::<EntityText>()
         .one(db)
-        .await
+        .await?;
+    let text = match entity_text {
+        Some(e) => Some(e.text),
+        None => None,
+    };
+    Ok(text)
 }
 
-pub async fn get_all(db: &DbConn) -> Result<Vec<ArticleInfo>, DbErr> {
-    ArticleEntity::find()
-        .order_by_asc(article::Column::Title)
-        .into_partial_model::<ArticleInfo>()
+pub async fn get_all(db: &DbConn) -> Result<Vec<EntityInfo>, DbErr> {
+    EntryModel::find()
+        .order_by_asc(entry::Column::Title)
+        .into_partial_model::<EntityInfo>()
         .all(db)
         .await
 }
@@ -144,14 +145,14 @@ pub async fn get_all(db: &DbConn) -> Result<Vec<ArticleInfo>, DbErr> {
 pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
     let existing_entity = get(db, id).await?;
     let Some(existing_entity) = existing_entity else {
-        return Err(DbErr::RecordNotFound(String::from("Article not found.")));
+        return Err(DbErr::RecordNotFound(String::from("Entry not found.")));
     };
     existing_entity.delete(db).await
 }
 
 pub async fn delete_many(db: &DbConn, ids: Vec<i32>) -> Result<DeleteResult, DbErr> {
-    ArticleEntity::delete_many()
-        .filter(article::Column::Id.is_in(ids))
+    EntryModel::delete_many()
+        .filter(entry::Column::Id.is_in(ids))
         .exec(db)
         .await
 }

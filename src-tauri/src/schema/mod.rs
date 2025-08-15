@@ -1,7 +1,6 @@
-pub mod article;
 pub mod config;
 pub mod data;
-pub mod entity;
+pub mod entry;
 pub mod folder;
 pub mod language;
 pub mod person;

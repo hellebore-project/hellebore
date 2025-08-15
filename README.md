@@ -7,6 +7,7 @@ Hellebore is a self-hosted desktop app that helps creatives track their fictiona
 ### Dependencies
 
 - rust: https://www.rust-lang.org/tools/install
+- node.js >=22: https://nodejs.org/en/download
 - pnpm: https://pnpm.io/installation
 - sqlite 3: https://www.sqlite.org/download.html
 

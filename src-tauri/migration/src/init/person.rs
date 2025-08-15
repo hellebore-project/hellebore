@@ -11,7 +11,7 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Person::Table)
                     .if_not_exists()
-                    // the ID must match that of the article so we don't use auto-increment here
+                    // the ID must match that of the entry so we don't use auto-increment here
                     .col(integer(Person::Id).primary_key().unique_key().not_null())
                     .col(string(Person::Name).not_null())
                     .to_owned(),

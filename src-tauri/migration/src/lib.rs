@@ -10,7 +10,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(init::project::Migration),
             Box::new(init::folder::Migration),
-            Box::new(init::article::Migration),
+            Box::new(init::entry::Migration),
             Box::new(init::language::Migration),
             Box::new(init::word::Migration),
             Box::new(init::person::Migration),

@@ -18,7 +18,7 @@ pub enum EntityType {
     Session = 1,
     Project = 2,
     Folder = 3,
-    Article = 4,
+    Entry = 4,
 
     // Dictionary
     Language = 10,
@@ -34,7 +34,7 @@ pub enum EntityType {
 pub const SESSION: EntityType = EntityType::Session;
 pub const PROJECT: EntityType = EntityType::Project;
 pub const FOLDER: EntityType = EntityType::Folder;
-pub const ARTICLE: EntityType = EntityType::Article;
+pub const ENTRY: EntityType = EntityType::Entry;
 pub const LANGUAGE: EntityType = EntityType::Language;
 pub const WORD: EntityType = EntityType::Word;
 pub const PERSON: EntityType = EntityType::Person;
