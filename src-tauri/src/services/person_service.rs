@@ -2,40 +2,40 @@ use sea_orm::DatabaseConnection;
 
 use ::entity::person::Model as Person;
 
-use crate::database::{article_manager, person_manager};
+use crate::database::{entry_manager, person_manager};
 use crate::errors::ApiError;
-use crate::schema::entity::{EntityResponseSchema, EntityUpdateSchema};
+use crate::schema::entry::{EntryDataResponseSchema, EntryUpdateSchema};
 use crate::schema::{
-    article::{ArticleCreateSchema, ArticleInfoSchema},
+    entry::{EntryCreateSchema, EntryInfoSchema},
     person::PersonDataSchema,
 };
-use crate::services::article_service;
-use crate::types::{ARTICLE, PERSON};
+use crate::services::entry_service;
+use crate::types::{ENTRY, PERSON};
 
 pub async fn create(
     database: &DatabaseConnection,
-    article: ArticleCreateSchema<PersonDataSchema>,
-) -> Result<ArticleInfoSchema, ApiError> {
-    let _article = article_manager::insert(
+    entity: EntryCreateSchema<PersonDataSchema>,
+) -> Result<EntryInfoSchema, ApiError> {
+    let _entity = entry_manager::insert(
         &database,
-        article.folder_id,
-        article.title.to_owned(),
+        entity.folder_id,
+        entity.title.to_owned(),
         PERSON,
         "".to_owned(),
     )
     .await
-    .map_err(|e| ApiError::not_inserted(e, ARTICLE))?;
+    .map_err(|e| ApiError::not_inserted(e, ENTRY))?;
 
-    person_manager::insert(&database, _article.id, &article.data.name)
+    person_manager::insert(&database, _entity.id, &entity.data.name)
         .await
         .map_err(|e| ApiError::not_inserted(e, PERSON))?;
 
-    Ok(article_service::generate_insert_response(&_article))
+    Ok(entry_service::generate_insert_response(&_entity))
 }
 
 pub async fn update(
     database: &DatabaseConnection,
-    entity: EntityUpdateSchema<PersonDataSchema>,
+    entity: EntryUpdateSchema<PersonDataSchema>,
 ) -> Result<(), ApiError> {
     person_manager::update(database, entity.id, &entity.data.name)
         .await
@@ -46,7 +46,7 @@ pub async fn update(
 pub async fn get(
     database: &DatabaseConnection,
     id: i32,
-) -> Result<EntityResponseSchema<PersonDataSchema>, ApiError> {
+) -> Result<EntryDataResponseSchema<PersonDataSchema>, ApiError> {
     let entity = person_manager::get(&database, id)
         .await
         .map_err(|e| ApiError::not_found(e, PERSON))?;
@@ -57,15 +57,15 @@ pub async fn get(
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    article_service::delete(&database, id).await?;
+    entry_service::delete(&database, id).await?;
     person_manager::delete(&database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, PERSON))?;
     return Ok(());
 }
 
-fn generate_response(entity: Person) -> EntityResponseSchema<PersonDataSchema> {
-    EntityResponseSchema {
+fn generate_response(entity: Person) -> EntryDataResponseSchema<PersonDataSchema> {
+    EntryDataResponseSchema {
         id: entity.id,
         data: PersonDataSchema { name: entity.name },
     }

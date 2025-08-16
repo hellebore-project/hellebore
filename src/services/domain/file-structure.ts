@@ -1,12 +1,12 @@
 import {
-    EntityInfoResponse,
+    EntryInfoResponse,
     BulkData,
     FolderResponse,
     Id,
     ROOT_FOLDER_ID,
 } from "@/interface";
 
-export type FileNode = EntityInfoResponse;
+export type FileNode = EntryInfoResponse;
 
 export interface FolderNode extends FolderResponse {
     subFolders: { [id: number]: FolderNode };
@@ -18,8 +18,8 @@ export class FileStructure {
     /**
      * The high-level information of each file is cached. This information is used for:
      *  - entity type look-ups
-     *  - querying articles by title
-     *  - updating references in article bodies (TODO)
+     *  - querying entries by title
+     *  - updating references in articles (TODO)
      */
     files: { [id: number]: FileNode };
 
@@ -30,7 +30,7 @@ export class FileStructure {
         this.addFolderById(ROOT_FOLDER_ID);
     }
 
-    getInfo(id: Id): EntityInfoResponse {
+    getInfo(id: Id): EntryInfoResponse {
         return this.files[id];
     }
 
@@ -85,7 +85,7 @@ export class FileStructure {
         if (parentNode) delete parentNode.subFolders[id];
     }
 
-    addFile(file: EntityInfoResponse) {
+    addFile(file: EntryInfoResponse) {
         const folder = this.addFolderById(file.folder_id);
         folder.files[file.id] = file;
         this.files[file.id] = file;
@@ -109,15 +109,15 @@ export class FileStructure {
 
     collectFileIds(rootId: number = ROOT_FOLDER_ID) {
         const rootFolder = this.addFolderById(rootId);
-        return this._collectFileIds(rootFolder, { articles: [], folders: [] });
+        return this._collectFileIds(rootFolder, { entries: [], folders: [] });
     }
 
     _collectFileIds(folder: FolderNode, bulkData: BulkData) {
         bulkData.folders.push(folder.id);
         for (const subFolder of Object.values(folder.subFolders))
             this._collectFileIds(subFolder, bulkData);
-        for (const entityId of Object.keys(folder.files))
-            bulkData.articles.push(Number(entityId));
+        for (const entryId of Object.keys(folder.files))
+            bulkData.entries.push(Number(entryId));
         return bulkData;
     }
 

@@ -1,18 +1,18 @@
 import {
-    EntityInfoResponse,
+    EntryInfoResponse,
     FolderResponse,
     ProjectResponse,
 } from "@/interface";
 import { state } from "@/services";
 import { AppManager } from "@/services/app-manager";
-import { mockGetArticles } from "./article-manager";
+import { mockGetArticles as mockGetEntries } from "./entry-manager";
 import { mockGetFolders } from "./folder-manager";
 import { mockGetSession } from "./session-manager";
 
 export interface MockServiceArguments {
     dbFilePath: string;
     project: ProjectResponse;
-    entities: EntityInfoResponse[];
+    entities: EntryInfoResponse[];
     folders: FolderResponse[];
 }
 
@@ -28,7 +28,7 @@ export function mockServices({
         dbFilePath,
         project,
     });
-    mockGetArticles({ manager: manager.domain.articles, entities });
+    mockGetEntries({ manager: manager.domain.entries, entities });
     mockGetFolders({ manager: manager.domain.folders, folders });
     manager.initialize();
     state.manager = manager;

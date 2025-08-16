@@ -24,6 +24,9 @@
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "prepare": "husky"
   },
+  "engines" : { 
+    "node": ">=22.0.0"
+  },
   "dependencies": {
     "@mantine/core": "^7.17.8",
     "@mantine/hooks": "^7.17.8",

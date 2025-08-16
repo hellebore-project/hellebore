@@ -59,8 +59,8 @@ export class ArticleTextEditor {
         this._selectedRefIndex = index;
     }
 
-    initialize(body: string) {
-        this.content = body ? JSON.parse(body) : "";
+    initialize(text: string) {
+        this.content = text ? JSON.parse(text) : "";
     }
 
     sync() {
@@ -101,7 +101,7 @@ export class ArticleTextEditor {
 
     _queryByTitle(titleFragment: string): SuggestionData[] {
         this.selectedRefIndex = 0;
-        return this.view.domain.articles
+        return this.view.domain.entries
             .queryByTitle(titleFragment)
             .filter((info) => info.id != this.info.id)
             .map((info) => ({ label: info.title, value: info.id }));

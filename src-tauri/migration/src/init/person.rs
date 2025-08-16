@@ -11,12 +11,13 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Person::Table)
                     .if_not_exists()
-                    // the ID must match that of the article so we don't use auto-increment here
+                    // TODO: add auto-increment to primary key
                     .col(integer(Person::Id).primary_key().unique_key().not_null())
                     .col(string(Person::Name).not_null())
                     .to_owned(),
             )
             .await?;
+        // TODO: add cascade delete
         Ok(())
     }
 
@@ -28,6 +29,7 @@ impl MigrationTrait for Migration {
     }
 }
 
+// TODO: add dedicated foreign key for the entry
 #[derive(DeriveIden)]
 enum Person {
     Table,

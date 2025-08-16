@@ -21,13 +21,13 @@ const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = FILE_ENTITY_TYPES.map(
     }),
 ).sort((a, b) => compareStrings(a.label, b.label));
 
-function renderEntityCreator() {
+function renderEntryCreator() {
     const service = getService();
 
     return (
         <Modal
-            title="Create a new entity"
-            opened={service.view.currentModal == ModalKey.EntityCreator}
+            title="Create a new entry"
+            opened={service.view.currentModal == ModalKey.EntryCreator}
             onClose={() => service.view.closeModal()}
             portalProps={{ target: service.view.sharedPortalSelector }}
         >
@@ -39,7 +39,7 @@ function renderEntityCreator() {
                 >
                     <SelectField
                         label="Entity"
-                        placeholder="Select an entity type (optional)"
+                        placeholder="Select an entity type"
                         data={ENTITY_TYPE_DROPDOWN_DATA}
                         getValue={() =>
                             service.view.entityCreator.entityType?.toString() ??
@@ -75,4 +75,4 @@ function renderEntityCreator() {
     );
 }
 
-export const EntityCreator = observer(renderEntityCreator);
+export const EntryCreator = observer(renderEntryCreator);

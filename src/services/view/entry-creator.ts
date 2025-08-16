@@ -4,7 +4,7 @@ import { EntityType, Id, ROOT_FOLDER_ID } from "@/interface";
 import { ViewManagerInterface } from "./interface";
 import { FormEvent } from "react";
 
-export class EntityCreator {
+export class EntryCreator {
     // STATE
     private _title: string = "";
     private _folderId: Id = ROOT_FOLDER_ID;
@@ -54,6 +54,9 @@ export class EntityCreator {
         event.preventDefault();
 
         const entity = this.view.createEntity(
+            // HACK: assume that the user has entered an entity type
+            // TODO: when entity type is null, we need to default to some sort of generic entity
+            // without any properties
             this.entityType as EntityType,
             this._title,
             this._folderId,

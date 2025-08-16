@@ -4,7 +4,7 @@ import { makeAutoObservable, toJS } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
 import {
-    EntityInfoResponse,
+    EntryInfoResponse,
     FileNodeData,
     FileNodeModel,
     FolderResponse,
@@ -179,7 +179,7 @@ export class FileNavigator {
         return this.expanded && this.hover;
     }
 
-    initialize(entities: EntityInfoResponse[], folders: FolderResponse[]) {
+    initialize(entities: EntryInfoResponse[], folders: FolderResponse[]) {
         this._nodePositionCache = {};
 
         const nodes: FileNodeModel[] = [];
@@ -539,7 +539,7 @@ export class FileNavigator {
 
     // NODE GENERATION
 
-    addNodeForCreatedEntity({ id, folder_id, title }: EntityInfoResponse) {
+    addNodeForCreatedEntity({ id, folder_id, title }: EntryInfoResponse) {
         const node = this._generateEntityNode(id, folder_id, title);
         this._nodes.push(node);
     }
@@ -672,7 +672,7 @@ export class FileNavigator {
             });
         } else {
             // entity
-            response = await this.view.domain.articles.updateFolder(
+            response = await this.view.domain.entries.updateFolder(
                 id,
                 destParentId,
                 sourceParentId,

@@ -1,6 +1,5 @@
-export * from "./article";
 export * from "./data";
-export * from "./entity";
+export * from "./entry";
 export * from "./error";
 export * from "./folder";
 export * from "./response";

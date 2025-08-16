@@ -4,7 +4,7 @@ import { test as baseTest } from "vitest";
 import { AppManager } from "@/services/app-manager";
 import { mockServices } from "@tests/utils/mocks";
 import {
-    EntityInfoResponse,
+    EntryInfoResponse,
     EntityType,
     FolderResponse,
     ProjectResponse,
@@ -15,7 +15,7 @@ import { cleanup } from "@testing-library/react";
 export interface BaseUnitFixtures {
     dbFilePath: string;
     project: ProjectResponse;
-    entities: EntityInfoResponse[];
+    entities: EntryInfoResponse[];
     folders: FolderResponse[];
     service: AppManager;
     user: UserEvent;
