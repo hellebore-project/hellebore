@@ -1,7 +1,7 @@
 import { PhysicalSize } from "@tauri-apps/api/dpi";
 
 import {
-    EntityInfoResponse,
+    EntryInfoResponse,
     BulkData,
     EntityType,
     Id,
@@ -11,7 +11,7 @@ import {
     WordUpsert,
     WordUpsertResponse,
 } from "@/interface";
-import { ArticleTitleUpdateResponse, DomainManager } from "../domain";
+import { EntryTitleUpdateResponse, DomainManager } from "../domain";
 
 export interface OpenEntityCreatorArguments {
     entityType?: EntityType;
@@ -47,11 +47,8 @@ export interface ViewManagerInterface {
         entityType: EntityType,
         title: string,
         folderId: Id,
-    ): Promise<EntityInfoResponse | null>;
-    updateEntityTitle(
-        id: Id,
-        title: string,
-    ): Promise<ArticleTitleUpdateResponse>;
+    ): Promise<EntryInfoResponse | null>;
+    updateEntityTitle(id: Id, title: string): Promise<EntryTitleUpdateResponse>;
     updateLexicon(words: WordUpsert[]): Promise<WordUpsertResponse[] | null>;
     deleteEntity(id: number, confirm?: boolean): Promise<boolean>;
     cleanUp(): void;

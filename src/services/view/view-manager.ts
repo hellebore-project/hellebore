@@ -13,7 +13,7 @@ import {
     WordUpsert,
 } from "@/interface";
 import { DomainManager } from "../domain";
-import { EntityCreator } from "./entity-creator";
+import { EntryCreator } from "./entry-creator";
 import { EntityEditor } from "./entity-editing";
 import { ContextMenuManager } from "./context-menu-manager";
 import { HomeManager } from "./home-manager";
@@ -51,7 +51,7 @@ export class ViewManager implements ViewManagerInterface {
 
     // modal services
     projectCreator: ProjectCreator;
-    entityCreator: EntityCreator;
+    entityCreator: EntryCreator;
 
     // context menu service
     contextMenu: ContextMenuManager;
@@ -90,7 +90,7 @@ export class ViewManager implements ViewManagerInterface {
 
         // modals
         this.projectCreator = new ProjectCreator();
-        this.entityCreator = new EntityCreator(this);
+        this.entityCreator = new EntryCreator(this);
 
         // context menu
         this.contextMenu = new ContextMenuManager(this);
@@ -203,10 +203,10 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     async populateNavigator() {
-        const entities = await this.domain.articles.getAll();
+        const entries = await this.domain.entries.getAll();
         const folders = await this.domain.folders.getAll();
 
-        if (entities && folders) this.navigation.initialize(entities, folders);
+        if (entries && folders) this.navigation.initialize(entries, folders);
     }
 
     toggleNavBar() {
@@ -233,13 +233,13 @@ export class ViewManager implements ViewManagerInterface {
             args?.entityType,
             args?.folderId ?? ROOT_FOLDER_ID,
         );
-        this._modalKey = ModalKey.EntityCreator;
+        this._modalKey = ModalKey.EntryCreator;
     }
 
     async openArticleEditor(id: Id) {
         if (this.isArticleEditorOpen && this.entityEditor.info.id == id) return; // the article is already open
         const title = this.domain.structure.getInfo(id).title;
-        const text = await this.domain.articles.getText(id);
+        const text = await this.domain.entries.getText(id);
         if (text !== null) this._openArticleEditor(id, title, text);
     }
 
@@ -256,7 +256,7 @@ export class ViewManager implements ViewManagerInterface {
             return; // the property editor is already open
 
         const info = this.domain.structure.getInfo(id);
-        const properties = await this.domain.entities.get(id, info.entity_type);
+        const properties = await this.domain.entries.get(id, info.entity_type);
 
         if (properties !== null) {
             // save any unsynced data before opening another view
@@ -370,12 +370,12 @@ export class ViewManager implements ViewManagerInterface {
 
         for (const folderId of fileIds.folders)
             this.navigation.files.deleteFolderNode(folderId);
-        for (const entityId of fileIds.articles)
+        for (const entityId of fileIds.entries)
             this.navigation.files.deleteEntityNode(entityId);
 
         if (
             this._viewKey == ViewKey.EntityEditor &&
-            fileIds.articles.includes(this.entityEditor.info.id)
+            fileIds.entries.includes(this.entityEditor.info.id)
         ) {
             // currently-open entity has been deleted
             this.openHome();
@@ -385,7 +385,7 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     async createEntity(entityType: EntityType, title: string, folderId: Id) {
-        const entity = await this.domain.entities.create(
+        const entity = await this.domain.entries.create(
             entityType,
             title,
             folderId,
@@ -400,7 +400,7 @@ export class ViewManager implements ViewManagerInterface {
     }
 
     async updateEntityTitle(id: Id, title: string) {
-        const response = await this.domain.articles.updateTitle(id, title);
+        const response = await this.domain.entries.updateTitle(id, title);
         if (title != "" && response.isUnique)
             this.navigation.files.updateEntityNodeText(id, title);
         return response;
@@ -425,7 +425,7 @@ export class ViewManager implements ViewManagerInterface {
             if (!canDelete) return false;
         }
 
-        const success = await this.domain.entities.delete(id);
+        const success = await this.domain.entries.delete(id);
         if (!success)
             // failed to delete the entity; aborting
             return false;

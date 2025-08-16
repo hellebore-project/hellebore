@@ -1,4 +1,4 @@
 export interface BulkData {
-    articles: number[];
+    entries: number[];
     folders: number[];
 }

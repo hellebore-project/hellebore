@@ -11,7 +11,7 @@ export enum EntityType {
     SESSION = 1,
     PROJECT = 2,
     FOLDER = 3,
-    ARTICLE = 4,
+    ENTRY = 4,
 
     // Dictionary
     LANGUAGE = 10,

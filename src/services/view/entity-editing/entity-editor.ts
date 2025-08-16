@@ -11,9 +11,9 @@ import {
     WordData,
 } from "@/interface";
 import {
-    ArticleTextUpdateResponse,
-    ArticleTitleUpdateResponse,
-    EntityUpdateResponse,
+    EntryTextUpdateResponse,
+    EntryTitleUpdateResponse,
+    EntryUpdateResponse,
 } from "@/services/domain";
 import { PropertyEditor } from "./property-editor";
 import { ArticleTextEditor } from "./text-editor";
@@ -33,7 +33,7 @@ type PrivateKeys =
 interface SyncSettings {
     syncTitle?: boolean;
     syncProperties?: boolean;
-    syncArticleText?: boolean;
+    syncText?: boolean;
     syncLexicon?: boolean;
 }
 
@@ -42,14 +42,14 @@ interface SyncRequest {
     entityType: EntityType;
     title?: string | null;
     properties?: BaseEntity | null;
-    articleText?: string | null;
+    text?: string | null;
     words: WordData[] | null;
 }
 
 interface SyncResponse {
-    articleTitle: ArticleTitleUpdateResponse | null;
-    articleText: ArticleTextUpdateResponse | null;
-    properties: EntityUpdateResponse | null;
+    title: EntryTitleUpdateResponse | null;
+    text: EntryTextUpdateResponse | null;
+    properties: EntryUpdateResponse | null;
     lexicon: WordUpsertResponse[] | null;
 }
 
@@ -71,7 +71,7 @@ export class EntityEditor {
     view: ViewManagerInterface;
     info: EntityInfoEditor;
     properties: PropertyEditor;
-    articleText: ArticleTextEditor;
+    text: ArticleTextEditor;
     lexicon: WordEditor;
 
     constructor(view: ViewManagerInterface) {
@@ -84,7 +84,7 @@ export class EntityEditor {
             view: false,
             info: false,
             properties: false,
-            articleText: false,
+            text: false,
             lexicon: false,
         });
 
@@ -96,7 +96,7 @@ export class EntityEditor {
             info: this.info,
             onChange,
         });
-        this.articleText = new ArticleTextEditor({
+        this.text = new ArticleTextEditor({
             view: view,
             info: this.info,
             onChange,
@@ -142,7 +142,7 @@ export class EntityEditor {
     initializeArticleEditor(id: Id, title: string, text: string) {
         this.currentView = EntityViewKey.ArticleEditor;
         this.info.initialize(id, title);
-        this.articleText.initialize(text);
+        this.text.initialize(text);
     }
 
     initializePropertyEditor(id: Id, title: string, properties: BaseEntity) {
@@ -161,7 +161,7 @@ export class EntityEditor {
         this.sync({
             syncTitle: true,
             syncProperties: true,
-            syncArticleText: true,
+            syncText: true,
             syncLexicon: true,
         });
         this.lexicon.cleanUp();
@@ -170,14 +170,14 @@ export class EntityEditor {
     reset() {
         this.info.reset();
         this.properties.reset();
-        this.articleText.reset();
+        this.text.reset();
         this.lexicon.reset();
     }
 
     private async _delayedSync({
         syncTitle = false,
         syncProperties = false,
-        syncArticleText = false,
+        syncText = false,
         syncLexicon = false,
     }: SyncSettings) {
         while (true) {
@@ -199,7 +199,7 @@ export class EntityEditor {
         return this.sync({
             syncTitle,
             syncProperties,
-            syncArticleText,
+            syncText,
             syncLexicon,
         });
     }
@@ -207,17 +207,17 @@ export class EntityEditor {
     sync({
         syncTitle = false,
         syncProperties = false,
-        syncArticleText = false,
+        syncText = false,
         syncLexicon = false,
     }: SyncSettings): Promise<boolean> {
         // NOTE: this function must run synchronously
 
-        if (!syncTitle && !syncProperties && !syncArticleText)
+        if (!syncTitle && !syncProperties && !syncText)
             return new Promise(() => false);
         if (
             !this.info.titleChanged &&
             !this.properties.changed &&
-            !this.articleText.changed &&
+            !this.text.changed &&
             !this.lexicon.changed
         )
             return new Promise(() => false);
@@ -232,21 +232,18 @@ export class EntityEditor {
             this.properties.data != null
                 ? this.properties.data
                 : null;
-        let articleText =
-            syncArticleText && this.articleText.changed
-                ? this.articleText.serialized
-                : null;
+        let text = syncText && this.text.changed ? this.text.serialized : null;
         let words =
             syncLexicon && this.lexicon.changed
                 ? this.lexicon.claimModifiedWords()
                 : null;
 
-        const request = {
+        const request: SyncRequest = {
             id: this.info.id,
             entityType: this.info.entityType as EntityType,
             title,
             properties,
-            articleText,
+            text,
             words,
         };
         // the last synced time corresponds to the moment that the view data is retrieved
@@ -269,23 +266,23 @@ export class EntityEditor {
         id,
         title,
         properties,
-        articleText,
+        text,
         words,
     }: SyncRequest): Promise<SyncResponse> {
-        let titleUpdateResponse: ArticleTitleUpdateResponse | null = null;
+        let titleUpdateResponse: EntryTitleUpdateResponse | null = null;
         if (typeof title === "string")
             titleUpdateResponse = await this.view.updateEntityTitle(id, title);
 
-        let textUpdateResponse: ArticleTextUpdateResponse | null = null;
-        if (typeof articleText === "string")
-            textUpdateResponse = await this.view.domain.articles.updateText(
+        let textUpdateResponse: EntryTextUpdateResponse | null = null;
+        if (typeof text === "string")
+            textUpdateResponse = await this.view.domain.entries.updateText(
                 id,
-                articleText,
+                text,
             );
 
-        let propertiesResponse: EntityUpdateResponse | null = null;
+        let propertiesResponse: EntryUpdateResponse | null = null;
         if (properties)
-            propertiesResponse = await this.view.domain.entities.update(
+            propertiesResponse = await this.view.domain.entries.update(
                 id,
                 properties,
             );
@@ -303,8 +300,8 @@ export class EntityEditor {
         }
 
         return {
-            articleTitle: titleUpdateResponse,
-            articleText: textUpdateResponse,
+            title: titleUpdateResponse,
+            text: textUpdateResponse,
             properties: propertiesResponse,
             lexicon: lexiconResponse,
         };
@@ -312,16 +309,16 @@ export class EntityEditor {
 
     private _afterSync(
         request: SyncRequest,
-        { articleTitle, articleText, properties, lexicon }: SyncResponse,
+        { title, text, properties, lexicon }: SyncResponse,
     ) {
         if (this.info.id != request.id) return;
 
-        if (articleTitle && articleTitle.updated) {
+        if (title && title.updated) {
             this.info.sync();
-            this.info.isTitleUnique = articleTitle.isUnique ?? true;
+            this.info.isTitleUnique = title.isUnique ?? true;
         }
 
-        if (articleText && articleText.updated) this.articleText.sync();
+        if (text && text.updated) this.text.sync();
 
         if (properties && properties.updated) this.properties.sync();
 
@@ -346,7 +343,7 @@ export class EntityEditor {
             this._delayedSync({
                 syncTitle: true,
                 syncProperties: true,
-                syncArticleText: true,
+                syncText: true,
                 syncLexicon: true,
             }).then(() => (this._waitingForSync = false));
         }

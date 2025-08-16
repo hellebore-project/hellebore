@@ -24,7 +24,7 @@ export enum WordViewKey {
 
 export enum ModalKey {
     ProjectCreator = "PROJECT_CREATOR",
-    EntityCreator = "ENTITY_CREATOR",
+    EntryCreator = "ENTRY_CREATOR",
 }
 
 export enum ContextMenuKey {
