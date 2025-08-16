@@ -8,8 +8,8 @@ pub async fn bulk_delete(
     database: &DatabaseConnection,
     data: BulkDataSchema,
 ) -> Result<(), ApiError> {
-    if !data.entities.is_empty() {
-        entry_service::delete_many(database, data.entities).await?;
+    if !data.entries.is_empty() {
+        entry_service::delete_many(database, data.entries).await?;
     }
     if !data.folders.is_empty() {
         folder_service::delete_many(database, data.folders).await?;

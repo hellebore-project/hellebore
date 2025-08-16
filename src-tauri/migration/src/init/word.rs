@@ -24,6 +24,8 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+        // TODO: add foreign key constraint to LanguageId
+        // TODO: add cascade delete
         Ok(())
     }
 

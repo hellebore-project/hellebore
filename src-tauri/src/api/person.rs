@@ -10,19 +10,19 @@ use crate::state::State;
 #[tauri::command]
 pub async fn create_person(
     state: tauri::State<'_, State>,
-    entity: EntryCreateSchema<PersonDataSchema>,
+    entry: EntryCreateSchema<PersonDataSchema>,
 ) -> Result<EntryInfoSchema, ApiError> {
     let state = state.lock().await;
-    person_service::create(utils::get_database(&state)?, entity).await
+    person_service::create(utils::get_database(&state)?, entry).await
 }
 
 #[tauri::command]
 pub async fn update_person(
     state: tauri::State<'_, State>,
-    entity: EntryUpdateSchema<PersonDataSchema>,
+    entry: EntryUpdateSchema<PersonDataSchema>,
 ) -> Result<(), ApiError> {
     let state = state.lock().await;
-    person_service::update(utils::get_database(&state)?, entity).await
+    person_service::update(utils::get_database(&state)?, entry).await
 }
 
 #[tauri::command]

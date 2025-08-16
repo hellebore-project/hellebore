@@ -10,10 +10,10 @@ use crate::state::State;
 #[tauri::command]
 pub async fn create_language(
     state: tauri::State<'_, State>,
-    entity: EntryCreateSchema<LanguageDataSchema>,
+    entry: EntryCreateSchema<LanguageDataSchema>,
 ) -> Result<EntryInfoSchema, ApiError> {
     let state = state.lock().await;
-    language_service::create(utils::get_database(&state)?, entity).await
+    language_service::create(utils::get_database(&state)?, entry).await
 }
 
 #[tauri::command]
