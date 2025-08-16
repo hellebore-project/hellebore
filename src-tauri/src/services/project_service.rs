@@ -3,7 +3,7 @@ use tokio::sync::MutexGuard;
 
 use ::entity::project::Model as Project;
 
-use crate::database::{database_manager, project_manager};
+use crate::database::{project_manager, setup};
 use crate::errors::ApiError;
 use crate::schema::project::{ProjectLoadResponseSchema, ProjectResponseSchema};
 use crate::state::StateData;
@@ -19,7 +19,7 @@ pub async fn create(
     state.settings.database.file_path = Some(db_path.to_string());
     state.settings.write_config_file();
 
-    let db = database_manager::setup(&state.settings).await?;
+    let db = setup::setup(&state.settings).await?;
 
     // TODO: fall back to an error state in the UI if the query fails
     let mut projects = _get_all_records(&db).await?;
@@ -44,7 +44,7 @@ pub async fn load(
     state.settings.database.file_path = Some(db_path.to_string());
     state.settings.write_config_file();
 
-    let db = database_manager::setup(&state.settings).await?;
+    let db = setup::setup(&state.settings).await?;
     let project = match get(&db).await? {
         Some(project) => project,
         None => {

@@ -13,4 +13,4 @@ serde = { version = "1", features = ["derive"] }
 sea-query = { version = "0" }
 
 [dependencies.sea-orm]
-version = "^1.1.0"
+version = "^1"

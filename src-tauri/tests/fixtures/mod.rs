@@ -2,7 +2,7 @@ use rstest::*;
 use sea_orm::DatabaseConnection;
 
 use hellebore::{
-    database::database_manager,
+    database::setup,
     schema::{entry::EntryCreateSchema, folder::FolderCreateSchema, language::LanguageDataSchema},
     settings::{DatabaseSettings, Settings},
 };
@@ -24,7 +24,7 @@ pub fn settings() -> Settings {
 }
 
 pub async fn database(settings: &Settings) -> DatabaseConnection {
-    database_manager::setup(settings).await.unwrap()
+    setup::setup(settings).await.unwrap()
 }
 
 #[fixture]
