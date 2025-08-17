@@ -80,7 +80,7 @@
     "vitest": "^3.2.4"
   },
   "lint-staged": {
-    "*.rs": "rustfmt --edition 2021",
+    "*.rs": "rustfmt --edition 2024",
     "*.{ts,tsx}": "eslint --cache --fix",
     "*.css": "stylelint --fix",
     "*.{ts,tsx,css,md}": "prettier --write"

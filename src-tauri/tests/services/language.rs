@@ -1,13 +1,20 @@
-use hellebore::{
-    database::language_manager,
-    schema::{entry::EntryCreateSchema, language::LanguageDataSchema},
-    services::language_service,
-    settings::Settings,
-};
 use rstest::*;
 
-use crate::fixtures::{create_language_payload, database, folder_id, language_name, settings};
-use crate::utils::validate_entry_info_response;
+use hellebore::{
+    database::language_manager,
+    schema::{entry::EntryCreateSchema, language::LanguageDataSchema, word::WordUpdateSchema},
+    services::{language_service, word_service},
+    settings::Settings,
+};
+
+use crate::fixtures::{
+    database,
+    folder::folder_id,
+    language::{create_language_payload, language_name},
+    settings,
+    word::create_word_payload,
+};
+use crate::utils::{entry::validate_entry_info_response, word::get_all_words_for_language};
 
 #[rstest]
 #[tokio::test]
@@ -41,11 +48,20 @@ async fn test_error_on_creating_duplicate_language(
 async fn test_delete_language(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageDataSchema>,
+    mut create_word_payload: WordUpdateSchema,
 ) {
     let database = database(settings).await;
+
     let entry = language_service::create(&database, create_language_payload)
         .await
         .unwrap();
+    let id = entry.id;
+
+    create_word_payload.language_id = Some(id);
+    let _ = word_service::create(&database, create_word_payload.clone()).await;
+
+    let words = get_all_words_for_language(id, &database).await;
+    assert_eq!(words.len(), 1);
 
     let response = language_service::delete(&database, entry.id).await;
 
@@ -53,7 +69,12 @@ async fn test_delete_language(
 
     let entry = language_manager::get(&database, entry.id).await;
     assert!(entry.is_ok());
-    assert!(entry.unwrap().is_none());
+
+    let entry = entry.unwrap();
+    assert!(entry.is_none());
+
+    let words = get_all_words_for_language(id, &database).await;
+    assert_eq!(words.len(), 0);
 }
 
 #[rstest]

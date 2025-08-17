@@ -3,9 +3,13 @@ use sea_orm::DatabaseConnection;
 
 use hellebore::{
     database::setup,
-    schema::{entry::EntryCreateSchema, folder::FolderCreateSchema, language::LanguageDataSchema},
     settings::{DatabaseSettings, Settings},
 };
+
+pub mod entry;
+pub mod folder;
+pub mod language;
+pub mod word;
 
 pub struct TestState {
     pub db: Option<DatabaseConnection>,
@@ -25,52 +29,4 @@ pub fn settings() -> Settings {
 
 pub async fn database(settings: &Settings) -> DatabaseConnection {
     setup::setup(settings).await.unwrap()
-}
-
-#[fixture]
-pub fn folder_id() -> i32 {
-    return -1;
-}
-
-#[fixture]
-pub fn parent_folder_id() -> i32 {
-    return -1;
-}
-
-#[fixture]
-pub fn folder_name() -> String {
-    return "folder".to_owned();
-}
-
-#[fixture]
-pub fn folder_create_payload(parent_folder_id: i32, folder_name: String) -> FolderCreateSchema {
-    FolderCreateSchema {
-        parent_id: parent_folder_id,
-        name: folder_name,
-    }
-}
-
-#[fixture]
-pub fn entry_text() -> String {
-    return "".to_string();
-}
-
-#[fixture]
-pub fn language_name() -> String {
-    return "French".to_string();
-}
-
-#[fixture]
-pub fn create_language_payload(
-    folder_id: i32,
-    language_name: String,
-) -> EntryCreateSchema<LanguageDataSchema> {
-    let language = LanguageDataSchema {
-        name: language_name,
-    };
-    EntryCreateSchema {
-        folder_id,
-        title: language.name.to_string(),
-        data: language,
-    }
 }

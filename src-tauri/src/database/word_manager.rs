@@ -99,10 +99,3 @@ pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
     };
     return existing_entity.delete(db).await;
 }
-
-pub async fn delete_all(db: &DbConn, language_id: i32) -> Result<DeleteResult, DbErr> {
-    WordEntity::delete_many()
-        .filter(word::Column::LanguageId.eq(language_id))
-        .exec(db)
-        .await
-}
