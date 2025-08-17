@@ -1,6 +1,6 @@
 use sea_orm::DatabaseConnection;
 
-use crate::database::{entry_manager, language_manager, word_manager};
+use crate::database::{entry_manager, language_manager};
 use crate::errors::ApiError;
 use crate::schema::{
     entry::{EntryCreateSchema, EntryInfoSchema},
@@ -30,11 +30,5 @@ pub async fn create(
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
     entry_service::delete(&database, id).await?;
-    language_manager::delete(&database, id)
-        .await
-        .map_err(|e| ApiError::not_deleted(e, LANGUAGE))?;
-    word_manager::delete_all(&database, id)
-        .await
-        .map_err(|e| ApiError::not_deleted(e, LANGUAGE))?;
     return Ok(());
 }

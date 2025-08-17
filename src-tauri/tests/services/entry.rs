@@ -8,7 +8,12 @@ use hellebore::{
 };
 use rstest::*;
 
-use crate::fixtures::{database, entry_text, folder_create_payload, folder_id, settings};
+use crate::fixtures::{
+    database,
+    entry::entry_text,
+    folder::{folder_create_payload, folder_id},
+    settings,
+};
 
 fn validate_model(entry: &EntryModel, id: Option<i32>, folder_id: i32, title: &str, text: &str) {
     if id.is_some() {

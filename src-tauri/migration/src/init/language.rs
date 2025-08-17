@@ -1,5 +1,9 @@
 use sea_orm_migration::{prelude::*, schema::*};
 
+use crate::init::entry::Entry;
+
+const LANGUAGE_ENTRY_ID_FK_NAME: &str = "fk_language_entry_id";
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -11,12 +15,18 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Language::Table)
                     .if_not_exists()
-                    // TODO: add auto-increment to primary key
-                    .col(integer(Language::Id).primary_key().unique_key().not_null())
+                    .col(pk_auto(Language::Id).not_null())
+                    .col(integer(Language::EntryId).not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name(LANGUAGE_ENTRY_ID_FK_NAME)
+                            .from(Language::Table, Language::EntryId)
+                            .to(Entry::Table, Entry::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await?;
-        // TODO: add cascade delete
         Ok(())
     }
 
@@ -28,9 +38,9 @@ impl MigrationTrait for Migration {
     }
 }
 
-// TODO: add dedicated foreign key for the entry
 #[derive(DeriveIden)]
-enum Language {
+pub enum Language {
     Table,
     Id,
+    EntryId,
 }

@@ -2,10 +2,10 @@ use sea_orm_migration::{prelude::*, schema::*};
 
 use crate::init::folder::ROOT_FOLDER_ID;
 
+const ENTRY_TITLE_INDEX_NAME: &str = "index_entry_title";
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
-
-const ENTRY_TITLE_INDEX_NAME: &str = "index_entry_title";
 
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {

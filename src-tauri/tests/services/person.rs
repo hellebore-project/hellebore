@@ -1,5 +1,5 @@
-use crate::fixtures::{database, folder_id, settings};
-use crate::utils::validate_entry_info_response;
+use crate::fixtures::{database, folder::folder_id, settings};
+use crate::utils::entry::validate_entry_info_response;
 
 use hellebore::schema::entry::{EntryDataResponseSchema, EntryUpdateSchema};
 use hellebore::{

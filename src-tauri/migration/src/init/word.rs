@@ -1,5 +1,9 @@
 use sea_orm_migration::{prelude::*, schema::*};
 
+use crate::init::language::Language;
+
+const WORD_LANG_ID_FK_NAME: &str = "fk_word_lang_id";
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -21,11 +25,16 @@ impl MigrationTrait for Migration {
                     .col(tiny_integer(Word::VerbForm))
                     .col(tiny_integer(Word::VerbTense))
                     .col(json(Word::Translations))
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name(WORD_LANG_ID_FK_NAME)
+                            .from(Word::Table, Word::LanguageId)
+                            .to(Language::Table, Language::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await?;
-        // TODO: add foreign key constraint to LanguageId
-        // TODO: add cascade delete
         Ok(())
     }
 

@@ -1,4 +1,9 @@
-use crate::fixtures::{create_language_payload, database, settings};
+use crate::fixtures::{
+    database,
+    language::create_language_payload,
+    settings,
+    word::{create_word_payload, expected_word_response},
+};
 
 use hellebore::{
     schema::{
@@ -8,11 +13,7 @@ use hellebore::{
     },
     services::{language_service, word_service},
     settings::Settings,
-    types::{
-        CodedEnum, GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense,
-        WordType,
-    },
-    utils::value_or_default,
+    types::{CodedEnum, GrammaticalGender, VerbForm, WordType},
 };
 use rstest::*;
 
@@ -29,116 +30,27 @@ fn validate_word_response(actual: &WordResponseSchema, expected: &WordResponseSc
     assert_eq!(expected.verb_tense.code(), actual.verb_tense.code());
 }
 
-#[fixture]
-fn word_type() -> WordType {
-    WordType::Noun
-}
-
-#[fixture]
-fn spelling() -> String {
-    "rue".to_owned()
-}
-
-#[fixture]
-fn translations() -> Vec<String> {
-    vec!["road".to_owned(), "street".to_owned()]
-}
-
-#[fixture]
-fn number() -> Option<GrammaticalNumber> {
-    Some(GrammaticalNumber::Singular)
-}
-
-#[fixture]
-fn person() -> Option<GrammaticalPerson> {
-    None
-}
-
-#[fixture]
-fn gender() -> Option<GrammaticalGender> {
-    Some(GrammaticalGender::Feminine)
-}
-
-#[fixture]
-fn verb_form() -> Option<VerbForm> {
-    None
-}
-
-#[fixture]
-fn tense() -> Option<VerbTense> {
-    None
-}
-
-#[fixture]
-fn create_payload(
-    word_type: WordType,
-    spelling: String,
-    translations: Vec<String>,
-    number: Option<GrammaticalNumber>,
-    person: Option<GrammaticalPerson>,
-    gender: Option<GrammaticalGender>,
-    verb_form: Option<VerbForm>,
-    tense: Option<VerbTense>,
-) -> WordUpdateSchema {
-    WordUpdateSchema {
-        id: None,
-        language_id: Some(1),
-        word_type: Some(word_type),
-        spelling: Some(spelling),
-        number,
-        person,
-        gender,
-        verb_form,
-        verb_tense: tense,
-        translations: Some(translations),
-    }
-}
-
-#[fixture]
-fn expected_response(
-    word_type: WordType,
-    spelling: String,
-    translations: Vec<String>,
-    number: Option<GrammaticalNumber>,
-    person: Option<GrammaticalPerson>,
-    gender: Option<GrammaticalGender>,
-    verb_form: Option<VerbForm>,
-    tense: Option<VerbTense>,
-) -> WordResponseSchema {
-    WordResponseSchema {
-        word_type,
-        spelling,
-        translations,
-        number: value_or_default(number),
-        person: value_or_default(person),
-        gender: value_or_default(gender),
-        verb_form: value_or_default(verb_form),
-        verb_tense: value_or_default(tense),
-        ..Default::default()
-    }
-}
-
 #[rstest]
 #[tokio::test]
 async fn test_create_word(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageDataSchema>,
-    mut create_payload: WordUpdateSchema,
-    mut expected_response: WordResponseSchema,
+    mut create_word_payload: WordUpdateSchema,
+    mut expected_word_response: WordResponseSchema,
 ) {
     let database = database(settings).await;
     let language = language_service::create(&database, create_language_payload)
         .await
         .unwrap();
 
-    create_payload.language_id = Some(language.id);
-    let word = word_service::create(&database, create_payload.clone()).await;
+    create_word_payload.language_id = Some(language.id);
+    let word = word_service::create(&database, create_word_payload.clone()).await;
 
     assert!(word.is_ok());
     let word = word.unwrap();
-    expected_response.id = word.id;
-    expected_response.language_id = word.language_id;
-    validate_word_response(&word, &expected_response);
+    expected_word_response.id = word.id;
+    expected_word_response.language_id = word.language_id;
+    validate_word_response(&word, &expected_word_response);
 }
 
 #[rstest]
@@ -146,16 +58,16 @@ async fn test_create_word(
 async fn test_create_duplicate_word(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageDataSchema>,
-    mut create_payload: WordUpdateSchema,
+    mut create_word_payload: WordUpdateSchema,
 ) {
     let database = database(settings).await;
     let language = language_service::create(&database, create_language_payload)
         .await
         .unwrap();
-    create_payload.language_id = Some(language.id);
-    let _ = word_service::create(&database, create_payload.clone()).await;
+    create_word_payload.language_id = Some(language.id);
+    let _ = word_service::create(&database, create_word_payload.clone()).await;
 
-    let response = word_service::create(&database, create_payload).await;
+    let response = word_service::create(&database, create_word_payload).await;
 
     assert!(response.is_ok());
 }
@@ -164,16 +76,16 @@ async fn test_create_duplicate_word(
 #[tokio::test]
 async fn test_update_word(
     settings: &Settings,
-    mut create_payload: WordUpdateSchema,
+    mut create_word_payload: WordUpdateSchema,
     create_language_payload: EntryCreateSchema<LanguageDataSchema>,
-    mut expected_response: WordResponseSchema,
+    mut expected_word_response: WordResponseSchema,
 ) {
     let database = database(settings).await;
     let language = language_service::create(&database, create_language_payload)
         .await
         .unwrap();
-    create_payload.language_id = Some(language.id);
-    let word = word_service::create(&database, create_payload)
+    create_word_payload.language_id = Some(language.id);
+    let word = word_service::create(&database, create_word_payload)
         .await
         .unwrap();
 
@@ -202,13 +114,13 @@ async fn test_update_word(
     assert!(word.is_ok());
     let word = word.unwrap();
 
-    expected_response.id = word.id;
-    expected_response.language_id = word.language_id;
-    expected_response.spelling = new_spelling.to_owned();
-    expected_response.translations = new_translations;
-    expected_response.gender = GrammaticalGender::Masculine;
+    expected_word_response.id = word.id;
+    expected_word_response.language_id = word.language_id;
+    expected_word_response.spelling = new_spelling.to_owned();
+    expected_word_response.translations = new_translations;
+    expected_word_response.gender = GrammaticalGender::Masculine;
 
-    validate_word_response(&word, &expected_response);
+    validate_word_response(&word, &expected_word_response);
 }
 
 #[rstest]
@@ -248,16 +160,16 @@ async fn test_error_on_updating_nonexistent_word(
 async fn test_get_word(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageDataSchema>,
-    mut create_payload: WordUpdateSchema,
-    mut expected_response: WordResponseSchema,
+    mut create_word_payload: WordUpdateSchema,
+    mut expected_word_response: WordResponseSchema,
 ) {
     let database = database(settings).await;
     let language = language_service::create(&database, create_language_payload)
         .await
         .unwrap();
 
-    create_payload.language_id = Some(language.id);
-    let created_word = word_service::create(&database, create_payload.clone())
+    create_word_payload.language_id = Some(language.id);
+    let created_word = word_service::create(&database, create_word_payload.clone())
         .await
         .unwrap();
 
@@ -266,10 +178,10 @@ async fn test_get_word(
     assert!(word.is_ok());
     let word = word.unwrap();
 
-    expected_response.id = created_word.id;
-    expected_response.language_id = language.id;
+    expected_word_response.id = created_word.id;
+    expected_word_response.language_id = language.id;
 
-    validate_word_response(&word, &expected_response);
+    validate_word_response(&word, &expected_word_response);
 }
 
 #[rstest]
@@ -338,15 +250,15 @@ async fn test_get_all_words_for_a_language(
 async fn test_delete_word(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageDataSchema>,
-    mut create_payload: WordUpdateSchema,
+    mut create_word_payload: WordUpdateSchema,
 ) {
     let database = database(settings).await;
     let language = language_service::create(&database, create_language_payload)
         .await
         .unwrap();
 
-    create_payload.language_id = Some(language.id);
-    let created_word = word_service::create(&database, create_payload.clone())
+    create_word_payload.language_id = Some(language.id);
+    let created_word = word_service::create(&database, create_word_payload.clone())
         .await
         .unwrap();
 
