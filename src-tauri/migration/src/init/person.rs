@@ -28,11 +28,13 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
-        // TODO: add cascade delete
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_foreign_key(ForeignKey::drop().name(PERSON_ENTRY_ID_FK_NAME).to_owned())
+            .await?;
         manager
             .drop_table(Table::drop().table(Person::Table).to_owned())
             .await?;
@@ -40,7 +42,6 @@ impl MigrationTrait for Migration {
     }
 }
 
-// TODO: add dedicated foreign key for the entry
 #[derive(DeriveIden)]
 enum Person {
     Table,

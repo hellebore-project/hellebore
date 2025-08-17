@@ -154,8 +154,8 @@ async fn test_delete_person(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_deleting_nonexistent_person(settings: &Settings) {
+async fn test_noop_on_deleting_nonexistent_person(settings: &Settings) {
     let database = database(settings).await;
     let response = person_service::delete(&database, 0).await;
-    assert!(response.is_err());
+    assert!(response.is_ok());
 }

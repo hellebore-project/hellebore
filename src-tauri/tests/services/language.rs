@@ -60,7 +60,7 @@ async fn test_delete_language(
     create_word_payload.language_id = Some(id);
     let _ = word_service::create(&database, create_word_payload.clone()).await;
 
-    let words = get_all_words_for_language(id, &database).await;
+    let words = get_all_words_for_language(&database, id).await;
     assert_eq!(words.len(), 1);
 
     let response = language_service::delete(&database, entry.id).await;
@@ -73,14 +73,14 @@ async fn test_delete_language(
     let entry = entry.unwrap();
     assert!(entry.is_none());
 
-    let words = get_all_words_for_language(id, &database).await;
+    let words = get_all_words_for_language(&database, id).await;
     assert_eq!(words.len(), 0);
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_deleting_nonexistent_language(settings: &Settings) {
+async fn test_noop_on_deleting_nonexistent_language(settings: &Settings) {
     let database = database(settings).await;
     let response = language_service::delete(&database, 0).await;
-    assert!(response.is_err());
+    assert!(response.is_ok());
 }

@@ -2,7 +2,7 @@ use sea_orm::DatabaseConnection;
 
 use ::entity::person::Model as Person;
 
-use crate::database::{entry_manager, person_manager};
+use crate::database::person_manager;
 use crate::errors::ApiError;
 use crate::schema::entry::{EntryDataResponseSchema, EntryUpdateSchema};
 use crate::schema::{
@@ -10,27 +10,19 @@ use crate::schema::{
     person::PersonDataSchema,
 };
 use crate::services::entry_service;
-use crate::types::{ENTRY, PERSON};
+use crate::types::PERSON;
 
 pub async fn create(
     database: &DatabaseConnection,
     entity: EntryCreateSchema<PersonDataSchema>,
 ) -> Result<EntryInfoSchema, ApiError> {
-    let _entity = entry_manager::insert(
-        &database,
-        entity.folder_id,
-        entity.title.to_owned(),
-        PERSON,
-        "".to_owned(),
-    )
-    .await
-    .map_err(|e| ApiError::not_inserted(e, ENTRY))?;
+    let entry = entry_service::create(database, PERSON, entity.folder_id, entity.title).await?;
 
-    person_manager::insert(&database, _entity.id, &entity.data.name)
+    person_manager::insert(&database, entry.id, &entity.data.name)
         .await
         .map_err(|e| ApiError::not_inserted(e, PERSON))?;
 
-    Ok(entry_service::generate_insert_response(&_entity))
+    Ok(entry_service::generate_insert_response(&entry))
 }
 
 pub async fn update(

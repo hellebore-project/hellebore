@@ -2,7 +2,7 @@ use sea_orm::DatabaseConnection;
 
 use ::entity::folder::Model as Folder;
 
-use crate::database::folder_manager;
+use crate::database::folder_manager::{self, convert_null_folder_id_to_root};
 use crate::errors::ApiError;
 use crate::schema::{
     folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
@@ -37,7 +37,7 @@ pub async fn validate_name(
     name: &str,
 ) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
-    let is_unique = folder_manager::is_name_unique_for_id(database, id, parent_id, name)
+    let is_unique = folder_manager::is_name_unique_at_location(database, parent_id, name)
         .await
         .map_err(|e| ApiError::query_failed(e, FOLDER))?;
     if !is_unique {
@@ -73,12 +73,6 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponse
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    let exists = folder_manager::exists(database, id)
-        .await
-        .map_err(|e| ApiError::query_failed(e, FOLDER))?;
-    if !exists {
-        return Err(ApiError::not_found("Language not found.", FOLDER));
-    }
     let _ = folder_manager::delete(&database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, FOLDER))?;
@@ -95,7 +89,7 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
 fn generate_response(folder: &Folder) -> FolderResponseSchema {
     return FolderResponseSchema {
         id: folder.id,
-        parent_id: folder.parent_id,
+        parent_id: convert_null_folder_id_to_root(folder.parent_id),
         name: folder.name.to_string(),
     };
 }

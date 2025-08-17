@@ -11,10 +11,6 @@ pub mod folder;
 pub mod language;
 pub mod word;
 
-pub struct TestState {
-    pub db: Option<DatabaseConnection>,
-}
-
 #[fixture]
 #[once]
 pub fn settings() -> Settings {
@@ -27,6 +23,11 @@ pub fn settings() -> Settings {
     }
 }
 
+// The database needs to be a function-scoped static fixture that is
+// called exactly once per test. rstest currently doesn't support this,
+// since the [once] macro creates session-scoped static fixtures.
+// It's not ideal, but we have to call the database fixture as an
+// ordinary function inside the body of each test.
 pub async fn database(settings: &Settings) -> DatabaseConnection {
     setup::setup(settings).await.unwrap()
 }
