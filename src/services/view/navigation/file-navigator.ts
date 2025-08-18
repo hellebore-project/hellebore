@@ -8,6 +8,7 @@ import {
     FileNodeData,
     FileNodeModel,
     FolderResponse,
+    Id,
     NodeId,
     ROOT_FOLDER_ID,
     ROOT_FOLDER_NODE_ID,
@@ -310,8 +311,8 @@ export class FileNavigator {
 
     // NODE TEXT
 
-    updateEntityNodeText(id: number, title: string) {
-        this.setNodeText(entityNodeId(id), title);
+    updateEntityNodeText(id: Id, title: string) {
+        this.setNodeText(convertEntryIdToNodeId(id), title);
     }
 
     setNodeText(nodeId: NodeId, text: string) {
@@ -321,8 +322,8 @@ export class FileNavigator {
 
     // NODE TEXT EDITING
 
-    toggleFolderAsEditable(id: number) {
-        this._toggleNodeIdAsEditable(folderNodeId(id));
+    toggleFolderAsEditable(id: Id) {
+        this._toggleNodeIdAsEditable(convertFolderIdToNodeId(id));
     }
 
     private _toggleNodeIdAsEditable(nodeId: NodeId) {
@@ -437,7 +438,7 @@ export class FileNavigator {
 
                 if (folder) {
                     // sync the node ID with the backend
-                    node.id = folderNodeId(folder.id);
+                    node.id = convertFolderIdToNodeId(folder.id);
                     node.text = newText;
                     delete node?.data?.isPlaceholder;
                     this._toggleNodeAsReadOnly(node);
@@ -526,8 +527,8 @@ export class FileNavigator {
 
     // OPEN NODE
 
-    openEntityNode(id: number) {
-        const nodeId = entityNodeId(id);
+    openEntityNode(id: Id) {
+        const nodeId = convertEntryIdToNodeId(id);
         if (this.openedNode?.id == nodeId) return;
         const node = this._findNode(nodeId);
         if (node) this.openNode(node);
@@ -557,14 +558,14 @@ export class FileNavigator {
     }
 
     _generateEntityNode(
-        id: any,
-        folder_id: any,
+        id: Id,
+        folder_id: Id,
         title: string,
         data: FileNodeData | undefined = undefined,
     ): FileNodeModel {
         const node = {
-            id: entityNodeId(id),
-            parent: folderNodeId(folder_id, ROOT_FOLDER_NODE_ID),
+            id: convertEntryIdToNodeId(id),
+            parent: convertFolderIdToNodeId(folder_id),
             text: title,
         };
         if (data) this._addNodeData(node, data);
@@ -572,14 +573,14 @@ export class FileNavigator {
     }
 
     _generateFolderNode(
-        id: any,
-        parentId: any,
+        id: Id | string,
+        parentId: Id,
         name: string,
         data: FileNodeData | undefined = undefined,
     ): FileNodeModel {
         const node = {
-            id: folderNodeId(id),
-            parent: folderNodeId(parentId, ROOT_FOLDER_NODE_ID),
+            id: convertFolderIdToNodeId(id),
+            parent: convertFolderIdToNodeId(parentId),
             text: name,
             droppable: true,
         };
@@ -594,13 +595,26 @@ export class FileNavigator {
 
     // NODE DELETION
 
-    deleteEntityNode(id: number) {
-        this._deleteNode(entityNodeId(id));
+    deleteEntityNode(id: Id) {
+        this._deleteNode(convertEntryIdToNodeId(id));
     }
 
-    deleteFolderNode(id: number) {
+    deleteFolderNode(id: Id) {
         // child nodes should be deleted in separate calls
-        this._deleteNode(folderNodeId(id));
+        this._deleteNode(convertFolderIdToNodeId(id));
+    }
+
+    deleteManyNodes(entryIds: Id[], folderIds: Id[]) {
+        const entryNodeIds = new Set(
+            entryIds.map((i) => convertEntryIdToNodeId(i)),
+        );
+        const folderNodeIds = new Set(
+            folderIds.map((i) => convertFolderIdToNodeId(i)),
+        );
+        const nodeIds = entryNodeIds.union(folderNodeIds);
+
+        this._nodes = this._nodes.filter((n) => !nodeIds.has(n.id));
+        for (const nodeId of nodeIds) delete this._nodePositionCache[nodeId];
     }
 
     _deleteNode(nodeId: NodeId) {
@@ -706,13 +720,12 @@ export class FileNavigator {
     }
 }
 
-function entityNodeId(id: any) {
-    if (typeof id === "string" && id.substring(0, 1) == "A") return id;
-    return `A${id}`;
+function convertEntryIdToNodeId(id: Id | string): NodeId {
+    return `E${id}`;
 }
 
-function folderNodeId(id: any, root: NodeId = ROOT_FOLDER_NODE_ID) {
-    if (id === ROOT_FOLDER_ID || id === root) return root;
-    if (typeof id === "string" && id.substring(0, 1) == "F") return id;
+function convertFolderIdToNodeId(id: Id | string): NodeId {
+    if (id === ROOT_FOLDER_ID || id === ROOT_FOLDER_NODE_ID)
+        return ROOT_FOLDER_NODE_ID;
     return `F${id}`;
 }

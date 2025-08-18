@@ -366,12 +366,8 @@ export class ViewManager implements ViewManagerInterface {
         }
 
         const fileIds = await this.domain.folders.delete(id);
-        if (!fileIds) return null;
 
-        for (const folderId of fileIds.folders)
-            this.navigation.files.deleteFolderNode(folderId);
-        for (const entityId of fileIds.entries)
-            this.navigation.files.deleteEntityNode(entityId);
+        this.navigation.files.deleteManyNodes(fileIds.entries, fileIds.folders);
 
         if (
             this._viewKey == ViewKey.EntityEditor &&

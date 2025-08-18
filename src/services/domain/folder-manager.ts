@@ -5,9 +5,9 @@ import {
     FolderResponse,
     FolderUpdate,
     FolderValidateResponse,
+    Id,
     ROOT_FOLDER_ID,
 } from "@/interface";
-import { DataManager } from "./data-manager";
 import { FileStructure } from "./file-structure";
 
 export interface FolderUpdateArguments {
@@ -18,12 +18,10 @@ export interface FolderUpdateArguments {
 }
 
 export class FolderManager {
-    _data: DataManager;
     _structure: FileStructure;
 
-    constructor(data: DataManager, structure: FileStructure) {
-        makeAutoObservable(this, { _data: false, _structure: false });
-        this._data = data;
+    constructor(structure: FileStructure) {
+        makeAutoObservable(this, { _structure: false });
         this._structure = structure;
     }
 
@@ -106,23 +104,27 @@ export class FolderManager {
             return null;
         }
 
-        this._structure.reset();
+        this._structure.resetFolders();
         for (const folder of response) this._structure.addFolder(folder);
 
         return response;
     }
 
-    async delete(id: number) {
-        const fileIds = this._structure.collectFileIds(id);
-        const success = await this._data.delete(fileIds);
-        if (!success) {
-            console.error(`Failed to delete folder ${id} and its descendants.`);
-            return null;
+    async delete(id: Id) {
+        try {
+            await this._delete(id);
+        } catch (error) {
+            console.error(error);
+            console.error(`Failed to delete folder ${id} and/or its contents.`);
         }
-        return fileIds;
+
+        const subtree = this._structure.subtree(id);
+        this._structure.bulkDelete(subtree);
+
+        return subtree;
     }
 
-    async _create(parentId: number, name: string): Promise<FolderResponse> {
+    async _create(parentId: Id, name: string): Promise<FolderResponse> {
         return invoke<FolderResponse>("create_folder", {
             info: { parent_id: parentId, name },
         });
@@ -134,5 +136,9 @@ export class FolderManager {
 
     async _getAll() {
         return invoke<FolderResponse[]>("get_folders");
+    }
+
+    async _delete(id: Id): Promise<FolderResponse> {
+        return invoke<FolderResponse>("delete_folder", { id });
     }
 }
