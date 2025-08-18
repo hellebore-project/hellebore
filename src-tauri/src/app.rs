@@ -58,8 +58,6 @@ where
         api::folder::get_folder,
         api::folder::get_folders,
         api::folder::delete_folder,
-        // data API
-        api::data::delete_bulk_data,
         // language API
         api::language::create_language,
         api::language::delete_language,

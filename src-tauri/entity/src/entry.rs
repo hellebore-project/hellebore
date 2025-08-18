@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub folder_id: i32,
+    pub folder_id: Option<i32>,
     pub entity_type: i8,
     #[sea_orm(unique)]
     pub title: String,
@@ -17,10 +17,24 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::folder::Entity",
+        from = "Column::FolderId",
+        to = "super::folder::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    Folder,
     #[sea_orm(has_many = "super::language::Entity")]
     Language,
     #[sea_orm(has_many = "super::person::Entity")]
     Person,
+}
+
+impl Related<super::folder::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Folder.def()
+    }
 }
 
 impl Related<super::language::Entity> for Entity {

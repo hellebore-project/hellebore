@@ -27,11 +27,25 @@ export class FileStructure {
         this.folders = {};
         this.files = {};
 
-        this.addFolderById(ROOT_FOLDER_ID);
+        this.resetFolders();
     }
 
     getInfo(id: Id): EntryInfoResponse {
         return this.files[id];
+    }
+
+    subtree(rootId: number = ROOT_FOLDER_ID) {
+        const rootFolder = this.addFolderById(rootId);
+        return this._subtree(rootFolder, { entries: [], folders: [] });
+    }
+
+    _subtree(folder: FolderNode, data: BulkData) {
+        data.folders.push(folder.id);
+        for (const subFolder of Object.values(folder.subFolders))
+            this._subtree(subFolder, data);
+        for (const entryId of Object.keys(folder.files))
+            data.entries.push(Number(entryId));
+        return data;
     }
 
     addFolder(folder: FolderResponse) {
@@ -107,21 +121,16 @@ export class FileStructure {
         if (folderNode) delete folderNode.files[id];
     }
 
-    collectFileIds(rootId: number = ROOT_FOLDER_ID) {
-        const rootFolder = this.addFolderById(rootId);
-        return this._collectFileIds(rootFolder, { entries: [], folders: [] });
+    bulkDelete(data: BulkData) {
+        for (const entryId of data.entries) this.deleteFile(entryId);
+        for (const folderId of data.folders) {
+            if (folderId === ROOT_FOLDER_ID) continue;
+            this.deleteFolder(folderId);
+        }
     }
 
-    _collectFileIds(folder: FolderNode, bulkData: BulkData) {
-        bulkData.folders.push(folder.id);
-        for (const subFolder of Object.values(folder.subFolders))
-            this._collectFileIds(subFolder, bulkData);
-        for (const entryId of Object.keys(folder.files))
-            bulkData.entries.push(Number(entryId));
-        return bulkData;
-    }
-
-    reset() {
+    resetFolders() {
         this.folders = {};
+        this.addFolderById(ROOT_FOLDER_ID);
     }
 }

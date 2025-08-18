@@ -1,6 +1,6 @@
 use ::entity::entry::Model as EntryModel;
 use hellebore::{
-    database::entry_manager,
+    database::{entry_manager, folder_manager::convert_null_folder_id_to_root},
     schema::{entry::EntryInfoSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
@@ -19,7 +19,7 @@ fn validate_model(entry: &EntryModel, id: Option<i32>, folder_id: i32, title: &s
     if id.is_some() {
         assert_eq!(id.unwrap(), entry.id);
     }
-    assert_eq!(folder_id, entry.folder_id);
+    assert_eq!(folder_id, convert_null_folder_id_to_root(entry.folder_id));
     assert_eq!(title, entry.title);
     assert_eq!(text, entry.text);
 }
@@ -286,8 +286,8 @@ async fn test_delete_entry(settings: &Settings, folder_id: i32, title: String, e
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_deleting_nonexistent_entry(settings: &Settings) {
+async fn test_noop_on_deleting_nonexistent_entry(settings: &Settings) {
     let database = database(settings).await;
     let response = entry_service::delete(&database, 0).await;
-    assert!(response.is_err());
+    assert!(response.is_ok());
 }

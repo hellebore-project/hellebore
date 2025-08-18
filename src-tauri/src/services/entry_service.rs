@@ -3,9 +3,27 @@ use sea_orm::DatabaseConnection;
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::entry_manager;
+use crate::database::folder_manager::convert_null_folder_id_to_root;
 use crate::errors::ApiError;
 use crate::schema::{entry::EntryInfoSchema, response::ResponseDiagnosticsSchema};
-use crate::types::{EntityType, ENTRY};
+use crate::types::{ENTRY, EntityType};
+
+pub async fn create(
+    database: &DatabaseConnection,
+    entity_type: EntityType,
+    folder_id: i32,
+    title: String,
+) -> Result<EntryModel, ApiError> {
+    entry_manager::insert(
+        &database,
+        folder_id,
+        title.to_owned(),
+        entity_type,
+        "".to_owned(),
+    )
+    .await
+    .map_err(|e| ApiError::not_inserted(e, ENTRY))
+}
 
 pub async fn update_title(
     database: &DatabaseConnection,
@@ -104,12 +122,6 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<EntryInfoSchem
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    let exists = entry_manager::exists(database, id)
-        .await
-        .map_err(|e| ApiError::query_failed(e, ENTRY))?;
-    if !exists {
-        return Err(ApiError::not_found("Entry not found.", ENTRY));
-    }
     entry_manager::delete(&database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, ENTRY))?;
@@ -126,7 +138,7 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
 pub fn generate_insert_response(info: &EntryModel) -> EntryInfoSchema {
     return EntryInfoSchema {
         id: info.id,
-        folder_id: info.folder_id,
+        folder_id: convert_null_folder_id_to_root(info.folder_id),
         title: info.title.to_string(),
         entity_type: EntityType::from(info.entity_type),
     };
@@ -135,7 +147,7 @@ pub fn generate_insert_response(info: &EntryModel) -> EntryInfoSchema {
 pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoSchema {
     return EntryInfoSchema {
         id: info.id,
-        folder_id: info.folder_id,
+        folder_id: convert_null_folder_id_to_root(info.folder_id),
         title: info.title.to_string(),
         entity_type: EntityType::from(info.entity_type),
     };

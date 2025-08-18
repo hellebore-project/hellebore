@@ -1,13 +1,16 @@
 use ::entity::{entry, entry::Entity as EntryModel};
 use sea_orm::*;
 
-use crate::types::{CodedEnum, EntityType};
+use crate::{
+    database::folder_manager::convert_negative_folder_id_to_null,
+    types::{CodedEnum, EntityType},
+};
 
 #[derive(DerivePartialModel, FromQueryResult)]
 #[sea_orm(entity = "EntryModel")]
 pub struct EntityInfo {
     pub id: i32,
-    pub folder_id: i32,
+    pub folder_id: Option<i32>,
     pub entity_type: i8,
     pub title: String,
 }
@@ -27,7 +30,7 @@ pub async fn insert(
 ) -> Result<entry::Model, DbErr> {
     let new_entity = entry::ActiveModel {
         id: NotSet,
-        folder_id: Set(folder_id),
+        folder_id: Set(convert_negative_folder_id_to_null(folder_id)),
         title: Set(title),
         entity_type: Set(entity_type.code()),
         text: Set(text),
@@ -53,17 +56,17 @@ pub async fn update_title(db: &DbConn, id: i32, title: String) -> Result<entry::
 }
 
 pub async fn update_folder(db: &DbConn, id: i32, folder_id: i32) -> Result<entry::Model, DbErr> {
-    let Some(existing_entity) = get_info(db, id).await? else {
+    let Some(folder) = get_info(db, id).await? else {
         return Err(DbErr::RecordNotFound("Entity not found.".to_owned()));
     };
-    let updated_entity = entry::ActiveModel {
-        id: Unchanged(existing_entity.id),
-        folder_id: Set(folder_id),
+    let folder = entry::ActiveModel {
+        id: Unchanged(folder.id),
+        folder_id: Set(convert_negative_folder_id_to_null(folder_id)),
         entity_type: NotSet,
         title: NotSet,
         text: NotSet,
     };
-    updated_entity.update(db).await
+    folder.update(db).await
 }
 
 pub async fn update_text(db: &DbConn, id: i32, text: String) -> Result<entry::Model, DbErr> {
@@ -143,11 +146,7 @@ pub async fn get_all(db: &DbConn) -> Result<Vec<EntityInfo>, DbErr> {
 }
 
 pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-    let existing_entity = get(db, id).await?;
-    let Some(existing_entity) = existing_entity else {
-        return Err(DbErr::RecordNotFound(String::from("Entry not found.")));
-    };
-    existing_entity.delete(db).await
+    EntryModel::delete_by_id(id).exec(db).await
 }
 
 pub async fn delete_many(db: &DbConn, ids: Vec<i32>) -> Result<DeleteResult, DbErr> {
