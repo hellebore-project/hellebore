@@ -15,12 +15,6 @@ pub struct EntityInfo {
     pub title: String,
 }
 
-#[derive(DerivePartialModel, FromQueryResult)]
-#[sea_orm(entity = "EntryModel")]
-pub struct EntityText {
-    pub text: String,
-}
-
 pub async fn insert(
     db: &DbConn,
     folder_id: i32,
@@ -123,18 +117,6 @@ pub async fn get_info(db: &DbConn, id: i32) -> Result<Option<EntityInfo>, DbErr>
         .into_partial_model::<EntityInfo>()
         .one(db)
         .await
-}
-
-pub async fn get_text(db: &DbConn, id: i32) -> Result<Option<String>, DbErr> {
-    let entity_text = EntryModel::find_by_id(id)
-        .into_partial_model::<EntityText>()
-        .one(db)
-        .await?;
-    let text = match entity_text {
-        Some(e) => Some(e.text),
-        None => None,
-    };
-    Ok(text)
 }
 
 pub async fn get_all(db: &DbConn) -> Result<Vec<EntityInfo>, DbErr> {

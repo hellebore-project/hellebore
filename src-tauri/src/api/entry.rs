@@ -1,5 +1,6 @@
 use crate::api::utils;
 use crate::errors::ApiError;
+use crate::schema::entry::EntryArticleResponseSchema;
 use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
 use crate::services::entry_service;
 use crate::state::State;
@@ -48,7 +49,7 @@ pub async fn validate_entry_title(
 pub async fn get_entry_text(
     state: tauri::State<'_, State>,
     id: i32,
-) -> Result<Option<String>, ApiError> {
+) -> Result<EntryArticleResponseSchema, ApiError> {
     let state = state.lock().await;
     entry_service::get_text(utils::get_database(&state)?, id).await
 }

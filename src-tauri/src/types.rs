@@ -56,6 +56,12 @@ impl From<i8> for EntityType {
     }
 }
 
+impl PartialEq for EntityType {
+    fn eq(&self, other: &Self) -> bool {
+        self.code() == other.code()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
 #[repr(i8)]
 pub enum WordType {

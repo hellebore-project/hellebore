@@ -24,7 +24,13 @@ pub struct EntryInfoResponseSchema {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct EntryDataResponseSchema<E> {
-    pub id: i32,
-    pub data: E,
+pub struct EntryPropertyResponseSchema<E> {
+    pub info: EntryInfoResponseSchema,
+    pub properties: E,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EntryArticleResponseSchema {
+    pub info: EntryInfoResponseSchema,
+    pub text: String,
 }

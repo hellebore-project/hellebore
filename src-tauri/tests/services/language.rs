@@ -5,6 +5,7 @@ use hellebore::{
     schema::{entry::EntryCreateSchema, language::LanguageDataSchema, word::WordUpdateSchema},
     services::{language_service, word_service},
     settings::Settings,
+    types::LANGUAGE,
 };
 
 use crate::fixtures::{
@@ -28,7 +29,7 @@ async fn test_create_language(
     let entry = language_service::create(&database, create_language_payload).await;
 
     assert!(entry.is_ok());
-    validate_entry_info_response(&entry.unwrap(), None, folder_id, &language_name);
+    validate_entry_info_response(&entry.unwrap(), None, folder_id, LANGUAGE, &language_name);
 }
 
 #[rstest]

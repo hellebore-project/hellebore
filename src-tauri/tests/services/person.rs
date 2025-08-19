@@ -1,7 +1,9 @@
 use crate::fixtures::{database, folder::folder_id, settings};
 use crate::utils::entry::validate_entry_info_response;
 
-use hellebore::schema::entry::{EntryDataResponseSchema, EntryUpdateSchema};
+use hellebore::database::folder_manager::ROOT_FOLDER_ID;
+use hellebore::schema::entry::{EntryPropertyResponseSchema, EntryUpdateSchema};
+use hellebore::types::PERSON;
 use hellebore::{
     schema::{entry::EntryCreateSchema, person::PersonDataSchema},
     services::person_service,
@@ -10,14 +12,12 @@ use hellebore::{
 use rstest::*;
 
 fn validate_person_response(
-    person: &EntryDataResponseSchema<PersonDataSchema>,
+    response: &EntryPropertyResponseSchema<PersonDataSchema>,
     id: Option<i32>,
     name: &str,
 ) {
-    if id.is_some() {
-        assert_eq!(id.unwrap(), person.id);
-    }
-    assert_eq!(name, person.data.name);
+    validate_entry_info_response(&response.info, id, ROOT_FOLDER_ID, PERSON, name);
+    assert_eq!(name, response.properties.name);
 }
 
 #[fixture]
@@ -57,7 +57,7 @@ async fn test_create_person(
     let entry = person_service::create(&database, create_payload).await;
 
     assert!(entry.is_ok());
-    validate_entry_info_response(&entry.unwrap(), None, folder_id, &name);
+    validate_entry_info_response(&entry.unwrap(), None, folder_id, PERSON, &name);
 }
 
 #[rstest]
