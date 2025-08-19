@@ -4,7 +4,7 @@ use hellebore::{
     schema::{entry::EntryInfoResponseSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
-    types::ENTRY,
+    types::entity::ENTRY,
 };
 use rstest::*;
 

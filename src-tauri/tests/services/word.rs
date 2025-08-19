@@ -13,7 +13,8 @@ use hellebore::{
     },
     services::{language_service, word_service},
     settings::Settings,
-    types::{CodedEnum, GrammaticalGender, VerbForm, WordType},
+    types::grammar::{GrammaticalGender, VerbForm, WordType},
+    utils::CodedEnum,
 };
 use rstest::*;
 

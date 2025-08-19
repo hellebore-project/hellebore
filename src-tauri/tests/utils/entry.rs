@@ -1,4 +1,4 @@
-use hellebore::{schema::entry::EntryInfoResponseSchema, types::EntityType};
+use hellebore::{schema::entry::EntryInfoResponseSchema, types::entity::EntityType};
 
 pub fn validate_entry_info_response(
     response: &EntryInfoResponseSchema,

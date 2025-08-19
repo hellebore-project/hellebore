@@ -7,7 +7,7 @@ use crate::database::folder_manager::convert_null_folder_id_to_root;
 use crate::errors::ApiError;
 use crate::schema::entry::EntryArticleResponseSchema;
 use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
-use crate::types::{ENTRY, EntityType};
+use crate::types::entity::{ENTRY, EntityType};
 
 pub async fn create(
     database: &DatabaseConnection,

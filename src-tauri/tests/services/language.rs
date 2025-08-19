@@ -5,7 +5,7 @@ use hellebore::{
     schema::{entry::EntryCreateSchema, language::LanguageDataSchema, word::WordUpdateSchema},
     services::{language_service, word_service},
     settings::Settings,
-    types::LANGUAGE,
+    types::entity::LANGUAGE,
 };
 
 use crate::fixtures::{

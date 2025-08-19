@@ -2,7 +2,7 @@ use rstest::*;
 
 use hellebore::{
     schema::word::{WordResponseSchema, WordUpdateSchema},
-    types::{
+    types::grammar::{
         GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense, WordType,
     },
     utils::value_or_default,

@@ -7,7 +7,7 @@ use crate::schema::{
     language::LanguageDataSchema,
 };
 use crate::services::entry_service;
-use crate::types::LANGUAGE;
+use crate::types::entity::LANGUAGE;
 
 pub async fn create(
     database: &DatabaseConnection,

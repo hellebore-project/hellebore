@@ -10,7 +10,7 @@ use crate::schema::{
     person::PersonDataSchema,
 };
 use crate::services::entry_service;
-use crate::types::PERSON;
+use crate::types::entity::PERSON;
 
 pub async fn create(
     database: &DatabaseConnection,

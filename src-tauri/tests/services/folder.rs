@@ -9,7 +9,7 @@ use hellebore::{
     schema::folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
-    types::ENTRY,
+    types::entity::ENTRY,
 };
 use rstest::*;
 

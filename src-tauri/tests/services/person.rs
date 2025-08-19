@@ -3,7 +3,7 @@ use crate::utils::entry::validate_entry_info_response;
 
 use hellebore::database::folder_manager::ROOT_FOLDER_ID;
 use hellebore::schema::entry::{EntryPropertyResponseSchema, EntryUpdateSchema};
-use hellebore::types::PERSON;
+use hellebore::types::entity::PERSON;
 use hellebore::{
     schema::{entry::EntryCreateSchema, person::PersonDataSchema},
     services::person_service,

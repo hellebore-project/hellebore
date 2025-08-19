@@ -7,8 +7,9 @@ use crate::database::word_manager;
 use crate::errors::ApiError;
 use crate::schema::word::WordUpdateSchema;
 use crate::schema::{response::ResponseDiagnosticsSchema, word::WordResponseSchema};
-use crate::types::{
-    GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense, WordType, WORD,
+use crate::types::entity::WORD;
+use crate::types::grammar::{
+    GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense, WordType,
 };
 
 pub async fn create(
@@ -218,7 +219,7 @@ fn _convert_translations_to_vec(
                 Some(id),
                 "translations",
                 translations.to_string(),
-            ))
+            ));
         }
     };
 
@@ -233,7 +234,7 @@ fn _convert_translations_to_vec(
                     Some(id),
                     "translations",
                     value.to_string(),
-                ))
+                ));
             }
         };
         array.push(str_value);

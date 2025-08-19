@@ -2,8 +2,8 @@ use ::entity::{entry, entry::Entity as EntryModel};
 use sea_orm::*;
 
 use crate::{
-    database::folder_manager::convert_negative_folder_id_to_null,
-    types::{CodedEnum, EntityType},
+    database::folder_manager::convert_negative_folder_id_to_null, types::entity::EntityType,
+    utils::CodedEnum,
 };
 
 #[derive(DerivePartialModel, FromQueryResult)]
