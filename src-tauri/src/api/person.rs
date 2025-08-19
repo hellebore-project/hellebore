@@ -1,7 +1,9 @@
 use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
-    entry::{EntryCreateSchema, EntryDataResponseSchema, EntryInfoSchema, EntryUpdateSchema},
+    entry::{
+        EntryCreateSchema, EntryDataResponseSchema, EntryInfoResponseSchema, EntryUpdateSchema,
+    },
     person::PersonDataSchema,
 };
 use crate::services::person_service;
@@ -11,7 +13,7 @@ use crate::state::State;
 pub async fn create_person(
     state: tauri::State<'_, State>,
     entry: EntryCreateSchema<PersonDataSchema>,
-) -> Result<EntryInfoSchema, ApiError> {
+) -> Result<EntryInfoResponseSchema, ApiError> {
     let state = state.lock().await;
     person_service::create(utils::get_database(&state)?, entry).await
 }

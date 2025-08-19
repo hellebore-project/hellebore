@@ -1,7 +1,7 @@
 use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
-    entry::{EntryCreateSchema, EntryInfoSchema},
+    entry::{EntryCreateSchema, EntryInfoResponseSchema},
     language::LanguageDataSchema,
 };
 use crate::services::language_service;
@@ -11,7 +11,7 @@ use crate::state::State;
 pub async fn create_language(
     state: tauri::State<'_, State>,
     entry: EntryCreateSchema<LanguageDataSchema>,
-) -> Result<EntryInfoSchema, ApiError> {
+) -> Result<EntryInfoResponseSchema, ApiError> {
     let state = state.lock().await;
     language_service::create(utils::get_database(&state)?, entry).await
 }

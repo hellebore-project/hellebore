@@ -1,6 +1,6 @@
 use crate::api::utils;
 use crate::errors::ApiError;
-use crate::schema::{entry::EntryInfoSchema, response::ResponseDiagnosticsSchema};
+use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
 use crate::services::entry_service;
 use crate::state::State;
 
@@ -54,7 +54,9 @@ pub async fn get_entry_text(
 }
 
 #[tauri::command]
-pub async fn get_entries(state: tauri::State<'_, State>) -> Result<Vec<EntryInfoSchema>, ApiError> {
+pub async fn get_entries(
+    state: tauri::State<'_, State>,
+) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
     let state = state.lock().await;
     entry_service::get_all(utils::get_database(&state)?).await
 }

@@ -1,7 +1,7 @@
-use hellebore::schema::entry::EntryInfoSchema;
+use hellebore::schema::entry::EntryInfoResponseSchema;
 
 pub fn validate_entry_info_response(
-    response: &EntryInfoSchema,
+    response: &EntryInfoResponseSchema,
     id: Option<i32>,
     folder_id: i32,
     title: &str,

@@ -5,7 +5,7 @@ use ::entity::entry::Model as EntryModel;
 use crate::database::entry_manager;
 use crate::database::folder_manager::convert_null_folder_id_to_root;
 use crate::errors::ApiError;
-use crate::schema::{entry::EntryInfoSchema, response::ResponseDiagnosticsSchema};
+use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
 use crate::types::{ENTRY, EntityType};
 
 pub async fn create(
@@ -113,7 +113,9 @@ pub async fn get_text(database: &DatabaseConnection, id: i32) -> Result<Option<S
     Ok(text)
 }
 
-pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<EntryInfoSchema>, ApiError> {
+pub async fn get_all(
+    database: &DatabaseConnection,
+) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
     let entries = entry_manager::get_all(database)
         .await
         .map_err(|e| ApiError::not_found(e, ENTRY))?;
@@ -135,8 +137,8 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
         .map_err(|e| ApiError::not_deleted(e, ENTRY))
 }
 
-pub fn generate_insert_response(info: &EntryModel) -> EntryInfoSchema {
-    return EntryInfoSchema {
+pub fn generate_insert_response(info: &EntryModel) -> EntryInfoResponseSchema {
+    return EntryInfoResponseSchema {
         id: info.id,
         folder_id: convert_null_folder_id_to_root(info.folder_id),
         title: info.title.to_string(),
@@ -144,8 +146,8 @@ pub fn generate_insert_response(info: &EntryModel) -> EntryInfoSchema {
     };
 }
 
-pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoSchema {
-    return EntryInfoSchema {
+pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoResponseSchema {
+    return EntryInfoResponseSchema {
         id: info.id,
         folder_id: convert_null_folder_id_to_root(info.folder_id),
         title: info.title.to_string(),

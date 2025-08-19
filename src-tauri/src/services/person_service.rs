@@ -6,7 +6,7 @@ use crate::database::person_manager;
 use crate::errors::ApiError;
 use crate::schema::entry::{EntryDataResponseSchema, EntryUpdateSchema};
 use crate::schema::{
-    entry::{EntryCreateSchema, EntryInfoSchema},
+    entry::{EntryCreateSchema, EntryInfoResponseSchema},
     person::PersonDataSchema,
 };
 use crate::services::entry_service;
@@ -15,7 +15,7 @@ use crate::types::PERSON;
 pub async fn create(
     database: &DatabaseConnection,
     entity: EntryCreateSchema<PersonDataSchema>,
-) -> Result<EntryInfoSchema, ApiError> {
+) -> Result<EntryInfoResponseSchema, ApiError> {
     let entry = entry_service::create(database, PERSON, entity.folder_id, entity.title).await?;
 
     person_manager::insert(&database, entry.id, &entity.data.name)

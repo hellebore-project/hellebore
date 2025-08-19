@@ -1,7 +1,7 @@
 use ::entity::entry::Model as EntryModel;
 use hellebore::{
     database::{entry_manager, folder_manager::convert_null_folder_id_to_root},
-    schema::{entry::EntryInfoSchema, folder::FolderCreateSchema},
+    schema::{entry::EntryInfoResponseSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
     types::ENTRY,
@@ -24,7 +24,12 @@ fn validate_model(entry: &EntryModel, id: Option<i32>, folder_id: i32, title: &s
     assert_eq!(text, entry.text);
 }
 
-fn validate_info_response(entry: &EntryInfoSchema, id: Option<i32>, folder_id: i32, title: &str) {
+fn validate_info_response(
+    entry: &EntryInfoResponseSchema,
+    id: Option<i32>,
+    folder_id: i32,
+    title: &str,
+) {
     if id.is_some() {
         assert_eq!(id.unwrap(), entry.id);
     }

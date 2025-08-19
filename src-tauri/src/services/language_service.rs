@@ -3,7 +3,7 @@ use sea_orm::DatabaseConnection;
 use crate::database::language_manager;
 use crate::errors::ApiError;
 use crate::schema::{
-    entry::{EntryCreateSchema, EntryInfoSchema},
+    entry::{EntryCreateSchema, EntryInfoResponseSchema},
     language::LanguageDataSchema,
 };
 use crate::services::entry_service;
@@ -12,7 +12,7 @@ use crate::types::LANGUAGE;
 pub async fn create(
     database: &DatabaseConnection,
     entity: EntryCreateSchema<LanguageDataSchema>,
-) -> Result<EntryInfoSchema, ApiError> {
+) -> Result<EntryInfoResponseSchema, ApiError> {
     let entry = entry_service::create(database, LANGUAGE, entity.folder_id, entity.title).await?;
 
     language_manager::insert(&database, entry.id)

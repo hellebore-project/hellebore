@@ -16,7 +16,7 @@ pub struct EntryUpdateSchema<E> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct EntryInfoSchema {
+pub struct EntryInfoResponseSchema {
     pub id: i32,
     pub folder_id: i32,
     pub entity_type: EntityType,
