@@ -2,7 +2,7 @@ use rstest::*;
 
 use hellebore::{
     database::language_manager,
-    schema::{entry::EntryCreateSchema, language::LanguageDataSchema, word::WordUpdateSchema},
+    schema::{entry::EntryCreateSchema, language::LanguageSchema, word::WordUpdateSchema},
     services::{language_service, word_service},
     settings::Settings,
     types::entity::LANGUAGE,
@@ -23,7 +23,7 @@ async fn test_create_language(
     settings: &Settings,
     folder_id: i32,
     language_name: String,
-    create_language_payload: EntryCreateSchema<LanguageDataSchema>,
+    create_language_payload: EntryCreateSchema<LanguageSchema>,
 ) {
     let database = database(settings).await;
     let entry = language_service::create(&database, create_language_payload).await;
@@ -36,7 +36,7 @@ async fn test_create_language(
 #[tokio::test]
 async fn test_error_on_creating_duplicate_language(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageDataSchema>,
+    create_language_payload: EntryCreateSchema<LanguageSchema>,
 ) {
     let database = database(settings).await;
     let _ = language_service::create(&database, create_language_payload.clone()).await;
@@ -48,7 +48,7 @@ async fn test_error_on_creating_duplicate_language(
 #[tokio::test]
 async fn test_delete_language(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageDataSchema>,
+    create_language_payload: EntryCreateSchema<LanguageSchema>,
     mut create_word_payload: WordUpdateSchema,
 ) {
     let database = database(settings).await;

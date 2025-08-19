@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::entity::EntityType;
+use crate::{
+    schema::{language::LanguageSchema, person::PersonSchema},
+    types::entity::EntityType,
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntryCreateSchema<E> {
@@ -24,9 +27,21 @@ pub struct EntryInfoResponseSchema {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct EntryPropertyResponseSchema<E> {
+pub struct GenericEntryPropertyResponseSchema<E> {
     pub info: EntryInfoResponseSchema,
     pub properties: E,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum EntryProperties {
+    Language(LanguageSchema),
+    Person(PersonSchema),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PolymorphicEntryPropertyResponseSchema {
+    pub info: EntryInfoResponseSchema,
+    pub properties: EntryProperties,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

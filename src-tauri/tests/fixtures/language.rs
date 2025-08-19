@@ -1,6 +1,6 @@
 use rstest::*;
 
-use hellebore::schema::{entry::EntryCreateSchema, language::LanguageDataSchema};
+use hellebore::schema::{entry::EntryCreateSchema, language::LanguageSchema};
 
 use crate::fixtures::folder::folder_id;
 
@@ -13,8 +13,8 @@ pub fn language_name() -> String {
 pub fn create_language_payload(
     folder_id: i32,
     language_name: String,
-) -> EntryCreateSchema<LanguageDataSchema> {
-    let language = LanguageDataSchema {
+) -> EntryCreateSchema<LanguageSchema> {
+    let language = LanguageSchema {
         name: language_name,
     };
     EntryCreateSchema {

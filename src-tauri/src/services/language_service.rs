@@ -4,14 +4,14 @@ use crate::database::language_manager;
 use crate::errors::ApiError;
 use crate::schema::{
     entry::{EntryCreateSchema, EntryInfoResponseSchema},
-    language::LanguageDataSchema,
+    language::LanguageSchema,
 };
 use crate::services::entry_service;
 use crate::types::entity::LANGUAGE;
 
 pub async fn create(
     database: &DatabaseConnection,
-    entity: EntryCreateSchema<LanguageDataSchema>,
+    entity: EntryCreateSchema<LanguageSchema>,
 ) -> Result<EntryInfoResponseSchema, ApiError> {
     let entry = entry_service::create(database, LANGUAGE, entity.folder_id, entity.title).await?;
 

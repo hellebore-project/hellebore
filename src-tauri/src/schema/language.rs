@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct LanguageDataSchema {
+pub struct LanguageSchema {
     pub name: String,
 }

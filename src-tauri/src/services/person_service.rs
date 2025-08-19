@@ -4,17 +4,17 @@ use ::entity::person::Model as Person;
 
 use crate::database::person_manager;
 use crate::errors::ApiError;
-use crate::schema::entry::{EntryPropertyResponseSchema, EntryUpdateSchema};
+use crate::schema::entry::{EntryUpdateSchema, GenericEntryPropertyResponseSchema};
 use crate::schema::{
     entry::{EntryCreateSchema, EntryInfoResponseSchema},
-    person::PersonDataSchema,
+    person::PersonSchema,
 };
 use crate::services::entry_service;
 use crate::types::entity::PERSON;
 
 pub async fn create(
     database: &DatabaseConnection,
-    entity: EntryCreateSchema<PersonDataSchema>,
+    entity: EntryCreateSchema<PersonSchema>,
 ) -> Result<EntryInfoResponseSchema, ApiError> {
     let entry = entry_service::create(database, PERSON, entity.folder_id, entity.title).await?;
 
@@ -27,7 +27,7 @@ pub async fn create(
 
 pub async fn update(
     database: &DatabaseConnection,
-    entity: EntryUpdateSchema<PersonDataSchema>,
+    entity: EntryUpdateSchema<PersonSchema>,
 ) -> Result<(), ApiError> {
     person_manager::update(database, entity.id, &entity.properties.name)
         .await
@@ -38,7 +38,7 @@ pub async fn update(
 pub async fn get(
     database: &DatabaseConnection,
     id: i32,
-) -> Result<EntryPropertyResponseSchema<PersonDataSchema>, ApiError> {
+) -> Result<GenericEntryPropertyResponseSchema<PersonSchema>, ApiError> {
     let info = entry_service::get_info(database, id).await?;
     let person = person_manager::get(&database, id)
         .await
@@ -57,9 +57,9 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiErr
 fn generate_response(
     info: EntryInfoResponseSchema,
     person: Person,
-) -> EntryPropertyResponseSchema<PersonDataSchema> {
-    EntryPropertyResponseSchema {
+) -> GenericEntryPropertyResponseSchema<PersonSchema> {
+    GenericEntryPropertyResponseSchema {
         info,
-        properties: PersonDataSchema { name: person.name },
+        properties: PersonSchema { name: person.name },
     }
 }

@@ -2,17 +2,17 @@ use crate::fixtures::{database, folder::folder_id, settings};
 use crate::utils::entry::validate_entry_info_response;
 
 use hellebore::database::folder_manager::ROOT_FOLDER_ID;
-use hellebore::schema::entry::{EntryPropertyResponseSchema, EntryUpdateSchema};
+use hellebore::schema::entry::{EntryUpdateSchema, GenericEntryPropertyResponseSchema};
 use hellebore::types::entity::PERSON;
 use hellebore::{
-    schema::{entry::EntryCreateSchema, person::PersonDataSchema},
+    schema::{entry::EntryCreateSchema, person::PersonSchema},
     services::person_service,
     settings::Settings,
 };
 use rstest::*;
 
 fn validate_person_response(
-    response: &EntryPropertyResponseSchema<PersonDataSchema>,
+    response: &GenericEntryPropertyResponseSchema<PersonSchema>,
     id: Option<i32>,
     title: &str,
     name: &str,
@@ -27,8 +27,8 @@ fn name() -> String {
 }
 
 #[fixture]
-fn create_payload(folder_id: i32, name: String) -> EntryCreateSchema<PersonDataSchema> {
-    let person = PersonDataSchema { name };
+fn create_payload(folder_id: i32, name: String) -> EntryCreateSchema<PersonSchema> {
+    let person = PersonSchema { name };
     EntryCreateSchema {
         folder_id,
         title: person.name.to_string(),
@@ -37,10 +37,10 @@ fn create_payload(folder_id: i32, name: String) -> EntryCreateSchema<PersonDataS
 }
 
 #[fixture]
-fn update_payload() -> EntryUpdateSchema<PersonDataSchema> {
+fn update_payload() -> EntryUpdateSchema<PersonSchema> {
     EntryUpdateSchema {
         id: 0,
-        properties: PersonDataSchema {
+        properties: PersonSchema {
             name: "".to_owned(),
         },
     }
@@ -52,7 +52,7 @@ async fn test_create_person(
     settings: &Settings,
     folder_id: i32,
     name: String,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let entry = person_service::create(&database, create_payload).await;
@@ -65,7 +65,7 @@ async fn test_create_person(
 #[tokio::test]
 async fn test_error_on_creating_duplicate_person(
     settings: &Settings,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let _ = person_service::create(&database, create_payload.clone()).await;
@@ -77,8 +77,8 @@ async fn test_error_on_creating_duplicate_person(
 #[tokio::test]
 async fn test_update_person(
     settings: &Settings,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
-    mut update_payload: hellebore::schema::entry::EntryUpdateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonSchema>,
+    mut update_payload: hellebore::schema::entry::EntryUpdateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let entry = person_service::create(&database, create_payload)
@@ -101,7 +101,7 @@ async fn test_update_person(
 #[tokio::test]
 async fn test_error_on_updating_nonexistent_person(
     settings: &Settings,
-    update_payload: EntryUpdateSchema<PersonDataSchema>,
+    update_payload: EntryUpdateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let response = person_service::update(&database, update_payload).await;
@@ -113,7 +113,7 @@ async fn test_error_on_updating_nonexistent_person(
 async fn test_get_person(
     settings: &Settings,
     name: String,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let entry = person_service::create(&database, create_payload)
@@ -136,10 +136,7 @@ async fn test_error_on_getting_nonexistent_person(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_person(
-    settings: &Settings,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
-) {
+async fn test_delete_person(settings: &Settings, create_payload: EntryCreateSchema<PersonSchema>) {
     let database = database(settings).await;
     let entry = person_service::create(&database, create_payload)
         .await
