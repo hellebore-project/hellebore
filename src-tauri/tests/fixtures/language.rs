@@ -20,6 +20,6 @@ pub fn create_language_payload(
     EntryCreateSchema {
         folder_id,
         title: language.name.to_string(),
-        data: language,
+        properties: language,
     }
 }

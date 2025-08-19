@@ -18,7 +18,7 @@ pub async fn create(
 ) -> Result<EntryInfoResponseSchema, ApiError> {
     let entry = entry_service::create(database, PERSON, entity.folder_id, entity.title).await?;
 
-    person_manager::insert(&database, entry.id, &entity.data.name)
+    person_manager::insert(&database, entry.id, &entity.properties.name)
         .await
         .map_err(|e| ApiError::not_inserted(e, PERSON))?;
 
@@ -29,7 +29,7 @@ pub async fn update(
     database: &DatabaseConnection,
     entity: EntryUpdateSchema<PersonDataSchema>,
 ) -> Result<(), ApiError> {
-    person_manager::update(database, entity.id, &entity.data.name)
+    person_manager::update(database, entity.id, &entity.properties.name)
         .await
         .map(|_| ())
         .map_err(|e| ApiError::not_updated(e, PERSON))

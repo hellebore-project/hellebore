@@ -241,6 +241,35 @@ async fn test_error_on_getting_nonexistent_entry(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
+#[case("blah blah blah")]
+async fn test_get_entry_text(
+    settings: &Settings,
+    folder_id: i32,
+    title: String,
+    #[case] entry_text: String,
+) {
+    let database = database(settings).await;
+    let entry = entry_manager::insert(
+        &database,
+        folder_id,
+        title.to_owned(),
+        ENTRY,
+        entry_text.to_owned(),
+    )
+    .await
+    .unwrap();
+
+    let article = entry_service::get_text(&database, entry.id).await;
+
+    assert!(article.is_ok());
+
+    let article = article.unwrap();
+    validate_info_response(&article.info, None, folder_id, &title);
+    assert_eq!(article.text, entry_text);
+}
+
+#[rstest]
+#[tokio::test]
 async fn test_get_all_entries(settings: &Settings, folder_id: i32, title: String) {
     let database = database(settings).await;
     let _ = entry_manager::insert(&database, folder_id, title.to_owned(), ENTRY, "".to_owned())

@@ -6,13 +6,13 @@ use crate::types::entity::EntityType;
 pub struct EntryCreateSchema<E> {
     pub folder_id: i32,
     pub title: String,
-    pub data: E,
+    pub properties: E,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntryUpdateSchema<E> {
     pub id: i32,
-    pub data: E,
+    pub properties: E,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

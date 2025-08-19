@@ -14,9 +14,10 @@ use rstest::*;
 fn validate_person_response(
     response: &EntryPropertyResponseSchema<PersonDataSchema>,
     id: Option<i32>,
+    title: &str,
     name: &str,
 ) {
-    validate_entry_info_response(&response.info, id, ROOT_FOLDER_ID, PERSON, name);
+    validate_entry_info_response(&response.info, id, ROOT_FOLDER_ID, PERSON, title);
     assert_eq!(name, response.properties.name);
 }
 
@@ -31,7 +32,7 @@ fn create_payload(folder_id: i32, name: String) -> EntryCreateSchema<PersonDataS
     EntryCreateSchema {
         folder_id,
         title: person.name.to_string(),
-        data: person,
+        properties: person,
     }
 }
 
@@ -39,7 +40,7 @@ fn create_payload(folder_id: i32, name: String) -> EntryCreateSchema<PersonDataS
 fn update_payload() -> EntryUpdateSchema<PersonDataSchema> {
     EntryUpdateSchema {
         id: 0,
-        data: PersonDataSchema {
+        properties: PersonDataSchema {
             name: "".to_owned(),
         },
     }
@@ -85,7 +86,7 @@ async fn test_update_person(
         .unwrap();
 
     update_payload.id = entry.id;
-    update_payload.data.name = "Jane Doe".to_owned();
+    update_payload.properties.name = "John D. Doe".to_owned();
     let response = person_service::update(&database, update_payload).await;
 
     assert!(response.is_ok());
@@ -93,7 +94,7 @@ async fn test_update_person(
     let person = person_service::get(&database, entry.id).await;
 
     assert!(person.is_ok());
-    validate_person_response(&person.unwrap(), Some(entry.id), "Jane Doe");
+    validate_person_response(&person.unwrap(), Some(entry.id), "John Doe", "John D. Doe");
 }
 
 #[rstest]
@@ -122,7 +123,7 @@ async fn test_get_person(
     let person = person_service::get(&database, entry.id).await;
 
     assert!(person.is_ok());
-    validate_person_response(&person.unwrap(), Some(entry.id), &name);
+    validate_person_response(&person.unwrap(), Some(entry.id), &name, &name);
 }
 
 #[rstest]
