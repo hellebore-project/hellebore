@@ -6,7 +6,7 @@ use crate::database::entry_manager;
 use crate::database::folder_manager::convert_null_folder_id_to_root;
 use crate::errors::ApiError;
 use crate::schema::entry::{
-    EntryArticleResponseSchema, EntryProperties, PolymorphicEntryPropertyResponseSchema,
+    EntryArticleResponseSchema, EntryProperties, EntryPropertyResponseSchema,
 };
 use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
 use crate::services::{language_service, person_service};
@@ -116,7 +116,7 @@ pub async fn get_info(
 pub async fn get_properties(
     database: &DatabaseConnection,
     id: i32,
-) -> Result<PolymorphicEntryPropertyResponseSchema, ApiError> {
+) -> Result<EntryPropertyResponseSchema, ApiError> {
     let info = entry_manager::get_info(database, id)
         .await
         .map_err(|err| ApiError::not_found(err, ENTRY))?;
@@ -203,8 +203,8 @@ pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoResp
 pub fn generate_property_response(
     info: &entry_manager::EntityInfo,
     properties: EntryProperties,
-) -> PolymorphicEntryPropertyResponseSchema {
-    PolymorphicEntryPropertyResponseSchema {
+) -> EntryPropertyResponseSchema {
+    EntryPropertyResponseSchema {
         info: generate_info_response(info),
         properties,
     }

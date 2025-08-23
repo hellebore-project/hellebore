@@ -1,6 +1,6 @@
 use crate::api::utils;
 use crate::errors::ApiError;
-use crate::schema::entry::{EntryArticleResponseSchema, PolymorphicEntryPropertyResponseSchema};
+use crate::schema::entry::{EntryArticleResponseSchema, EntryPropertyResponseSchema};
 use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
 use crate::services::entry_service;
 use crate::state::State;
@@ -58,7 +58,7 @@ pub async fn get_entry(
 pub async fn get_entry_properties(
     state: tauri::State<'_, State>,
     id: i32,
-) -> Result<PolymorphicEntryPropertyResponseSchema, ApiError> {
+) -> Result<EntryPropertyResponseSchema, ApiError> {
     let state = state.lock().await;
     entry_service::get_properties(utils::get_database(&state)?, id).await
 }

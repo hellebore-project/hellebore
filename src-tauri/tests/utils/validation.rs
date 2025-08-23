@@ -1,6 +1,6 @@
 use hellebore::{
     schema::{
-        entry::{EntryInfoResponseSchema, EntryProperties, PolymorphicEntryPropertyResponseSchema},
+        entry::{EntryInfoResponseSchema, EntryProperties, EntryPropertyResponseSchema},
         language::LanguageSchema,
         person::PersonSchema,
     },
@@ -23,7 +23,7 @@ pub fn validate_entry_info_response(
 }
 
 pub fn validate_language_property_response(
-    response: &PolymorphicEntryPropertyResponseSchema,
+    response: &EntryPropertyResponseSchema,
     id: Option<i32>,
     folder_id: i32,
     entity_type: EntityType,
@@ -41,7 +41,7 @@ fn _validate_language_properties(language: &LanguageSchema) {
 }
 
 pub fn validate_person_property_response(
-    response: &PolymorphicEntryPropertyResponseSchema,
+    response: &EntryPropertyResponseSchema,
     id: Option<i32>,
     folder_id: i32,
     entity_type: EntityType,

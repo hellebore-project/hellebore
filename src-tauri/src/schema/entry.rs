@@ -27,19 +27,13 @@ pub struct EntryInfoResponseSchema {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GenericEntryPropertyResponseSchema<E> {
-    pub info: EntryInfoResponseSchema,
-    pub properties: E,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum EntryProperties {
     Language(LanguageSchema),
     Person(PersonSchema),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PolymorphicEntryPropertyResponseSchema {
+pub struct EntryPropertyResponseSchema {
     pub info: EntryInfoResponseSchema,
     pub properties: EntryProperties,
 }
