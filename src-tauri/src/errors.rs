@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::EntityType;
+use crate::types::entity::EntityType;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ApiError {

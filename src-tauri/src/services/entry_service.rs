@@ -5,8 +5,12 @@ use ::entity::entry::Model as EntryModel;
 use crate::database::entry_manager;
 use crate::database::folder_manager::convert_null_folder_id_to_root;
 use crate::errors::ApiError;
-use crate::schema::{entry::EntryInfoSchema, response::ResponseDiagnosticsSchema};
-use crate::types::{ENTRY, EntityType};
+use crate::schema::entry::{
+    EntryArticleResponseSchema, EntryProperties, EntryPropertyResponseSchema,
+};
+use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
+use crate::services::{language_service, person_service};
+use crate::types::entity::{ENTRY, EntityType};
 
 pub async fn create(
     database: &DatabaseConnection,
@@ -96,24 +100,67 @@ pub async fn validate_title(
     });
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<EntryModel, ApiError> {
-    let entry = entry_manager::get(database, id)
+pub async fn get_info(
+    database: &DatabaseConnection,
+    id: i32,
+) -> Result<EntryInfoResponseSchema, ApiError> {
+    let info = entry_manager::get_info(database, id)
         .await
-        .map_err(|e| ApiError::not_found(e, ENTRY))?;
-    return match entry {
-        Some(a) => Ok(a),
+        .map_err(|err| ApiError::not_found(err, ENTRY))?;
+    return match info {
+        Some(info) => Ok(generate_info_response(&info)),
         None => return Err(ApiError::not_found("Entry not found.", ENTRY)),
     };
 }
 
-pub async fn get_text(database: &DatabaseConnection, id: i32) -> Result<Option<String>, ApiError> {
-    let text = entry_manager::get_text(database, id)
+pub async fn get_properties(
+    database: &DatabaseConnection,
+    id: i32,
+) -> Result<EntryPropertyResponseSchema, ApiError> {
+    let info = entry_manager::get_info(database, id)
         .await
-        .map_err(|e| ApiError::not_found(e, ENTRY))?;
-    Ok(text)
+        .map_err(|err| ApiError::not_found(err, ENTRY))?;
+
+    if info.is_none() {
+        return Err(ApiError::not_found("Entry not found", ENTRY));
+    }
+    let info = info.unwrap();
+
+    let properties = _get_properties(database, id, info.entity_type.into()).await?;
+
+    Ok(generate_property_response(&info, properties))
 }
 
-pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<EntryInfoSchema>, ApiError> {
+async fn _get_properties(
+    database: &DatabaseConnection,
+    id: i32,
+    entity_type: EntityType,
+) -> Result<EntryProperties, ApiError> {
+    match entity_type {
+        EntityType::Language => Ok(EntryProperties::Language(language_service::get().await?)),
+        EntityType::Person => Ok(EntryProperties::Person(
+            person_service::get(database, id).await?,
+        )),
+        _ => Err(ApiError::not_found("Entry properties not found.", ENTRY)),
+    }
+}
+
+pub async fn get_text(
+    database: &DatabaseConnection,
+    id: i32,
+) -> Result<EntryArticleResponseSchema, ApiError> {
+    let entry = entry_manager::get(database, id)
+        .await
+        .map_err(|e| ApiError::not_found(e, ENTRY))?;
+    return match entry {
+        Some(entry) => Ok(generate_article_response(&entry)),
+        None => return Err(ApiError::not_found("Entry not found.", ENTRY)),
+    };
+}
+
+pub async fn get_all(
+    database: &DatabaseConnection,
+) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
     let entries = entry_manager::get_all(database)
         .await
         .map_err(|e| ApiError::not_found(e, ENTRY))?;
@@ -135,20 +182,42 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
         .map_err(|e| ApiError::not_deleted(e, ENTRY))
 }
 
-pub fn generate_insert_response(info: &EntryModel) -> EntryInfoSchema {
-    return EntryInfoSchema {
+pub fn generate_insert_response(info: &EntryModel) -> EntryInfoResponseSchema {
+    EntryInfoResponseSchema {
         id: info.id,
         folder_id: convert_null_folder_id_to_root(info.folder_id),
         title: info.title.to_string(),
         entity_type: EntityType::from(info.entity_type),
-    };
+    }
 }
 
-pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoSchema {
-    return EntryInfoSchema {
+pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoResponseSchema {
+    EntryInfoResponseSchema {
         id: info.id,
         folder_id: convert_null_folder_id_to_root(info.folder_id),
-        title: info.title.to_string(),
+        title: info.title.to_owned(),
         entity_type: EntityType::from(info.entity_type),
-    };
+    }
+}
+
+pub fn generate_property_response(
+    info: &entry_manager::EntityInfo,
+    properties: EntryProperties,
+) -> EntryPropertyResponseSchema {
+    EntryPropertyResponseSchema {
+        info: generate_info_response(info),
+        properties,
+    }
+}
+
+pub fn generate_article_response(entry: &entity::entry::Model) -> EntryArticleResponseSchema {
+    EntryArticleResponseSchema {
+        info: EntryInfoResponseSchema {
+            id: entry.id,
+            folder_id: convert_null_folder_id_to_root(entry.folder_id),
+            title: entry.title.to_owned(),
+            entity_type: EntityType::from(entry.entity_type),
+        },
+        text: entry.text.to_owned(),
+    }
 }

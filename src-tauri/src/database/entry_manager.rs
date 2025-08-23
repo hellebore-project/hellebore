@@ -2,8 +2,8 @@ use ::entity::{entry, entry::Entity as EntryModel};
 use sea_orm::*;
 
 use crate::{
-    database::folder_manager::convert_negative_folder_id_to_null,
-    types::{CodedEnum, EntityType},
+    database::folder_manager::convert_negative_folder_id_to_null, types::entity::EntityType,
+    utils::CodedEnum,
 };
 
 #[derive(DerivePartialModel, FromQueryResult)]
@@ -13,12 +13,6 @@ pub struct EntityInfo {
     pub folder_id: Option<i32>,
     pub entity_type: i8,
     pub title: String,
-}
-
-#[derive(DerivePartialModel, FromQueryResult)]
-#[sea_orm(entity = "EntryModel")]
-pub struct EntityText {
-    pub text: String,
 }
 
 pub async fn insert(
@@ -123,18 +117,6 @@ pub async fn get_info(db: &DbConn, id: i32) -> Result<Option<EntityInfo>, DbErr>
         .into_partial_model::<EntityInfo>()
         .one(db)
         .await
-}
-
-pub async fn get_text(db: &DbConn, id: i32) -> Result<Option<String>, DbErr> {
-    let entity_text = EntryModel::find_by_id(id)
-        .into_partial_model::<EntityText>()
-        .one(db)
-        .await?;
-    let text = match entity_text {
-        Some(e) => Some(e.text),
-        None => None,
-    };
-    Ok(text)
 }
 
 pub async fn get_all(db: &DbConn) -> Result<Vec<EntityInfo>, DbErr> {

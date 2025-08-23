@@ -1,2 +1,2 @@
-pub mod entry;
-pub mod word;
+pub mod query;
+pub mod validation;

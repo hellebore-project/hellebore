@@ -238,15 +238,25 @@ export class ViewManager implements ViewManagerInterface {
 
     async openArticleEditor(id: Id) {
         if (this.isArticleEditorOpen && this.entityEditor.info.id == id) return; // the article is already open
-        const title = this.domain.structure.getInfo(id).title;
-        const text = await this.domain.entries.getText(id);
-        if (text !== null) this._openArticleEditor(id, title, text);
+        const response = await this.domain.entries.getArticle(id);
+        if (response !== null)
+            this._openArticleEditor(
+                id,
+                response.info.entity_type,
+                response.info.title,
+                response.text,
+            );
     }
 
-    _openArticleEditor(id: Id, title: string, text: string) {
+    _openArticleEditor(
+        id: Id,
+        entityType: EntityType,
+        title: string,
+        text: string,
+    ) {
         // save any unsynced data before opening another view
         this.cleanUp(ViewKey.EntityEditor);
-        this.entityEditor.initializeArticleEditor(id, title, text);
+        this.entityEditor.initializeArticleEditor(id, entityType, title, text);
         this.navigation.files.openEntityNode(id);
         this._viewKey = ViewKey.EntityEditor;
     }
@@ -255,17 +265,17 @@ export class ViewManager implements ViewManagerInterface {
         if (this.isPropertyEditorOpen && this.entityEditor.info.id == id)
             return; // the property editor is already open
 
-        const info = this.domain.structure.getInfo(id);
-        const properties = await this.domain.entries.get(id, info.entity_type);
+        const response = await this.domain.entries.getProperties(id);
 
-        if (properties !== null) {
+        if (response !== null) {
             // save any unsynced data before opening another view
             this.cleanUp(ViewKey.EntityEditor);
 
             this.entityEditor.initializePropertyEditor(
                 id,
-                info.title,
-                properties,
+                response.info.entity_type,
+                response.info.title,
+                response.properties,
             );
             this.navigation.files.openEntityNode(id);
             this.currentView = ViewKey.EntityEditor;
@@ -286,14 +296,17 @@ export class ViewManager implements ViewManagerInterface {
         // save any unsynced data before opening another view
         this.cleanUp(ViewKey.EntityEditor);
 
-        const info = this.domain.structure.getInfo(languageId);
-        this.entityEditor.initializeWordEditor(
-            languageId,
-            info.title,
-            wordType,
-        );
-        this.navigation.files.openEntityNode(languageId);
-        this._viewKey = ViewKey.EntityEditor;
+        const info = await this.domain.entries.get(languageId);
+
+        if (info !== null) {
+            this.entityEditor.initializeWordEditor(
+                languageId,
+                info.title,
+                wordType,
+            );
+            this.navigation.files.openEntityNode(languageId);
+            this._viewKey = ViewKey.EntityEditor;
+        }
     }
 
     closeModal() {
@@ -389,7 +402,7 @@ export class ViewManager implements ViewManagerInterface {
 
         if (entity) {
             this.navigation.files.addNodeForCreatedEntity(entity);
-            this._openArticleEditor(entity.id, entity.title, "");
+            this._openArticleEditor(entity.id, entityType, entity.title, "");
         }
 
         return entity;
@@ -406,11 +419,10 @@ export class ViewManager implements ViewManagerInterface {
         return await this.domain.words.bulkUpsert(updates);
     }
 
-    async deleteEntity(id: number, confirm: boolean = true) {
+    async deleteEntity(id: number, title: string, confirm: boolean = true) {
         if (confirm) {
-            const info = this.domain.structure.getInfo(id);
             const message =
-                `Are you sure you want to delete the entity '${info.title}' and all of its associated content? ` +
+                `Are you sure you want to delete '${title}' and all of its associated content? ` +
                 "This action is irreversible.";
             const canDelete = await ask(message, {
                 title: "Delete entity",

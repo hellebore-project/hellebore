@@ -1,6 +1,6 @@
 use sea_orm::entity::{ActiveValue, Value};
 
-use crate::types::CodedEnum;
+use crate::utils::CodedEnum;
 
 pub fn set_value_or_null<V>(value: Option<V>) -> ActiveValue<V>
 where

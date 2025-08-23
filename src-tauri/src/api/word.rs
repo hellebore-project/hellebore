@@ -6,7 +6,7 @@ use crate::schema::{
 };
 use crate::services::word_service;
 use crate::state::State;
-use crate::types::WordType;
+use crate::types::grammar::WordType;
 
 #[tauri::command]
 pub async fn create_word(

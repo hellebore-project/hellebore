@@ -8,7 +8,7 @@ use crate::schema::{
     folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
     response::ResponseDiagnosticsSchema,
 };
-use crate::types::FOLDER;
+use crate::types::entity::FOLDER;
 
 pub async fn create(
     database: &DatabaseConnection,

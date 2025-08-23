@@ -2,10 +2,10 @@ use sea_orm::*;
 
 use ::entity::{word, word::Entity as WordEntity};
 
-use crate::types::{
-    CodedEnum, GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense,
-    WordType,
+use crate::types::grammar::{
+    GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense, WordType,
 };
+use crate::utils::CodedEnum;
 
 use super::utils;
 

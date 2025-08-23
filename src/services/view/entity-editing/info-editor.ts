@@ -65,10 +65,9 @@ export class EntityInfoEditor {
         this._titleChanged = changed;
     }
 
-    initialize(id: number, title: string, type?: EntityType | null) {
+    initialize(id: number, type: EntityType, title: string) {
         this.id = id;
-        this.entityType =
-            type ?? this.view.domain.structure.getInfo(id).entity_type;
+        this.entityType = type;
         this.title = title;
         this.isTitleUnique = true;
         this.titleChanged = false;

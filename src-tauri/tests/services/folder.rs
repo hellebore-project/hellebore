@@ -1,7 +1,10 @@
-use crate::fixtures::{
-    database,
-    folder::{folder_create_payload, folder_name, parent_folder_id},
-    settings,
+use crate::{
+    fixtures::{
+        database,
+        folder::{folder_create_payload, folder_name, parent_folder_id},
+        settings,
+    },
+    utils::query::get_entry,
 };
 
 use hellebore::{
@@ -9,7 +12,7 @@ use hellebore::{
     schema::folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
-    types::ENTRY,
+    types::entity::ENTRY,
 };
 use rstest::*;
 
@@ -339,16 +342,8 @@ async fn test_delete_folder_and_contents(settings: &Settings) {
             .is_err()
     );
     assert!(folder_service::get(&database, sub_folder.id).await.is_err());
-    assert!(
-        entry_service::get(&database, entry_in_parent.id)
-            .await
-            .is_err()
-    );
-    assert!(
-        entry_service::get(&database, entry_in_sub.id)
-            .await
-            .is_err()
-    );
+    assert!(get_entry(&database, entry_in_parent.id).await.is_none());
+    assert!(get_entry(&database, entry_in_sub.id).await.is_none());
 }
 
 #[rstest]

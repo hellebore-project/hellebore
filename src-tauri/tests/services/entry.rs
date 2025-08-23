@@ -1,18 +1,21 @@
 use ::entity::entry::Model as EntryModel;
 use hellebore::{
     database::{entry_manager, folder_manager::convert_null_folder_id_to_root},
-    schema::{entry::EntryInfoSchema, folder::FolderCreateSchema},
+    schema::{entry::EntryInfoResponseSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
-    types::ENTRY,
+    types::entity::ENTRY,
 };
 use rstest::*;
 
-use crate::fixtures::{
-    database,
-    entry::entry_text,
-    folder::{folder_create_payload, folder_id},
-    settings,
+use crate::{
+    fixtures::{
+        database,
+        entry::entry_text,
+        folder::{folder_create_payload, folder_id},
+        settings,
+    },
+    utils::query::get_entry,
 };
 
 fn validate_model(entry: &EntryModel, id: Option<i32>, folder_id: i32, title: &str, text: &str) {
@@ -24,7 +27,12 @@ fn validate_model(entry: &EntryModel, id: Option<i32>, folder_id: i32, title: &s
     assert_eq!(text, entry.text);
 }
 
-fn validate_info_response(entry: &EntryInfoSchema, id: Option<i32>, folder_id: i32, title: &str) {
+fn validate_info_response(
+    entry: &EntryInfoResponseSchema,
+    id: Option<i32>,
+    folder_id: i32,
+    title: &str,
+) {
     if id.is_some() {
         assert_eq!(id.unwrap(), entry.id);
     }
@@ -94,10 +102,8 @@ async fn test_update_entry_title(
 
     assert!(response.is_ok());
 
-    let entry = entry_service::get(&database, entry.id).await;
-
-    assert!(entry.is_ok());
-    validate_model(&entry.unwrap(), None, folder_id, "new title", &entry_text);
+    let entry = get_entry(&database, entry.id).await.unwrap();
+    validate_model(&entry, None, folder_id, "new title", &entry_text);
 }
 
 #[rstest]
@@ -127,10 +133,8 @@ async fn test_update_entry_folder(
 
     assert!(response.is_ok());
 
-    let entry = entry_service::get(&database, entry.id).await;
-
-    assert!(entry.is_ok());
-    validate_model(&entry.unwrap(), None, folder.id, &title, &entry_text);
+    let entry = get_entry(&database, entry.id).await.unwrap();
+    validate_model(&entry, None, folder.id, &title, &entry_text);
 }
 
 #[rstest]
@@ -150,9 +154,7 @@ async fn test_update_entry_text(
 
     assert!(response.is_ok());
 
-    let entry = entry_service::get(&database, entry.id).await;
-
-    assert!(entry.is_ok());
+    let entry = get_entry(&database, entry.id).await;
     validate_model(&entry.unwrap(), None, folder_id, &title, "updated text");
 }
 
@@ -220,9 +222,7 @@ async fn test_get_entry(settings: &Settings, folder_id: i32, title: String, entr
     .await
     .unwrap();
 
-    let entry = entry_service::get(&database, entry.id).await;
-
-    assert!(entry.is_ok());
+    let entry = get_entry(&database, entry.id).await;
     validate_model(&entry.unwrap(), None, folder_id, &title, &entry_text);
 }
 
@@ -230,8 +230,45 @@ async fn test_get_entry(settings: &Settings, folder_id: i32, title: String, entr
 #[tokio::test]
 async fn test_error_on_getting_nonexistent_entry(settings: &Settings) {
     let database = database(settings).await;
-    let response = entry_service::get(&database, 0).await;
+    let response = entry_service::get_info(&database, 0).await;
     assert!(response.is_err());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_error_on_getting_properties_of_nonexistent_entry(settings: &Settings) {
+    let database = database(settings).await;
+    let response = entry_service::get_properties(&database, 0).await;
+    assert!(response.is_err());
+}
+
+#[rstest]
+#[tokio::test]
+#[case("blah blah blah")]
+async fn test_get_entry_text(
+    settings: &Settings,
+    folder_id: i32,
+    title: String,
+    #[case] entry_text: String,
+) {
+    let database = database(settings).await;
+    let entry = entry_manager::insert(
+        &database,
+        folder_id,
+        title.to_owned(),
+        ENTRY,
+        entry_text.to_owned(),
+    )
+    .await
+    .unwrap();
+
+    let article = entry_service::get_text(&database, entry.id).await;
+
+    assert!(article.is_ok());
+
+    let article = article.unwrap();
+    validate_info_response(&article.info, None, folder_id, &title);
+    assert_eq!(article.text, entry_text);
 }
 
 #[rstest]
@@ -280,8 +317,8 @@ async fn test_delete_entry(settings: &Settings, folder_id: i32, title: String, e
 
     assert!(response.is_ok());
 
-    let entry = entry_service::get(&database, entry.id).await;
-    assert!(entry.is_err());
+    let entry = get_entry(&database, entry.id).await;
+    assert!(entry.is_none());
 }
 
 #[rstest]

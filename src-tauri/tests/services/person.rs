@@ -1,24 +1,15 @@
 use crate::fixtures::{database, folder::folder_id, settings};
-use crate::utils::entry::validate_entry_info_response;
+use crate::utils::validation::{validate_entry_info_response, validate_person_property_response};
 
-use hellebore::schema::entry::{EntryDataResponseSchema, EntryUpdateSchema};
+use hellebore::schema::entry::EntryUpdateSchema;
+use hellebore::services::entry_service;
+use hellebore::types::entity::PERSON;
 use hellebore::{
-    schema::{entry::EntryCreateSchema, person::PersonDataSchema},
+    schema::{entry::EntryCreateSchema, person::PersonSchema},
     services::person_service,
     settings::Settings,
 };
 use rstest::*;
-
-fn validate_person_response(
-    person: &EntryDataResponseSchema<PersonDataSchema>,
-    id: Option<i32>,
-    name: &str,
-) {
-    if id.is_some() {
-        assert_eq!(id.unwrap(), person.id);
-    }
-    assert_eq!(name, person.data.name);
-}
 
 #[fixture]
 fn name() -> String {
@@ -26,20 +17,20 @@ fn name() -> String {
 }
 
 #[fixture]
-fn create_payload(folder_id: i32, name: String) -> EntryCreateSchema<PersonDataSchema> {
-    let person = PersonDataSchema { name };
+fn create_payload(folder_id: i32, name: String) -> EntryCreateSchema<PersonSchema> {
+    let person = PersonSchema { name };
     EntryCreateSchema {
         folder_id,
         title: person.name.to_string(),
-        data: person,
+        properties: person,
     }
 }
 
 #[fixture]
-fn update_payload() -> EntryUpdateSchema<PersonDataSchema> {
+fn update_payload() -> EntryUpdateSchema<PersonSchema> {
     EntryUpdateSchema {
         id: 0,
-        data: PersonDataSchema {
+        properties: PersonSchema {
             name: "".to_owned(),
         },
     }
@@ -51,20 +42,20 @@ async fn test_create_person(
     settings: &Settings,
     folder_id: i32,
     name: String,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let entry = person_service::create(&database, create_payload).await;
 
     assert!(entry.is_ok());
-    validate_entry_info_response(&entry.unwrap(), None, folder_id, &name);
+    validate_entry_info_response(&entry.unwrap(), None, folder_id, PERSON, &name);
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_error_on_creating_duplicate_person(
     settings: &Settings,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let _ = person_service::create(&database, create_payload.clone()).await;
@@ -76,8 +67,10 @@ async fn test_error_on_creating_duplicate_person(
 #[tokio::test]
 async fn test_update_person(
     settings: &Settings,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
-    mut update_payload: hellebore::schema::entry::EntryUpdateSchema<PersonDataSchema>,
+    folder_id: i32,
+    name: String,
+    create_payload: EntryCreateSchema<PersonSchema>,
+    mut update_payload: hellebore::schema::entry::EntryUpdateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let entry = person_service::create(&database, create_payload)
@@ -85,22 +78,31 @@ async fn test_update_person(
         .unwrap();
 
     update_payload.id = entry.id;
-    update_payload.data.name = "Jane Doe".to_owned();
+    update_payload.properties.name = "John D. Doe".to_owned();
     let response = person_service::update(&database, update_payload).await;
 
     assert!(response.is_ok());
 
-    let person = person_service::get(&database, entry.id).await;
+    let person = entry_service::get_properties(&database, entry.id).await;
 
     assert!(person.is_ok());
-    validate_person_response(&person.unwrap(), Some(entry.id), "Jane Doe");
+    let person = person.unwrap();
+
+    validate_person_property_response(
+        &person,
+        Some(entry.id),
+        folder_id,
+        PERSON,
+        &name,
+        "John D. Doe",
+    );
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_error_on_updating_nonexistent_person(
     settings: &Settings,
-    update_payload: EntryUpdateSchema<PersonDataSchema>,
+    update_payload: EntryUpdateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let response = person_service::update(&database, update_payload).await;
@@ -111,51 +113,35 @@ async fn test_error_on_updating_nonexistent_person(
 #[tokio::test]
 async fn test_get_person(
     settings: &Settings,
+    folder_id: i32,
     name: String,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
+    create_payload: EntryCreateSchema<PersonSchema>,
 ) {
     let database = database(settings).await;
     let entry = person_service::create(&database, create_payload)
         .await
         .unwrap();
 
-    let person = person_service::get(&database, entry.id).await;
+    let person = entry_service::get_properties(&database, entry.id).await;
 
     assert!(person.is_ok());
-    validate_person_response(&person.unwrap(), Some(entry.id), &name);
+    let person = person.unwrap();
+
+    validate_person_property_response(&person, Some(entry.id), folder_id, PERSON, &name, &name);
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_getting_nonexistent_person(settings: &Settings) {
-    let database = database(settings).await;
-    let response = person_service::get(&database, 0).await;
-    assert!(response.is_err());
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_delete_person(
-    settings: &Settings,
-    create_payload: EntryCreateSchema<PersonDataSchema>,
-) {
+async fn test_delete_person(settings: &Settings, create_payload: EntryCreateSchema<PersonSchema>) {
     let database = database(settings).await;
     let entry = person_service::create(&database, create_payload)
         .await
         .unwrap();
 
-    let response = person_service::delete(&database, entry.id).await;
+    let response = entry_service::delete(&database, entry.id).await;
 
     assert!(response.is_ok());
 
     let entry = person_service::get(&database, entry.id).await;
     assert!(entry.is_err());
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_noop_on_deleting_nonexistent_person(settings: &Settings) {
-    let database = database(settings).await;
-    let response = person_service::delete(&database, 0).await;
-    assert!(response.is_ok());
 }

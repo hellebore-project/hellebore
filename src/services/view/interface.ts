@@ -50,6 +50,10 @@ export interface ViewManagerInterface {
     ): Promise<EntryInfoResponse | null>;
     updateEntityTitle(id: Id, title: string): Promise<EntryTitleUpdateResponse>;
     updateLexicon(words: WordUpsert[]): Promise<WordUpsertResponse[] | null>;
-    deleteEntity(id: number, confirm?: boolean): Promise<boolean>;
+    deleteEntity(
+        id: number,
+        title: string,
+        confirm?: boolean,
+    ): Promise<boolean>;
     cleanUp(): void;
 }

@@ -6,9 +6,9 @@ import { getService } from "@/services";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
 function renderDeleteEntityButton() {
-    const service = getService();
+    const info = getService().view.entityEditor.info;
     const onClick = () => {
-        service.view.deleteEntity(service.view.entityEditor.info.id);
+        info.view.deleteEntity(info.id, info.title);
     };
     return (
         <ToolTipWrapper className="compact" label="Delete Entity">

@@ -3,7 +3,7 @@ use crate::errors::ApiError;
 use crate::schema::project::ProjectResponseSchema;
 use crate::services::project_service;
 use crate::state::State;
-use crate::types::PROJECT;
+use crate::types::entity::PROJECT;
 
 #[tauri::command]
 pub async fn create_project(

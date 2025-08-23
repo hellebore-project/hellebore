@@ -11,13 +11,26 @@ import {
     ROOT_FOLDER_ID,
     Id,
     BaseEntity,
-    EntryResponse,
-    EntryUpdate,
+    EntryPropertyResponse,
+    EntryPropertyUpdate,
+    EntryArticleResponse,
 } from "@/interface";
 import { FileStructure } from "./file-structure";
 import { is_field_unique, process_api_error } from "./utils";
 
 type PrivateKeys = "_structure";
+
+export enum EntryType {
+    Language = "Language",
+    Person = "Person",
+}
+
+export type EntryPropertyMapping = { [type in EntryType]: BaseEntity };
+
+export interface RawEntryPropertyResponse {
+    info: EntryInfoResponse;
+    properties: EntryPropertyMapping;
+}
 
 export interface EntryTitleUpdateResponse {
     updated: boolean;
@@ -70,20 +83,18 @@ export class EntryManager {
         return response;
     }
 
-    async update<E extends BaseEntity>(
+    async updateProperties<E extends BaseEntity>(
         id: Id,
-        data: E,
-        entityType?: EntityType,
+        entityType: EntityType,
+        properties: E,
     ): Promise<EntryUpdateResponse> {
-        entityType = entityType ?? this._structure.getInfo(id).entity_type;
-
         // some entity types don't have properties, so skip updating them
         if (entityType === EntityType.LANGUAGE) return { updated: false };
 
-        const payload = { id, data };
+        const payload = { id, properties };
 
         try {
-            await this._updateData(entityType, payload);
+            await this._updateProperties(entityType, payload);
         } catch (error) {
             console.error(error);
             return { updated: false };
@@ -107,7 +118,7 @@ export class EntryManager {
         }
 
         if (updated) {
-            this._structure.getInfo(id).folder_id = folderId;
+            this._structure.getEntry(id).folder_id = folderId;
             this._structure.moveFile(id, oldFolderId, folderId);
         }
 
@@ -135,7 +146,7 @@ export class EntryManager {
         }
 
         if (title && response.updated)
-            this._structure.getInfo(id).title = title;
+            this._structure.getEntry(id).title = title;
 
         return response;
     }
@@ -151,28 +162,49 @@ export class EntryManager {
         return { updated };
     }
 
-    async get<E extends BaseEntity>(
-        id: number,
-        entityType?: EntityType,
-    ): Promise<E | null> {
-        if (entityType === EntityType.LANGUAGE) return {} as E;
-
-        if (!entityType) entityType = this._structure.getInfo(id).entity_type;
-
+    async get(id: Id): Promise<EntryInfoResponse | null> {
         try {
-            const response = await this._getData<E>(id, entityType);
-            return response.data;
+            return await this._getInfo(id);
         } catch (error) {
             console.error(error);
+            console.error(`Failed to fetch entry ${id}.`);
             return null;
         }
     }
 
-    async getText(id: Id): Promise<string | null> {
+    async getProperties(id: number): Promise<EntryPropertyResponse | null> {
+        let response: RawEntryPropertyResponse | null;
+
         try {
-            return await invoke<string>("get_entry_text", {
-                id,
-            });
+            response = await this._getProperties(id);
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+
+        if (response === null) {
+            console.error(`Failed to fetch properties of entry ${id}.`);
+            return null;
+        }
+
+        const keys = Object.keys(response.properties) as EntryType[];
+        if (keys.length === 0) {
+            console.error(`Entry property response is malformed.`);
+            return null;
+        }
+
+        const key = keys[0];
+        const properties = response.properties[key];
+
+        return {
+            info: response.info,
+            properties,
+        };
+    }
+
+    async getArticle(id: Id): Promise<EntryArticleResponse | null> {
+        try {
+            return await this._getArticle(id);
         } catch (error) {
             console.error(error);
             return null;
@@ -185,7 +217,7 @@ export class EntryManager {
             response = await this._getAll();
         } catch (error) {
             console.error(error);
-            console.error("Failed to fetch all entries from the backend.");
+            console.error("Failed to fetch all entries.");
             return null;
         }
 
@@ -201,21 +233,18 @@ export class EntryManager {
         maxResults: number = 5,
     ): EntryInfoResponse[] {
         const arg = titleFragment.toLowerCase();
+        // TODO: query the backend instead of checking the cache
         return Object.values(this._structure.files)
             .filter((info) => info.title.toLowerCase().startsWith(arg))
             .slice(0, maxResults);
     }
 
-    async delete(id: number, entityType?: EntityType): Promise<boolean> {
-        entityType = entityType ?? this._structure.getInfo(id).entity_type;
-
+    async delete(id: number): Promise<boolean> {
         try {
-            await this._deleteEntity(id, entityType);
+            await this._delete(id);
         } catch (error) {
             console.error(error);
-            console.error(
-                `Unable to delete entry ${id} of type ${entityType}.`,
-            );
+            console.error(`Failed to delete entry ${id}.`);
             return false;
         }
 
@@ -231,7 +260,7 @@ export class EntryManager {
         const entry: EntryCreate<LanguageData> = {
             folder_id,
             title: name,
-            data: { name },
+            properties: { name },
         };
         return invoke<EntryInfoResponse>("create_language", {
             entry,
@@ -245,7 +274,7 @@ export class EntryManager {
         const entry: EntryCreate<LanguageData> = {
             folder_id,
             title: name,
-            data: { name },
+            properties: { name },
         };
         return invoke<EntryInfoResponse>("create_person", { entry });
     }
@@ -261,9 +290,9 @@ export class EntryManager {
         return invoke<void>("update_entry_title", { id, title });
     }
 
-    async _updateData<E extends BaseEntity>(
+    async _updateProperties<E extends BaseEntity>(
         entityType: EntityType,
-        entry: EntryUpdate<E>,
+        entry: EntryPropertyUpdate<E>,
     ): Promise<void> {
         const command = `update_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
         return invoke(command, { entry });
@@ -273,20 +302,23 @@ export class EntryManager {
         return invoke<void>("update_entry_text", { id, text });
     }
 
-    async _getData<E extends BaseEntity>(
-        id: Id,
-        entityType: EntityType,
-    ): Promise<EntryResponse<E>> {
-        const command = `get_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
-        return invoke<EntryResponse<E>>(command, { id });
+    async _getInfo(id: Id): Promise<EntryInfoResponse> {
+        return invoke<EntryInfoResponse>("get_entry", { id });
+    }
+
+    async _getProperties(id: Id): Promise<RawEntryPropertyResponse> {
+        return invoke<RawEntryPropertyResponse>("get_entry_properties", { id });
+    }
+
+    async _getArticle(id: Id): Promise<EntryArticleResponse> {
+        return invoke<EntryArticleResponse>("get_entry_text", { id });
     }
 
     async _getAll() {
         return invoke<EntryInfoResponse[]>("get_entries");
     }
 
-    async _deleteEntity(id: Id, entityType: EntityType): Promise<void> {
-        const command = `delete_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
-        return invoke(command, { id });
+    async _delete(id: Id): Promise<void> {
+        return invoke("delete_entry", { id });
     }
 }

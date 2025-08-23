@@ -12,7 +12,7 @@ import { ViewManagerInterface } from "./interface";
 export interface OpenArguments {
     position: Point;
     id: number;
-    nodeId: NodeId;
+    text: string;
 }
 
 interface PrivateOpenArguments extends OpenArguments {
@@ -25,6 +25,7 @@ type ContextMenuDataMapping = {
 
 class FileNavigatorContextMenuManager {
     _id: number | null = null;
+    _text: string | null = null;
     _nodeId: NodeId | null = null;
 
     constructor() {
@@ -39,12 +40,12 @@ class FileNavigatorContextMenuManager {
         this._id = id;
     }
 
-    get nodeId() {
-        return this._nodeId;
+    get text() {
+        return this._text;
     }
 
-    set nodeId(nodeId: NodeId | null) {
-        this._nodeId = nodeId;
+    set text(text: string | null) {
+        this._text = text;
     }
 }
 
@@ -118,11 +119,11 @@ export class ContextMenuManager {
         this.selectedIndex = null;
     }
 
-    private _open({ key, position, id, nodeId }: PrivateOpenArguments) {
+    private _open({ key, position, id, text }: PrivateOpenArguments) {
         this.key = key;
         this.position = position;
         this.fileNavigator.id = id;
-        this.fileNavigator.nodeId = nodeId;
+        this.fileNavigator.text = text;
         this.outsideEventHandler.enabled = true;
     }
 
@@ -149,7 +150,8 @@ export class ContextMenuManager {
                 label: "Delete",
                 onConfirm: () => {
                     const id = this.fileNavigator.id as number;
-                    return new Promise(() => this.view.deleteEntity(id));
+                    const text = this.fileNavigator.text as string;
+                    return new Promise(() => this.view.deleteEntity(id, text));
                 },
             },
         ]);

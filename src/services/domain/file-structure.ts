@@ -14,13 +14,8 @@ export interface FolderNode extends FolderResponse {
 }
 
 export class FileStructure {
+    // TODO: use Maps instead of vanilla objects
     folders: { [id: number]: FolderNode };
-    /**
-     * The high-level information of each file is cached. This information is used for:
-     *  - entity type look-ups
-     *  - querying entries by title
-     *  - updating references in articles (TODO)
-     */
     files: { [id: number]: FileNode };
 
     constructor() {
@@ -30,7 +25,7 @@ export class FileStructure {
         this.resetFolders();
     }
 
-    getInfo(id: Id): EntryInfoResponse {
+    getEntry(id: Id): EntryInfoResponse {
         return this.files[id];
     }
 

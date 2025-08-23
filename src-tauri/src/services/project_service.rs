@@ -7,7 +7,7 @@ use crate::database::{project_manager, setup};
 use crate::errors::ApiError;
 use crate::schema::project::{ProjectLoadResponseSchema, ProjectResponseSchema};
 use crate::state::StateData;
-use crate::types::PROJECT;
+use crate::types::entity::PROJECT;
 
 pub async fn create(
     state: &mut MutexGuard<'_, StateData>,
@@ -51,7 +51,7 @@ pub async fn load(
             return Err(ApiError::not_found(
                 "Project not found.".to_owned(),
                 PROJECT,
-            ))
+            ));
         }
     };
     Ok(ProjectLoadResponseSchema { info: project, db })
@@ -73,7 +73,7 @@ pub async fn update(
             return Err(ApiError::not_found(
                 "Project not found.".to_owned(),
                 PROJECT,
-            ))
+            ));
         }
     };
     return match project_manager::update(&database, project.id, &name).await {
