@@ -49,15 +49,15 @@ const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
 
     if (fileNav.isFolderNode(node))
         service.view.contextMenu.openForNavBarFolderNode({
-            position: { x: e.pageX, y: e.pageY },
             id,
-            nodeId,
+            position: { x: e.pageX, y: e.pageY },
+            text: node.text,
         });
     else
         service.view.contextMenu.openForNavBarEntityNode({
-            position: { x: e.pageX, y: e.pageY },
             id,
-            nodeId,
+            position: { x: e.pageX, y: e.pageY },
+            text: node.text,
         });
 };
 

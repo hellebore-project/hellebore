@@ -1,7 +1,7 @@
 import {
     ApiError,
     BaseDomainError,
-    BaseDomainErrorWithMessage,
+    DomainMessageError,
     DomainErrorType,
     EntityType,
     FieldNotUniqueError,
@@ -15,7 +15,7 @@ export function process_api_error(api_error: ApiError): BaseDomainError {
         return {
             type: DomainErrorType.UNKNOWN_ERROR,
             msg: "Unable to resolve error",
-        } as BaseDomainErrorWithMessage;
+        } as DomainMessageError;
 
     let type = keys[0] as DomainErrorType;
     return { type, ...api_error[type] };

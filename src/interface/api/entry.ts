@@ -8,11 +8,12 @@ export interface BaseEntryInfo extends IdentifiedObject {
 export interface EntryCreate<E extends BaseEntity> {
     folder_id: number;
     title: string;
-    data: E;
+    properties: E;
 }
 
-export interface EntryUpdate<E extends BaseEntity> extends IdentifiedObject {
-    data: E;
+export interface EntryPropertyUpdate<E extends BaseEntity>
+    extends IdentifiedObject {
+    properties: E;
 }
 
 export interface EntryInfoResponse extends BaseEntryInfo {
@@ -20,4 +21,12 @@ export interface EntryInfoResponse extends BaseEntryInfo {
     title: string;
 }
 
-export interface EntryResponse<E extends BaseEntity> extends EntryUpdate<E> {}
+export interface EntryPropertyResponse {
+    info: EntryInfoResponse;
+    properties: BaseEntity;
+}
+
+export interface EntryArticleResponse {
+    info: EntryInfoResponse;
+    text: string;
+}

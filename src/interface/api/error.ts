@@ -21,41 +21,39 @@ export interface BaseDomainError {
     type: DomainErrorType;
 }
 
-export interface BaseDomainErrorWithMessage extends BaseDomainError {
+export interface DomainMessageError extends BaseDomainError {
     msg: string;
 }
 
-export interface DatabaseConnectionFailedError
-    extends BaseDomainErrorWithMessage {
+export interface DatabaseConnectionFailedError extends DomainMessageError {
     connection_string: string;
 }
 
-export interface DatabaseMigrationFailedError
-    extends BaseDomainErrorWithMessage {
+export interface DatabaseMigrationFailedError extends DomainMessageError {
     connection_string: string;
 }
 
-export interface NotInsertedError extends BaseDomainErrorWithMessage {
+export interface NotInsertedError extends DomainMessageError {
     entity_type: EntityType;
 }
 
-export interface NotUpdatedError extends BaseDomainErrorWithMessage {
+export interface NotUpdatedError extends DomainMessageError {
     entity_type: EntityType;
 }
 
-export interface NotFoundError extends BaseDomainErrorWithMessage {
+export interface NotFoundError extends DomainMessageError {
     entity_type: EntityType;
 }
 
-export interface NotDeletedError extends BaseDomainErrorWithMessage {
+export interface NotDeletedError extends DomainMessageError {
     entity_type: EntityType;
 }
 
-export interface QueryFailedError extends BaseDomainErrorWithMessage {
+export interface QueryFailedError extends DomainMessageError {
     entity_type: EntityType;
 }
 
-export interface FieldNotUpdatedError extends BaseDomainErrorWithMessage {
+export interface FieldNotUpdatedError extends DomainMessageError {
     entity_type: EntityType;
     key: string;
 }
@@ -67,7 +65,7 @@ export interface FieldNotUniqueError extends BaseDomainError {
     value: string;
 }
 
-export interface FieldInvalidError extends BaseDomainErrorWithMessage {
+export interface FieldInvalidError extends DomainMessageError {
     entity_type: EntityType;
     id?: number;
     key: string;

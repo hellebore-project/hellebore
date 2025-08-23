@@ -139,21 +139,31 @@ export class EntityEditor {
         return this.properties.fields[this.info.entityType as EntityType] ?? [];
     }
 
-    initializeArticleEditor(id: Id, title: string, text: string) {
+    initializeArticleEditor(
+        id: Id,
+        entityType: EntityType,
+        title: string,
+        text: string,
+    ) {
         this.currentView = EntityViewKey.ArticleEditor;
-        this.info.initialize(id, title);
+        this.info.initialize(id, entityType, title);
         this.text.initialize(text);
     }
 
-    initializePropertyEditor(id: Id, title: string, properties: BaseEntity) {
+    initializePropertyEditor(
+        id: Id,
+        entityType: EntityType,
+        title: string,
+        properties: BaseEntity,
+    ) {
         this.currentView = EntityViewKey.PropertyEditor;
-        this.info.initialize(id, title);
+        this.info.initialize(id, entityType, title);
         this.properties.initialize(properties);
     }
 
     async initializeWordEditor(id: number, title: string, wordType?: WordType) {
         this.currentView = EntityViewKey.WordEditor;
-        this.info.initialize(id, title, EntityType.LANGUAGE);
+        this.info.initialize(id, EntityType.LANGUAGE, title);
         return this.lexicon.initialize(id, wordType);
     }
 
@@ -264,6 +274,7 @@ export class EntityEditor {
 
     private async _sync({
         id,
+        entityType,
         title,
         properties,
         text,
@@ -282,10 +293,12 @@ export class EntityEditor {
 
         let propertiesResponse: EntryUpdateResponse | null = null;
         if (properties)
-            propertiesResponse = await this.view.domain.entries.update(
-                id,
-                properties,
-            );
+            propertiesResponse =
+                await this.view.domain.entries.updateProperties(
+                    id,
+                    entityType,
+                    properties,
+                );
 
         let lexiconResponse: WordUpsertResponse[] | null = null;
         if (words) {
