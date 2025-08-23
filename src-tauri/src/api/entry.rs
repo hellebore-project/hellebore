@@ -1,6 +1,6 @@
 use crate::api::utils;
 use crate::errors::ApiError;
-use crate::schema::entry::EntryArticleResponseSchema;
+use crate::schema::entry::{EntryArticleResponseSchema, PolymorphicEntryPropertyResponseSchema};
 use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
 use crate::services::entry_service;
 use crate::state::State;
@@ -46,6 +46,24 @@ pub async fn validate_entry_title(
 }
 
 #[tauri::command]
+pub async fn get_entry(
+    state: tauri::State<'_, State>,
+    id: i32,
+) -> Result<EntryInfoResponseSchema, ApiError> {
+    let state = state.lock().await;
+    entry_service::get_info(utils::get_database(&state)?, id).await
+}
+
+#[tauri::command]
+pub async fn get_entry_properties(
+    state: tauri::State<'_, State>,
+    id: i32,
+) -> Result<PolymorphicEntryPropertyResponseSchema, ApiError> {
+    let state = state.lock().await;
+    entry_service::get_properties(utils::get_database(&state)?, id).await
+}
+
+#[tauri::command]
 pub async fn get_entry_text(
     state: tauri::State<'_, State>,
     id: i32,
@@ -60,4 +78,10 @@ pub async fn get_entries(
 ) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
     let state = state.lock().await;
     entry_service::get_all(utils::get_database(&state)?).await
+}
+
+#[tauri::command]
+pub async fn delete_entry(state: tauri::State<'_, State>, id: i32) -> Result<(), ApiError> {
+    let state = state.lock().await;
+    entry_service::delete(utils::get_database(&state)?, id).await
 }

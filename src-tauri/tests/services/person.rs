@@ -1,8 +1,8 @@
 use crate::fixtures::{database, folder::folder_id, settings};
-use crate::utils::entry::validate_entry_info_response;
+use crate::utils::validation::{validate_entry_info_response, validate_person_property_response};
 
-use hellebore::database::folder_manager::ROOT_FOLDER_ID;
-use hellebore::schema::entry::{EntryUpdateSchema, GenericEntryPropertyResponseSchema};
+use hellebore::schema::entry::EntryUpdateSchema;
+use hellebore::services::entry_service;
 use hellebore::types::entity::PERSON;
 use hellebore::{
     schema::{entry::EntryCreateSchema, person::PersonSchema},
@@ -10,16 +10,6 @@ use hellebore::{
     settings::Settings,
 };
 use rstest::*;
-
-fn validate_person_response(
-    response: &GenericEntryPropertyResponseSchema<PersonSchema>,
-    id: Option<i32>,
-    title: &str,
-    name: &str,
-) {
-    validate_entry_info_response(&response.info, id, ROOT_FOLDER_ID, PERSON, title);
-    assert_eq!(name, response.properties.name);
-}
 
 #[fixture]
 fn name() -> String {
@@ -77,6 +67,8 @@ async fn test_error_on_creating_duplicate_person(
 #[tokio::test]
 async fn test_update_person(
     settings: &Settings,
+    folder_id: i32,
+    name: String,
     create_payload: EntryCreateSchema<PersonSchema>,
     mut update_payload: hellebore::schema::entry::EntryUpdateSchema<PersonSchema>,
 ) {
@@ -91,10 +83,19 @@ async fn test_update_person(
 
     assert!(response.is_ok());
 
-    let person = person_service::get(&database, entry.id).await;
+    let person = entry_service::get_properties(&database, entry.id).await;
 
     assert!(person.is_ok());
-    validate_person_response(&person.unwrap(), Some(entry.id), "John Doe", "John D. Doe");
+    let person = person.unwrap();
+
+    validate_person_property_response(
+        &person,
+        Some(entry.id),
+        folder_id,
+        PERSON,
+        &name,
+        "John D. Doe",
+    );
 }
 
 #[rstest]
@@ -112,6 +113,7 @@ async fn test_error_on_updating_nonexistent_person(
 #[tokio::test]
 async fn test_get_person(
     settings: &Settings,
+    folder_id: i32,
     name: String,
     create_payload: EntryCreateSchema<PersonSchema>,
 ) {
@@ -120,18 +122,12 @@ async fn test_get_person(
         .await
         .unwrap();
 
-    let person = person_service::get(&database, entry.id).await;
+    let person = entry_service::get_properties(&database, entry.id).await;
 
     assert!(person.is_ok());
-    validate_person_response(&person.unwrap(), Some(entry.id), &name, &name);
-}
+    let person = person.unwrap();
 
-#[rstest]
-#[tokio::test]
-async fn test_error_on_getting_nonexistent_person(settings: &Settings) {
-    let database = database(settings).await;
-    let response = person_service::get(&database, 0).await;
-    assert!(response.is_err());
+    validate_person_property_response(&person, Some(entry.id), folder_id, PERSON, &name, &name);
 }
 
 #[rstest]
@@ -142,18 +138,10 @@ async fn test_delete_person(settings: &Settings, create_payload: EntryCreateSche
         .await
         .unwrap();
 
-    let response = person_service::delete(&database, entry.id).await;
+    let response = entry_service::delete(&database, entry.id).await;
 
     assert!(response.is_ok());
 
     let entry = person_service::get(&database, entry.id).await;
     assert!(entry.is_err());
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_noop_on_deleting_nonexistent_person(settings: &Settings) {
-    let database = database(settings).await;
-    let response = person_service::delete(&database, 0).await;
-    assert!(response.is_ok());
 }

@@ -8,11 +8,14 @@ use hellebore::{
 };
 use rstest::*;
 
-use crate::fixtures::{
-    database,
-    entry::entry_text,
-    folder::{folder_create_payload, folder_id},
-    settings,
+use crate::{
+    fixtures::{
+        database,
+        entry::entry_text,
+        folder::{folder_create_payload, folder_id},
+        settings,
+    },
+    utils::query::get_entry,
 };
 
 fn validate_model(entry: &EntryModel, id: Option<i32>, folder_id: i32, title: &str, text: &str) {
@@ -99,10 +102,8 @@ async fn test_update_entry_title(
 
     assert!(response.is_ok());
 
-    let entry = entry_service::get(&database, entry.id).await;
-
-    assert!(entry.is_ok());
-    validate_model(&entry.unwrap(), None, folder_id, "new title", &entry_text);
+    let entry = get_entry(&database, entry.id).await.unwrap();
+    validate_model(&entry, None, folder_id, "new title", &entry_text);
 }
 
 #[rstest]
@@ -132,10 +133,8 @@ async fn test_update_entry_folder(
 
     assert!(response.is_ok());
 
-    let entry = entry_service::get(&database, entry.id).await;
-
-    assert!(entry.is_ok());
-    validate_model(&entry.unwrap(), None, folder.id, &title, &entry_text);
+    let entry = get_entry(&database, entry.id).await.unwrap();
+    validate_model(&entry, None, folder.id, &title, &entry_text);
 }
 
 #[rstest]
@@ -155,9 +154,7 @@ async fn test_update_entry_text(
 
     assert!(response.is_ok());
 
-    let entry = entry_service::get(&database, entry.id).await;
-
-    assert!(entry.is_ok());
+    let entry = get_entry(&database, entry.id).await;
     validate_model(&entry.unwrap(), None, folder_id, &title, "updated text");
 }
 
@@ -225,9 +222,7 @@ async fn test_get_entry(settings: &Settings, folder_id: i32, title: String, entr
     .await
     .unwrap();
 
-    let entry = entry_service::get(&database, entry.id).await;
-
-    assert!(entry.is_ok());
+    let entry = get_entry(&database, entry.id).await;
     validate_model(&entry.unwrap(), None, folder_id, &title, &entry_text);
 }
 
@@ -235,7 +230,15 @@ async fn test_get_entry(settings: &Settings, folder_id: i32, title: String, entr
 #[tokio::test]
 async fn test_error_on_getting_nonexistent_entry(settings: &Settings) {
     let database = database(settings).await;
-    let response = entry_service::get(&database, 0).await;
+    let response = entry_service::get_info(&database, 0).await;
+    assert!(response.is_err());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_error_on_getting_properties_of_nonexistent_entry(settings: &Settings) {
+    let database = database(settings).await;
+    let response = entry_service::get_properties(&database, 0).await;
     assert!(response.is_err());
 }
 
@@ -314,8 +317,8 @@ async fn test_delete_entry(settings: &Settings, folder_id: i32, title: String, e
 
     assert!(response.is_ok());
 
-    let entry = entry_service::get(&database, entry.id).await;
-    assert!(entry.is_err());
+    let entry = get_entry(&database, entry.id).await;
+    assert!(entry.is_none());
 }
 
 #[rstest]

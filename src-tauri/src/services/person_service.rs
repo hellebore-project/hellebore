@@ -4,7 +4,7 @@ use ::entity::person::Model as Person;
 
 use crate::database::person_manager;
 use crate::errors::ApiError;
-use crate::schema::entry::{EntryUpdateSchema, GenericEntryPropertyResponseSchema};
+use crate::schema::entry::EntryUpdateSchema;
 use crate::schema::{
     entry::{EntryCreateSchema, EntryInfoResponseSchema},
     person::PersonSchema,
@@ -35,31 +35,16 @@ pub async fn update(
         .map_err(|e| ApiError::not_updated(e, PERSON))
 }
 
-pub async fn get(
-    database: &DatabaseConnection,
-    id: i32,
-) -> Result<GenericEntryPropertyResponseSchema<PersonSchema>, ApiError> {
-    let info = entry_service::get_info(database, id).await?;
+pub async fn get(database: &DatabaseConnection, id: i32) -> Result<PersonSchema, ApiError> {
     let person = person_manager::get(&database, id)
         .await
         .map_err(|e| ApiError::not_found(e, PERSON))?;
     return match person {
-        Some(person) => Ok(generate_response(info, person)),
+        Some(person) => Ok(generate_response(person)),
         None => Err(ApiError::not_found("Person not found.", PERSON)),
     };
 }
 
-pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    entry_service::delete(&database, id).await?;
-    return Ok(());
-}
-
-fn generate_response(
-    info: EntryInfoResponseSchema,
-    person: Person,
-) -> GenericEntryPropertyResponseSchema<PersonSchema> {
-    GenericEntryPropertyResponseSchema {
-        info,
-        properties: PersonSchema { name: person.name },
-    }
+fn generate_response(person: Person) -> PersonSchema {
+    PersonSchema { name: person.name }
 }

@@ -3,7 +3,7 @@ use rstest::*;
 use hellebore::{
     database::language_manager,
     schema::{entry::EntryCreateSchema, language::LanguageSchema, word::WordUpdateSchema},
-    services::{language_service, word_service},
+    services::{entry_service, language_service, word_service},
     settings::Settings,
     types::entity::LANGUAGE,
 };
@@ -15,7 +15,10 @@ use crate::fixtures::{
     settings,
     word::create_word_payload,
 };
-use crate::utils::{entry::validate_entry_info_response, word::get_all_words_for_language};
+use crate::utils::{
+    query::get_all_words_for_language,
+    validation::{validate_entry_info_response, validate_language_property_response},
+};
 
 #[rstest]
 #[tokio::test]
@@ -46,6 +49,34 @@ async fn test_error_on_creating_duplicate_language(
 
 #[rstest]
 #[tokio::test]
+async fn test_get_language(
+    settings: &Settings,
+    folder_id: i32,
+    language_name: String,
+    create_language_payload: EntryCreateSchema<LanguageSchema>,
+) {
+    let database = database(settings).await;
+    let entry = language_service::create(&database, create_language_payload).await;
+
+    assert!(entry.is_ok());
+    let entry = entry.unwrap();
+
+    let language = entry_service::get_properties(&database, entry.id).await;
+
+    assert!(language.is_ok());
+    let language = language.unwrap();
+
+    validate_language_property_response(
+        &language,
+        Some(entry.id),
+        folder_id,
+        LANGUAGE,
+        &language_name,
+    );
+}
+
+#[rstest]
+#[tokio::test]
 async fn test_delete_language(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageSchema>,
@@ -64,7 +95,7 @@ async fn test_delete_language(
     let words = get_all_words_for_language(&database, id).await;
     assert_eq!(words.len(), 1);
 
-    let response = language_service::delete(&database, entry.id).await;
+    let response = entry_service::delete(&database, entry.id).await;
 
     assert!(response.is_ok());
 
@@ -76,12 +107,4 @@ async fn test_delete_language(
 
     let words = get_all_words_for_language(&database, id).await;
     assert_eq!(words.len(), 0);
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_noop_on_deleting_nonexistent_language(settings: &Settings) {
-    let database = database(settings).await;
-    let response = language_service::delete(&database, 0).await;
-    assert!(response.is_ok());
 }

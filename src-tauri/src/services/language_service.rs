@@ -22,7 +22,10 @@ pub async fn create(
     Ok(entry_service::generate_insert_response(&entry))
 }
 
-pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    entry_service::delete(&database, id).await?;
-    return Ok(());
+pub async fn get() -> Result<LanguageSchema, ApiError> {
+    Ok(generate_response())
+}
+
+fn generate_response() -> LanguageSchema {
+    LanguageSchema {}
 }

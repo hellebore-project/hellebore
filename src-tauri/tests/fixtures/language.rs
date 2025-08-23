@@ -14,12 +14,10 @@ pub fn create_language_payload(
     folder_id: i32,
     language_name: String,
 ) -> EntryCreateSchema<LanguageSchema> {
-    let language = LanguageSchema {
-        name: language_name,
-    };
+    let language = LanguageSchema {};
     EntryCreateSchema {
         folder_id,
-        title: language.name.to_string(),
+        title: language_name.to_string(),
         properties: language,
     }
 }
