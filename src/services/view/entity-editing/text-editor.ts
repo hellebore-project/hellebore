@@ -5,12 +5,12 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { EntityChangeHandler, SuggestionData } from "@/interface";
+import { IViewManager } from "@/services/interface";
 import { useReferenceExtension } from "@/shared/rich-text-editor";
-import { ViewManagerInterface } from "../interface";
 import { EntityInfoEditor } from "./info-editor";
 
 interface ArticleTextEditorSettings {
-    view: ViewManagerInterface;
+    view: IViewManager;
     info: EntityInfoEditor;
     onChange: EntityChangeHandler;
 }
@@ -20,7 +20,7 @@ export class ArticleTextEditor {
     changed: boolean = false;
     private _selectedRefIndex: number | null = null;
 
-    view: ViewManagerInterface;
+    view: IViewManager;
     info: EntityInfoEditor;
 
     onChange: EntityChangeHandler;

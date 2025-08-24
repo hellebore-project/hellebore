@@ -1,10 +1,6 @@
-import {
-    EntryInfoResponse,
-    BulkData,
-    FolderResponse,
-    Id,
-    ROOT_FOLDER_ID,
-} from "@/interface";
+import { ROOT_FOLDER_ID } from "@/constants";
+import { Id } from "@/interface";
+import { BulkData, EntryInfoResponse, FolderResponse } from "@/schema";
 
 export type FileNode = EntryInfoResponse;
 

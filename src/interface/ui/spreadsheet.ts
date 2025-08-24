@@ -1,5 +1,5 @@
+import { FieldType } from "@/constants";
 import { OptionData } from "./common";
-import { FieldType } from "./field-data";
 
 export interface SpreadsheetCellPosition {
     row: number;

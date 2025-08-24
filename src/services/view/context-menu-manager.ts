@@ -1,13 +1,9 @@
 import { makeAutoObservable, toJS } from "mobx";
 
-import {
-    ContextMenuKey,
-    NodeId,
-    Point,
-    VerticalSelectionData,
-} from "@/interface";
+import { ContextMenuKey } from "@/constants";
+import { NodeId, Point, VerticalSelectionData } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
-import { ViewManagerInterface } from "./interface";
+import { IViewManager } from "@/services/interface";
 
 export interface OpenArguments {
     position: Point;
@@ -56,11 +52,11 @@ export class ContextMenuManager {
 
     menuData: ContextMenuDataMapping;
 
-    view: ViewManagerInterface;
+    view: IViewManager;
     fileNavigator: FileNavigatorContextMenuManager;
     outsideEventHandler: OutsideEventHandlerService;
 
-    constructor(view: ViewManagerInterface) {
+    constructor(view: IViewManager) {
         makeAutoObservable(this, {
             view: false,
             fileNavigator: false,

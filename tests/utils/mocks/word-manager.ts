@@ -1,6 +1,9 @@
 import { vi } from "vitest";
+
+import { WordType } from "@/constants";
+import { Id } from "@/interface";
 import { WordManager } from "@/services/domain/word-manager";
-import { WordResponse, WordUpsert, WordType, Id, ApiError } from "@/interface";
+import { WordResponse, WordUpsert, ApiError } from "@/schema";
 
 export function mockUpsertWords(
     manager: WordManager,

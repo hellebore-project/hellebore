@@ -1,4 +1,4 @@
-import { EntityType } from "../entity";
+import { EntityType } from "@/constants";
 
 export enum DomainErrorType {
     UNKNOWN_ERROR = "UnknownError",

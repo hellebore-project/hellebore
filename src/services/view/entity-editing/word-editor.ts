@@ -1,27 +1,29 @@
 import { makeAutoObservable, toJS } from "mobx";
 
 import {
+    FieldType,
     GrammaticalGender,
     GrammaticalNumber,
     GrammaticalPerson,
     VerbForm,
     VerbTense,
-    WordKey,
-    WordResponse,
-    WordData,
     WordType,
-    EntityChangeHandler,
     WordViewKey,
+} from "@/constants";
+import {
+    WordKey,
+    WordData,
+    EntityChangeHandler,
     WordTableColumnKey,
     SpreadsheetRowData,
     SpreadsheetColumnData,
-    FieldType,
 } from "@/interface";
-import { Counter } from "@/utils/counter";
-import { ViewManagerInterface } from "../interface";
-import { EntityInfoEditor } from "./info-editor";
-import { numericEnumMapping } from "@/utils/enums";
+import { IViewManager } from "@/services/interface";
 import { SpreadsheetService } from "@/shared/spreadsheet";
+import { WordResponse } from "@/schema";
+import { Counter } from "@/utils/counter";
+import { numericEnumMapping } from "@/utils/enums";
+import { EntityInfoEditor } from "./info-editor";
 
 const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.RootWord, WordViewKey.RootWords],
@@ -98,7 +100,7 @@ type PrivateKeys =
     | "_info";
 
 interface WordEditorSettings {
-    view: ViewManagerInterface;
+    view: IViewManager;
     info: EntityInfoEditor;
     onChange: EntityChangeHandler;
 }
@@ -111,7 +113,7 @@ export class WordEditor {
     private _changed: boolean = false;
 
     // SERVICES
-    private _view: ViewManagerInterface;
+    private _view: IViewManager;
     private _info: EntityInfoEditor;
     spreadsheet: SpreadsheetService;
 

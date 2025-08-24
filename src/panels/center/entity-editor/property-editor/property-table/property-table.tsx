@@ -3,7 +3,8 @@ import "./property-table.css";
 import { Card, CardProps, Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { FieldData, FieldType } from "@/interface";
+import { FieldType } from "@/constants";
+import { FieldData } from "@/interface";
 import { TextField } from "@/shared/text-field";
 import { getService } from "@/services";
 

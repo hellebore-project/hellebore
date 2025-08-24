@@ -1,16 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
+import { WordType } from "@/constants";
+import { Id } from "@/interface";
 import {
+    DiagnosticResponse,
     WordResponse,
-    WordUpsertResponse,
-    ResponseWithDiagnostics,
-    WordType,
-    Id,
     WordUpsert,
-} from "@/interface";
+    WordUpsertResponse,
+} from "@/schema";
 
-type _UpsertWordResponse = ResponseWithDiagnostics<Id | null>;
+type _UpsertWordResponse = DiagnosticResponse<Id | null>;
 type _BulkUpsertWordsResponse = Array<_UpsertWordResponse>;
 
 export class WordManager {
@@ -81,7 +81,7 @@ export class WordManager {
 
     private _buildUpsertResponse(
         upsertPayload: WordUpsert,
-        rawResponse: ResponseWithDiagnostics<Id | null>,
+        rawResponse: DiagnosticResponse<Id | null>,
     ): WordUpsertResponse {
         let id = upsertPayload.id;
         let created = false;

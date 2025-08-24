@@ -1,8 +1,8 @@
 import { makeAutoObservable } from "mobx";
 import { RefObject, createRef } from "react";
 
+import { FieldType } from "@/constants";
 import {
-    FieldType,
     SpreadsheetCellData,
     SpreadsheetColumnData,
     SpreadsheetRowData,

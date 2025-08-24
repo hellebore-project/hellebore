@@ -1,8 +1,4 @@
-import {
-    EntryInfoResponse,
-    FolderResponse,
-    ProjectResponse,
-} from "@/interface";
+import { EntryInfoResponse, FolderResponse, ProjectResponse } from "@/schema";
 import { state } from "@/services";
 import { AppManager } from "@/services/app-manager";
 import { mockGetArticles as mockGetEntries } from "./entry-manager";

@@ -3,19 +3,12 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable, toJS } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
-import {
-    EntryInfoResponse,
-    FileNodeData,
-    FileNodeModel,
-    FolderResponse,
-    Id,
-    NodeId,
-    ROOT_FOLDER_ID,
-    ROOT_FOLDER_NODE_ID,
-} from "@/interface";
-import { Counter } from "@/utils/counter";
-import { ViewManagerInterface } from "../interface";
+import { ROOT_FOLDER_ID, ROOT_FOLDER_NODE_ID } from "@/constants";
+import { FileNodeData, FileNodeModel, Id, NodeId } from "@/interface";
+import { IViewManager } from "@/services/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
+import { EntryInfoResponse, FolderResponse } from "@/schema";
+import { Counter } from "@/utils/counter";
 import { NavigatorErrorManager } from "./navigator-error-manager";
 
 type PrivateKeys = "_nodePositionCache" | "_tree";
@@ -42,9 +35,9 @@ export class FileNavigator {
     _placeholderIdGenerator: Counter;
     outsideEventHandler: OutsideEventHandlerService;
     errorManager: NavigatorErrorManager;
-    view: ViewManagerInterface;
+    view: IViewManager;
 
-    constructor(view: ViewManagerInterface) {
+    constructor(view: IViewManager) {
         makeAutoObservable<FileNavigator, PrivateKeys>(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,

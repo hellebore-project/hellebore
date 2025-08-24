@@ -1,16 +1,12 @@
+import { cleanup } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { test as baseTest } from "vitest";
 
-import { AppManager } from "@/services/app-manager";
-import { mockServices } from "@tests/utils/mocks";
-import {
-    EntryInfoResponse,
-    EntityType,
-    FolderResponse,
-    ProjectResponse,
-} from "@/interface";
+import { EntityType } from "@/constants";
 import { state } from "@/services";
-import { cleanup } from "@testing-library/react";
+import { AppManager } from "@/services/app-manager";
+import { EntryInfoResponse, FolderResponse, ProjectResponse } from "@/schema";
+import { mockServices } from "@tests/utils/mocks";
 
 export interface BaseUnitFixtures {
     dbFilePath: string;

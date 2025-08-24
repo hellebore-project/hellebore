@@ -1,6 +1,4 @@
-import { IdentifiedObject } from "../common";
-
-export const ROOT_FOLDER_ID = -1;
+import { IdentifiedObject } from "@/interface";
 
 interface FolderProperties {
     parent_id: number;

@@ -1,13 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
-import {
-    FolderResponse,
-    FolderUpdate,
-    FolderValidateResponse,
-    Id,
-    ROOT_FOLDER_ID,
-} from "@/interface";
+import { ROOT_FOLDER_ID } from "@/constants";
+import { Id } from "@/interface";
+import { FolderResponse, FolderUpdate, FolderValidateResponse } from "@/schema";
 import { FileStructure } from "./file-structure";
 
 export interface FolderUpdateArguments {

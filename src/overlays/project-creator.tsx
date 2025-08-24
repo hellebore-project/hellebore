@@ -1,7 +1,7 @@
 import { Button, Container, Group, Modal } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { ModalKey } from "@/interface";
+import { ModalKey } from "@/constants";
 import { getService } from "@/services";
 import { FileField } from "@/shared/file-field";
 import { TextField } from "@/shared/text-field";

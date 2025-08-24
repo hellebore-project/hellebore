@@ -3,7 +3,7 @@ import "./header.css";
 import { Burger, Button, Flex } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntityType } from "@/interface";
+import { EntityType } from "@/constants";
 import { getService } from "@/services";
 import {
     DIVIDER_DATA,

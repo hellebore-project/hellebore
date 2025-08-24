@@ -1,5 +1,5 @@
-import { IdentifiedObject } from "../common";
-import { BaseEntity, EntityType } from "../entity";
+import { EntityType } from "@/constants";
+import { BaseEntity, IdentifiedObject } from "@/interface";
 
 export interface BaseEntryInfo extends IdentifiedObject {
     entity_type: EntityType;

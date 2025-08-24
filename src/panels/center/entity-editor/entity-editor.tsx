@@ -1,6 +1,6 @@
 import "./entity-editor.css";
 
-import { EntityType, EntityViewKey } from "@/interface";
+import { EntityType, EntityViewKey } from "@/constants";
 import { getService } from "@/services";
 import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";

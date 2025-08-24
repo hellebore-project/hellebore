@@ -1,5 +1,5 @@
 import { Id } from "../common";
-import { WordInfo, WordProperties } from "../entity";
+import { WordInfo, WordProperties } from "../domain";
 
 export type WordKey = string;
 

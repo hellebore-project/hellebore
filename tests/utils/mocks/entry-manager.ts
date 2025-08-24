@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-import { EntryInfoResponse } from "@/interface";
+import { EntryInfoResponse } from "@/schema";
 import { EntryManager } from "@/services/domain";
 
 export interface MockGetEntriesArguments {

@@ -1,22 +1,23 @@
 import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
+import { ENTITY_TYPE_LABELS, EntityType, ROOT_FOLDER_ID } from "@/constants";
+import {
+    BaseEntity,
+    Id,
+    LanguageProperties,
+    PersonProperties,
+} from "@/interface";
 import {
     ApiError,
     EntryInfoResponse,
-    ENTITY_TYPE_LABELS,
-    EntityType,
-    LanguageData,
     EntryCreate,
-    ROOT_FOLDER_ID,
-    Id,
-    BaseEntity,
     EntryPropertyResponse,
     EntryPropertyUpdate,
     EntryArticleResponse,
-} from "@/interface";
+} from "@/schema";
 import { FileStructure } from "./file-structure";
-import { is_field_unique, process_api_error } from "./utils";
+import { is_field_unique, process_api_error } from "./error-handler";
 
 type PrivateKeys = "_structure";
 
@@ -257,10 +258,10 @@ export class EntryManager {
         name: string,
         folder_id: number,
     ): Promise<EntryInfoResponse> {
-        const entry: EntryCreate<LanguageData> = {
+        const entry: EntryCreate<LanguageProperties> = {
             folder_id,
             title: name,
-            properties: { name },
+            properties: {},
         };
         return invoke<EntryInfoResponse>("create_language", {
             entry,
@@ -271,7 +272,7 @@ export class EntryManager {
         name: string,
         folder_id: number,
     ): Promise<EntryInfoResponse> {
-        const entry: EntryCreate<LanguageData> = {
+        const entry: EntryCreate<PersonProperties> = {
             folder_id,
             title: name,
             properties: { name },

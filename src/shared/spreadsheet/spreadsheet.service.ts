@@ -1,11 +1,8 @@
 import { makeAutoObservable } from "mobx";
 import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
-import {
-    SpreadsheetRowData,
-    SpreadsheetColumnData,
-    FieldType,
-} from "@/interface";
+import { FieldType } from "@/constants";
+import { SpreadsheetRowData, SpreadsheetColumnData } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { isFullyContained } from "@/utils/math-utils";
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";

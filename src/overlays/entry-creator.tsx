@@ -8,7 +8,7 @@ import {
 } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS, ModalKey } from "@/interface";
+import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS, ModalKey } from "@/constants";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
 import { getService } from "@/services";

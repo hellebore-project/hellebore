@@ -1,11 +1,11 @@
+import { EntityType } from "@/constants";
 import {
     ApiError,
     BaseDomainError,
-    DomainMessageError,
     DomainErrorType,
-    EntityType,
+    DomainMessageError,
     FieldNotUniqueError,
-} from "@/interface";
+} from "@/schema";
 
 export function process_api_error(api_error: ApiError): BaseDomainError {
     let keys = Object.keys(api_error).filter((key) =>

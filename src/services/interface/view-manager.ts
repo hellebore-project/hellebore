@@ -1,16 +1,14 @@
 import { PhysicalSize } from "@tauri-apps/api/dpi";
 
+import { EntityType, ViewKey, WordType } from "@/constants";
+import { Id } from "@/interface";
 import {
-    EntryInfoResponse,
     BulkData,
-    EntityType,
-    Id,
+    EntryInfoResponse,
     ProjectResponse,
-    ViewKey,
-    WordType,
     WordUpsert,
     WordUpsertResponse,
-} from "@/interface";
+} from "@/schema";
 import { EntryTitleUpdateResponse, DomainManager } from "../domain";
 
 export interface OpenEntityCreatorArguments {
@@ -18,7 +16,11 @@ export interface OpenEntityCreatorArguments {
     folderId?: Id;
 }
 
-export interface ViewManagerInterface {
+export interface IViewManager {
+    // HACK: referencing the concrete DomainManager class rather than an interface
+    // is conceptually incorrect, but creating a DomainManager interface would take
+    // a lot of effort and would carry very little benefit. So for now, we take the
+    // easy way out.
     domain: DomainManager;
 
     get navbarWidth(): number;

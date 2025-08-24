@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { GrammaticalGender } from "@/interface";
+import { GrammaticalGender } from "@/constants";
 import { WordTable } from "@/panels/center/entity-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
 import {
