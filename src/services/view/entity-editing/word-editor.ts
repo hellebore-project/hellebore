@@ -1,27 +1,29 @@
 import { makeAutoObservable, toJS } from "mobx";
 
 import {
+    FieldType,
     GrammaticalGender,
     GrammaticalNumber,
     GrammaticalPerson,
     VerbForm,
     VerbTense,
-    WordKey,
-    WordResponse,
-    WordData,
     WordType,
-    EntityChangeHandler,
     WordViewKey,
+} from "@/constants";
+import {
+    WordKey,
+    WordData,
+    EntityChangeHandler,
     WordTableColumnKey,
     SpreadsheetRowData,
     SpreadsheetColumnData,
-    FieldType,
 } from "@/interface";
-import { Counter } from "@/utils/counter";
 import { IViewManager } from "@/services/interface";
-import { EntityInfoEditor } from "./info-editor";
-import { numericEnumMapping } from "@/utils/enums";
 import { SpreadsheetService } from "@/shared/spreadsheet";
+import { WordResponse } from "@/schema";
+import { Counter } from "@/utils/counter";
+import { numericEnumMapping } from "@/utils/enums";
+import { EntityInfoEditor } from "./info-editor";
 
 const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.RootWord, WordViewKey.RootWords],

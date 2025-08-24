@@ -5,7 +5,7 @@ import { IconCircleMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 import { HTMLAttributes, ReactNode } from "react";
 
-import { FieldType } from "@/interface";
+import { FieldType } from "@/constants";
 import { OutsideEventHandler } from "@/shared/outside-event-handler";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";

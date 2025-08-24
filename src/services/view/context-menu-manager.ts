@@ -1,11 +1,7 @@
 import { makeAutoObservable, toJS } from "mobx";
 
-import {
-    ContextMenuKey,
-    NodeId,
-    Point,
-    VerticalSelectionData,
-} from "@/interface";
+import { ContextMenuKey } from "@/constants";
+import { NodeId, Point, VerticalSelectionData } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { IViewManager } from "@/services/interface";
 

@@ -1,5 +1,5 @@
 import { BaseEntity } from "./base";
 
-export interface LanguageData extends BaseEntity {
+export interface PersonProperties extends BaseEntity {
     name: string;
 }

@@ -1,13 +1,11 @@
 import { makeAutoObservable, toJS } from "mobx";
 
+import { EntityType, FieldType, PersonProperty } from "@/constants";
 import {
     BaseEntity,
     EntityChangeHandler,
-    EntityType,
     FieldData,
-    FieldType,
-    PersonData,
-    PersonProperty,
+    PersonProperties,
 } from "@/interface";
 import { EntityInfoEditor } from "./info-editor";
 
@@ -86,7 +84,8 @@ export class PropertyEditor {
     /* Person */
 
     _setPersonProperty(key: string, value: any) {
-        if (key == PersonProperty.NAME) (<PersonData>this._entity).name = value;
+        if (key == PersonProperty.NAME)
+            (<PersonProperties>this._entity).name = value;
         else throw `Unable to set property ${key} for a Person entity.`;
     }
 
@@ -96,7 +95,7 @@ export class PropertyEditor {
                 property: PersonProperty.NAME,
                 label: "Full Name",
                 type: FieldType.TEXT,
-                getValue: () => (<PersonData>this._entity).name,
+                getValue: () => (<PersonProperties>this._entity).name,
                 setValue: (name: string) => this.set(PersonProperty.NAME, name),
             },
         ];

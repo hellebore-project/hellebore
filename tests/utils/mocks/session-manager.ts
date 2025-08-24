@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-import { ProjectResponse, SessionResponse } from "@/interface";
+import { ProjectResponse, SessionResponse } from "@/schema";
 import { SessionManager } from "@/services/domain/session-manager";
 
 interface MockSessionArguments {

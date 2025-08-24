@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { EntryInfoResponse, FolderResponse } from "@/interface";
+import { EntryInfoResponse, FolderResponse } from "@/schema";
 import { FileNavigator } from "./file-navigator";
 import { IViewManager } from "@/services/interface";
 

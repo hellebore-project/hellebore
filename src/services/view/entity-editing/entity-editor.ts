@@ -1,24 +1,17 @@
 import { makeAutoObservable } from "mobx";
 
-import {
-    BaseEntity,
-    EntityType,
-    FieldData,
-    EntityViewKey,
-    WordType,
-    Id,
-    WordUpsertResponse,
-    WordData,
-} from "@/interface";
+import { EntityType, EntityViewKey, WordType } from "@/constants";
+import { BaseEntity, FieldData, Id, WordData } from "@/interface";
 import {
     EntryTextUpdateResponse,
     EntryTitleUpdateResponse,
     EntryUpdateResponse,
 } from "@/services/domain";
+import { IViewManager } from "@/services/interface";
+import { WordUpsertResponse } from "@/schema";
 import { PropertyEditor } from "./property-editor";
 import { ArticleTextEditor } from "./text-editor";
 import { EntityInfoEditor } from "./info-editor";
-import { IViewManager } from "@/services/interface";
 import { WordEditor } from "./word-editor";
 
 const DEFAULT_SYNC_DELAY_TIME = 5000;

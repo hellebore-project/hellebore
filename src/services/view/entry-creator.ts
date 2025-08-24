@@ -1,8 +1,9 @@
 import { makeAutoObservable } from "mobx";
-
-import { EntityType, Id, ROOT_FOLDER_ID } from "@/interface";
-import { IViewManager } from "@/services/interface";
 import { FormEvent } from "react";
+
+import { EntityType, ROOT_FOLDER_ID } from "@/constants";
+import { Id } from "@/interface";
+import { IViewManager } from "@/services/interface";
 
 export class EntryCreator {
     // STATE

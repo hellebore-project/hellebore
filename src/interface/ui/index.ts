@@ -5,5 +5,4 @@ export * from "./handlers";
 export * from "./selection";
 export * from "./spreadsheet";
 export * from "./suggestion";
-export * from "./view";
 export * from "./word";

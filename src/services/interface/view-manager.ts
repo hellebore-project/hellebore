@@ -1,16 +1,14 @@
 import { PhysicalSize } from "@tauri-apps/api/dpi";
 
+import { EntityType, ViewKey, WordType } from "@/constants";
+import { Id } from "@/interface";
 import {
-    EntryInfoResponse,
     BulkData,
-    EntityType,
-    Id,
+    EntryInfoResponse,
     ProjectResponse,
-    ViewKey,
-    WordType,
     WordUpsert,
     WordUpsertResponse,
-} from "@/interface";
+} from "@/schema";
 import { EntryTitleUpdateResponse, DomainManager } from "../domain";
 
 export interface OpenEntityCreatorArguments {

@@ -12,12 +12,8 @@ import { observer } from "mobx-react-lite";
 import { MouseEvent } from "react";
 import { DndProvider } from "react-dnd";
 
-import {
-    BaseGroupSettings,
-    FileNodeData,
-    FileNodeModel,
-    ROOT_FOLDER_NODE_ID,
-} from "@/interface";
+import { ROOT_FOLDER_NODE_ID } from "@/constants";
+import { BaseGroupSettings, FileNodeData, FileNodeModel } from "@/interface";
 import { getService } from "@/services";
 import { NavItem, NavItemTextSettings } from "@/shared/nav-item";
 

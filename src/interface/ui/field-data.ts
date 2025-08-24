@@ -1,9 +1,5 @@
+import { FieldType } from "@/constants";
 import { OptionData } from "./common";
-
-export enum FieldType {
-    TEXT,
-    SELECT,
-}
 
 export interface FieldData {
     property: string;

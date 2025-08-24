@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { ENTITY_TYPE_LABELS, EntityType } from "@/interface";
+import { ENTITY_TYPE_LABELS, EntityType } from "@/constants";
 import { IViewManager } from "@/services/interface";
 
 const ENTITY_ID_SENTINEL = -1;

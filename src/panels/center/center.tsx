@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 
-import { ViewKey } from "@/interface";
+import { ViewKey } from "@/constants";
 import { getService } from "@/services";
 import { EntityEditor } from "./entity-editor";
 import { Home } from "./home";

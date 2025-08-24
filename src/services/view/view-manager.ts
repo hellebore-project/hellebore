@@ -5,19 +5,19 @@ import { makeAutoObservable } from "mobx";
 import {
     EntityType,
     EntityViewKey,
-    Id,
     ModalKey,
     ROOT_FOLDER_ID,
     ViewKey,
     WordType,
-    WordUpsert,
-} from "@/interface";
+} from "@/constants";
+import { Id } from "@/interface";
+import { OpenEntityCreatorArguments, IViewManager } from "@/services/interface";
+import { WordUpsert } from "@/schema";
 import { DomainManager } from "../domain";
 import { EntryCreator } from "./entry-creator";
 import { EntityEditor } from "./entity-editing";
 import { ContextMenuManager } from "./context-menu-manager";
 import { HomeManager } from "./home-manager";
-import { OpenEntityCreatorArguments, IViewManager } from "@/services/interface";
 import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
