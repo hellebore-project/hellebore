@@ -14,7 +14,7 @@ import {
     ROOT_FOLDER_NODE_ID,
 } from "@/interface";
 import { Counter } from "@/utils/counter";
-import { ViewManagerInterface } from "../interface";
+import { IViewManager } from "@/services/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { NavigatorErrorManager } from "./navigator-error-manager";
 
@@ -42,9 +42,9 @@ export class FileNavigator {
     _placeholderIdGenerator: Counter;
     outsideEventHandler: OutsideEventHandlerService;
     errorManager: NavigatorErrorManager;
-    view: ViewManagerInterface;
+    view: IViewManager;
 
-    constructor(view: ViewManagerInterface) {
+    constructor(view: IViewManager) {
         makeAutoObservable<FileNavigator, PrivateKeys>(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,

@@ -18,7 +18,7 @@ import {
 import { PropertyEditor } from "./property-editor";
 import { ArticleTextEditor } from "./text-editor";
 import { EntityInfoEditor } from "./info-editor";
-import { ViewManagerInterface } from "../interface";
+import { IViewManager } from "@/services/interface";
 import { WordEditor } from "./word-editor";
 
 const DEFAULT_SYNC_DELAY_TIME = 5000;
@@ -68,13 +68,13 @@ export class EntityEditor {
     private _syncDelayTime: number = DEFAULT_SYNC_DELAY_TIME;
 
     // SERVICES
-    view: ViewManagerInterface;
+    view: IViewManager;
     info: EntityInfoEditor;
     properties: PropertyEditor;
     text: ArticleTextEditor;
     lexicon: WordEditor;
 
-    constructor(view: ViewManagerInterface) {
+    constructor(view: IViewManager) {
         makeAutoObservable<EntityEditor, PrivateKeys>(this, {
             _waitingForSync: false,
             _syncing: false,

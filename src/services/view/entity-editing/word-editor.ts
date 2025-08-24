@@ -18,7 +18,7 @@ import {
     FieldType,
 } from "@/interface";
 import { Counter } from "@/utils/counter";
-import { ViewManagerInterface } from "../interface";
+import { IViewManager } from "@/services/interface";
 import { EntityInfoEditor } from "./info-editor";
 import { numericEnumMapping } from "@/utils/enums";
 import { SpreadsheetService } from "@/shared/spreadsheet";
@@ -98,7 +98,7 @@ type PrivateKeys =
     | "_info";
 
 interface WordEditorSettings {
-    view: ViewManagerInterface;
+    view: IViewManager;
     info: EntityInfoEditor;
     onChange: EntityChangeHandler;
 }
@@ -111,7 +111,7 @@ export class WordEditor {
     private _changed: boolean = false;
 
     // SERVICES
-    private _view: ViewManagerInterface;
+    private _view: IViewManager;
     private _info: EntityInfoEditor;
     spreadsheet: SpreadsheetService;
 

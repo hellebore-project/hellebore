@@ -1,13 +1,13 @@
 import { makeAutoObservable } from "mobx";
 
-import { ViewManagerInterface } from "./interface";
+import { IViewManager } from "@/services/interface";
 
 export class HomeManager {
     _projectName: string = "";
 
-    view: ViewManagerInterface;
+    view: IViewManager;
 
-    constructor(view: ViewManagerInterface) {
+    constructor(view: IViewManager) {
         makeAutoObservable(this, { view: false });
         this.view = view;
     }

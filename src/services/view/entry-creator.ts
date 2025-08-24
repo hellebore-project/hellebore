@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { EntityType, Id, ROOT_FOLDER_ID } from "@/interface";
-import { ViewManagerInterface } from "./interface";
+import { IViewManager } from "@/services/interface";
 import { FormEvent } from "react";
 
 export class EntryCreator {
@@ -12,9 +12,9 @@ export class EntryCreator {
     private _isTitleUnique: boolean = true;
 
     // SERVICES
-    view: ViewManagerInterface;
+    view: IViewManager;
 
-    constructor(view: ViewManagerInterface) {
+    constructor(view: IViewManager) {
         makeAutoObservable(this, { view: false });
         this.view = view;
     }
