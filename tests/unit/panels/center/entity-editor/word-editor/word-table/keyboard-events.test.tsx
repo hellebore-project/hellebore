@@ -103,14 +103,14 @@ describe("cell editing", () => {
 
         // toggle edit mode
         await user.keyboard("{Enter}");
-        expect(screen.getByDisplayValue("cell1")).toBeTruthy();
+        screen.getByDisplayValue("cell1");
 
         // edit the cell value
         await user.keyboard("-edited");
 
         // Enter again to finish edit and move selection down
         await user.keyboard("{Enter}");
-        expect(screen.getByText("cell1-edited")).toBeTruthy();
+        screen.getByText("cell1-edited");
         expect(cell1.className.includes("selected")).toBeFalsy();
     });
 
@@ -141,7 +141,7 @@ describe("cell editing", () => {
 
         // Escape to cancel edit
         await user.keyboard("{Escape}");
-        expect(screen.getByText("cell1")).toBeTruthy();
+        screen.getByText("cell1");
     });
 
     test("enter toggles edit mode of select cell", async ({
@@ -169,7 +169,7 @@ describe("cell editing", () => {
         await user.keyboard("{ArrowDown}");
         await user.keyboard("{Enter}");
 
-        expect(screen.getByText("Feminine")).toBeTruthy();
+        screen.getByText("Feminine");
     });
 
     test("escape exits edit mode of select cell", async ({ service, user }) => {
@@ -192,7 +192,7 @@ describe("cell editing", () => {
 
         // Escape to cancel edit
         await user.keyboard("{Escape}");
-        expect(screen.getByText("Masculine")).toBeTruthy();
+        screen.getByText("Masculine");
     });
 
     test("enter reduces the selection to a single cell before toggling it to edit mode", async ({
@@ -229,6 +229,6 @@ describe("cell editing", () => {
         // Only cell2 should be selected and in edit mode
         expect(cell1.className.includes("selected")).toBeTruthy();
         expect(cell2.className.includes("selected")).toBeFalsy();
-        expect(screen.getByDisplayValue("cell1")).toBeTruthy();
+        screen.getByDisplayValue("cell1");
     });
 });

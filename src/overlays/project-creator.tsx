@@ -18,7 +18,7 @@ function renderProjectLoader() {
 
     return (
         <Modal
-            title="New project"
+            title="Create a new project"
             opened={service.view.currentModal == ModalKey.ProjectCreator}
             onClose={() => service.view.closeModal()}
             portalProps={{ target: service.view.sharedPortalSelector }}

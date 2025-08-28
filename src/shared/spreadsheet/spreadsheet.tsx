@@ -46,6 +46,7 @@ function renderDeleteRowButton({
                 variant="subtle"
                 color="red"
                 size="sm"
+                aria-label="Delete row"
                 style={{ visibility }}
                 onClick={() => onClick(rowKey)}
             >

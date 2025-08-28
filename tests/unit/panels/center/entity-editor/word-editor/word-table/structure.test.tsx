@@ -68,8 +68,7 @@ describe("headers", () => {
             render(<WordTable />);
 
             // Check column headers
-            for (const header of headers)
-                expect(screen.getByText(header)).toBeTruthy();
+            for (const header of headers) screen.getByText(header);
         });
     }
 });
@@ -84,6 +83,6 @@ test("renders table with correct rows", async ({ service }) => {
     render(<WordTable />);
 
     // Check row content
-    expect(screen.getByText(word.spelling)).toBeTruthy();
-    expect(screen.getByText(word.translations[0])).toBeTruthy();
+    screen.getByText(word.spelling);
+    screen.getByText(word.translations[0]);
 });

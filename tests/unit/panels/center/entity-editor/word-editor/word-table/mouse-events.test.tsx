@@ -160,7 +160,7 @@ describe("cell editing", () => {
 
         const wordData = service.view.entityEditor.lexicon["_words"]["1"];
         expect(wordData.spelling).toBe("edited");
-        expect(screen.getByText("edited")).toBeTruthy();
+        screen.getByText("edited");
     });
 
     test("can edit a select cell", async ({ service, user }) => {
@@ -193,7 +193,7 @@ describe("cell editing", () => {
         expect(service.view.entityEditor.lexicon["_words"]["1"].gender).toBe(
             GrammaticalGender.Feminine,
         );
-        expect(screen.getByText("Feminine")).toBeTruthy();
+        screen.getByText("Feminine");
     });
 });
 
@@ -211,9 +211,7 @@ test("can delete a row", async ({ service, user }) => {
 
     render(<WordTable />);
 
-    // The delete button should be visible because highlighted is true
-    // FIXME: query needs to be more specific
-    const deleteBtn = screen.getByRole("button");
+    const deleteBtn = screen.getByRole("button", { name: "Delete row" });
     await user.click(deleteBtn);
 
     expect(wordEditor["_words"]["1"]).toBeUndefined();

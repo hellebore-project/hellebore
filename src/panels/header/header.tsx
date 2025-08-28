@@ -3,13 +3,8 @@ import "./header.css";
 import { Burger, Button, Flex } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntityType } from "@/constants";
 import { getService } from "@/services";
-import {
-    DIVIDER_DATA,
-    MenuDropdown,
-    MenuDropdownElementData,
-} from "@/shared/menu-dropdown";
+import { MenuDropdown } from "@/shared/menu-dropdown";
 
 function renderNavBarMobileToggleButton() {
     const service = getService();
@@ -23,112 +18,30 @@ function renderNavBarMobileToggleButton() {
         />
     );
 }
-
 const NavBarMobileToggleButton = observer(renderNavBarMobileToggleButton);
 
-function renderAppMenuDropdown() {
-    const service = getService();
-
-    const newProjectButtonData = {
-        label: "New Project",
-        onClick: () => service.view.openProjectCreator(),
-    };
-    const openProjectButtonData = {
-        label: "Open Project",
-        onClick: () => service.view.loadProject(),
-    };
-    const closeProjectButtonData = {
-        label: "Close Project",
-        onClick: () => service.view.closeProject(),
-    };
-    const settingsButtonData = {
-        label: "Settings",
-        onClick: () => service.view.openSettings(),
-    };
-
-    let elements: MenuDropdownElementData[];
-    if (service.domain.hasProject)
-        elements = [
-            newProjectButtonData,
-            openProjectButtonData,
-            closeProjectButtonData,
-            DIVIDER_DATA,
-            settingsButtonData,
-        ];
-    else
-        elements = [
-            newProjectButtonData,
-            openProjectButtonData,
-            DIVIDER_DATA,
-            settingsButtonData,
-        ];
-
-    return <MenuDropdown label="App" data={elements} />;
-}
-
-export const AppMenuDropdown = observer(renderAppMenuDropdown);
-
-function renderEncyclopediaMenuDropdown() {
+function renderHomeButton() {
     const service = getService();
     return (
-        <MenuDropdown
-            label="Encyclopedia"
-            data={[
-                {
-                    label: "New Entry",
-                    onClick: () => service.view.openEntityCreator(),
-                },
-                DIVIDER_DATA,
-                {
-                    label: "Search",
-                    onClick: () => {
-                        /* TODO */
-                    },
-                },
-            ]}
-        />
+        <Button
+            className="menu-button"
+            size="compact-sm"
+            onClick={() => service.view.openHome()}
+        >
+            Home
+        </Button>
     );
 }
+export const HomeButton = observer(renderHomeButton);
 
-export const EncyclopediaMenuDropdown = observer(
-    renderEncyclopediaMenuDropdown,
-);
-
-function renderDictionaryMenuDropdown() {
+function renderFileMenuDropdown() {
     const service = getService();
-    return (
-        <MenuDropdown
-            label="Dictionary"
-            data={[
-                {
-                    label: "New Language",
-                    onClick: () =>
-                        service.view.openEntityCreator({
-                            entityType: EntityType.LANGUAGE,
-                        }),
-                },
-                DIVIDER_DATA,
-                {
-                    label: "Search",
-                    onClick: () => {
-                        /* TODO */
-                    },
-                },
-                {
-                    label: "Translate",
-                    onClick: () => {
-                        /* TODO */
-                    },
-                },
-            ]}
-        />
-    );
+    const data = service.view.header.getFileMenuData();
+    return <MenuDropdown label="File" data={data} />;
 }
-
-export const DictionaryMenuDropdown = observer(renderDictionaryMenuDropdown);
+export const FileMenuDropdown = observer(renderFileMenuDropdown);
 
 function renderHeader() {
-    const service = getService();
     return (
         <Flex
             className="header"
@@ -139,18 +52,9 @@ function renderHeader() {
             wrap="nowrap"
         >
             <NavBarMobileToggleButton />
-            <Button
-                className="menu-button"
-                size="compact-sm"
-                onClick={() => service.view.openHome()}
-            >
-                Home
-            </Button>
-            <AppMenuDropdown />
-            {service.domain.hasProject && <EncyclopediaMenuDropdown />}
-            {service.domain.hasProject && <DictionaryMenuDropdown />}
+            <HomeButton />
+            <FileMenuDropdown />
         </Flex>
     );
 }
-
 export const Header = observer(renderHeader);

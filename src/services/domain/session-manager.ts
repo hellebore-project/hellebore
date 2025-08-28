@@ -116,15 +116,15 @@ export class SessionManager {
         return invoke<ProjectResponse>("load_project", { dbPath });
     }
 
-    async _closeProject(): Promise<void> {
-        return invoke<void>("close_project");
-    }
-
     async _updateProject(name: string): Promise<ProjectResponse> {
         return invoke<ProjectResponse>("update_project", { name });
     }
 
     async _getProject(): Promise<ProjectResponse> {
         return invoke<ProjectResponse>("get_project");
+    }
+
+    async _closeProject(): Promise<void> {
+        return invoke<void>("close_project");
     }
 }

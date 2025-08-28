@@ -37,3 +37,12 @@ export function mockUpdateProject({ manager, id }: MockUpdateProjectArguments) {
         .mockImplementation(async (name) => ({ id, name }));
     return spy;
 }
+
+export function mockCloseProject({ manager }: MockSessionArguments) {
+    const spy = vi
+        .spyOn(manager, "_closeProject")
+        .mockImplementation(async () => {
+            return;
+        });
+    return spy;
+}
