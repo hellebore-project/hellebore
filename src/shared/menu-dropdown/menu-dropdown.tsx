@@ -1,18 +1,11 @@
 import "./menu-button.css";
 
-import { BaseButtonSettings } from "@/interface";
-import { getService } from "@/services";
 import { Button, Menu, MenuProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-export const DIVIDER_DATA = "DIVIDER";
-
-interface MenuDropdownItemData {
-    label: string;
-    onClick?: () => void;
-}
-
-export type MenuDropdownElementData = MenuDropdownItemData | string;
+import { DIVIDER_DATA } from "@/constants";
+import { BaseButtonSettings, MenuDropdownElementData } from "@/interface";
+import { getService } from "@/services";
 
 interface MenuElementSettings {
     data: MenuDropdownElementData;

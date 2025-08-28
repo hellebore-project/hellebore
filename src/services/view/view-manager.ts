@@ -22,6 +22,7 @@ import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
+import { HeaderService } from "./header-service";
 
 export class ViewManager implements IViewManager {
     // constants
@@ -46,7 +47,8 @@ export class ViewManager implements IViewManager {
     entityEditor: EntityEditor;
     settingsEditor: SettingsEditor;
 
-    // navigation bar service
+    // bar services
+    header: HeaderService;
     navigation: NavigationService;
 
     // modal services
@@ -85,7 +87,8 @@ export class ViewManager implements IViewManager {
         this.settingsEditor = new SettingsEditor(this);
         this.entityEditor = new EntityEditor(this);
 
-        // navbar
+        // bars
+        this.header = new HeaderService(this);
         this.navigation = new NavigationService(this);
 
         // modals
@@ -203,6 +206,8 @@ export class ViewManager implements IViewManager {
     }
 
     async populateNavigator() {
+        // for now, the navigator is populated with ALL entries;
+        // TODO: once entry pinning is supported, fetch the pinned entries from the backend
         const entries = await this.domain.entries.getAll();
         const folders = await this.domain.folders.getAll();
 
