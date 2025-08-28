@@ -6,13 +6,10 @@ import { test } from "@tests/unit/base";
 import { render } from "@tests/utils/render";
 import { mockUpdateProject } from "@tests/utils/mocks/session-manager";
 
-test("can render the home view", async ({ service, project }) => {
-    service.view.home.initialize(project.name);
-
+test("can render the home view", async ({ project }) => {
     render(<Home />);
 
-    let titleInput = screen.getByDisplayValue(project.name);
-    expect(titleInput).toBeTruthy();
+    screen.getByDisplayValue(project.name);
 });
 
 test("can edit the project name", async ({ user, service, project }) => {
@@ -26,14 +23,12 @@ test("can edit the project name", async ({ user, service, project }) => {
     render(<Home />);
 
     let titleInput = screen.getByDisplayValue(project.name);
-    expect(titleInput).toBeTruthy();
 
     await user.click(titleInput);
     await user.keyboard("[Backspace>14/]");
     await user.keyboard("edited");
 
-    titleInput = screen.getByDisplayValue("edited");
-    expect(titleInput).toBeTruthy();
+    screen.getByDisplayValue("edited");
 
     expect(service.view.home.projectName).toBe("edited");
     expect(spy).toHaveBeenCalledWith("edited");
