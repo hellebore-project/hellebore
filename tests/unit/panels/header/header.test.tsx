@@ -5,7 +5,7 @@ import { ProjectCreator, EntryCreator } from "@/overlays";
 import { Center, Header } from "@/panels";
 import { test } from "@tests/unit/base";
 import { render } from "@tests/utils/render";
-import { mockCloseProject } from "@tests/utils/mocks/session-manager";
+import { mockCloseProject } from "@tests/utils/mocks/backend/session";
 
 test("clicking the Home button opens the home view", async ({
     service,
@@ -52,8 +52,8 @@ test("clicking the Open Project button loads another project", async ({}) => {
 });
 
 describe("clicking the Close Project button", () => {
-    test("hides the Close Project button", async ({ service, user }) => {
-        mockCloseProject({ manager: service.domain.session });
+    test("hides the Close Project button", async ({ mockedInvoker, user }) => {
+        mockCloseProject(mockedInvoker);
 
         render(<Header />);
 
