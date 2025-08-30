@@ -4,18 +4,22 @@ import { expect, describe } from "vitest";
 import { GrammaticalGender } from "@/constants";
 import { WordTable } from "@/panels/center/entity-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
-import { mockGetWords } from "@tests/utils/mocks/word-manager";
+import { mockGetWords } from "@tests/utils/mocks/backend/word";
 import { render } from "@tests/utils/render";
 import { createWordData } from "@tests/utils/word";
 
 describe("cell selection", () => {
-    test("arrow keys move selection", async ({ service, user }) => {
+    test("arrow keys move selection", async ({
+        mockedInvoker,
+        service,
+        user,
+    }) => {
         const word = {
             ...createWordData(),
             spelling: "cell1",
             translations: ["cell2"],
         };
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -45,6 +49,7 @@ describe("cell selection", () => {
     });
 
     test("arrow keys reduce the selection to a single cell before moving", async ({
+        mockedInvoker,
         service,
         user,
     }) => {
@@ -53,7 +58,7 @@ describe("cell selection", () => {
             spelling: "cell1",
             translations: ["cell2"],
         };
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -85,13 +90,17 @@ describe("cell selection", () => {
 });
 
 describe("cell editing", () => {
-    test("enter toggles edit mode of text cell", async ({ service, user }) => {
+    test("enter toggles edit mode of text cell", async ({
+        mockedInvoker,
+        service,
+        user,
+    }) => {
         const word = {
             ...createWordData(),
             spelling: "cell1",
             translations: ["cell2"],
         };
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -115,6 +124,7 @@ describe("cell editing", () => {
     });
 
     test("escape cancels edit and restores value of text cell", async ({
+        mockedInvoker,
         service,
         user,
     }) => {
@@ -123,7 +133,7 @@ describe("cell editing", () => {
             spelling: "cell1",
             translations: ["cell2"],
         };
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -145,6 +155,7 @@ describe("cell editing", () => {
     });
 
     test("enter toggles edit mode of select cell", async ({
+        mockedInvoker,
         service,
         user,
     }) => {
@@ -152,7 +163,7 @@ describe("cell editing", () => {
             ...createWordData(),
             gender: GrammaticalGender.Masculine,
         };
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -172,12 +183,16 @@ describe("cell editing", () => {
         screen.getByText("Feminine");
     });
 
-    test("escape exits edit mode of select cell", async ({ service, user }) => {
+    test("escape exits edit mode of select cell", async ({
+        mockedInvoker,
+        service,
+        user,
+    }) => {
         const word = {
             ...createWordData(),
             gender: GrammaticalGender.Masculine,
         };
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -196,6 +211,7 @@ describe("cell editing", () => {
     });
 
     test("enter reduces the selection to a single cell before toggling it to edit mode", async ({
+        mockedInvoker,
         service,
         user,
     }) => {
@@ -204,7 +220,7 @@ describe("cell editing", () => {
             spelling: "cell1",
             translations: ["cell2"],
         };
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);

@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
-import { ENTITY_TYPE_LABELS, EntityType, ROOT_FOLDER_ID } from "@/constants";
+import { CommandNames, EntityType, ROOT_FOLDER_ID } from "@/constants";
 import {
     BaseEntity,
     Id,
@@ -155,7 +155,7 @@ export class EntryManager {
     async updateText(id: Id, text: string): Promise<EntryTextUpdateResponse> {
         let updated = true;
         try {
-            await this._updateText(id, text);
+            await this._updateArticle(id, text);
         } catch (error) {
             console.error(error);
             updated = false;
@@ -263,9 +263,7 @@ export class EntryManager {
             title: name,
             properties: {},
         };
-        return invoke<EntryInfoResponse>("create_language", {
-            entry,
-        });
+        return this._create<LanguageProperties>(EntityType.LANGUAGE, entry);
     }
 
     async _createPerson(
@@ -277,49 +275,62 @@ export class EntryManager {
             title: name,
             properties: { name },
         };
-        return invoke<EntryInfoResponse>("create_person", { entry });
+        return this._create<PersonProperties>(EntityType.PERSON, entry);
+    }
+
+    async _create<E extends BaseEntity>(
+        entityType: EntityType,
+        entry: EntryCreate<E>,
+    ): Promise<EntryInfoResponse> {
+        return invoke<EntryInfoResponse>(
+            CommandNames.Entry.Create(entityType),
+            { entry },
+        );
     }
 
     async _updateFolder(id: Id, folderId: Id) {
-        return invoke<void>("update_entry_folder", {
-            id,
-            folderId,
-        });
+        return invoke<void>(CommandNames.Entry.UpdateFolder, { id, folderId });
     }
 
     async _updateTitle(id: Id, title: string) {
-        return invoke<void>("update_entry_title", { id, title });
+        return invoke<void>(CommandNames.Entry.UpdateTitle, { id, title });
     }
 
     async _updateProperties<E extends BaseEntity>(
         entityType: EntityType,
         entry: EntryPropertyUpdate<E>,
     ): Promise<void> {
-        const command = `update_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
-        return invoke(command, { entry });
+        return invoke(CommandNames.Entry.UpdateProperties(entityType), {
+            entry,
+        });
     }
 
-    async _updateText(id: Id, text: string) {
-        return invoke<void>("update_entry_text", { id, text });
+    async _updateArticle(id: Id, text: string) {
+        return invoke<void>(CommandNames.Entry.UpdateArticle, { id, text });
     }
 
     async _getInfo(id: Id): Promise<EntryInfoResponse> {
-        return invoke<EntryInfoResponse>("get_entry", { id });
+        return invoke<EntryInfoResponse>(CommandNames.Entry.GetInfo, { id });
     }
 
     async _getProperties(id: Id): Promise<RawEntryPropertyResponse> {
-        return invoke<RawEntryPropertyResponse>("get_entry_properties", { id });
+        return invoke<RawEntryPropertyResponse>(
+            CommandNames.Entry.GetProperties,
+            { id },
+        );
     }
 
     async _getArticle(id: Id): Promise<EntryArticleResponse> {
-        return invoke<EntryArticleResponse>("get_entry_text", { id });
+        return invoke<EntryArticleResponse>(CommandNames.Entry.GetArticle, {
+            id,
+        });
     }
 
     async _getAll() {
-        return invoke<EntryInfoResponse[]>("get_entries");
+        return invoke<EntryInfoResponse[]>(CommandNames.Entry.GetAll);
     }
 
     async _delete(id: Id): Promise<void> {
-        return invoke("delete_entry", { id });
+        return invoke(CommandNames.Entry.Delete, { id });
     }
 }

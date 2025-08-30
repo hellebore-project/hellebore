@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
 import { ProjectResponse, SessionResponse } from "@/schema";
+import { CommandNames } from "@/constants";
 
 export class SessionManager {
     _dbFilePath: string | null = null;
@@ -102,29 +103,32 @@ export class SessionManager {
     }
 
     async _getSession(): Promise<SessionResponse> {
-        return invoke<SessionResponse>("get_session");
+        return invoke<SessionResponse>(CommandNames.Session.Get);
     }
 
     async _createProject(
         name: string,
         dbPath: string,
     ): Promise<ProjectResponse> {
-        return invoke<ProjectResponse>("create_project", { name, dbPath });
+        return invoke<ProjectResponse>(CommandNames.Project.Create, {
+            name,
+            dbPath,
+        });
     }
 
     async _loadProject(dbPath: string): Promise<ProjectResponse> {
-        return invoke<ProjectResponse>("load_project", { dbPath });
-    }
-
-    async _updateProject(name: string): Promise<ProjectResponse> {
-        return invoke<ProjectResponse>("update_project", { name });
-    }
-
-    async _getProject(): Promise<ProjectResponse> {
-        return invoke<ProjectResponse>("get_project");
+        return invoke<ProjectResponse>(CommandNames.Project.Load, { dbPath });
     }
 
     async _closeProject(): Promise<void> {
-        return invoke<void>("close_project");
+        return invoke<void>(CommandNames.Project.Close);
+    }
+
+    async _updateProject(name: string): Promise<ProjectResponse> {
+        return invoke<ProjectResponse>(CommandNames.Project.Update, { name });
+    }
+
+    async _getProject(): Promise<ProjectResponse> {
+        return invoke<ProjectResponse>(CommandNames.Project.Get);
     }
 }

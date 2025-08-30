@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
-import { ROOT_FOLDER_ID } from "@/constants";
+import { CommandNames, ROOT_FOLDER_ID } from "@/constants";
 import { Id } from "@/interface";
 import { FolderResponse, FolderUpdate, FolderValidateResponse } from "@/schema";
 import { FileStructure } from "./file-structure";
@@ -121,20 +121,22 @@ export class FolderManager {
     }
 
     async _create(parentId: Id, name: string): Promise<FolderResponse> {
-        return invoke<FolderResponse>("create_folder", {
+        return invoke<FolderResponse>(CommandNames.Folder.Create, {
             info: { parent_id: parentId, name },
         });
     }
 
     async _update(update: FolderUpdate): Promise<FolderResponse> {
-        return invoke<FolderResponse>("update_folder", { folder: update });
+        return invoke<FolderResponse>(CommandNames.Folder.Update, {
+            folder: update,
+        });
     }
 
     async _getAll() {
-        return invoke<FolderResponse[]>("get_folders");
+        return invoke<FolderResponse[]>(CommandNames.Folder.GetAll);
     }
 
     async _delete(id: Id): Promise<FolderResponse> {
-        return invoke<FolderResponse>("delete_folder", { id });
+        return invoke<FolderResponse>(CommandNames.Folder.Delete, { id });
     }
 }
