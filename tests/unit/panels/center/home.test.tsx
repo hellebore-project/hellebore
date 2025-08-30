@@ -4,7 +4,7 @@ import { expect } from "vitest";
 import { Home } from "@/panels/center/home";
 import { test } from "@tests/unit/base";
 import { render } from "@tests/utils/render";
-import { mockUpdateProject } from "@tests/utils/mocks/session-manager";
+import { mockUpdateProject } from "@tests/utils/mocks/backend/session";
 
 test("can render the home view", async ({ project }) => {
     render(<Home />);
@@ -12,11 +12,13 @@ test("can render the home view", async ({ project }) => {
     screen.getByDisplayValue(project.name);
 });
 
-test("can edit the project name", async ({ user, service, project }) => {
-    const spy = mockUpdateProject({
-        manager: service.domain.session,
-        id: project.id,
-    });
+test("can edit the project name", async ({
+    mockedInvoker,
+    user,
+    service,
+    project,
+}) => {
+    mockUpdateProject(mockedInvoker, { id: project.id });
 
     service.view.home.initialize(project.name);
 
@@ -31,5 +33,5 @@ test("can edit the project name", async ({ user, service, project }) => {
     screen.getByDisplayValue("edited");
 
     expect(service.view.home.projectName).toBe("edited");
-    expect(spy).toHaveBeenCalledWith("edited");
+    mockedInvoker.expectCalled("update_project");
 });

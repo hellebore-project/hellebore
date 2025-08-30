@@ -8,17 +8,18 @@ import {
     mockDeleteWord,
     mockGetWords,
     mockUpsertWords,
-} from "@tests/utils/mocks/word-manager";
+} from "@tests/utils/mocks/backend/word";
 import { render } from "@tests/utils/render";
 import { createWordData } from "@tests/utils/word";
 
 describe("cell selection", () => {
     test("clicking a cell selects only that cell", async ({
+        mockedInvoker,
         service,
         user,
     }) => {
         const word = createWordData();
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -38,11 +39,12 @@ describe("cell selection", () => {
     });
 
     test("ctrl+click adds to selection and makes it active", async ({
+        mockedInvoker,
         service,
         user,
     }) => {
         const word = createWordData();
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -61,9 +63,13 @@ describe("cell selection", () => {
         expect(cell2.className.includes("selected")).toBeTruthy();
     });
 
-    test("shift+click selects a range", async ({ service, user }) => {
+    test("shift+click selects a range", async ({
+        mockedInvoker,
+        service,
+        user,
+    }) => {
         const word = createWordData();
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -83,11 +89,12 @@ describe("cell selection", () => {
     });
 
     test("dragging from one cell to another selects a rectangle", async ({
+        mockedInvoker,
         service,
         user,
     }) => {
         const word = createWordData();
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
@@ -104,9 +111,13 @@ describe("cell selection", () => {
         expect(cell2.className.includes("selected")).toBeTruthy();
     });
 
-    test("clicking outside deselects all cells", async ({ service, user }) => {
+    test("clicking outside deselects all cells", async ({
+        mockedInvoker,
+        service,
+        user,
+    }) => {
         const word = createWordData();
-        mockGetWords(service.domain.words, [word]);
+        mockGetWords(mockedInvoker, [word]);
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(
@@ -132,11 +143,11 @@ describe("cell selection", () => {
 });
 
 describe("cell editing", () => {
-    test("can edit a text cell", async ({ service, user }) => {
+    test("can edit a text cell", async ({ mockedInvoker, service, user }) => {
         const word = createWordData();
 
-        mockUpsertWords(service.domain.words);
-        mockGetWords(service.domain.words, [word]);
+        mockUpsertWords(mockedInvoker);
+        mockGetWords(mockedInvoker, [word]);
 
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
@@ -163,12 +174,12 @@ describe("cell editing", () => {
         screen.getByText("edited");
     });
 
-    test("can edit a select cell", async ({ service, user }) => {
+    test("can edit a select cell", async ({ mockedInvoker, service, user }) => {
         const word = createWordData();
         word.gender = GrammaticalGender.Masculine;
 
-        mockUpsertWords(service.domain.words);
-        mockGetWords(service.domain.words, [word]);
+        mockUpsertWords(mockedInvoker);
+        mockGetWords(mockedInvoker, [word]);
 
         await service.view.entityEditor.lexicon.initialize(1, word.word_type);
 
@@ -197,11 +208,11 @@ describe("cell editing", () => {
     });
 });
 
-test("can delete a row", async ({ service, user }) => {
+test("can delete a row", async ({ mockedInvoker, service, user }) => {
     const word = createWordData();
 
-    mockGetWords(service.domain.words, [word]);
-    mockDeleteWord(service.domain.words);
+    mockGetWords(mockedInvoker, [word]);
+    mockDeleteWord(mockedInvoker);
 
     const wordEditor = service.view.entityEditor.lexicon;
     await wordEditor.initialize(1, word.word_type);

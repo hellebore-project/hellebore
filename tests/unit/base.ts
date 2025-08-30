@@ -6,19 +6,26 @@ import { EntityType } from "@/constants";
 import { state } from "@/services";
 import { AppManager } from "@/services/app-manager";
 import { EntryInfoResponse, FolderResponse, ProjectResponse } from "@/schema";
-import { mockServices } from "@tests/utils/mocks";
+import { MockedInvoker } from "@tests/utils/mocks/backend/invoker";
+import {
+    mockGetEntries,
+    mockGetFolders,
+    mockGetSession,
+} from "@tests/utils/mocks";
 
 export interface BaseUnitFixtures {
     dbFilePath: string;
     project: ProjectResponse;
     entities: EntryInfoResponse[];
     folders: FolderResponse[];
+    mockedInvoker: MockedInvoker;
     service: AppManager;
     user: UserEvent;
     setup: null;
 }
 
 export const test = baseTest.extend<BaseUnitFixtures>({
+    // data
     dbFilePath: ["mocked/db/file/path", { injected: true }],
     project: [{ id: 1, name: "mocked-project" }, { injected: true }],
     entities: [
@@ -33,30 +40,52 @@ export const test = baseTest.extend<BaseUnitFixtures>({
         { injected: true },
     ],
     folders: [[], { injected: true }],
-    service: [
-        async ({ dbFilePath, project, entities, folders }, use) => {
-            const appManager = mockServices({
-                dbFilePath,
-                project,
-                entities,
-                folders,
-            });
-            state.manager = appManager;
-            await use(appManager);
-            state.manager = null;
+
+    // mocking
+    mockedInvoker: [
+        async ({}, use) => {
+            const invoker = new MockedInvoker();
+            invoker.inject();
+            await use(invoker);
         },
         { auto: true },
     ],
+
     user: [
         async ({}, use) => {
             await use(userEvent.setup());
         },
         { auto: true },
     ],
+
+    // service
+    service: [
+        async (
+            { mockedInvoker, dbFilePath, project, entities, folders },
+            use,
+        ) => {
+            mockGetSession(mockedInvoker, { dbFilePath, project });
+            mockGetEntries(mockedInvoker, { entities });
+            mockGetFolders(mockedInvoker, { folders });
+
+            let appManager = new AppManager();
+            appManager.initialize();
+            state.manager = appManager;
+
+            await use(appManager);
+            state.manager = null;
+        },
+        { auto: true },
+    ],
+
+    // setup and teardown
     setup: [
-        async ({ user }, use) => {
+        async ({ mockedInvoker, user }, use) => {
             user; // instantiate the user during setup
+
             await use(null);
+
+            mockedInvoker.clear();
             cleanup();
         },
         { auto: true },

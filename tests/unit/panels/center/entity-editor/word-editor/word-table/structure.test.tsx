@@ -1,10 +1,10 @@
 import { screen } from "@testing-library/react";
-import { expect, describe } from "vitest";
+import { describe } from "vitest";
 
 import { WordType } from "@/constants";
 import { WordTable } from "@/panels/center/entity-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
-import { mockGetWords } from "@tests/utils/mocks/word-manager";
+import { mockGetWords } from "@tests/utils/mocks/backend/word";
 import { render } from "@tests/utils/render";
 import { createWordData } from "@tests/utils/word";
 
@@ -57,10 +57,11 @@ describe("headers", () => {
         },
     ]) {
         test(`renders ${case_} table with correct columns`, async ({
+            mockedInvoker,
             service,
         }) => {
             const word = createWordData(wordType);
-            mockGetWords(service.domain.words, [word]);
+            mockGetWords(mockedInvoker, [word]);
 
             const wordEditor = service.view.entityEditor.lexicon;
             await wordEditor.initialize(1, word.word_type);
@@ -73,9 +74,9 @@ describe("headers", () => {
     }
 });
 
-test("renders table with correct rows", async ({ service }) => {
+test("renders table with correct rows", async ({ mockedInvoker, service }) => {
     const word = createWordData();
-    mockGetWords(service.domain.words, [word]);
+    mockGetWords(mockedInvoker, [word]);
 
     const wordEditor = service.view.entityEditor.lexicon;
     await wordEditor.initialize(1, word.word_type);
