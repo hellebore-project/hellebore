@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
-import { WordType } from "@/constants";
+import { CommandNames, WordType } from "@/constants";
 import { Id } from "@/interface";
 import {
     DiagnosticResponse,
@@ -45,15 +45,6 @@ export class WordManager {
         return responses.map((response, i) => {
             return this._buildUpsertResponse(words[i], response);
         });
-    }
-
-    async get(id: number): Promise<WordResponse | null> {
-        try {
-            return await this._getWord(id);
-        } catch (error) {
-            console.error(error);
-            return null;
-        }
     }
 
     async getAllForLanguage(
@@ -110,21 +101,22 @@ export class WordManager {
     async _bulkUpsertWords(
         words: Array<WordUpsert>,
     ): Promise<_BulkUpsertWordsResponse> {
-        return invoke<_BulkUpsertWordsResponse>("upsert_words", { words });
-    }
-
-    async _getWord(id: number): Promise<WordResponse> {
-        return invoke<WordResponse>("get_word", { id });
+        return invoke<_BulkUpsertWordsResponse>(CommandNames.Word.BulkUpsert, {
+            words,
+        });
     }
 
     async _getWords(
         languageId: number,
         wordType: WordType | null,
     ): Promise<WordResponse[]> {
-        return invoke<WordResponse[]>("get_words", { languageId, wordType });
+        return invoke<WordResponse[]>(CommandNames.Word.GetMany, {
+            languageId,
+            wordType,
+        });
     }
 
     async _deleteWord(id: number): Promise<void> {
-        return invoke<void>("delete_word", { id });
+        return invoke<void>(CommandNames.Word.Delete, { id });
     }
 }
