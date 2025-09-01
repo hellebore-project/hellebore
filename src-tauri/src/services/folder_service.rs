@@ -73,7 +73,7 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponse
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    let _ = folder_manager::delete(&database, id)
+    let _ = folder_manager::delete(database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, FOLDER))?;
     return Ok(());

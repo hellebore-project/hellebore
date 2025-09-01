@@ -147,7 +147,7 @@ pub fn _serialize_translations(
 }
 
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<WordResponseSchema, ApiError> {
-    let word = word_manager::get(&database, id)
+    let word = word_manager::get(database, id)
         .await
         .map_err(|e| ApiError::not_found(e, WORD))?;
     return match word {
@@ -161,7 +161,7 @@ pub async fn get_all_for_language(
     language_id: i32,
     word_type: Option<WordType>,
 ) -> Result<Vec<WordResponseSchema>, ApiError> {
-    let words = word_manager::get_all_for_language(&database, language_id, word_type)
+    let words = word_manager::get_all_for_language(database, language_id, word_type)
         .await
         .map_err(|e| ApiError::not_found(e, WORD))?;
 
@@ -178,7 +178,7 @@ pub async fn get_all_for_language(
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    word_manager::delete(&database, id)
+    word_manager::delete(database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, WORD))?;
     return Ok(());

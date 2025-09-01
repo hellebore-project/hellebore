@@ -78,27 +78,36 @@ where
     updated_entity.update(con).await
 }
 
-pub async fn get(db: &DbConn, id: i32) -> Result<Option<word::Model>, DbErr> {
-    WordEntity::find_by_id(id).one(db).await
+pub async fn get<C>(con: &C, id: i32) -> Result<Option<word::Model>, DbErr>
+where
+    C: ConnectionTrait,
+{
+    WordEntity::find_by_id(id).one(con).await
 }
 
-pub async fn get_all_for_language(
-    db: &DbConn,
+pub async fn get_all_for_language<C>(
+    con: &C,
     language_id: i32,
     word_type: Option<WordType>,
-) -> Result<Vec<word::Model>, DbErr> {
+) -> Result<Vec<word::Model>, DbErr>
+where
+    C: ConnectionTrait,
+{
     let mut query = WordEntity::find()
         .filter(word::Column::LanguageId.eq(language_id))
         .order_by_asc(word::Column::Spelling);
     if word_type.is_some() {
         query = query.filter(word::Column::WordType.eq(word_type.unwrap().code()));
     }
-    query.all(db).await
+    query.all(con).await
 }
 
-pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-    let Some(existing_entity) = get(db, id).await? else {
+pub async fn delete<C>(con: &C, id: i32) -> Result<DeleteResult, DbErr>
+where
+    C: ConnectionTrait,
+{
+    let Some(existing_entity) = get(con, id).await? else {
         return Err(DbErr::RecordNotFound("Word not found.".to_owned()));
     };
-    return existing_entity.delete(db).await;
+    return existing_entity.delete(con).await;
 }

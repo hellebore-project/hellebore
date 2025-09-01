@@ -177,7 +177,7 @@ pub async fn get_all(
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    entry_manager::delete(&database, id)
+    entry_manager::delete(database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, ENTRY))?;
     return Ok(());

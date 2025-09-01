@@ -5,25 +5,31 @@ use crate::database::utils;
 
 pub const ROOT_FOLDER_ID: i32 = -1;
 
-pub async fn insert(db: &DbConn, parent_id: i32, name: &str) -> Result<folder::Model, DbErr> {
+pub async fn insert<C>(con: &C, parent_id: i32, name: &str) -> Result<folder::Model, DbErr>
+where
+    C: ConnectionTrait,
+{
     let new_entity = folder::ActiveModel {
         id: NotSet,
         parent_id: Set(convert_negative_folder_id_to_null(parent_id)),
         name: Set(name.to_string()),
     };
-    match new_entity.insert(db).await {
+    match new_entity.insert(con).await {
         Ok(created_entity) => created_entity.try_into_model(),
         Err(_e) => Err(DbErr::RecordNotInserted),
     }
 }
 
-pub async fn update(
-    db: &DbConn,
+pub async fn update<C>(
+    con: &C,
     id: i32,
     parent_id: Option<i32>,
     name: Option<String>,
-) -> Result<folder::Model, DbErr> {
-    let Some(existing_entity) = get(db, id).await? else {
+) -> Result<folder::Model, DbErr>
+where
+    C: ConnectionTrait,
+{
+    let Some(existing_entity) = get(con, id).await? else {
         return Err(DbErr::RecordNotFound("Folder not found.".to_owned()));
     };
     let updated_entity = folder::ActiveModel {
@@ -31,23 +37,29 @@ pub async fn update(
         parent_id: convert_optional_folder_id_to_active_value(parent_id),
         name: utils::set_value_or_null(name),
     };
-    updated_entity.update(db).await
+    updated_entity.update(con).await
 }
 
-pub async fn exists(db: &DbConn, id: i32) -> Result<bool, DbErr> {
-    Ok(get(db, id).await?.is_some())
+pub async fn exists<C>(con: &C, id: i32) -> Result<bool, DbErr>
+where
+    C: ConnectionTrait,
+{
+    Ok(get(con, id).await?.is_some())
 }
 
-pub async fn is_name_unique_at_location(
-    db: &DbConn,
+pub async fn is_name_unique_at_location<C>(
+    con: &C,
     parent_id: i32,
     name: &str,
-) -> Result<bool, DbErr> {
+) -> Result<bool, DbErr>
+where
+    C: ConnectionTrait,
+{
     let parent_id = convert_negative_folder_id_to_null(parent_id);
     let colliding_siblings = FolderModel::find()
         .filter(folder::Column::ParentId.eq(parent_id))
         .filter(folder::Column::Name.eq(name))
-        .all(db)
+        .all(con)
         .await?;
 
     if colliding_siblings.len() == 0 {
@@ -63,22 +75,34 @@ pub async fn is_name_unique_at_location(
     Ok(false)
 }
 
-pub async fn get(db: &DbConn, id: i32) -> Result<Option<folder::Model>, DbErr> {
-    FolderModel::find_by_id(id).one(db).await
+pub async fn get<C>(con: &C, id: i32) -> Result<Option<folder::Model>, DbErr>
+where
+    C: ConnectionTrait,
+{
+    FolderModel::find_by_id(id).one(con).await
 }
 
-pub async fn get_all(db: &DbConn) -> Result<Vec<folder::Model>, DbErr> {
-    FolderModel::find().all(db).await
+pub async fn get_all<C>(con: &C) -> Result<Vec<folder::Model>, DbErr>
+where
+    C: ConnectionTrait,
+{
+    FolderModel::find().all(con).await
 }
 
-pub async fn delete(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
-    FolderModel::delete_by_id(id).exec(db).await
+pub async fn delete<C>(con: &C, id: i32) -> Result<DeleteResult, DbErr>
+where
+    C: ConnectionTrait,
+{
+    FolderModel::delete_by_id(id).exec(con).await
 }
 
-pub async fn delete_many(db: &DbConn, ids: Vec<i32>) -> Result<DeleteResult, DbErr> {
+pub async fn delete_many<C>(con: &C, ids: Vec<i32>) -> Result<DeleteResult, DbErr>
+where
+    C: ConnectionTrait,
+{
     FolderModel::delete_many()
         .filter(folder::Column::Id.is_in(ids))
-        .exec(db)
+        .exec(con)
         .await
 }
 

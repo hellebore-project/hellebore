@@ -76,7 +76,7 @@ pub async fn update(
             ));
         }
     };
-    return match project_manager::update(&database, project.id, &name).await {
+    return match project_manager::update(database, project.id, &name).await {
         Ok(entity) => Ok(generate_response(&entity)),
         Err(e) => Err(ApiError::not_updated(e, PROJECT)),
     };
@@ -95,7 +95,7 @@ pub async fn _create_record(
     database: &DatabaseConnection,
     name: &str,
 ) -> Result<ProjectResponseSchema, ApiError> {
-    return match project_manager::insert(&database, name).await {
+    return match project_manager::insert(database, name).await {
         Ok(entity) => Ok(generate_response(&entity)),
         Err(e) => Err(ApiError::not_inserted(e, PROJECT)),
     };
@@ -104,7 +104,7 @@ pub async fn _create_record(
 pub async fn _get_all_records(
     database: &DatabaseConnection,
 ) -> Result<Vec<ProjectResponseSchema>, ApiError> {
-    let projects = project_manager::get_all(&database)
+    let projects = project_manager::get_all(database)
         .await
         .map_err(|e| ApiError::not_found(e, PROJECT))?;
     let projects = projects.iter().map(generate_response).collect();

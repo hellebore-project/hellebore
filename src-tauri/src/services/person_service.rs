@@ -41,7 +41,7 @@ pub async fn update(
 }
 
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<PersonSchema, ApiError> {
-    let person = person_manager::get(&database, id)
+    let person = person_manager::get(database, id)
         .await
         .map_err(|e| ApiError::not_found(e, PERSON))?;
     return match person {
