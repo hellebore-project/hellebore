@@ -1,17 +1,21 @@
-use crate::fixtures::{
-    database,
-    language::create_language_payload,
-    settings,
-    word::{create_word_payload, expected_word_response},
+use crate::{
+    fixtures::{
+        database,
+        language::create_language_payload,
+        settings,
+        word::{create_word_payload, expected_word_response},
+    },
+    utils::query::upsert_word,
 };
 
 use hellebore::{
+    database::{language_manager, word_manager},
     schema::{
         entry::EntryCreateSchema,
         language::LanguageSchema,
         word::{WordResponseSchema, WordUpdateSchema},
     },
-    services::{language_service, word_service},
+    services::{entry_service, language_service, word_service},
     settings::Settings,
     types::grammar::{GrammaticalGender, VerbForm, WordType},
     utils::CodedEnum,
@@ -39,18 +43,28 @@ async fn test_create_word(
     mut create_word_payload: WordUpdateSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
-    let database = database(settings).await;
-    let language = language_service::create(&database, create_language_payload)
+    let db = database(settings).await;
+    let language = language_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
     create_word_payload.language_id = Some(language.id);
-    let word = word_service::create(&database, create_word_payload.clone()).await;
 
-    assert!(word.is_ok());
-    let word = word.unwrap();
-    expected_word_response.id = word.id;
-    expected_word_response.language_id = word.language_id;
+    let responses = word_service::bulk_upsert(&db, vec![create_word_payload.clone()]).await;
+    assert!(responses.is_ok());
+
+    let responses = responses.unwrap();
+    assert_eq!(responses.len(), 1);
+
+    let response = responses.get(0).unwrap();
+    assert!(response.data.is_some());
+    assert!(response.errors.is_empty());
+
+    let id = response.data.unwrap();
+    let word = word_service::get(&db, id).await.unwrap();
+
+    expected_word_response.id = id;
+    expected_word_response.language_id = language.id;
     validate_word_response(&word, &expected_word_response);
 }
 
@@ -61,16 +75,29 @@ async fn test_create_duplicate_word(
     create_language_payload: EntryCreateSchema<LanguageSchema>,
     mut create_word_payload: WordUpdateSchema,
 ) {
-    let database = database(settings).await;
-    let language = language_service::create(&database, create_language_payload)
+    let db = database(settings).await;
+    let language = language_service::create(&db, create_language_payload)
         .await
         .unwrap();
+
     create_word_payload.language_id = Some(language.id);
-    let _ = word_service::create(&database, create_word_payload.clone()).await;
+    let responses = word_service::bulk_upsert(
+        &db,
+        vec![create_word_payload.clone(), create_word_payload.clone()],
+    )
+    .await;
+    assert!(responses.is_ok());
 
-    let response = word_service::create(&database, create_word_payload).await;
+    let responses = responses.unwrap();
+    assert_eq!(responses.len(), 2);
 
-    assert!(response.is_ok());
+    let responses = word_service::bulk_upsert(&db, vec![create_word_payload]).await;
+    assert!(responses.is_ok());
+
+    let words = word_manager::get_all_for_language(&db, language.id, None)
+        .await
+        .unwrap();
+    assert_eq!(words.len(), 3);
 }
 
 #[rstest]
@@ -81,19 +108,18 @@ async fn test_update_word(
     create_language_payload: EntryCreateSchema<LanguageSchema>,
     mut expected_word_response: WordResponseSchema,
 ) {
-    let database = database(settings).await;
-    let language = language_service::create(&database, create_language_payload)
+    let db = database(settings).await;
+    let language = language_service::create(&db, create_language_payload)
         .await
         .unwrap();
+
     create_word_payload.language_id = Some(language.id);
-    let word = word_service::create(&database, create_word_payload)
-        .await
-        .unwrap();
+    let id = upsert_word(&db, &create_word_payload).await.unwrap();
 
     let new_spelling = "conducteur";
     let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
     let update_payload = WordUpdateSchema {
-        id: Some(word.id),
+        id: Some(id),
         language_id: None,
         word_type: None,
         spelling: Some(new_spelling.to_owned()),
@@ -104,13 +130,15 @@ async fn test_update_word(
         verb_form: None,
         verb_tense: None,
     };
-    let response = word_service::update(&database, update_payload.clone()).await;
 
-    assert!(response.is_ok());
-    let response = response.unwrap();
+    let responses = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
+    assert!(responses.is_ok());
+
+    let responses = responses.unwrap();
+    let response = responses.get(0).unwrap();
     assert!(response.errors.is_empty());
 
-    let word = word_service::get(&database, word.id).await;
+    let word = word_service::get(&db, id).await;
 
     assert!(word.is_ok());
     let word = word.unwrap();
@@ -130,8 +158,8 @@ async fn test_error_on_updating_nonexistent_word(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageSchema>,
 ) {
-    let database = database(settings).await;
-    let language = language_service::create(&database, create_language_payload)
+    let db = database(settings).await;
+    let language = language_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -149,10 +177,12 @@ async fn test_error_on_updating_nonexistent_word(
         verb_form: None,
         verb_tense: None,
     };
-    let response = word_service::update(&database, update_payload.clone()).await;
 
-    assert!(response.is_ok());
-    let response = response.unwrap();
+    let responses = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
+    assert!(responses.is_ok());
+
+    let responses = responses.unwrap();
+    let response = responses.get(0).unwrap();
     assert!(!response.errors.is_empty())
 }
 
@@ -164,22 +194,20 @@ async fn test_get_word(
     mut create_word_payload: WordUpdateSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
-    let database = database(settings).await;
-    let language = language_service::create(&database, create_language_payload)
+    let db = database(settings).await;
+    let language = language_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
     create_word_payload.language_id = Some(language.id);
-    let created_word = word_service::create(&database, create_word_payload.clone())
-        .await
-        .unwrap();
+    let id = upsert_word(&db, &create_word_payload).await.unwrap();
 
-    let word = word_service::get(&database, created_word.id).await;
+    let word = word_service::get(&db, id).await;
 
     assert!(word.is_ok());
     let word = word.unwrap();
 
-    expected_word_response.id = created_word.id;
+    expected_word_response.id = id;
     expected_word_response.language_id = language.id;
 
     validate_word_response(&word, &expected_word_response);
@@ -199,8 +227,8 @@ async fn test_get_all_words_for_a_language(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageSchema>,
 ) {
-    let database = database(settings).await;
-    let language = language_service::create(&database, create_language_payload)
+    let db = database(settings).await;
+    let language = language_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -212,9 +240,7 @@ async fn test_get_all_words_for_a_language(
         gender: Some(GrammaticalGender::Feminine),
         ..Default::default()
     };
-    let created_word_1 = word_service::create(&database, create_payload_1.clone())
-        .await
-        .unwrap();
+    let id_1 = upsert_word(&db, &create_payload_1).await.unwrap();
 
     let create_payload_2 = WordUpdateSchema {
         language_id: Some(language.id),
@@ -224,22 +250,20 @@ async fn test_get_all_words_for_a_language(
         verb_form: Some(VerbForm::Infinitive),
         ..Default::default()
     };
-    let created_word_2 = word_service::create(&database, create_payload_2.clone())
-        .await
-        .unwrap();
+    let id_2 = upsert_word(&db, &create_payload_2).await.unwrap();
 
-    let words = word_service::get_all_for_language(&database, language.id, None).await;
+    let words = word_service::get_all_for_language(&db, language.id, None).await;
 
     assert!(words.is_ok());
     let mut words = words.unwrap();
     words.sort_by(|a, b| a.id.cmp(&b.id));
 
     let mut expected_response_1 = create_payload_1.to_response();
-    expected_response_1.id = created_word_1.id;
+    expected_response_1.id = id_1;
     expected_response_1.language_id = language.id;
 
     let mut expected_response_2 = create_payload_2.to_response();
-    expected_response_2.id = created_word_2.id;
+    expected_response_2.id = id_2;
     expected_response_2.language_id = language.id;
 
     validate_word_response(&words[0], &expected_response_1);
@@ -253,18 +277,15 @@ async fn test_delete_word(
     create_language_payload: EntryCreateSchema<LanguageSchema>,
     mut create_word_payload: WordUpdateSchema,
 ) {
-    let database = database(settings).await;
-    let language = language_service::create(&database, create_language_payload)
+    let db = database(settings).await;
+    let language = language_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
     create_word_payload.language_id = Some(language.id);
-    let created_word = word_service::create(&database, create_word_payload.clone())
-        .await
-        .unwrap();
+    let id = upsert_word(&db, &create_word_payload).await.unwrap();
 
-    let response = word_service::delete(&database, created_word.id).await;
-
+    let response = word_service::delete(&db, id).await;
     assert!(response.is_ok());
 }
 
@@ -274,4 +295,42 @@ async fn test_error_on_deleting_nonexistent_word(settings: &Settings) {
     let database = database(settings).await;
     let response = word_service::delete(&database, 0).await;
     assert!(response.is_err());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_all_words_deleted_on_delete_language(
+    settings: &Settings,
+    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    mut create_word_payload: WordUpdateSchema,
+) {
+    let db = database(settings).await;
+
+    let entry = language_service::create(&db, create_language_payload)
+        .await
+        .unwrap();
+    let id = entry.id;
+
+    create_word_payload.language_id = Some(id);
+    upsert_word(&db, &create_word_payload).await.unwrap();
+
+    let words = word_manager::get_all_for_language(&db, id, None)
+        .await
+        .unwrap();
+    assert_eq!(words.len(), 1);
+
+    let response = entry_service::delete(&db, entry.id).await;
+
+    assert!(response.is_ok());
+
+    let entry = language_manager::get(&db, entry.id).await;
+    assert!(entry.is_ok());
+
+    let entry = entry.unwrap();
+    assert!(entry.is_none());
+
+    let words = word_manager::get_all_for_language(&db, id, None)
+        .await
+        .unwrap();
+    assert_eq!(words.len(), 0);
 }

@@ -2,13 +2,16 @@ use sea_orm::*;
 
 use ::entity::{person, person::Entity as Person};
 
-pub async fn insert(db: &DbConn, entry_id: i32, name: &str) -> Result<person::Model, DbErr> {
-    let entity = person::ActiveModel {
+pub async fn insert<C>(con: &C, entry_id: i32, name: &str) -> Result<person::Model, DbErr>
+where
+    C: ConnectionTrait,
+{
+    let person = person::ActiveModel {
         id: NotSet,
         entry_id: Set(entry_id),
         name: Set(name.to_string()),
     };
-    entity.insert(db).await
+    person.insert(con).await
 }
 
 pub async fn update(db: &DbConn, entry_id: i32, name: &str) -> Result<person::Model, DbErr> {

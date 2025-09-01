@@ -1,9 +1,9 @@
-use sea_orm::DatabaseConnection;
+use sea_orm::{DatabaseConnection, DatabaseTransaction};
 
 use ::entity::word::Model as Word;
 use serde_json;
 
-use crate::database::word_manager;
+use crate::database::{transaction_manager, word_manager};
 use crate::errors::ApiError;
 use crate::schema::word::WordUpdateSchema;
 use crate::schema::{response::ResponseDiagnosticsSchema, word::WordResponseSchema};
@@ -12,21 +12,41 @@ use crate::types::grammar::{
     GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense, WordType,
 };
 
-pub async fn create(
+pub async fn bulk_upsert(
     database: &DatabaseConnection,
-    word: WordUpdateSchema,
-) -> Result<WordResponseSchema, ApiError> {
-    let translations = _serialize_translations(&word.translations)?;
-    return match _create(database, word, translations).await {
-        Ok(word) => Ok(generate_response(&word)?),
-        Err(e) => Err(e),
-    };
+    words: Vec<WordUpdateSchema>,
+) -> Result<Vec<ResponseDiagnosticsSchema<Option<i32>>>, ApiError> {
+    let txn = transaction_manager::begin(database).await?;
+
+    let mut responses: Vec<ResponseDiagnosticsSchema<Option<i32>>> = Vec::new();
+
+    for word in words {
+        let mut errors: Vec<ApiError> = Vec::new();
+
+        let result: Result<Word, ApiError> = match word.id {
+            Some(_) => _update(&txn, word, &mut errors).await,
+            None => _create(&txn, word, &mut errors).await,
+        };
+
+        let id = match result {
+            Ok(w) => Some(w.id),
+            Err(e) => {
+                errors.push(e);
+                None
+            }
+        };
+
+        responses.push(ResponseDiagnosticsSchema { data: id, errors })
+    }
+
+    transaction_manager::end(txn).await?;
+    return Ok(responses);
 }
 
 async fn _create(
-    database: &DatabaseConnection,
+    txn: &DatabaseTransaction,
     word: WordUpdateSchema,
-    translations: Option<serde_json::Value>,
+    errors: &mut Vec<ApiError>,
 ) -> Result<Word, ApiError> {
     if word.language_id.is_none() {
         return Err(ApiError::field_invalid(
@@ -45,8 +65,17 @@ async fn _create(
             "None",
         ));
     }
+
+    let translations = match _serialize_translations(&word.translations) {
+        Ok(t) => t,
+        Err(e) => {
+            errors.push(e);
+            None
+        }
+    };
+
     return word_manager::insert(
-        &database,
+        txn,
         word.language_id.unwrap(),
         word.word_type.unwrap(),
         word.spelling,
@@ -61,20 +90,12 @@ async fn _create(
     .map_err(|e| ApiError::not_inserted(e, WORD));
 }
 
-pub async fn update(
-    database: &DatabaseConnection,
-    word: WordUpdateSchema,
-) -> Result<ResponseDiagnosticsSchema<Option<i32>>, ApiError> {
-    let mut responses = bulk_upsert(database, vec![word]).await?;
-    return Ok(responses.remove(0));
-}
-
 async fn _update(
-    database: &DatabaseConnection,
-    word_update: WordUpdateSchema,
-    translations: Option<serde_json::Value>,
+    txn: &DatabaseTransaction,
+    word: WordUpdateSchema,
+    errors: &mut Vec<ApiError>,
 ) -> Result<Word, ApiError> {
-    if word_update.id.is_none() {
+    if word.id.is_none() {
         return Err(ApiError::field_invalid(
             "Word ID cannot be none",
             WORD,
@@ -84,57 +105,29 @@ async fn _update(
         ));
     }
 
+    let translations = match _serialize_translations(&word.translations) {
+        Ok(t) => t,
+        Err(e) => {
+            errors.push(e);
+            None
+        }
+    };
+
     word_manager::update(
-        &database,
-        word_update.id.unwrap(),
-        word_update.language_id,
-        word_update.word_type,
-        word_update.spelling,
-        word_update.number,
-        word_update.person,
-        word_update.gender,
-        word_update.verb_form,
-        word_update.verb_tense,
+        txn,
+        word.id.unwrap(),
+        word.language_id,
+        word.word_type,
+        word.spelling,
+        word.number,
+        word.person,
+        word.gender,
+        word.verb_form,
+        word.verb_tense,
         translations,
     )
     .await
     .map_err(|e| ApiError::not_updated(e, WORD))
-}
-
-pub async fn bulk_upsert(
-    database: &DatabaseConnection,
-    words: Vec<WordUpdateSchema>,
-) -> Result<Vec<ResponseDiagnosticsSchema<Option<i32>>>, ApiError> {
-    let mut responses: Vec<ResponseDiagnosticsSchema<Option<i32>>> = Vec::new();
-
-    for word in words {
-        let mut errors: Vec<ApiError> = Vec::new();
-
-        let translations = match _serialize_translations(&word.translations) {
-            Ok(t) => t,
-            Err(e) => {
-                errors.push(e);
-                None
-            }
-        };
-
-        let result: Result<Word, ApiError> = match word.id {
-            Some(_) => _update(&database, word, translations).await,
-            None => _create(&database, word, translations).await,
-        };
-
-        let id = match result {
-            Ok(w) => Some(w.id),
-            Err(e) => {
-                errors.push(e);
-                None
-            }
-        };
-
-        responses.push(ResponseDiagnosticsSchema { data: id, errors })
-    }
-
-    return Ok(responses);
 }
 
 pub fn _serialize_translations(

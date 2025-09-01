@@ -15,13 +15,16 @@ pub struct EntityInfo {
     pub title: String,
 }
 
-pub async fn insert(
-    db: &DbConn,
+pub async fn insert<C>(
+    con: &C,
+    entity_type: EntityType,
     folder_id: i32,
     title: String,
-    entity_type: EntityType,
     text: String,
-) -> Result<entry::Model, DbErr> {
+) -> Result<entry::Model, DbErr>
+where
+    C: ConnectionTrait,
+{
     let new_entity = entry::ActiveModel {
         id: NotSet,
         folder_id: Set(convert_negative_folder_id_to_null(folder_id)),
@@ -29,7 +32,7 @@ pub async fn insert(
         entity_type: Set(entity_type.code()),
         text: Set(text),
     };
-    match new_entity.insert(db).await {
+    match new_entity.insert(con).await {
         Ok(created_entity) => created_entity.try_into_model(),
         Err(_e) => Err(DbErr::RecordNotInserted),
     }

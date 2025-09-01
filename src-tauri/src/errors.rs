@@ -12,6 +12,9 @@ pub enum ApiError {
         msg: String,
         connection_string: String,
     },
+    DatabaseTransactionFailed {
+        msg: String,
+    },
     NotInserted {
         msg: String,
         entity_type: EntityType,
@@ -65,6 +68,12 @@ impl ApiError {
         return ApiError::DatabaseMigrationFailed {
             msg: msg.to_string(),
             connection_string,
+        };
+    }
+
+    pub fn db_transaction_failed<M: ToString>(msg: M) -> ApiError {
+        return ApiError::DatabaseTransactionFailed {
+            msg: msg.to_string(),
         };
     }
 
@@ -143,5 +152,77 @@ impl ApiError {
             key: key.to_string(),
             value: value.to_string(),
         };
+    }
+}
+
+impl std::fmt::Display for ApiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ApiError::DatabaseConnectionFailed {
+                msg,
+                connection_string,
+            } => write!(
+                f,
+                "Database connection failed: {} (connection string: {})",
+                msg, connection_string
+            ),
+            ApiError::DatabaseMigrationFailed {
+                msg,
+                connection_string,
+            } => write!(
+                f,
+                "Database migration failed: {} (connection string: {})",
+                msg, connection_string
+            ),
+            ApiError::DatabaseTransactionFailed { msg } => {
+                write!(f, "Database transaction failed: {}", msg)
+            }
+            ApiError::NotInserted { msg, entity_type } => {
+                write!(f, "Not inserted: {} (entity: {:?})", msg, entity_type)
+            }
+            ApiError::NotUpdated { msg, entity_type } => {
+                write!(f, "Not updated: {} (entity: {:?})", msg, entity_type)
+            }
+            ApiError::NotFound { msg, entity_type } => {
+                write!(f, "Not found: {} (entity: {:?})", msg, entity_type)
+            }
+            ApiError::NotDeleted { msg, entity_type } => {
+                write!(f, "Not deleted: {} (entity: {:?})", msg, entity_type)
+            }
+            ApiError::QueryFailed { msg, entity_type } => {
+                write!(f, "Query failed: {} (entity: {:?})", msg, entity_type)
+            }
+            ApiError::FieldNotUpdated {
+                msg,
+                entity_type,
+                key,
+            } => write!(
+                f,
+                "Field not updated: {} (entity: {:?}, key: {})",
+                msg, entity_type, key
+            ),
+            ApiError::FieldNotUnique {
+                entity_type,
+                id,
+                key,
+                value,
+            } => write!(
+                f,
+                "Field not unique: (entity: {:?}, id: {:?}, key: {}, value: {})",
+                entity_type, id, key, value
+            ),
+            ApiError::FieldInvalid {
+                msg,
+                entity_type,
+                id,
+                key,
+                value,
+            } => write!(
+                f,
+                "Field invalid: {} (entity: {:?}, id: {:?}, key: {}, value: {})",
+                msg, entity_type, id, key, value
+            ),
+            ApiError::ProjectNotLoaded => write!(f, "Project not loaded"),
+        }
     }
 }

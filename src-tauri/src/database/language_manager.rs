@@ -2,12 +2,15 @@ use sea_orm::*;
 
 use ::entity::{language, language::Entity as Language};
 
-pub async fn insert(db: &DbConn, entry_: i32) -> Result<language::Model, DbErr> {
-    let entity = language::ActiveModel {
+pub async fn insert<C>(con: &C, entry_id: i32) -> Result<language::Model, DbErr>
+where
+    C: ConnectionTrait,
+{
+    let language = language::ActiveModel {
         id: NotSet,
-        entry_id: Set(entry_),
+        entry_id: Set(entry_id),
     };
-    entity.insert(db).await
+    language.insert(con).await
 }
 
 pub async fn get(db: &DbConn, entry_id: i32) -> Result<Option<language::Model>, DbErr> {

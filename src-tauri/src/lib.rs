@@ -1,10 +1,14 @@
-pub mod api;
-pub mod app;
-pub mod database;
+pub mod utils;
+
 pub mod errors;
-pub mod schema;
+pub mod types;
+
+pub mod database;
 pub mod services;
+
+pub mod api;
+pub mod schema;
+
+pub mod app;
 pub mod settings;
 pub mod state;
-pub mod types;
-pub mod utils;

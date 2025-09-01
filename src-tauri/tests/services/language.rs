@@ -2,8 +2,8 @@ use rstest::*;
 
 use hellebore::{
     database::language_manager,
-    schema::{entry::EntryCreateSchema, language::LanguageSchema, word::WordUpdateSchema},
-    services::{entry_service, language_service, word_service},
+    schema::{entry::EntryCreateSchema, language::LanguageSchema},
+    services::{entry_service, language_service},
     settings::Settings,
     types::entity::LANGUAGE,
 };
@@ -13,12 +13,8 @@ use crate::fixtures::{
     folder::folder_id,
     language::{create_language_payload, language_name},
     settings,
-    word::create_word_payload,
 };
-use crate::utils::{
-    query::get_all_words_for_language,
-    validation::{validate_entry_info_response, validate_language_property_response},
-};
+use crate::utils::validation::{validate_entry_info_response, validate_language_property_response};
 
 #[rstest]
 #[tokio::test]
@@ -28,8 +24,8 @@ async fn test_create_language(
     language_name: String,
     create_language_payload: EntryCreateSchema<LanguageSchema>,
 ) {
-    let database = database(settings).await;
-    let entry = language_service::create(&database, create_language_payload).await;
+    let db = database(settings).await;
+    let entry = language_service::create(&db, create_language_payload).await;
 
     assert!(entry.is_ok());
     validate_entry_info_response(&entry.unwrap(), None, folder_id, LANGUAGE, &language_name);
@@ -41,9 +37,9 @@ async fn test_error_on_creating_duplicate_language(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageSchema>,
 ) {
-    let database = database(settings).await;
-    let _ = language_service::create(&database, create_language_payload.clone()).await;
-    let response = language_service::create(&database, create_language_payload).await;
+    let db = database(settings).await;
+    let _ = language_service::create(&db, create_language_payload.clone()).await;
+    let response = language_service::create(&db, create_language_payload).await;
     assert!(response.is_err());
 }
 
@@ -55,13 +51,13 @@ async fn test_get_language(
     language_name: String,
     create_language_payload: EntryCreateSchema<LanguageSchema>,
 ) {
-    let database = database(settings).await;
-    let entry = language_service::create(&database, create_language_payload).await;
+    let db = database(settings).await;
+    let entry = language_service::create(&db, create_language_payload).await;
 
     assert!(entry.is_ok());
     let entry = entry.unwrap();
 
-    let language = entry_service::get_properties(&database, entry.id).await;
+    let language = entry_service::get_properties(&db, entry.id).await;
 
     assert!(language.is_ok());
     let language = language.unwrap();
@@ -80,31 +76,20 @@ async fn test_get_language(
 async fn test_delete_language(
     settings: &Settings,
     create_language_payload: EntryCreateSchema<LanguageSchema>,
-    mut create_word_payload: WordUpdateSchema,
 ) {
-    let database = database(settings).await;
+    let db = database(settings).await;
 
-    let entry = language_service::create(&database, create_language_payload)
+    let entry = language_service::create(&db, create_language_payload)
         .await
         .unwrap();
-    let id = entry.id;
 
-    create_word_payload.language_id = Some(id);
-    let _ = word_service::create(&database, create_word_payload.clone()).await;
-
-    let words = get_all_words_for_language(&database, id).await;
-    assert_eq!(words.len(), 1);
-
-    let response = entry_service::delete(&database, entry.id).await;
+    let response = entry_service::delete(&db, entry.id).await;
 
     assert!(response.is_ok());
 
-    let entry = language_manager::get(&database, entry.id).await;
+    let entry = language_manager::get(&db, entry.id).await;
     assert!(entry.is_ok());
 
     let entry = entry.unwrap();
     assert!(entry.is_none());
-
-    let words = get_all_words_for_language(&database, id).await;
-    assert_eq!(words.len(), 0);
 }

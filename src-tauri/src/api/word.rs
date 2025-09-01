@@ -9,24 +9,6 @@ use crate::state::State;
 use crate::types::grammar::WordType;
 
 #[tauri::command]
-pub async fn create_word(
-    state: tauri::State<'_, State>,
-    word: WordUpdateSchema,
-) -> Result<WordResponseSchema, ApiError> {
-    let state = state.lock().await;
-    word_service::create(utils::get_database(&state)?, word).await
-}
-
-#[tauri::command]
-pub async fn update_word(
-    state: tauri::State<'_, State>,
-    word: WordUpdateSchema,
-) -> Result<ResponseDiagnosticsSchema<Option<i32>>, ApiError> {
-    let state = state.lock().await;
-    word_service::update(utils::get_database(&state)?, word).await
-}
-
-#[tauri::command]
 pub async fn upsert_words(
     state: tauri::State<'_, State>,
     words: Vec<WordUpdateSchema>,
