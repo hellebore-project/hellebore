@@ -273,6 +273,9 @@ export class EntityEditor {
         text,
         words,
     }: SyncRequest): Promise<SyncResponse> {
+        // TODO: rework this so that the data gets sent in a single IPC call.
+        // syncing the entity via multiple IPC calls is really bad
+
         let titleUpdateResponse: EntryTitleUpdateResponse | null = null;
         if (typeof title === "string")
             titleUpdateResponse = await this.view.updateEntityTitle(id, title);
