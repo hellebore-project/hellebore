@@ -1,6 +1,6 @@
 use ::entity::entry::Model as EntryModel;
 use hellebore::{
-    database::{entry_manager, folder_manager::convert_null_folder_id_to_root},
+    database::folder_manager::convert_null_folder_id_to_root,
     schema::{entry::EntryInfoResponseSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
@@ -50,11 +50,11 @@ fn title() -> String {
 async fn test_create_entry(settings: &Settings, folder_id: i32, title: String, entry_text: String) {
     let database = database(settings).await;
 
-    let entry = entry_manager::insert(
+    let entry = entry_service::create(
         &database,
+        ENTRY,
         folder_id,
         title.to_owned(),
-        ENTRY,
         entry_text.to_owned(),
     )
     .await;
@@ -73,15 +73,15 @@ async fn test_error_on_creating_entry_with_duplicate_name(
     entry_text: String,
 ) {
     let database = database(settings).await;
-    let _ = entry_manager::insert(
+    let _ = entry_service::create(
         &database,
+        ENTRY,
         folder_id,
         title.to_owned(),
-        ENTRY,
         entry_text.to_owned(),
     )
     .await;
-    let entry = entry_manager::insert(&database, folder_id, title, ENTRY, entry_text).await;
+    let entry = entry_service::create(&database, ENTRY, folder_id, title, entry_text).await;
     assert!(entry.is_err());
 }
 
@@ -94,7 +94,7 @@ async fn test_update_entry_title(
     entry_text: String,
 ) {
     let database = database(settings).await;
-    let entry = entry_manager::insert(&database, folder_id, title, ENTRY, entry_text.to_owned())
+    let entry = entry_service::create(&database, ENTRY, folder_id, title, entry_text.to_owned())
         .await
         .unwrap();
 
@@ -116,11 +116,11 @@ async fn test_update_entry_folder(
     entry_text: String,
 ) {
     let database = database(settings).await;
-    let entry = entry_manager::insert(
+    let entry = entry_service::create(
         &database,
+        ENTRY,
         folder_id,
         title.to_owned(),
-        ENTRY,
         entry_text.to_owned(),
     )
     .await
@@ -146,7 +146,7 @@ async fn test_update_entry_text(
     entry_text: String,
 ) {
     let database = database(settings).await;
-    let entry = entry_manager::insert(&database, folder_id, title.to_owned(), ENTRY, entry_text)
+    let entry = entry_service::create(&database, ENTRY, folder_id, title.to_owned(), entry_text)
         .await
         .unwrap();
 
@@ -190,17 +190,17 @@ async fn test_error_on_updating_entry_with_duplicate_name(
     entry_text: String,
 ) {
     let database = database(settings).await;
-    let entry_1 = entry_manager::insert(
+    let entry_1 = entry_service::create(
         &database,
+        ENTRY,
         folder_id,
         "entry1".to_owned(),
-        ENTRY,
         entry_text.to_owned(),
     )
     .await
     .unwrap();
     let entry_2 =
-        entry_manager::insert(&database, folder_id, "entry2".to_owned(), ENTRY, entry_text)
+        entry_service::create(&database, ENTRY, folder_id, "entry2".to_owned(), entry_text)
             .await
             .unwrap();
 
@@ -212,11 +212,11 @@ async fn test_error_on_updating_entry_with_duplicate_name(
 #[tokio::test]
 async fn test_get_entry(settings: &Settings, folder_id: i32, title: String, entry_text: String) {
     let database = database(settings).await;
-    let entry = entry_manager::insert(
+    let entry = entry_service::create(
         &database,
+        ENTRY,
         folder_id,
         title.to_owned(),
-        ENTRY,
         entry_text.to_owned(),
     )
     .await
@@ -252,11 +252,11 @@ async fn test_get_entry_text(
     #[case] entry_text: String,
 ) {
     let database = database(settings).await;
-    let entry = entry_manager::insert(
+    let entry = entry_service::create(
         &database,
+        ENTRY,
         folder_id,
         title.to_owned(),
-        ENTRY,
         entry_text.to_owned(),
     )
     .await
@@ -275,15 +275,15 @@ async fn test_get_entry_text(
 #[tokio::test]
 async fn test_get_all_entries(settings: &Settings, folder_id: i32, title: String) {
     let database = database(settings).await;
-    let _ = entry_manager::insert(&database, folder_id, title.to_owned(), ENTRY, "".to_owned())
+    let _ = entry_service::create(&database, ENTRY, folder_id, title.to_owned(), "".to_owned())
         .await
         .unwrap();
     let title_2 = format!("{} 2", title);
-    let _ = entry_manager::insert(
+    let _ = entry_service::create(
         &database,
+        ENTRY,
         folder_id,
         title_2.to_owned(),
-        ENTRY,
         "".to_owned(),
     )
     .await
@@ -303,11 +303,11 @@ async fn test_get_all_entries(settings: &Settings, folder_id: i32, title: String
 #[tokio::test]
 async fn test_delete_entry(settings: &Settings, folder_id: i32, title: String, entry_text: String) {
     let database = database(settings).await;
-    let entry = entry_manager::insert(
+    let entry = entry_service::create(
         &database,
+        ENTRY,
         folder_id,
         title.to_owned(),
-        ENTRY,
         entry_text.to_owned(),
     )
     .await

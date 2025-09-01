@@ -1,4 +1,3 @@
-pub mod data_service;
 pub mod entry_service;
 pub mod folder_service;
 pub mod language_service;

@@ -4,5 +4,6 @@ pub mod language_manager;
 pub mod person_manager;
 pub mod project_manager;
 pub mod setup;
+pub mod transaction_manager;
 pub mod utils;
 pub mod word_manager;

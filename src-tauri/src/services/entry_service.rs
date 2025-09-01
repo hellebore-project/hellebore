@@ -2,8 +2,8 @@ use sea_orm::DatabaseConnection;
 
 use ::entity::entry::Model as EntryModel;
 
-use crate::database::entry_manager;
 use crate::database::folder_manager::convert_null_folder_id_to_root;
+use crate::database::{entry_manager, transaction_manager};
 use crate::errors::ApiError;
 use crate::schema::entry::{
     EntryArticleResponseSchema, EntryProperties, EntryPropertyResponseSchema,
@@ -12,21 +12,29 @@ use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnostic
 use crate::services::{language_service, person_service};
 use crate::types::entity::{ENTRY, EntityType};
 
+// NOTE: this currently isn't being used in production,
+// though we'll probably need this to create generic entries
 pub async fn create(
     database: &DatabaseConnection,
     entity_type: EntityType,
     folder_id: i32,
     title: String,
+    text: String,
 ) -> Result<EntryModel, ApiError> {
-    entry_manager::insert(
-        &database,
+    let txn = transaction_manager::begin(database).await?;
+
+    let entry = entry_manager::insert(
+        &txn,
+        entity_type,
         folder_id,
         title.to_owned(),
-        entity_type,
-        "".to_owned(),
+        text.to_owned(),
     )
     .await
-    .map_err(|e| ApiError::not_inserted(e, ENTRY))
+    .map_err(|e| ApiError::not_inserted(e, ENTRY))?;
+
+    transaction_manager::end(txn).await?;
+    Ok(entry)
 }
 
 pub async fn update_title(
@@ -169,7 +177,7 @@ pub async fn get_all(
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    entry_manager::delete(&database, id)
+    entry_manager::delete(database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, ENTRY))?;
     return Ok(());

@@ -67,8 +67,6 @@ where
         api::person::create_person,
         api::person::update_person,
         // word API
-        api::word::create_word,
-        api::word::update_word,
         api::word::upsert_words,
         api::word::get_word,
         api::word::get_words,

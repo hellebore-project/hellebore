@@ -314,6 +314,7 @@ async fn test_delete_folder_and_contents(settings: &Settings) {
         ENTRY,
         parent_folder.id,
         "entry_parent".to_owned(),
+        "".to_owned(),
     )
     .await
     .unwrap();
@@ -328,10 +329,15 @@ async fn test_delete_folder_and_contents(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_in_sub =
-        entry_service::create(&database, ENTRY, sub_folder.id, "entry_sub".to_owned())
-            .await
-            .unwrap();
+    let entry_in_sub = entry_service::create(
+        &database,
+        ENTRY,
+        sub_folder.id,
+        "entry_sub".to_owned(),
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
 
     let response = folder_service::delete(&database, parent_folder.id).await;
     assert!(response.is_ok());
