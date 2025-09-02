@@ -169,8 +169,11 @@ describe("cell editing", () => {
         const otherCell = screen.getByText(word.translations[0]);
         await user.click(otherCell);
 
-        const wordData = service.view.entityEditor.lexicon["_words"]["1"];
-        expect(wordData.spelling).toBe("edited");
+        const rowData =
+            service.view.entityEditor.lexicon.spreadsheet.data.findRow("1");
+        if (!rowData) throw "Row data not found";
+
+        expect(rowData.cells["spelling"].value).toBe("edited");
         screen.getByText("edited");
     });
 
@@ -201,7 +204,11 @@ describe("cell editing", () => {
         const otherCell = screen.getByText(word.translations[0]);
         await user.click(otherCell);
 
-        expect(service.view.entityEditor.lexicon["_words"]["1"].gender).toBe(
+        const rowData =
+            service.view.entityEditor.lexicon.spreadsheet.data.findRow("1");
+        if (!rowData) throw "Row data not found";
+
+        expect(Number(rowData.cells["gender"].value)).toBe(
             GrammaticalGender.Feminine,
         );
         screen.getByText("Feminine");
@@ -225,5 +232,5 @@ test("can delete a row", async ({ mockedInvoker, service, user }) => {
     const deleteBtn = screen.getByRole("button", { name: "Delete row" });
     await user.click(deleteBtn);
 
-    expect(wordEditor["_words"]["1"]).toBeUndefined();
+    expect(wordEditor.spreadsheet.data.findRow("1")).toBeNull();
 });

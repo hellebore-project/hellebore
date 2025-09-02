@@ -10,9 +10,8 @@ export class AppManager {
         this.view = new ViewManager(this.domain);
     }
 
-    initialize() {
-        this.view.fetchProjectInfo().then((project) => {
-            if (project) this.view.populateNavigator();
-        });
+    async initialize() {
+        const project = await this.view.fetchProjectInfo();
+        if (project) this.view.populateNavigator();
     }
 }

@@ -37,7 +37,7 @@ export function mockGetWords(
         }) => {
             return words.map((w) => ({
                 ...w,
-                languageId,
+                language_id: languageId,
                 word_type: wordType ?? WordType.RootWord,
             }));
         },
