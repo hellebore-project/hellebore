@@ -26,7 +26,7 @@ export interface MutableSpreadsheetCellData extends SpreadsheetCellData {
     editable?: boolean;
 }
 
-export interface MutableSpreadsheetRowData extends SpreadsheetRowData {
+export interface MutableSpreadsheetRowData<D> extends SpreadsheetRowData<D> {
     key: string;
     cells: { [key: string]: MutableSpreadsheetCellData };
     highlighted: boolean;
@@ -75,3 +75,7 @@ export class SpreadsheetSelectedRectangle implements Rectangle {
         return `{top: ${this.top}, left: ${this.left}, bottom: ${this.bottom}, right: ${this.right}}`;
     }
 }
+
+export type AddRowHandler = () => void;
+export type DeleteRowHandler<D> = (row: MutableSpreadsheetRowData<D>) => void;
+export type EditCellHandler<D> = (row: MutableSpreadsheetRowData<D>) => void;

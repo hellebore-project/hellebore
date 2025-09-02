@@ -73,7 +73,7 @@ export class EntityInfoEditor {
         this.titleChanged = false;
     }
 
-    sync() {
+    afterSync() {
         this.titleChanged = false;
     }
 

@@ -5,12 +5,14 @@ export type WordKey = string;
 
 type BaseWordData = WordInfo & WordProperties;
 
-export interface WordData extends BaseWordData {
+export interface WordExtraData {
     id: Id | null;
-    key: WordKey;
-    rawTranslations: string;
     created?: boolean;
     updated?: boolean;
+}
+
+export interface WordData extends BaseWordData, WordExtraData {
+    key: WordKey;
 }
 
 export enum WordTableColumnKey {

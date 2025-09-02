@@ -67,7 +67,7 @@ export class PropertyEditor {
         this.data = entity;
     }
 
-    sync() {
+    afterSync() {
         this.changed = false;
     }
 

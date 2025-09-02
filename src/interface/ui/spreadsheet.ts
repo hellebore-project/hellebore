@@ -11,9 +11,10 @@ export interface SpreadsheetCellData {
     value: string;
 }
 
-export interface SpreadsheetRowData {
+export interface SpreadsheetRowData<D> {
     key: string;
     cells: { [key: string]: SpreadsheetCellData };
+    data: D;
 }
 
 export interface SpreadsheetColumnData {

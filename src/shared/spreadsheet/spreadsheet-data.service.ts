@@ -8,32 +8,29 @@ import {
     SpreadsheetRowData,
 } from "@/interface";
 import {
+    AddRowHandler,
+    DeleteRowHandler,
+    EditCellHandler,
     MutableSpreadsheetCellData,
     MutableSpreadsheetRowData,
 } from "./spreadsheet.model";
 
 type PrivateKeys =
+    | "_rowCache"
     | "_selectedCellCount"
     | "_onAddRow"
     | "_onDeleteRow"
     | "_onEditCell";
 
-export type AddRowHandler = () => void;
-export type DeleteRowHandler = (rowKey: string) => void;
-export type EditCellHandler = (
-    rowKey: string,
-    colKey: string,
-    value: number | string | null,
-) => void;
-
-interface SpreadsheetDataServiceArguments {
+interface SpreadsheetDataServiceArguments<D> {
     onAddRow?: AddRowHandler;
-    onDeleteRow?: DeleteRowHandler;
-    onEditCell?: EditCellHandler;
+    onDeleteRow?: DeleteRowHandler<D>;
+    onEditCell?: EditCellHandler<D>;
 }
 
-export class SpreadsheetDataService {
-    private _rows: MutableSpreadsheetRowData[];
+export class SpreadsheetDataService<D> {
+    private _rows: MutableSpreadsheetRowData<D>[];
+    private _rowCache: Map<string, MutableSpreadsheetRowData<D>>;
     private _columns: SpreadsheetColumnData[];
 
     private _selectedCellCount: number = 0;
@@ -42,22 +39,24 @@ export class SpreadsheetDataService {
     private _editableCellField: RefObject<HTMLInputElement> | null = null;
 
     private _onAddRow?: AddRowHandler;
-    private _onDeleteRow?: DeleteRowHandler;
-    private _onEditCell?: EditCellHandler;
+    private _onDeleteRow?: DeleteRowHandler<D>;
+    private _onEditCell?: EditCellHandler<D>;
 
     constructor({
         onAddRow,
         onDeleteRow,
         onEditCell,
-    }: SpreadsheetDataServiceArguments) {
+    }: SpreadsheetDataServiceArguments<D>) {
         this._rows = [];
+        this._rowCache = new Map();
         this._columns = [];
 
         this._onAddRow = onAddRow;
         this._onDeleteRow = onDeleteRow;
         this._onEditCell = onEditCell;
 
-        makeAutoObservable<SpreadsheetDataService, PrivateKeys>(this, {
+        makeAutoObservable<SpreadsheetDataService<D>, PrivateKeys>(this, {
+            _rowCache: false,
             _selectedCellCount: false,
             _onAddRow: false,
             _onDeleteRow: false,
@@ -101,57 +100,82 @@ export class SpreadsheetDataService {
     }
 
     initialize(
-        rowData: SpreadsheetRowData[],
+        rowData: SpreadsheetRowData<D>[],
         columnData: SpreadsheetColumnData[],
     ) {
         this._rows = rowData.map((row) => this._createRow(row));
+        this._rowCache.clear();
         this._columns = columnData;
         this._editableCell = null;
+
+        this._cacheRows();
     }
 
     // ROWS
 
-    addRow(rowData: SpreadsheetRowData) {
-        const row = this._createRow(rowData);
-        this._rows.push(row);
+    addRow(data: SpreadsheetRowData<D>) {
+        const row = this._createRow(data);
+
+        const length = this._rows.push(row);
+        this._rowCache.set(row.key, this._rows[length - 1]);
+
         if (this._onAddRow) this._onAddRow();
     }
 
-    deleteRow(rowKey: string) {
-        const idx = this._rows.findIndex((r) => r.key === rowKey);
-        if (idx >= 0) {
-            this._rows.splice(idx, 1);
-            if (this._onDeleteRow) this._onDeleteRow(rowKey);
-        }
+    deleteRow(key: string) {
+        const idx = this._rows.findIndex((r) => r.key === key);
+        if (idx < 0) return;
+
+        const [row] = this._rows.splice(idx, 1);
+        this._rowCache.delete(row.key);
+
+        if (this._onDeleteRow) this._onDeleteRow(row);
     }
 
-    highlightRow(rowKey: string) {
-        const row = this._rows.find((r) => r.key === rowKey);
-        if (row) {
-            row.highlighted = true;
-        }
+    highlightRow(key: string) {
+        const row = this.findRow(key);
+        if (row) row.highlighted = true;
     }
 
-    unhighlightRow(rowKey: string) {
-        const row = this._rows.find((r) => r.key === rowKey);
+    unhighlightRow(key: string) {
+        const row = this.findRow(key);
         if (row) row.highlighted = false;
     }
 
     private _createRow({
         key,
         cells,
-    }: SpreadsheetRowData): MutableSpreadsheetRowData {
-        const mutableCells: { [colKey: string]: MutableSpreadsheetCellData } =
-            {};
+        data,
+    }: SpreadsheetRowData<D>): MutableSpreadsheetRowData<D> {
+        const mutableRow: MutableSpreadsheetRowData<D> = {
+            key,
+            cells: {},
+            highlighted: false,
+            data,
+        };
         for (const [colKey, cell] of Object.entries(cells)) {
             const cellKey = `${key}-${colKey}`;
-            mutableCells[colKey] = this._createCell(cellKey, cell);
+            mutableRow.cells[colKey] = this._createCell(cellKey, cell);
         }
-        return {
-            key,
-            cells: mutableCells,
-            highlighted: false,
-        };
+        return mutableRow;
+    }
+
+    findRow(key: string) {
+        let row = this._rowCache.get(key);
+        if (row) return row;
+
+        // the row caching strategy is aggressive, so this case shouldn't happen,
+        // but we still need to cover it in case of a race condition or a bug
+        row = this._rows.find((r) => r.key === key);
+        if (!row) return null;
+
+        this._rowCache.set(row.key, row);
+
+        return row;
+    }
+
+    private _cacheRows() {
+        this._rows.forEach((row) => this._rowCache.set(row.key, row));
     }
 
     // COLUMNS
@@ -216,7 +240,7 @@ export class SpreadsheetDataService {
         const cell = row.cells[col.key];
         this._setCellValue(cell, col, value);
 
-        if (this._onEditCell) this._onEditCell(row.key, col.key, value);
+        if (this._onEditCell) this._onEditCell(row);
 
         return cell;
     }
@@ -233,7 +257,7 @@ export class SpreadsheetDataService {
         const oldValue = cell.oldValue ?? "";
         this._setCellValue(cell, col, oldValue);
 
-        if (this._onEditCell) this._onEditCell(row.key, col.key, oldValue);
+        if (this._onEditCell) this._onEditCell(row);
     }
 
     private _setCellValue(

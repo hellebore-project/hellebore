@@ -6,35 +6,35 @@ import { SpreadsheetRowData, SpreadsheetColumnData } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { isFullyContained } from "@/utils/math-utils";
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";
-import { MutableSpreadsheetCellData } from "./spreadsheet.model";
 import {
+    MutableSpreadsheetCellData,
     AddRowHandler,
     DeleteRowHandler,
     EditCellHandler,
-    SpreadsheetDataService,
-} from "./spreadsheet-data.service";
+} from "./spreadsheet.model";
+import { SpreadsheetDataService } from "./spreadsheet-data.service";
 
 type PrivateKeys = "_sheet" | "_editableCell";
 
-interface SpreadsheetServiceArguments {
+interface SpreadsheetServiceArguments<D> {
     onAddRow?: AddRowHandler;
-    onDeleteRow?: DeleteRowHandler;
-    onEditCell?: EditCellHandler;
+    onDeleteRow?: DeleteRowHandler<D>;
+    onEditCell?: EditCellHandler<D>;
 }
 
-export class SpreadsheetService {
+export class SpreadsheetService<D> {
     private _sheet: RefObject<HTMLDivElement>;
 
     outsideEvent: OutsideEventHandlerService;
-    data: SpreadsheetDataService;
+    data: SpreadsheetDataService<D>;
     selection: SpreadsheetSelectionService;
 
     constructor({
         onAddRow,
         onDeleteRow,
         onEditCell,
-    }: SpreadsheetServiceArguments) {
-        makeAutoObservable<SpreadsheetService, PrivateKeys>(this, {
+    }: SpreadsheetServiceArguments<D>) {
+        makeAutoObservable<SpreadsheetService<D>, PrivateKeys>(this, {
             _sheet: false,
             _editableCell: false,
             outsideEvent: false,
@@ -64,7 +64,7 @@ export class SpreadsheetService {
     // STATE MANAGEMENT
 
     initialize(
-        rowData: SpreadsheetRowData[],
+        rowData: SpreadsheetRowData<D>[],
         columnData: SpreadsheetColumnData[],
     ) {
         this.selection.clear();

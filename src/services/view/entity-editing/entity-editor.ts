@@ -323,13 +323,13 @@ export class EntityEditor {
         if (this.info.id != request.id) return;
 
         if (title && title.updated) {
-            this.info.sync();
+            this.info.afterSync();
             this.info.isTitleUnique = title.isUnique ?? true;
         }
 
-        if (text && text.updated) this.text.sync();
+        if (text && text.updated) this.text.afterSync();
 
-        if (properties && properties.updated) this.properties.sync();
+        if (properties && properties.updated) this.properties.afterSync();
 
         if (request.words && lexicon) {
             const words: WordData[] = request.words.map((word, i) => {
@@ -341,7 +341,7 @@ export class EntityEditor {
                     updated: wordResponse.updated,
                 };
             });
-            this.lexicon.sync(words);
+            this.lexicon.afterSync(words);
         }
     }
 
