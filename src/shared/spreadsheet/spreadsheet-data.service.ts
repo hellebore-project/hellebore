@@ -2,18 +2,17 @@ import { makeAutoObservable } from "mobx";
 import { RefObject, createRef } from "react";
 
 import { FieldType } from "@/constants";
-import {
-    SpreadsheetCellData,
-    SpreadsheetColumnData,
-    SpreadsheetRowData,
-} from "@/interface";
+import {} from "@/interface";
 import {
     AddRowHandler,
     DeleteRowHandler,
     EditCellHandler,
     MutableSpreadsheetCellData,
     MutableSpreadsheetRowData,
-} from "./spreadsheet.model";
+    SpreadsheetCellData,
+    SpreadsheetColumnData,
+    SpreadsheetRowData,
+} from "./spreadsheet.interface";
 
 type PrivateKeys =
     | "_rowCache"
@@ -22,16 +21,16 @@ type PrivateKeys =
     | "_onDeleteRow"
     | "_onEditCell";
 
-interface SpreadsheetDataServiceArguments<D> {
+interface SpreadsheetDataServiceArguments<K extends string, M> {
     onAddRow?: AddRowHandler;
-    onDeleteRow?: DeleteRowHandler<D>;
-    onEditCell?: EditCellHandler<D>;
+    onDeleteRow?: DeleteRowHandler<K, M>;
+    onEditCell?: EditCellHandler<K, M>;
 }
 
-export class SpreadsheetDataService<D> {
-    private _rows: MutableSpreadsheetRowData<D>[];
-    private _rowCache: Map<string, MutableSpreadsheetRowData<D>>;
-    private _columns: SpreadsheetColumnData[];
+export class SpreadsheetDataService<K extends string, M> {
+    private _rows: MutableSpreadsheetRowData<K, M>[];
+    private _rowCache: Map<string, MutableSpreadsheetRowData<K, M>>;
+    private _columns: SpreadsheetColumnData<K>[];
 
     private _selectedCellCount: number = 0;
 
@@ -39,14 +38,14 @@ export class SpreadsheetDataService<D> {
     private _editableCellField: RefObject<HTMLInputElement> | null = null;
 
     private _onAddRow?: AddRowHandler;
-    private _onDeleteRow?: DeleteRowHandler<D>;
-    private _onEditCell?: EditCellHandler<D>;
+    private _onDeleteRow?: DeleteRowHandler<K, M>;
+    private _onEditCell?: EditCellHandler<K, M>;
 
     constructor({
         onAddRow,
         onDeleteRow,
         onEditCell,
-    }: SpreadsheetDataServiceArguments<D>) {
+    }: SpreadsheetDataServiceArguments<K, M>) {
         this._rows = [];
         this._rowCache = new Map();
         this._columns = [];
@@ -55,7 +54,7 @@ export class SpreadsheetDataService<D> {
         this._onDeleteRow = onDeleteRow;
         this._onEditCell = onEditCell;
 
-        makeAutoObservable<SpreadsheetDataService<D>, PrivateKeys>(this, {
+        makeAutoObservable<SpreadsheetDataService<K, M>, PrivateKeys>(this, {
             _rowCache: false,
             _selectedCellCount: false,
             _onAddRow: false,
@@ -100,8 +99,8 @@ export class SpreadsheetDataService<D> {
     }
 
     initialize(
-        rowData: SpreadsheetRowData<D>[],
-        columnData: SpreadsheetColumnData[],
+        rowData: SpreadsheetRowData<K, M>[],
+        columnData: SpreadsheetColumnData<K>[],
     ) {
         this._rows = rowData.map((row) => this._createRow(row));
         this._rowCache.clear();
@@ -113,7 +112,7 @@ export class SpreadsheetDataService<D> {
 
     // ROWS
 
-    addRow(data: SpreadsheetRowData<D>) {
+    addRow(data: SpreadsheetRowData<K, M>) {
         const row = this._createRow(data);
 
         const length = this._rows.push(row);
@@ -145,18 +144,23 @@ export class SpreadsheetDataService<D> {
     private _createRow({
         key,
         cells,
-        data,
-    }: SpreadsheetRowData<D>): MutableSpreadsheetRowData<D> {
-        const mutableRow: MutableSpreadsheetRowData<D> = {
+        metaData: data,
+    }: SpreadsheetRowData<K, M>): MutableSpreadsheetRowData<K, M> {
+        const mutableRow: MutableSpreadsheetRowData<K, M> = {
             key,
-            cells: {},
+            cells: {} as Record<K, MutableSpreadsheetCellData>,
             highlighted: false,
-            data,
+            metaData: data,
         };
-        for (const [colKey, cell] of Object.entries(cells)) {
+
+        const entries = Object.entries(cells) as Array<
+            [K, SpreadsheetCellData]
+        >;
+        for (const [colKey, cell] of entries) {
             const cellKey = `${key}-${colKey}`;
             mutableRow.cells[colKey] = this._createCell(cellKey, cell);
         }
+
         return mutableRow;
     }
 
@@ -262,7 +266,7 @@ export class SpreadsheetDataService<D> {
 
     private _setCellValue(
         cell: MutableSpreadsheetCellData,
-        col: SpreadsheetColumnData,
+        col: SpreadsheetColumnData<K>,
         value: number | string | null,
     ) {
         value = String(value ?? "");

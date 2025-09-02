@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { EntityType, EntityViewKey, WordType } from "@/constants";
-import { BaseEntity, FieldData, Id, WordData } from "@/interface";
+import { BaseEntity, FieldData, Id, Word } from "@/interface";
 import {
     EntryTextUpdateResponse,
     EntryTitleUpdateResponse,
@@ -36,7 +36,7 @@ interface SyncRequest {
     title?: string | null;
     properties?: BaseEntity | null;
     text?: string | null;
-    words: WordData[] | null;
+    words: Word[] | null;
 }
 
 interface SyncResponse {
@@ -332,7 +332,7 @@ export class EntityEditor {
         if (properties && properties.updated) this.properties.afterSync();
 
         if (request.words && lexicon) {
-            const words: WordData[] = request.words.map((word, i) => {
+            const words: Word[] = request.words.map((word, i) => {
                 const wordResponse = lexicon[i];
                 return {
                     ...word,

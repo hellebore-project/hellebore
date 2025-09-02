@@ -12,20 +12,23 @@ import {
 } from "@/constants";
 import {
     WordKey,
-    WordData,
+    Word,
     EntityChangeHandler,
     WordTableColumnKey,
-    SpreadsheetRowData,
-    SpreadsheetColumnData,
-    WordExtraData,
+    WordMetaData,
+    WordColumnKeys,
 } from "@/interface";
 import { IViewManager } from "@/services/interface";
-import { SpreadsheetService } from "@/shared/spreadsheet";
+import {
+    MutableSpreadsheetRowData,
+    SpreadsheetColumnData,
+    SpreadsheetRowData,
+    SpreadsheetService,
+} from "@/shared/spreadsheet";
 import { WordResponse } from "@/schema";
 import { Counter } from "@/utils/counter";
 import { numericEnumMapping } from "@/utils/enums";
 import { EntityInfoEditor } from "./info-editor";
-import { MutableSpreadsheetRowData } from "@/shared/spreadsheet/spreadsheet.model";
 
 const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.RootWord, WordViewKey.RootWords],
@@ -116,7 +119,7 @@ export class WordEditor {
     // SERVICES
     private _view: IViewManager;
     private _info: EntityInfoEditor;
-    spreadsheet: SpreadsheetService<WordExtraData>;
+    spreadsheet: SpreadsheetService<WordColumnKeys, WordMetaData>;
 
     // UTILITIES
     private _wordKeyGenerator: Counter;
@@ -186,7 +189,7 @@ export class WordEditor {
     private _setWords(words: WordResponse[] | null) {
         if (!words) words = [];
 
-        const mapping: { [key: WordKey]: WordData } = {};
+        const mapping: { [key: WordKey]: Word } = {};
         for (const word of words) {
             const wordRow = this._convertResponseToData(word);
             mapping[wordRow.key] = wordRow;
@@ -195,7 +198,7 @@ export class WordEditor {
         this._initializeSpreadsheet(Object.values(mapping));
     }
 
-    private _initializeSpreadsheet(words: WordData[]) {
+    private _initializeSpreadsheet(words: Word[]) {
         const rowData = words.map((w) => this._convertWordToRow(w));
         const colData = this._getColumnData();
         this.spreadsheet.initialize(rowData, colData);
@@ -209,7 +212,7 @@ export class WordEditor {
         return this._view.openWordEditor(this.languageId, wordType);
     }
 
-    afterSync(words: WordData[] | undefined | null) {
+    afterSync(words: Word[] | undefined | null) {
         this._changed = false;
         if (!words) return;
 
@@ -228,7 +231,7 @@ export class WordEditor {
                     continue;
                 }
 
-                row.data.id = word.id;
+                row.metaData.id = word.id;
             }
         }
     }
@@ -250,7 +253,7 @@ export class WordEditor {
     // MODIFIED WORDS
 
     claimModifiedWords() {
-        const modifiedWords: WordData[] = [];
+        const modifiedWords: Word[] = [];
         for (const key of this._modifiedWordKeys) {
             const row = this.spreadsheet.data.findRow(key);
             if (!row) {
@@ -266,7 +269,7 @@ export class WordEditor {
 
     // WORD EDITING
 
-    editWord(row: SpreadsheetRowData<WordExtraData>) {
+    editWord(row: SpreadsheetRowData<WordColumnKeys, WordMetaData>) {
         this._onChangeWord(row.key);
     }
 
@@ -280,7 +283,7 @@ export class WordEditor {
     // WORD CREATION
 
     private _addNewWordRow() {
-        const newWord: WordData = {
+        const newWord: Word = {
             key: this.convertIndexToWordKey(this._wordKeyGenerator.increment()),
             id: null,
             language_id: this.languageId,
@@ -298,16 +301,17 @@ export class WordEditor {
 
     // WORD DELETION
 
-    deleteWord(row: MutableSpreadsheetRowData<WordExtraData>) {
-        if (row.data.id !== null) this._view.domain.words.delete(row.data.id);
+    deleteWord(row: MutableSpreadsheetRowData<WordColumnKeys, WordMetaData>) {
+        if (row.metaData.id !== null)
+            this._view.domain.words.delete(row.metaData.id);
         this._modifiedWordKeys.delete(row.key);
     }
 
     // LAYOUT
 
-    private _getColumnData(): SpreadsheetColumnData[] {
+    private _getColumnData(): SpreadsheetColumnData<WordColumnKeys>[] {
         const keys = this._getVisibleColumnKeys();
-        const columns: SpreadsheetColumnData[] = [];
+        const columns: SpreadsheetColumnData<WordColumnKeys>[] = [];
         for (const key of COLUMN_ORDER) {
             if (keys.has(key)) columns.push(COLUMN_DATA_MAPPING[key]);
         }
@@ -347,7 +351,7 @@ export class WordEditor {
 
     // UTILITIES
 
-    private _convertResponseToData(word: WordResponse): WordData {
+    private _convertResponseToData(word: WordResponse): Word {
         return {
             key: this.idToKey(word.id),
             ...word,
@@ -355,8 +359,8 @@ export class WordEditor {
     }
 
     private _convertWordToRow(
-        word: WordData,
-    ): SpreadsheetRowData<WordExtraData> {
+        word: Word,
+    ): SpreadsheetRowData<WordColumnKeys, WordMetaData> {
         return {
             key: word.key,
             cells: {
@@ -377,7 +381,7 @@ export class WordEditor {
                     value: String(word.person),
                 },
             },
-            data: {
+            metaData: {
                 id: word.id,
                 created: word.created,
                 updated: word.updated,
@@ -386,20 +390,20 @@ export class WordEditor {
     }
 
     private _convertRowToWord(
-        row: SpreadsheetRowData<WordExtraData>,
-    ): WordData {
-        const spelling = String(row.cells["spelling"].value ?? "");
+        row: SpreadsheetRowData<WordColumnKeys, WordMetaData>,
+    ): Word {
+        const spelling = String(row.cells.spelling.value ?? "");
 
-        const rawTranslations = row.cells["translations"].value ?? "";
+        const rawTranslations = row.cells.translations.value ?? "";
         const translations = rawTranslations.split(/,|;/).map((s) => s.trim());
 
-        const gender = Number(row.cells["gender"].value);
-        const number = Number(row.cells["number"].value);
-        const person = Number(row.cells["person"].value);
+        const gender = Number(row.cells.gender.value);
+        const number = Number(row.cells.number.value);
+        const person = Number(row.cells.person.value);
 
         return {
             key: row.key,
-            id: row.data.id,
+            id: row.metaData.id,
             language_id: this.languageId,
             word_type: this.wordType,
             spelling,

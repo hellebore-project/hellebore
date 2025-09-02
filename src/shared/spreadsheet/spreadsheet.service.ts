@@ -2,39 +2,40 @@ import { makeAutoObservable } from "mobx";
 import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
 import { FieldType } from "@/constants";
-import { SpreadsheetRowData, SpreadsheetColumnData } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { isFullyContained } from "@/utils/math-utils";
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";
+import { SpreadsheetDataService } from "./spreadsheet-data.service";
 import {
-    MutableSpreadsheetCellData,
     AddRowHandler,
     DeleteRowHandler,
     EditCellHandler,
-} from "./spreadsheet.model";
-import { SpreadsheetDataService } from "./spreadsheet-data.service";
+    MutableSpreadsheetCellData,
+    SpreadsheetColumnData,
+    SpreadsheetRowData,
+} from "./spreadsheet.interface";
 
 type PrivateKeys = "_sheet" | "_editableCell";
 
-interface SpreadsheetServiceArguments<D> {
+interface SpreadsheetServiceArguments<K extends string, M> {
     onAddRow?: AddRowHandler;
-    onDeleteRow?: DeleteRowHandler<D>;
-    onEditCell?: EditCellHandler<D>;
+    onDeleteRow?: DeleteRowHandler<K, M>;
+    onEditCell?: EditCellHandler<K, M>;
 }
 
-export class SpreadsheetService<D> {
+export class SpreadsheetService<K extends string, M> {
     private _sheet: RefObject<HTMLDivElement>;
 
     outsideEvent: OutsideEventHandlerService;
-    data: SpreadsheetDataService<D>;
-    selection: SpreadsheetSelectionService;
+    data: SpreadsheetDataService<K, M>;
+    selection: SpreadsheetSelectionService<K, M>;
 
     constructor({
         onAddRow,
         onDeleteRow,
         onEditCell,
-    }: SpreadsheetServiceArguments<D>) {
-        makeAutoObservable<SpreadsheetService<D>, PrivateKeys>(this, {
+    }: SpreadsheetServiceArguments<K, M>) {
+        makeAutoObservable<SpreadsheetService<K, M>, PrivateKeys>(this, {
             _sheet: false,
             _editableCell: false,
             outsideEvent: false,
@@ -64,8 +65,8 @@ export class SpreadsheetService<D> {
     // STATE MANAGEMENT
 
     initialize(
-        rowData: SpreadsheetRowData<D>[],
-        columnData: SpreadsheetColumnData[],
+        rowData: SpreadsheetRowData<K, M>[],
+        columnData: SpreadsheetColumnData<K>[],
     ) {
         this.selection.clear();
         this.data.initialize(rowData, columnData);
