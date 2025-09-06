@@ -20,9 +20,8 @@ import {
 } from "@/interface";
 import { IViewManager } from "@/services/interface";
 import {
-    MutableSpreadsheetRowData,
-    SpreadsheetColumnData,
     SpreadsheetRowData,
+    SpreadsheetColumnData,
     SpreadsheetService,
 } from "@/shared/spreadsheet";
 import { WordResponse } from "@/schema";
@@ -301,7 +300,7 @@ export class WordEditor {
 
     // WORD DELETION
 
-    deleteWord(row: MutableSpreadsheetRowData<WordColumnKeys, WordMetaData>) {
+    deleteWord(row: SpreadsheetRowData<WordColumnKeys, WordMetaData>) {
         if (row.metaData.id !== null)
             this._view.domain.words.delete(row.metaData.id);
         this._modifiedWordKeys.delete(row.key);
@@ -364,19 +363,28 @@ export class WordEditor {
         return {
             key: word.key,
             cells: {
-                spelling: { value: word.spelling },
-                translations: { value: word.translations?.join(", ") ?? "" },
+                spelling: {
+                    key: `${word.key}-${WordTableColumnKey.Spelling}`,
+                    value: word.spelling,
+                },
+                translations: {
+                    key: `${word.key}-${WordTableColumnKey.Translations}`,
+                    value: word.translations?.join(", ") ?? "",
+                },
                 // NOTE: generating these labels depends on typescript's reverse mapping for numeric enums;
                 // changing any of these enums to string-type or mixed-type would break this logic
                 gender: {
+                    key: `${word.key}-${WordTableColumnKey.Gender}`,
                     label: GrammaticalGender[word.gender],
                     value: String(word.gender),
                 },
                 number: {
+                    key: `${word.key}-${WordTableColumnKey.Number}`,
                     label: GrammaticalNumber[word.number],
                     value: String(word.number),
                 },
                 person: {
+                    key: `${word.key}-${WordTableColumnKey.Person}`,
                     label: GrammaticalPerson[word.person],
                     value: String(word.person),
                 },

@@ -10,7 +10,7 @@ import {
     AddRowHandler,
     DeleteRowHandler,
     EditCellHandler,
-    MutableSpreadsheetCellData,
+    SpreadsheetCellData,
     SpreadsheetColumnData,
     SpreadsheetRowData,
 } from "./spreadsheet.interface";
@@ -227,7 +227,7 @@ export class SpreadsheetService<K extends string, M> {
 
     private _handleKeyDownForEditableCell(
         event: React.KeyboardEvent,
-        cell: MutableSpreadsheetCellData,
+        cell: SpreadsheetCellData,
         rowIndex: number,
         colIndex: number,
     ) {

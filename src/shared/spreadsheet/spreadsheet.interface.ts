@@ -9,14 +9,20 @@ export interface SpreadsheetCellPosition {
 }
 
 export interface SpreadsheetCellData {
+    key: string;
     label?: string;
     value: string;
+    oldValue?: string;
+    position?: SpreadsheetCellPosition;
+    selected?: boolean;
+    editable?: boolean;
 }
 
 export interface SpreadsheetRowData<K extends string, M> {
     key: string;
     cells: Record<K, SpreadsheetCellData>;
     metaData: M;
+    highlighted?: boolean;
 }
 
 export interface SpreadsheetColumnData<K extends string> {
@@ -27,27 +33,10 @@ export interface SpreadsheetColumnData<K extends string> {
     options?: OptionData[];
 }
 
-// TODO: unify the Mutable* interfaces with their respective parents
-
-export interface MutableSpreadsheetCellData extends SpreadsheetCellData {
-    key: string;
-    label: string;
-    oldValue?: string;
-    position?: SpreadsheetCellPosition;
-    selected: boolean;
-    editable?: boolean;
-}
-
-export interface MutableSpreadsheetRowData<K extends string, M>
-    extends SpreadsheetRowData<K, M> {
-    cells: Record<K, MutableSpreadsheetCellData>;
-    highlighted: boolean;
-}
-
 export type AddRowHandler = () => void;
 export type DeleteRowHandler<K extends string, M> = (
-    row: MutableSpreadsheetRowData<K, M>,
+    row: SpreadsheetRowData<K, M>,
 ) => void;
 export type EditCellHandler<K extends string, M> = (
-    row: MutableSpreadsheetRowData<K, M>,
+    row: SpreadsheetRowData<K, M>,
 ) => void;

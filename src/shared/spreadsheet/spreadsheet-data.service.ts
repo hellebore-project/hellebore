@@ -7,11 +7,9 @@ import {
     AddRowHandler,
     DeleteRowHandler,
     EditCellHandler,
-    MutableSpreadsheetCellData,
-    MutableSpreadsheetRowData,
     SpreadsheetCellData,
-    SpreadsheetColumnData,
     SpreadsheetRowData,
+    SpreadsheetColumnData,
 } from "./spreadsheet.interface";
 
 type PrivateKeys =
@@ -28,13 +26,13 @@ interface SpreadsheetDataServiceArguments<K extends string, M> {
 }
 
 export class SpreadsheetDataService<K extends string, M> {
-    private _rows: MutableSpreadsheetRowData<K, M>[];
-    private _rowCache: Map<string, MutableSpreadsheetRowData<K, M>>;
+    private _rows: SpreadsheetRowData<K, M>[];
+    private _rowCache: Map<string, SpreadsheetRowData<K, M>>;
     private _columns: SpreadsheetColumnData<K>[];
 
     private _selectedCellCount: number = 0;
 
-    private _editableCell: MutableSpreadsheetCellData | null = null;
+    private _editableCell: SpreadsheetCellData | null = null;
     private _editableCellField: RefObject<HTMLInputElement> | null = null;
 
     private _onAddRow?: AddRowHandler;
@@ -141,27 +139,17 @@ export class SpreadsheetDataService<K extends string, M> {
         if (row) row.highlighted = false;
     }
 
-    private _createRow({
-        key,
-        cells,
-        metaData: data,
-    }: SpreadsheetRowData<K, M>): MutableSpreadsheetRowData<K, M> {
-        const mutableRow: MutableSpreadsheetRowData<K, M> = {
-            key,
-            cells: {} as Record<K, MutableSpreadsheetCellData>,
-            highlighted: false,
-            metaData: data,
-        };
-
-        const entries = Object.entries(cells) as Array<
+    private _createRow(
+        row: SpreadsheetRowData<K, M>,
+    ): SpreadsheetRowData<K, M> {
+        const entries = Object.entries(row.cells) as Array<
             [K, SpreadsheetCellData]
         >;
         for (const [colKey, cell] of entries) {
-            const cellKey = `${key}-${colKey}`;
-            mutableRow.cells[colKey] = this._createCell(cellKey, cell);
+            cell.key = cell.key ?? `${row.key}-${colKey}`;
+            cell.label = cell.label ?? cell.value;
         }
-
-        return mutableRow;
+        return row;
     }
 
     findRow(key: string) {
@@ -194,18 +182,6 @@ export class SpreadsheetDataService<K extends string, M> {
         const row = this._rows[rowIndex];
         const col = this._columns[colIndex];
         return row.cells[col.key];
-    }
-
-    private _createCell(
-        key: string,
-        { label, value }: SpreadsheetCellData,
-    ): MutableSpreadsheetCellData {
-        return {
-            key,
-            label: label ?? value,
-            value,
-            selected: false,
-        };
     }
 
     // CELL SELECTION
@@ -252,7 +228,7 @@ export class SpreadsheetDataService<K extends string, M> {
     restoreCellValue(
         rowIndex: number,
         colIndex: number,
-        cell: MutableSpreadsheetCellData,
+        cell: SpreadsheetCellData,
     ) {
         const row = this._rows[rowIndex];
         const col = this._columns[colIndex];
@@ -265,7 +241,7 @@ export class SpreadsheetDataService<K extends string, M> {
     }
 
     private _setCellValue(
-        cell: MutableSpreadsheetCellData,
+        cell: SpreadsheetCellData,
         col: SpreadsheetColumnData<K>,
         value: number | string | null,
     ) {
