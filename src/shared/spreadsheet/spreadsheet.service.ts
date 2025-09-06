@@ -1,7 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
-import { FieldType } from "@/constants";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { isFullyContained } from "@/utils/math-utils";
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";
@@ -12,6 +11,7 @@ import {
     EditCellHandler,
     SpreadsheetCellData,
     SpreadsheetColumnData,
+    SpreadsheetFieldType,
     SpreadsheetRowData,
 } from "./spreadsheet.interface";
 
@@ -238,7 +238,7 @@ export class SpreadsheetService<K extends string, M> {
             this._translateActiveSelection(1, 0); // move selection down by 1 row
             return false;
         } else if (event.key === "Escape") {
-            if (col.type == FieldType.TEXT)
+            if (col.type == SpreadsheetFieldType.TEXT)
                 // Restore original value
                 this.data.restoreCellValue(rowIndex, colIndex, cell);
             this.data.toggleCellEditMode(rowIndex, colIndex, false);
@@ -247,7 +247,7 @@ export class SpreadsheetService<K extends string, M> {
 
             return false;
         } else if (event.key === "ArrowDown") {
-            if (col.type == FieldType.SELECT)
+            if (col.type == SpreadsheetFieldType.SELECT)
                 // don't handle when a select field is being edited
                 return true;
 
@@ -255,7 +255,7 @@ export class SpreadsheetService<K extends string, M> {
 
             return false;
         } else if (event.key === "ArrowUp") {
-            if (col.type == FieldType.SELECT)
+            if (col.type == SpreadsheetFieldType.SELECT)
                 // don't handle when a select field is being edited
                 return true;
 
@@ -263,7 +263,7 @@ export class SpreadsheetService<K extends string, M> {
 
             return false;
         } else if (event.key === "ArrowLeft") {
-            if (col.type == FieldType.TEXT)
+            if (col.type == SpreadsheetFieldType.TEXT)
                 // don't handle when a text field is being edited
                 return true;
 
@@ -271,7 +271,7 @@ export class SpreadsheetService<K extends string, M> {
 
             return false;
         } else if (event.key === "ArrowRight") {
-            if (col.type == FieldType.TEXT)
+            if (col.type == SpreadsheetFieldType.TEXT)
                 // don't handle when a text field is being edited
                 return true;
 
@@ -295,7 +295,10 @@ export class SpreadsheetService<K extends string, M> {
                 // so that the user can immediately start editing it
                 ref.current.focus();
 
-                if (this.data.editableCellFieldType === FieldType.SELECT)
+                if (
+                    this.data.editableCellFieldType ===
+                    SpreadsheetFieldType.SELECT
+                )
                     ref.current.click(); // expand the dropdown
             }
         }, [ref]);

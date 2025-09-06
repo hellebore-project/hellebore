@@ -1,7 +1,11 @@
-import { FieldType } from "@/constants";
 import { OptionData } from "@/interface";
 
 export type PositionKey = string;
+
+export enum SpreadsheetFieldType {
+    TEXT,
+    SELECT,
+}
 
 export interface SpreadsheetCellPosition {
     row: number;
@@ -27,7 +31,7 @@ export interface SpreadsheetRowData<K extends string, M> {
 
 export interface SpreadsheetColumnData<K extends string> {
     key: K;
-    type: FieldType;
+    type: SpreadsheetFieldType;
     label: string;
     defaultValue?: string;
     options?: OptionData[];

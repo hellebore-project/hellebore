@@ -1,7 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import { RefObject, createRef } from "react";
 
-import { FieldType } from "@/constants";
 import {} from "@/interface";
 import {
     AddRowHandler,
@@ -10,6 +9,7 @@ import {
     SpreadsheetCellData,
     SpreadsheetRowData,
     SpreadsheetColumnData,
+    SpreadsheetFieldType,
 } from "./spreadsheet.interface";
 
 type PrivateKeys =
@@ -250,8 +250,8 @@ export class SpreadsheetDataService<K extends string, M> {
 
         // the label is what actually gets rendered when the cell is read-only,
         // so it needs to be update for all field types
-        if (col.type == FieldType.TEXT) cell.label = value;
-        else if (col.type == FieldType.SELECT && col.options) {
+        if (col.type == SpreadsheetFieldType.TEXT) cell.label = value;
+        else if (col.type == SpreadsheetFieldType.SELECT && col.options) {
             // TODO: cache this
             const option = col.options.filter((o) => o.value == value)[0];
             cell.label = option.label;

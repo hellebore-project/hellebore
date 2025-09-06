@@ -1,5 +1,6 @@
 import { AppManager } from "./app-manager";
 import { AppState } from "./state";
+export * from "./interface";
 
 export let state: AppState = new AppState();
 

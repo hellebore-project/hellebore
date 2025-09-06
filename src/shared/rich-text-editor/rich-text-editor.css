@@ -2,3 +2,19 @@
     color: var(--mantine-color-blue-4);
     cursor: pointer;
 }
+
+.reference-item {
+    background-color: var(--mantine-color-dark-9);
+}
+
+.reference-item:hover {
+    background-color: color-mix(
+        in oklab,
+        var(--button-bg, var(--mantine-color-dark-9)),
+        white 10%
+    );
+}
+
+.reference-item.selected {
+    background-color: var(--selected-bg-color);
+}

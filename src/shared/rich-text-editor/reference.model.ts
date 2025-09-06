@@ -1,5 +1,3 @@
-import "./reference.css";
-
 import Mention, { MentionOptions } from "@tiptap/extension-mention";
 import { mergeAttributes, ReactRenderer } from "@tiptap/react";
 import {
@@ -9,14 +7,19 @@ import {
 } from "@tiptap/suggestion";
 import tippy from "tippy.js";
 
-import { SuggestionData, VerticalSelectionData } from "@/interface";
 import {
     VerticalSelection,
+    VerticalSelectionData,
     VerticalSelectionSettings,
 } from "@/shared/vertical-selection";
 
 type QueryResult = string;
 type DOMRectAccessor = () => DOMRect;
+
+export interface SuggestionData {
+    label: string;
+    value: any;
+}
 
 export interface QuerySettings {
     query: string;

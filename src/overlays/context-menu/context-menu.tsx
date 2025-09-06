@@ -3,10 +3,12 @@ import "./context-menu.css";
 import { observer } from "mobx-react-lite";
 import { SyntheticEvent } from "react";
 
-import { VerticalSelectionData } from "@/interface";
 import { getService } from "@/services";
 import { OutsideEventHandler } from "@/shared/outside-event-handler";
-import { VerticalSelection } from "@/shared/vertical-selection";
+import {
+    VerticalSelection,
+    VerticalSelectionData,
+} from "@/shared/vertical-selection";
 
 function renderContextMenu() {
     const service = getService();

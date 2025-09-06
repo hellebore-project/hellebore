@@ -4,9 +4,11 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { EntityChangeHandler, SuggestionData } from "@/interface";
-import { IViewManager } from "@/services/interface";
-import { useReferenceExtension } from "@/shared/rich-text-editor";
+import { EntityChangeHandler, IViewManager } from "@/services/interface";
+import {
+    SuggestionData,
+    useReferenceExtension,
+} from "@/shared/rich-text-editor";
 import { EntityInfoEditor } from "./info-editor";
 
 interface ArticleTextEditorSettings {

@@ -3,9 +3,15 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable, toJS } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
-import { ROOT_FOLDER_ID, ROOT_FOLDER_NODE_ID } from "@/constants";
-import { FileNodeData, FileNodeModel, Id, NodeId } from "@/interface";
-import { IViewManager } from "@/services/interface";
+import { ROOT_FOLDER_ID } from "@/constants";
+import { Id } from "@/interface";
+import {
+    FileNodeData,
+    FileNodeModel,
+    IViewManager,
+    NodeId,
+    ROOT_FOLDER_NODE_ID,
+} from "@/services/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { EntryInfoResponse, FolderResponse } from "@/schema";
 import { Counter } from "@/utils/counter";
