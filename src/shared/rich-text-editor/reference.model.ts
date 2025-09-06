@@ -1,5 +1,3 @@
-import "./reference.css";
-
 import Mention, { MentionOptions } from "@tiptap/extension-mention";
 import { mergeAttributes, ReactRenderer } from "@tiptap/react";
 import {
