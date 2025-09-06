@@ -1,11 +1,5 @@
-import {
-    Rectangle,
-    SpreadsheetCellData,
-    SpreadsheetCellPosition,
-    SpreadsheetRowData,
-} from "@/interface";
-
-export type PositionKey = string;
+import { Rectangle } from "@/interface";
+import { PositionKey, SpreadsheetCellPosition } from "./spreadsheet.interface";
 
 export function generatePositionKey(row: number, col: number): PositionKey {
     return `${row}-${col}`;
@@ -14,22 +8,6 @@ export function generatePositionKey(row: number, col: number): PositionKey {
 export function parsePositionKey(key: PositionKey): SpreadsheetCellPosition {
     const [row, col] = key.split("-", 2);
     return { row: Number(row), col: Number(col) };
-}
-
-export interface MutableSpreadsheetCellData extends SpreadsheetCellData {
-    key: string;
-    label: string;
-    value: string;
-    oldValue?: string;
-    position?: SpreadsheetCellPosition;
-    selected: boolean;
-    editable?: boolean;
-}
-
-export interface MutableSpreadsheetRowData extends SpreadsheetRowData {
-    key: string;
-    cells: { [key: string]: MutableSpreadsheetCellData };
-    highlighted: boolean;
 }
 
 export class SpreadsheetSelectedRectangle implements Rectangle {

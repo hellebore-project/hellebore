@@ -63,7 +63,7 @@ export class ArticleTextEditor {
         this.content = text ? JSON.parse(text) : "";
     }
 
-    sync() {
+    afterSync() {
         this.changed = false;
     }
 

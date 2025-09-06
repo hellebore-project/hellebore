@@ -2,39 +2,40 @@ import { makeAutoObservable } from "mobx";
 import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
 import { FieldType } from "@/constants";
-import { SpreadsheetRowData, SpreadsheetColumnData } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { isFullyContained } from "@/utils/math-utils";
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";
-import { MutableSpreadsheetCellData } from "./spreadsheet.model";
+import { SpreadsheetDataService } from "./spreadsheet-data.service";
 import {
     AddRowHandler,
     DeleteRowHandler,
     EditCellHandler,
-    SpreadsheetDataService,
-} from "./spreadsheet-data.service";
+    SpreadsheetCellData,
+    SpreadsheetColumnData,
+    SpreadsheetRowData,
+} from "./spreadsheet.interface";
 
 type PrivateKeys = "_sheet" | "_editableCell";
 
-interface SpreadsheetServiceArguments {
+interface SpreadsheetServiceArguments<K extends string, M> {
     onAddRow?: AddRowHandler;
-    onDeleteRow?: DeleteRowHandler;
-    onEditCell?: EditCellHandler;
+    onDeleteRow?: DeleteRowHandler<K, M>;
+    onEditCell?: EditCellHandler<K, M>;
 }
 
-export class SpreadsheetService {
+export class SpreadsheetService<K extends string, M> {
     private _sheet: RefObject<HTMLDivElement>;
 
     outsideEvent: OutsideEventHandlerService;
-    data: SpreadsheetDataService;
-    selection: SpreadsheetSelectionService;
+    data: SpreadsheetDataService<K, M>;
+    selection: SpreadsheetSelectionService<K, M>;
 
     constructor({
         onAddRow,
         onDeleteRow,
         onEditCell,
-    }: SpreadsheetServiceArguments) {
-        makeAutoObservable<SpreadsheetService, PrivateKeys>(this, {
+    }: SpreadsheetServiceArguments<K, M>) {
+        makeAutoObservable<SpreadsheetService<K, M>, PrivateKeys>(this, {
             _sheet: false,
             _editableCell: false,
             outsideEvent: false,
@@ -64,8 +65,8 @@ export class SpreadsheetService {
     // STATE MANAGEMENT
 
     initialize(
-        rowData: SpreadsheetRowData[],
-        columnData: SpreadsheetColumnData[],
+        rowData: SpreadsheetRowData<K, M>[],
+        columnData: SpreadsheetColumnData<K>[],
     ) {
         this.selection.clear();
         this.data.initialize(rowData, columnData);
@@ -226,7 +227,7 @@ export class SpreadsheetService {
 
     private _handleKeyDownForEditableCell(
         event: React.KeyboardEvent,
-        cell: MutableSpreadsheetCellData,
+        cell: SpreadsheetCellData,
         rowIndex: number,
         colIndex: number,
     ) {

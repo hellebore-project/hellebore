@@ -1,12 +1,11 @@
 import { makeAutoObservable } from "mobx";
 
-import { SpreadsheetCellPosition } from "@/interface";
 import {
     parsePositionKey,
-    PositionKey,
     SpreadsheetSelectedRectangle,
 } from "./spreadsheet.model";
 import { SpreadsheetDataService } from "./spreadsheet-data.service";
+import { PositionKey, SpreadsheetCellPosition } from "./spreadsheet.interface";
 
 type PrivateKeys =
     | "_baseSelection"
@@ -26,23 +25,26 @@ export interface UpdateSelectionArguments {
     positive?: boolean;
 }
 
-export class SpreadsheetSelectionService {
+export class SpreadsheetSelectionService<K extends string, M> {
     private _baseSelection: Set<PositionKey>;
     private _activePosition: SpreadsheetCellPosition | null = null;
     private _activeSelection: SpreadsheetSelectedRectangle | null = null;
     private _positiveDiff: Set<PositionKey>;
     private _negativeDiff: Set<PositionKey>;
 
-    private _data: SpreadsheetDataService;
+    private _data: SpreadsheetDataService<K, M>;
 
-    constructor(data: SpreadsheetDataService) {
-        makeAutoObservable<SpreadsheetSelectionService, PrivateKeys>(this, {
-            _baseSelection: false,
-            _activeSelection: false,
-            _positiveDiff: false,
-            _negativeDiff: false,
-            _data: false,
-        });
+    constructor(data: SpreadsheetDataService<K, M>) {
+        makeAutoObservable<SpreadsheetSelectionService<K, M>, PrivateKeys>(
+            this,
+            {
+                _baseSelection: false,
+                _activeSelection: false,
+                _positiveDiff: false,
+                _negativeDiff: false,
+                _data: false,
+            },
+        );
 
         this._baseSelection = new Set();
         this._positiveDiff = new Set();

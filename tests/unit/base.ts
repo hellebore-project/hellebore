@@ -69,7 +69,7 @@ export const test = baseTest.extend<BaseUnitFixtures>({
             mockGetFolders(mockedInvoker, { folders });
 
             let appManager = new AppManager();
-            appManager.initialize();
+            await appManager.initialize();
             state.manager = appManager;
 
             await use(appManager);
@@ -80,9 +80,8 @@ export const test = baseTest.extend<BaseUnitFixtures>({
 
     // setup and teardown
     setup: [
-        async ({ mockedInvoker, user }, use) => {
-            user; // instantiate the user during setup
-
+        // @ts-ignore
+        async ({ mockedInvoker, user, service }, use) => {
             await use(null);
 
             mockedInvoker.clear();
