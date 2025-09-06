@@ -3,15 +3,13 @@ import "./property-table.css";
 import { Card, CardProps, Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { FieldType } from "@/constants";
-import { FieldData } from "@/interface";
 import { TextField } from "@/shared/text-field";
-import { getService } from "@/services";
+import { PropertyFieldType, getService, PropertyFieldData } from "@/services";
 
-interface PropertyFieldSettings extends FieldData {}
+interface PropertyFieldSettings extends PropertyFieldData {}
 
 interface PropertyRowSettings {
-    data: FieldData;
+    data: PropertyFieldData;
 }
 
 interface PropertyTableSettings extends CardProps {
@@ -24,7 +22,7 @@ function renderPropertyField({
     getValue,
     setValue,
 }: PropertyFieldSettings) {
-    if (type == FieldType.TEXT) {
+    if (type == PropertyFieldType.TEXT) {
         return (
             <TextField
                 variant="unstyled"

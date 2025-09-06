@@ -1,13 +1,13 @@
 import { makeAutoObservable } from "mobx";
 
 import { EntityType, EntityViewKey, WordType } from "@/constants";
-import { BaseEntity, FieldData, Id, Word } from "@/interface";
+import { BaseEntity, Id } from "@/interface";
 import {
     EntryTextUpdateResponse,
     EntryTitleUpdateResponse,
     EntryUpdateResponse,
 } from "@/services/domain";
-import { IViewManager } from "@/services/interface";
+import { IViewManager, PropertyFieldData, Word } from "@/services/interface";
 import { WordUpsertResponse } from "@/schema";
 import { PropertyEditor } from "./property-editor";
 import { ArticleTextEditor } from "./text-editor";
@@ -128,7 +128,7 @@ export class EntityEditor {
         }
     }
 
-    get fieldData(): FieldData[] {
+    get fieldData(): PropertyFieldData[] {
         return this.properties.fields[this.info.entityType as EntityType] ?? [];
     }
 

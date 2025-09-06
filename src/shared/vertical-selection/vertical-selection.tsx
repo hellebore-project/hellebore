@@ -1,31 +1,13 @@
 import "./vertical-selection.css";
 
-import { Button, Paper, Stack, StackProps } from "@mantine/core";
+import { Button, Paper, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { ReactElement, SyntheticEvent } from "react";
 
 import {
-    BaseButtonSettings,
-    BasePaperSettings,
-    VerticalSelectionData,
-} from "@/interface";
-
-interface VerticalMenuSelectionSettings extends BaseButtonSettings {
-    data: VerticalSelectionData;
-    selected?: boolean;
-}
-
-export interface VerticalSelectionSettings extends BasePaperSettings {
-    data: VerticalSelectionData[];
-    placeholder?: string;
-    getSelectedIndex: () => number | null;
-    onConfirm?: (
-        e: SyntheticEvent<HTMLButtonElement>,
-        item: VerticalSelectionData,
-    ) => Promise<void>;
-    stackSettings?: StackProps;
-    itemSettings?: BaseButtonSettings;
-}
+    VerticalMenuSelectionSettings,
+    VerticalSelectionSettings,
+} from "./vertical-selection.interface";
 
 function renderVerticalSelectionItem({
     data,

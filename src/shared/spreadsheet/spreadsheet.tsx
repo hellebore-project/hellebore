@@ -5,17 +5,17 @@ import { IconCircleMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 import { HTMLAttributes, ReactNode } from "react";
 
-import { FieldType } from "@/constants";
 import { OutsideEventHandler } from "@/shared/outside-event-handler";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 import { SpreadsheetService } from "./spreadsheet.service";
+import { SpreadsheetFieldType } from "./spreadsheet.interface";
 
-interface SpreadsheetCellSettings {
+interface SpreadsheetCellSettings<K extends string, M> {
     rowIndex: number;
     colIndex: number;
-    service: SpreadsheetService;
+    service: SpreadsheetService<K, M>;
 }
 
 interface DeleteSpreadsheetRowButton {
@@ -24,13 +24,14 @@ interface DeleteSpreadsheetRowButton {
     onClick: (rowKey: string) => void;
 }
 
-interface SpreadsheetRowSettings {
+interface SpreadsheetRowSettings<K extends string, M> {
     index: number;
-    service: SpreadsheetService;
+    service: SpreadsheetService<K, M>;
 }
 
-interface SpreadsheetSettings extends HTMLAttributes<HTMLDivElement> {
-    service: SpreadsheetService;
+interface SpreadsheetSettings<K extends string, M>
+    extends HTMLAttributes<HTMLDivElement> {
+    service: SpreadsheetService<K, M>;
 }
 
 function renderDeleteRowButton({
@@ -58,11 +59,11 @@ function renderDeleteRowButton({
 
 const DeleteRowButton = observer(renderDeleteRowButton);
 
-function renderSpreadsheetCell({
+function renderSpreadsheetCell<K extends string, M>({
     rowIndex,
     colIndex,
     service,
-}: SpreadsheetCellSettings) {
+}: SpreadsheetCellSettings<K, M>) {
     const data = service.data.getCell(rowIndex, colIndex);
     const colData = service.data.getColumnData(colIndex);
 
@@ -77,7 +78,7 @@ function renderSpreadsheetCell({
     if (data.editable) {
         className += " compact";
 
-        if (colData.type === FieldType.TEXT) {
+        if (colData.type === SpreadsheetFieldType.TEXT) {
             field = (
                 <TextField
                     ref={service.data.editableCellElement}
@@ -99,7 +100,7 @@ function renderSpreadsheetCell({
                     variant="unstyled"
                 />
             );
-        } else if (colData.type === FieldType.SELECT) {
+        } else if (colData.type === SpreadsheetFieldType.SELECT) {
             field = (
                 <SelectField
                     ref={service.data.editableCellElement}
@@ -135,7 +136,10 @@ function renderSpreadsheetCell({
 
 const SpreadsheetCell = observer(renderSpreadsheetCell);
 
-function renderSpreadsheetRow({ index, service }: SpreadsheetRowSettings) {
+function renderSpreadsheetRow<K extends string, M>({
+    index,
+    service,
+}: SpreadsheetRowSettings<K, M>) {
     const row = service.data.rowData[index];
     const cells: ReactNode[] = service.data.columnData.map((col, j) => {
         return (
@@ -168,7 +172,10 @@ function renderSpreadsheetRow({ index, service }: SpreadsheetRowSettings) {
 
 const SpreadsheetRow = observer(renderSpreadsheetRow);
 
-function renderSpreadsheet({ service, ...rest }: SpreadsheetSettings) {
+function renderSpreadsheet<K extends string, M>({
+    service,
+    ...rest
+}: SpreadsheetSettings<K, M>) {
     const headers: ReactNode[] = [];
 
     for (const colData of service.data.columnData) {

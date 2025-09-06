@@ -1,9 +1,3 @@
-export enum ValueChange {
-    NOT_SET,
-    UPDATED,
-    UNCHANGED,
-}
-
 export type Id = number;
 
 export interface IdentifiedObject {

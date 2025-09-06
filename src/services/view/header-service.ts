@@ -1,8 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { IViewManager } from "@/services/interface";
-import { MenuDropdownElementData } from "@/interface";
-import { DIVIDER_DATA } from "@/constants";
+import { DIVIDER_DATA, MenuDropdownElementData } from "@/shared/menu-dropdown";
 
 type PrivateKeys = "_menuItems";
 

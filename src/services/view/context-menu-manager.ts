@@ -1,9 +1,10 @@
 import { makeAutoObservable, toJS } from "mobx";
 
 import { ContextMenuKey } from "@/constants";
-import { NodeId, Point, VerticalSelectionData } from "@/interface";
+import { Point } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
-import { IViewManager } from "@/services/interface";
+import { IViewManager, NodeId } from "@/services/interface";
+import { VerticalSelectionData } from "@/shared/vertical-selection";
 
 export interface OpenArguments {
     position: Point;

@@ -3,9 +3,12 @@ import "./menu-button.css";
 import { Button, Menu, MenuProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { DIVIDER_DATA } from "@/constants";
-import { BaseButtonSettings, MenuDropdownElementData } from "@/interface";
+import { BaseButtonSettings } from "@/interface";
 import { getService } from "@/services";
+import {
+    DIVIDER_DATA,
+    MenuDropdownElementData,
+} from "./menu-dropdown.interface";
 
 interface MenuElementSettings {
     data: MenuDropdownElementData;

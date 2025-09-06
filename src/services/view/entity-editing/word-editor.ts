@@ -1,7 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
 import {
-    FieldType,
     GrammaticalGender,
     GrammaticalNumber,
     GrammaticalPerson,
@@ -11,18 +10,19 @@ import {
     WordViewKey,
 } from "@/constants";
 import {
+    EntityChangeHandler,
+    IViewManager,
     WordKey,
     Word,
-    EntityChangeHandler,
     WordTableColumnKey,
     WordMetaData,
     WordColumnKeys,
-} from "@/interface";
-import { IViewManager } from "@/services/interface";
+} from "@/services/interface";
 import {
     SpreadsheetRowData,
     SpreadsheetColumnData,
     SpreadsheetService,
+    SpreadsheetFieldType,
 } from "@/shared/spreadsheet";
 import { WordResponse } from "@/schema";
 import { Counter } from "@/utils/counter";
@@ -64,31 +64,31 @@ const COLUMN_ORDER = [
 const COLUMN_DATA_MAPPING = {
     [WordTableColumnKey.Spelling]: {
         key: WordTableColumnKey.Spelling,
-        type: FieldType.TEXT,
+        type: SpreadsheetFieldType.TEXT,
         label: "Spelling",
     },
     [WordTableColumnKey.Translations]: {
         key: WordTableColumnKey.Translations,
-        type: FieldType.TEXT,
+        type: SpreadsheetFieldType.TEXT,
         label: "Translations",
     },
     [WordTableColumnKey.Gender]: {
         key: WordTableColumnKey.Gender,
-        type: FieldType.SELECT,
+        type: SpreadsheetFieldType.SELECT,
         label: "Gender",
         options: GRAMMATICAL_GENDERS,
         defaultValue: String(GrammaticalGender.None),
     },
     [WordTableColumnKey.Number]: {
         key: WordTableColumnKey.Number,
-        type: FieldType.SELECT,
+        type: SpreadsheetFieldType.SELECT,
         label: "Number",
         options: GRAMMATICAL_NUMBERS,
         defaultValue: String(GrammaticalNumber.None),
     },
     [WordTableColumnKey.Person]: {
         key: WordTableColumnKey.Person,
-        type: FieldType.SELECT,
+        type: SpreadsheetFieldType.SELECT,
         label: "Person",
         options: GRAMMATICAL_PERSONS,
         defaultValue: String(GrammaticalPerson.None),
