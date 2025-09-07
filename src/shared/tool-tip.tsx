@@ -1,4 +1,4 @@
-import { getService } from "@/services";
+import { getService } from "@/client";
 import { Tooltip, TooltipProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 

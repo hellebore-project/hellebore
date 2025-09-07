@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { expect } from "vitest";
 
-import { Home } from "@/panels/center/home";
+import { Home } from "@/client/center/home";
 import { test } from "@tests/unit/base";
 import { render } from "@tests/utils/render";
 import { mockUpdateProject } from "@tests/utils/mocks/backend/session";

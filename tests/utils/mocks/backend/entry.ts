@@ -1,6 +1,6 @@
-import { EntryInfoResponse } from "@/schema";
+import { EntryInfoResponse } from "@/domain/schema";
 import { MockedInvoker } from "./invoker";
-import { CommandNames } from "@/constants";
+import { CommandNames } from "@/domain/constants";
 
 export interface MockGetEntriesArguments {
     entities: EntryInfoResponse[];

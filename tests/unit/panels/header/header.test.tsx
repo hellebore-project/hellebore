@@ -1,8 +1,8 @@
 import { screen } from "@testing-library/react";
 import { describe, expect } from "vitest";
 
-import { ProjectCreator, EntryCreator } from "@/overlays";
-import { Center, Header } from "@/panels";
+import { ProjectCreator, EntryCreator } from "@/client/overlays";
+import { Center, Header } from "@/client";
 import { test } from "@tests/unit/base";
 import { render } from "@tests/utils/render";
 import { mockCloseProject } from "@tests/utils/mocks/backend/session";

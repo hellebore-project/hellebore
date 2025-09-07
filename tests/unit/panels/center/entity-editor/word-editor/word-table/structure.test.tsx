@@ -1,8 +1,8 @@
 import { screen } from "@testing-library/react";
 import { describe } from "vitest";
 
-import { WordType } from "@/constants";
-import { WordTable } from "@/panels/center/entity-editor/word-editor/word-table/word-table";
+import { WordType } from "@/domain/constants";
+import { WordTable } from "@/client/center/entity-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
 import { mockGetWords } from "@tests/utils/mocks/backend/word";
 import { render } from "@tests/utils/render";

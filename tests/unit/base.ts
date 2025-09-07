@@ -2,10 +2,14 @@ import { cleanup } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { test as baseTest } from "vitest";
 
-import { EntityType } from "@/constants";
-import { state } from "@/services";
-import { AppManager } from "@/services/app-manager";
-import { EntryInfoResponse, FolderResponse, ProjectResponse } from "@/schema";
+import { EntityType } from "@/domain/constants";
+import { state } from "@/client/services";
+import { AppManager } from "@/client/services/app-manager";
+import {
+    EntryInfoResponse,
+    FolderResponse,
+    ProjectResponse,
+} from "@/domain/schema";
 import { MockedInvoker } from "@tests/utils/mocks/backend/invoker";
 import {
     mockGetEntries,

@@ -1,4 +1,4 @@
-import { getService } from "@/services";
+import { getService } from "@/client";
 import { Select, SelectProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { forwardRef } from "react";

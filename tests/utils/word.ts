@@ -5,7 +5,7 @@ import {
     GrammaticalGender,
     VerbForm,
     VerbTense,
-} from "@/constants";
+} from "@/domain/constants";
 
 export function createWordData(wordType: WordType = WordType.Noun) {
     return {
