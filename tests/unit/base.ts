@@ -4,7 +4,7 @@ import { test as baseTest } from "vitest";
 
 import { EntityType } from "@/domain/constants";
 import { state } from "@/client/services";
-import { AppManager } from "@/client/services/app-manager";
+import { ClientManager } from "@/client/services/client-manager";
 import {
     EntryInfoResponse,
     FolderResponse,
@@ -23,7 +23,7 @@ export interface BaseUnitFixtures {
     entities: EntryInfoResponse[];
     folders: FolderResponse[];
     mockedInvoker: MockedInvoker;
-    service: AppManager;
+    service: ClientManager;
     user: UserEvent;
     setup: null;
 }
@@ -72,7 +72,7 @@ export const test = baseTest.extend<BaseUnitFixtures>({
             mockGetEntries(mockedInvoker, { entities });
             mockGetFolders(mockedInvoker, { folders });
 
-            let appManager = new AppManager();
+            let appManager = new ClientManager();
             await appManager.initialize();
             state.manager = appManager;
 

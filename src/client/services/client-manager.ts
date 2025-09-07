@@ -11,7 +11,7 @@ import {
     WordType,
 } from "@/domain/constants";
 import { Id } from "@/interface";
-import { OpenEntityCreatorArguments, IViewManager } from "@/client/interface";
+import { OpenEntityCreatorArguments, IClientManager } from "@/client/interface";
 import { DomainManager, WordUpsert } from "@/domain";
 import { EntryCreator } from "./entry-creator";
 import { EntityEditor } from "./entity-editing";
@@ -23,7 +23,7 @@ import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
 import { HeaderService } from "./header-service";
 
-export class ViewManager implements IViewManager {
+export class ClientManager implements IClientManager {
     // constants
     HEADER_HEIGHT = 30;
     FOOTER_HEIGHT = 25;
@@ -60,7 +60,7 @@ export class ViewManager implements IViewManager {
     // miscellaneous
     style: StyleManager;
 
-    constructor(domain: DomainManager) {
+    constructor() {
         const overrides = {
             domain: false,
             dimensions: false,
@@ -76,7 +76,7 @@ export class ViewManager implements IViewManager {
         };
         makeAutoObservable(this, overrides);
 
-        this.domain = domain;
+        this.domain = new DomainManager();
 
         // miscellaneous
         this.style = new StyleManager();
@@ -182,6 +182,11 @@ export class ViewManager implements IViewManager {
 
     set navBarMobileOpen(open: boolean) {
         this._navBarMobileOpen = open;
+    }
+
+    async initialize() {
+        const project = await this.fetchProjectInfo();
+        if (project) this.populateNavigator();
     }
 
     async getViewSize() {

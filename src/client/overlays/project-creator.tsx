@@ -11,35 +11,35 @@ function renderProjectLoader() {
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
         event.preventDefault();
-        const name = service.view.projectCreator.name;
-        const dbFilePath = service.view.projectCreator.dbFilePath;
-        service.view.createProject(name, dbFilePath);
+        const name = service.projectCreator.name;
+        const dbFilePath = service.projectCreator.dbFilePath;
+        service.createProject(name, dbFilePath);
     };
 
     return (
         <Modal
             title="Create a new project"
-            opened={service.view.currentModal == ModalKey.ProjectCreator}
-            onClose={() => service.view.closeModal()}
-            portalProps={{ target: service.view.sharedPortalSelector }}
+            opened={service.currentModal == ModalKey.ProjectCreator}
+            onClose={() => service.closeModal()}
+            portalProps={{ target: service.sharedPortalSelector }}
         >
             <Container size="xs">
                 <form onSubmit={onSubmit}>
                     <TextField
                         label="Name"
                         placeholder="My Wiki"
-                        getValue={() => service.view.projectCreator.name}
+                        getValue={() => service.projectCreator.name}
                         onChange={(event) =>
-                            (service.view.projectCreator.name =
+                            (service.projectCreator.name =
                                 event.currentTarget.value)
                         }
                     />
                     <FileField
                         label="File"
                         mode="save"
-                        getValue={() => service.view.projectCreator.dbFilePath}
+                        getValue={() => service.projectCreator.dbFilePath}
                         onChangeFile={(path) =>
-                            (service.view.projectCreator.dbFilePath = path)
+                            (service.projectCreator.dbFilePath = path)
                         }
                     />
                     <Group justify="flex-end" mt="md">

@@ -12,35 +12,35 @@ import { getService } from "./services";
 
 function renderPortalContainer() {
     const service = getService();
-    return <div id={service.view.sharedPortalId} />;
+    return <div id={service.sharedPortalId} />;
 }
 
 export const PortalContainer = observer(renderPortalContainer);
 
 function renderClient() {
     const service = getService();
-    service.view.injectHooks();
+    service.injectHooks();
     return (
         <MantineProvider
-            defaultColorScheme={service.view.style.colorScheme}
-            theme={service.view.style.theme}
+            defaultColorScheme={service.style.colorScheme}
+            theme={service.style.theme}
         >
             <AppShell
-                header={{ height: { base: service.view.headerHeight } }}
+                header={{ height: { base: service.headerHeight } }}
                 navbar={{
-                    width: service.view.navbarWidth,
+                    width: service.navbarWidth,
                     breakpoint: "sm",
                     collapsed: {
                         desktop: !service.domain.hasProject,
                         mobile:
-                            !service.view.navBarMobileOpen ||
+                            !service.navBarMobileOpen ||
                             !service.domain.hasProject,
                     },
                 }}
                 footer={{
-                    height: service.view.footerHeight,
+                    height: service.footerHeight,
                 }}
-                padding={service.view.mainPadding}
+                padding={service.mainPadding}
             >
                 <AppShell.Header className="header-panel">
                     <Header />

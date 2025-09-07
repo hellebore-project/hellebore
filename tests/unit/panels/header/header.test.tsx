@@ -12,7 +12,7 @@ test("clicking the Home button opens the home view", async ({
     user,
     project,
 }) => {
-    service.view.openSettings();
+    service.openSettings();
 
     render(
         <>

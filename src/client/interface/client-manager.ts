@@ -17,11 +17,7 @@ export interface OpenEntityCreatorArguments {
     folderId?: Id;
 }
 
-export interface IViewManager {
-    // HACK: referencing the concrete DomainManager class rather than an interface
-    // is conceptually incorrect, but creating a DomainManager interface would take
-    // a lot of effort and would carry very little benefit. So for now, we take the
-    // easy way out.
+export interface IClientManager {
     domain: DomainManager;
 
     get navbarWidth(): number;

@@ -22,7 +22,7 @@ const renderSelectField = forwardRef<HTMLInputElement, SelectFieldSettings>(
         const service = getService();
         const _value = value ?? getValue?.() ?? undefined;
         comboboxProps = {
-            portalProps: { target: service.view.sharedPortalSelector },
+            portalProps: { target: service.sharedPortalSelector },
             ...(comboboxProps ?? {}),
         };
         return (

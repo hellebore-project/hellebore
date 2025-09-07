@@ -12,7 +12,7 @@ function renderToolTip({ children, ...rest }: ToolTipSettings) {
             position="bottom"
             withArrow
             openDelay={500}
-            portalProps={{ target: service.view.sharedPortalSelector }}
+            portalProps={{ target: service.sharedPortalSelector }}
             {...rest}
         >
             {children}

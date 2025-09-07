@@ -3,7 +3,7 @@ import { FormEvent } from "react";
 
 import { EntityType, ROOT_FOLDER_ID } from "@/domain/constants";
 import { Id } from "@/interface";
-import { IViewManager } from "@/client/interface";
+import { IClientManager } from "@/client/interface";
 
 export class EntryCreator {
     // STATE
@@ -13,9 +13,9 @@ export class EntryCreator {
     private _isTitleUnique: boolean = true;
 
     // SERVICES
-    view: IViewManager;
+    view: IClientManager;
 
-    constructor(view: IViewManager) {
+    constructor(view: IClientManager) {
         makeAutoObservable(this, { view: false });
         this.view = view;
     }

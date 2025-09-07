@@ -34,7 +34,7 @@ const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
 
     const service = getService();
-    const fileNav = service.view.navigation.files;
+    const fileNav = service.navigation.files;
 
     const elementId = e.currentTarget.id;
     if (!elementId) return;
@@ -48,13 +48,13 @@ const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
     const id = fileNav.convertNodeIdToEntityId(nodeId);
 
     if (fileNav.isFolderNode(node))
-        service.view.contextMenu.openForNavBarFolderNode({
+        service.contextMenu.openForNavBarFolderNode({
             id,
             position: { x: e.pageX, y: e.pageY },
             text: node.text,
         });
     else
-        service.view.contextMenu.openForNavBarEntityNode({
+        service.contextMenu.openForNavBarEntityNode({
             id,
             position: { x: e.pageX, y: e.pageY },
             text: node.text,
@@ -69,7 +69,7 @@ function renderFileNavItem({
     ...rest
 }: FileNavItemSettings) {
     const service = getService();
-    const fileNav = service.view.navigation.files;
+    const fileNav = service.navigation.files;
 
     const selected = fileNav.selectedNodeId == node.id;
     const open = fileNav.openedNodeId == node.id;
@@ -89,9 +89,7 @@ function renderFileNavItem({
         // in case of an entity node, open the corresponding entity in the editor
         if (!fileNav.isFolderNode(node)) {
             const id = fileNav.convertNodeIdToEntityId(node.id);
-            service.view
-                .openArticleEditor(id)
-                .then(() => fileNav.openNode(node));
+            service.openArticleEditor(id).then(() => fileNav.openNode(node));
         }
     };
 
@@ -144,7 +142,7 @@ export const FileNavItem = observer(renderFileNavItem);
 
 function renderFileNavErrorPopover() {
     const service = getService();
-    const errorManager = service.view.navigation.files.errorManager;
+    const errorManager = service.navigation.files.errorManager;
 
     if (!errorManager.visible || !errorManager.position) return null;
     const position = errorManager.position;
@@ -167,7 +165,7 @@ export const FileNavErrorPopover = observer(renderFileNavErrorPopover);
 
 function renderFileNavigator({}: FileNavigatorSettings) {
     const service = getService();
-    const fileNav = service.view.navigation.files;
+    const fileNav = service.navigation.files;
 
     const data = fileNav.nodes;
 

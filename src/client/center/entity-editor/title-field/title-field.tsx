@@ -12,9 +12,8 @@ const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 function renderTitleField() {
     const service = getService();
     let error: string | null = null;
-    if (service.view.entityEditor.title == "") error = "Empty title";
-    if (!service.view.entityEditor.info.isTitleUnique)
-        error = "Duplicate title";
+    if (service.entityEditor.title == "") error = "Empty title";
+    if (!service.entityEditor.info.isTitleUnique) error = "Duplicate title";
 
     let className = "title-field";
     if (error) className += " error";
@@ -25,7 +24,7 @@ function renderTitleField() {
                 opened={Boolean(error)}
                 position="right"
                 withArrow
-                portalProps={{ target: service.view.sharedPortalSelector }}
+                portalProps={{ target: service.sharedPortalSelector }}
             >
                 <Popover.Target>
                     <TextField
@@ -33,9 +32,9 @@ function renderTitleField() {
                         variant="unstyled"
                         styles={TITLE_FIELD_STYLES}
                         placeholder="Title"
-                        getValue={() => service.view.entityEditor.title}
+                        getValue={() => service.entityEditor.title}
                         onChange={(event) => {
-                            service.view.entityEditor.title =
+                            service.entityEditor.title =
                                 event.currentTarget.value;
                         }}
                     />

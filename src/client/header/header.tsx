@@ -10,8 +10,8 @@ function renderNavBarMobileToggleButton() {
     const service = getService();
     return (
         <Burger
-            opened={service.view.navBarMobileOpen}
-            onClick={() => service.view.toggleNavBar()}
+            opened={service.navBarMobileOpen}
+            onClick={() => service.toggleNavBar()}
             hiddenFrom="sm"
             size="sm"
             pr="8"
@@ -26,7 +26,7 @@ function renderHomeButton() {
         <Button
             className="menu-button"
             size="compact-sm"
-            onClick={() => service.view.openHome()}
+            onClick={() => service.openHome()}
         >
             Home
         </Button>
@@ -36,7 +36,7 @@ export const HomeButton = observer(renderHomeButton);
 
 function renderFileMenuDropdown() {
     const service = getService();
-    const data = service.view.header.getFileMenuData();
+    const data = service.header.getFileMenuData();
     return <MenuDropdown label="File" data={data} />;
 }
 export const FileMenuDropdown = observer(renderFileMenuDropdown);

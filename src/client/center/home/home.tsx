@@ -16,14 +16,13 @@ function renderHome() {
                 variant="unstyled"
                 mx="12"
                 placeholder="Wiki"
-                getValue={() => service.view.home.projectName}
+                getValue={() => service.home.projectName}
                 getError={() => {
-                    if (service.view.home.projectName == "")
-                        return "Empty title";
+                    if (service.home.projectName == "") return "Empty title";
                     return null;
                 }}
                 onChange={(event) =>
-                    (service.view.home.projectName = event.currentTarget.value)
+                    (service.home.projectName = event.currentTarget.value)
                 }
                 styles={TITLE_FIELD_STYLES}
             />

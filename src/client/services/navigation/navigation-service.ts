@@ -2,12 +2,12 @@ import { makeAutoObservable } from "mobx";
 
 import { EntryInfoResponse, FolderResponse } from "@/domain/schema";
 import { FileNavigator } from "./file-navigator";
-import { IViewManager } from "@/client/interface";
+import { IClientManager } from "@/client/interface";
 
 export class NavigationService {
     files: FileNavigator;
 
-    constructor(view: IViewManager) {
+    constructor(view: IClientManager) {
         makeAutoObservable(this, { files: false });
         this.files = new FileNavigator(view);
     }

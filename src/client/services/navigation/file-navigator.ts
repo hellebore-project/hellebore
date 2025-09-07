@@ -8,7 +8,7 @@ import { Id } from "@/interface";
 import {
     FileNodeData,
     FileNodeModel,
-    IViewManager,
+    IClientManager,
     NodeId,
     ROOT_FOLDER_NODE_ID,
 } from "@/client/interface";
@@ -41,9 +41,9 @@ export class FileNavigator {
     _placeholderIdGenerator: Counter;
     outsideEventHandler: OutsideEventHandlerService;
     errorManager: NavigatorErrorManager;
-    view: IViewManager;
+    view: IClientManager;
 
-    constructor(view: IViewManager) {
+    constructor(view: IClientManager) {
         makeAutoObservable<FileNavigator, PrivateKeys>(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,

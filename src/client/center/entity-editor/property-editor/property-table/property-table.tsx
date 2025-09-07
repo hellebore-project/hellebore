@@ -55,7 +55,7 @@ function renderPropertyTable({
     stackSettings,
     ...rest
 }: PropertyTableSettings) {
-    const data = getService().view.entityEditor.fieldData;
+    const data = getService().entityEditor.fieldData;
     if (data.length == 0) return null;
     const rows = data.map((fieldData) => (
         <PropertyFieldRow key={`${fieldData.property}-row`} data={fieldData} />

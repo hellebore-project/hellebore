@@ -4,7 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { EntityChangeHandler, IViewManager } from "@/client/interface";
+import { EntityChangeHandler, IClientManager } from "@/client/interface";
 import {
     SuggestionData,
     useReferenceExtension,
@@ -12,7 +12,7 @@ import {
 import { EntityInfoEditor } from "./info-editor";
 
 interface ArticleTextEditorSettings {
-    view: IViewManager;
+    view: IClientManager;
     info: EntityInfoEditor;
     onChange: EntityChangeHandler;
 }
@@ -22,7 +22,7 @@ export class ArticleTextEditor {
     changed: boolean = false;
     private _selectedRefIndex: number | null = null;
 
-    view: IViewManager;
+    view: IClientManager;
     info: EntityInfoEditor;
 
     onChange: EntityChangeHandler;

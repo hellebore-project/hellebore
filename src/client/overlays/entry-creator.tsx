@@ -27,26 +27,21 @@ function renderEntryCreator() {
     return (
         <Modal
             title="Create a new entry"
-            opened={service.view.currentModal == ModalKey.EntryCreator}
-            onClose={() => service.view.closeModal()}
-            portalProps={{ target: service.view.sharedPortalSelector }}
+            opened={service.currentModal == ModalKey.EntryCreator}
+            onClose={() => service.closeModal()}
+            portalProps={{ target: service.sharedPortalSelector }}
         >
             <Container size="xs">
-                <form
-                    onSubmit={(event) =>
-                        service.view.entityCreator.submit(event)
-                    }
-                >
+                <form onSubmit={(event) => service.entityCreator.submit(event)}>
                     <SelectField
                         label="Entity"
                         placeholder="Select an entity type"
                         data={ENTITY_TYPE_DROPDOWN_DATA}
                         getValue={() =>
-                            service.view.entityCreator.entityType?.toString() ??
-                            null
+                            service.entityCreator.entityType?.toString() ?? null
                         }
                         onChange={(entityType) =>
-                            service.view.entityCreator.setEntityType(
+                            service.entityCreator.setEntityType(
                                 Number(entityType),
                             )
                         }
@@ -55,14 +50,14 @@ function renderEntryCreator() {
                     <TextField
                         label={"Title"}
                         placeholder="Enter a unique title"
-                        getValue={() => service.view.entityCreator.title}
+                        getValue={() => service.entityCreator.title}
                         getError={() =>
-                            service.view.entityCreator.isTitleUnique
+                            service.entityCreator.isTitleUnique
                                 ? null
                                 : "Duplicate title"
                         }
                         onChange={(event) =>
-                            (service.view.entityCreator.title =
+                            (service.entityCreator.title =
                                 event.currentTarget.value)
                         }
                     />

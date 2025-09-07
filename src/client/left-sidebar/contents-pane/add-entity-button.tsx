@@ -16,8 +16,8 @@ function renderAddEntityButton() {
                 size="sm"
                 onClick={(e) => {
                     e.stopPropagation(); // don't toggle the expanded status of the tab
-                    service.view.openEntityCreator({
-                        folderId: service.view.navigation.files.activeFolderId,
+                    service.openEntityCreator({
+                        folderId: service.navigation.files.activeFolderId,
                     });
                 }}
             >

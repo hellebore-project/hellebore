@@ -20,7 +20,7 @@ const ARTICLE_TAB_DATA: TableOfContentsItemData = {
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.view.openArticleEditor(service.view.entityEditor.info.id);
+        service.openArticleEditor(service.entityEditor.info.id);
     },
 };
 
@@ -30,7 +30,7 @@ const PROPERTY_TAB_DATA: TableOfContentsItemData = {
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.view.openPropertyEditor(service.view.entityEditor.info.id);
+        service.openPropertyEditor(service.entityEditor.info.id);
     },
 };
 
@@ -40,7 +40,7 @@ const LEXICON_TAB_DATA: TableOfContentsItemData = {
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.view.openWordEditor(service.view.entityEditor.info.id);
+        service.openWordEditor(service.entityEditor.info.id);
     },
 };
 
@@ -49,7 +49,7 @@ function renderEntityEditorHeader() {
     return (
         <Group className="entity-editor-header">
             <Badge variant="outline" color="blue">
-                {service.view.entityEditor.info.entityTypeLabel}
+                {service.entityEditor.info.entityTypeLabel}
             </Badge>
             <div className="grow" />
             <DeleteEntityButton />
@@ -61,7 +61,7 @@ const EntityEditorHeader = observer(renderEntityEditorHeader);
 
 function renderEntityEditorContent() {
     const service = getService();
-    const viewKey = service.view.entityEditor.currentView;
+    const viewKey = service.entityEditor.currentView;
     if (viewKey === EntityViewKey.ArticleEditor) return <ArticleEditor />;
     if (viewKey === EntityViewKey.PropertyEditor) return <PropertyEditor />;
     if (viewKey === EntityViewKey.WordEditor) return <WordEditor />;
@@ -72,7 +72,7 @@ const EntityEditorContent = observer(renderEntityEditorContent);
 
 function renderEntityEditorTabs() {
     const service = getService();
-    const entityType = service.view.entityType;
+    const entityType = service.entityType;
 
     let tabData: TableOfContentsItemData[] = [
         ARTICLE_TAB_DATA,
@@ -80,7 +80,7 @@ function renderEntityEditorTabs() {
     ];
     if (entityType === EntityType.LANGUAGE) tabData.push(LEXICON_TAB_DATA);
 
-    const activeTabKey = service.view.entityEditor.currentView;
+    const activeTabKey = service.entityEditor.currentView;
 
     return (
         <TableOfContents

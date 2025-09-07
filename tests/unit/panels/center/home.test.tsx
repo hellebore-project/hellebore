@@ -20,7 +20,7 @@ test("can edit the project name", async ({
 }) => {
     mockUpdateProject(mockedInvoker, { id: project.id });
 
-    service.view.home.initialize(project.name);
+    service.home.initialize(project.name);
 
     render(<Home />);
 
@@ -32,6 +32,6 @@ test("can edit the project name", async ({
 
     screen.getByDisplayValue("edited");
 
-    expect(service.view.home.projectName).toBe("edited");
+    expect(service.home.projectName).toBe("edited");
     mockedInvoker.expectCalled("update_project");
 });

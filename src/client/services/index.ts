@@ -1,4 +1,4 @@
-import { AppManager } from "./app-manager";
+import { ClientManager } from "./client-manager";
 import { AppState } from "./state";
 
 export let state: AppState = new AppState();
@@ -6,7 +6,7 @@ export let state: AppState = new AppState();
 export function getService() {
     if (state.manager === null) {
         console.info("Setting up frontend services");
-        state.manager = new AppManager();
+        state.manager = new ClientManager();
         state.manager.initialize();
     }
     return state.manager;

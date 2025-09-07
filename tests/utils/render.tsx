@@ -8,7 +8,7 @@ import { observer } from "mobx-react-lite";
 
 function renderTestApp({ children }: PropsWithChildren) {
     const service = getService();
-    service.view.injectHooks();
+    service.injectHooks();
     return (
         <MantineProvider theme={DEFAULT_THEME} env="test">
             {children}

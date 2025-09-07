@@ -63,7 +63,7 @@ describe("headers", () => {
             const word = createWordData(wordType);
             mockGetWords(mockedInvoker, [word]);
 
-            const wordEditor = service.view.entityEditor.lexicon;
+            const wordEditor = service.entityEditor.lexicon;
             await wordEditor.initialize(1, word.word_type);
 
             render(<WordTable />);
@@ -78,7 +78,7 @@ test("renders table with correct rows", async ({ mockedInvoker, service }) => {
     const word = createWordData();
     mockGetWords(mockedInvoker, [word]);
 
-    const wordEditor = service.view.entityEditor.lexicon;
+    const wordEditor = service.entityEditor.lexicon;
     await wordEditor.initialize(1, word.word_type);
 
     render(<WordTable />);

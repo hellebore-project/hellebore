@@ -3,7 +3,7 @@ import { makeAutoObservable, toJS } from "mobx";
 import { ContextMenuKey } from "@/domain/constants";
 import { Point } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
-import { IViewManager, NodeId } from "@/client/interface";
+import { IClientManager, NodeId } from "@/client/interface";
 import { VerticalSelectionData } from "@/shared/vertical-selection";
 
 export interface OpenArguments {
@@ -53,11 +53,11 @@ export class ContextMenuManager {
 
     menuData: ContextMenuDataMapping;
 
-    view: IViewManager;
+    view: IClientManager;
     fileNavigator: FileNavigatorContextMenuManager;
     outsideEventHandler: OutsideEventHandlerService;
 
-    constructor(view: IViewManager) {
+    constructor(view: IClientManager) {
         makeAutoObservable(this, {
             view: false,
             fileNavigator: false,

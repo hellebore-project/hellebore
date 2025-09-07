@@ -12,7 +12,7 @@ import { CollapseFoldersButton } from "./collapse-folders-button";
 import { AddEntityButton } from "./add-entity-button";
 
 function renderContentsPaneHeader() {
-    const fileNav = getService().view.navigation.files;
+    const fileNav = getService().navigation.files;
     return (
         <NavItem
             groupSettings={{
@@ -38,7 +38,7 @@ const ContentsPaneHeader = observer(renderContentsPaneHeader);
 
 function renderContentsPane() {
     const service = getService();
-    const fileNav = service.view.navigation.files;
+    const fileNav = service.navigation.files;
     // the components have to take up as much vertical space as possible in order to allow
     // dragging entity nodes to the top level of the file tree
     return (

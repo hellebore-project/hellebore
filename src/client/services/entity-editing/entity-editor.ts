@@ -8,7 +8,7 @@ import {
     EntryTitleUpdateResponse,
     EntryUpdateResponse,
 } from "@/domain";
-import { IViewManager, PropertyFieldData, Word } from "@/client/interface";
+import { IClientManager, PropertyFieldData, Word } from "@/client/interface";
 import { WordUpsertResponse } from "@/domain/schema";
 import { PropertyEditor } from "./property-editor";
 import { ArticleTextEditor } from "./text-editor";
@@ -62,13 +62,13 @@ export class EntityEditor {
     private _syncDelayTime: number = DEFAULT_SYNC_DELAY_TIME;
 
     // SERVICES
-    view: IViewManager;
+    view: IClientManager;
     info: EntityInfoEditor;
     properties: PropertyEditor;
     text: ArticleTextEditor;
     lexicon: WordEditor;
 
-    constructor(view: IViewManager) {
+    constructor(view: IClientManager) {
         makeAutoObservable<EntityEditor, PrivateKeys>(this, {
             _waitingForSync: false,
             _syncing: false,

@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { IViewManager } from "@/client/interface";
+import { IClientManager } from "@/client/interface";
 import { DIVIDER_DATA, MenuDropdownElementData } from "@/shared/menu-dropdown";
 
 type PrivateKeys = "_menuItems";
@@ -20,9 +20,9 @@ interface MenuItems {
 export class HeaderService {
     private _menuItems: MenuItems;
 
-    view: IViewManager;
+    view: IClientManager;
 
-    constructor(view: IViewManager) {
+    constructor(view: IClientManager) {
         makeAutoObservable<HeaderService, PrivateKeys>(this, {
             _menuItems: false,
             view: false,

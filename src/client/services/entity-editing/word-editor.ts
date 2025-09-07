@@ -11,7 +11,7 @@ import {
 } from "@/domain/constants";
 import {
     EntityChangeHandler,
-    IViewManager,
+    IClientManager,
     WordKey,
     Word,
     WordTableColumnKey,
@@ -104,7 +104,7 @@ type PrivateKeys =
     | "_info";
 
 interface WordEditorSettings {
-    view: IViewManager;
+    view: IClientManager;
     info: EntityInfoEditor;
     onChange: EntityChangeHandler;
 }
@@ -116,7 +116,7 @@ export class WordEditor {
     private _changed: boolean = false;
 
     // SERVICES
-    private _view: IViewManager;
+    private _view: IClientManager;
     private _info: EntityInfoEditor;
     spreadsheet: SpreadsheetService<WordColumnKeys, WordMetaData>;
 

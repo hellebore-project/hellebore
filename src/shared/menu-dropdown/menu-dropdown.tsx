@@ -51,7 +51,7 @@ function renderMenuDropdown({
             position="top-start"
             offset={0}
             shadow="md"
-            portalProps={{ target: service.view.sharedPortalSelector }}
+            portalProps={{ target: service.sharedPortalSelector }}
             {...rest}
         >
             <Menu.Target>

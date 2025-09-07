@@ -1,5 +1,5 @@
-import { AppManager } from "./app-manager";
+import { ClientManager } from "./client-manager";
 
 export class AppState {
-    manager: AppManager | null = null;
+    manager: ClientManager | null = null;
 }

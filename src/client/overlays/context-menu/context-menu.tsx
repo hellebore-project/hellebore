@@ -12,7 +12,7 @@ import {
 
 function renderContextMenu() {
     const service = getService();
-    const contextMenuService = service.view.contextMenu;
+    const contextMenuService = service.contextMenu;
     if (!contextMenuService.key || !contextMenuService.position) return null;
 
     const data = contextMenuService.menuData[contextMenuService.key];
