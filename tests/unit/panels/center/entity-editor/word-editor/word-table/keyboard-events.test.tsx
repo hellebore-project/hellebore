@@ -1,8 +1,8 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { GrammaticalGender } from "@/constants";
-import { WordTable } from "@/panels/center/entity-editor/word-editor/word-table/word-table";
+import { GrammaticalGender } from "@/domain/constants";
+import { WordTable } from "@/client/center/entity-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
 import { mockGetWords } from "@tests/utils/mocks/backend/word";
 import { render } from "@tests/utils/render";
@@ -20,7 +20,7 @@ describe("cell selection", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -59,7 +59,7 @@ describe("cell selection", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -101,7 +101,7 @@ describe("cell editing", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -134,7 +134,7 @@ describe("cell editing", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -164,7 +164,7 @@ describe("cell editing", () => {
             gender: GrammaticalGender.Masculine,
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -193,7 +193,7 @@ describe("cell editing", () => {
             gender: GrammaticalGender.Masculine,
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -221,7 +221,7 @@ describe("cell editing", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 

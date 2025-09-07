@@ -4,7 +4,7 @@ import { Button, Menu, MenuProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { BaseButtonSettings } from "@/interface";
-import { getService } from "@/services";
+import { getService } from "@/client";
 import {
     DIVIDER_DATA,
     MenuDropdownElementData,
@@ -51,7 +51,7 @@ function renderMenuDropdown({
             position="top-start"
             offset={0}
             shadow="md"
-            portalProps={{ target: service.view.sharedPortalSelector }}
+            portalProps={{ target: service.sharedPortalSelector }}
             {...rest}
         >
             <Menu.Target>

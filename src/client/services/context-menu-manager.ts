@@ -1,0 +1,169 @@
+import { makeAutoObservable, toJS } from "mobx";
+
+import { ContextMenuKey } from "@/domain/constants";
+import { Point } from "@/interface";
+import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
+import { IClientManager, NodeId } from "@/client/interface";
+import { VerticalSelectionData } from "@/shared/vertical-selection";
+
+export interface OpenArguments {
+    position: Point;
+    id: number;
+    text: string;
+}
+
+interface PrivateOpenArguments extends OpenArguments {
+    key: ContextMenuKey;
+}
+
+type ContextMenuDataMapping = {
+    [key in ContextMenuKey]: VerticalSelectionData[];
+};
+
+class FileNavigatorContextMenuManager {
+    _id: number | null = null;
+    _text: string | null = null;
+    _nodeId: NodeId | null = null;
+
+    constructor() {
+        makeAutoObservable(this);
+    }
+
+    get id() {
+        return this._id;
+    }
+
+    set id(id: number | null) {
+        this._id = id;
+    }
+
+    get text() {
+        return this._text;
+    }
+
+    set text(text: string | null) {
+        this._text = text;
+    }
+}
+
+export class ContextMenuManager {
+    private _key: ContextMenuKey | null = null;
+    private _position: Point | null = null;
+    private _selectedIndex: number | null = null;
+
+    menuData: ContextMenuDataMapping;
+
+    view: IClientManager;
+    fileNavigator: FileNavigatorContextMenuManager;
+    outsideEventHandler: OutsideEventHandlerService;
+
+    constructor(view: IClientManager) {
+        makeAutoObservable(this, {
+            view: false,
+            fileNavigator: false,
+            menuData: false,
+            outsideEventHandler: false,
+        });
+        this.view = view;
+        this.fileNavigator = new FileNavigatorContextMenuManager();
+        this.outsideEventHandler = new OutsideEventHandlerService({
+            onOutsideEvent: () => this.close(),
+            enabled: false,
+        });
+        this.menuData = this._generateMenuDataMapping();
+    }
+
+    get key() {
+        return this._key;
+    }
+
+    set key(key: ContextMenuKey | null) {
+        this._key = key;
+    }
+
+    get position() {
+        return toJS(this._position);
+    }
+
+    set position(pos: Point | null) {
+        this._position = pos;
+    }
+
+    get selectedIndex() {
+        return this._selectedIndex;
+    }
+
+    set selectedIndex(index: number | null) {
+        this._selectedIndex = index;
+    }
+
+    openForNavBarFolderNode(args: OpenArguments) {
+        this._open({ key: ContextMenuKey.NavBarFolderNode, ...args });
+    }
+
+    openForNavBarEntityNode(args: OpenArguments) {
+        this._open({ key: ContextMenuKey.NavBarEntityNode, ...args });
+    }
+
+    close() {
+        this.outsideEventHandler.enabled = false;
+        this.reset();
+    }
+
+    reset() {
+        this.key = null;
+        this.position = null;
+        this.selectedIndex = null;
+    }
+
+    private _open({ key, position, id, text }: PrivateOpenArguments) {
+        this.key = key;
+        this.position = position;
+        this.fileNavigator.id = id;
+        this.fileNavigator.text = text;
+        this.outsideEventHandler.enabled = true;
+    }
+
+    private _generateMenuDataMapping() {
+        const NAV_BAR_FOLDER_NODE_DATA = this._formatMenuData([
+            {
+                label: "Rename",
+                onConfirm: () => {
+                    const id = this.fileNavigator.id as number;
+                    return new Promise(() => this.view.editFolderName(id));
+                },
+            },
+            {
+                label: "Delete",
+                onConfirm: () => {
+                    const id = this.fileNavigator.id as number;
+                    return new Promise(() => this.view.deleteFolder(id));
+                },
+            },
+        ]);
+
+        const NAV_BAR_ENTITY_NODE_DATA = this._formatMenuData([
+            {
+                label: "Delete",
+                onConfirm: () => {
+                    const id = this.fileNavigator.id as number;
+                    const text = this.fileNavigator.text as string;
+                    return new Promise(() => this.view.deleteEntity(id, text));
+                },
+            },
+        ]);
+
+        return {
+            [ContextMenuKey.NavBarFolderNode]: NAV_BAR_FOLDER_NODE_DATA,
+            [ContextMenuKey.NavBarEntityNode]: NAV_BAR_ENTITY_NODE_DATA,
+        };
+    }
+
+    _formatMenuData(data: Partial<VerticalSelectionData>[]) {
+        return data.map((d, i) => ({
+            index: i,
+            value: d.label,
+            ...d,
+        })) as VerticalSelectionData[];
+    }
+}

@@ -1,0 +1,119 @@
+import "./entity-editor.css";
+
+import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
+import { observer } from "mobx-react-lite";
+
+import { EntityType, EntityViewKey } from "@/domain";
+import { getService } from "@/client";
+import {
+    TableOfContents,
+    TableOfContentsItemData,
+} from "@/shared/table-of-contents";
+import { ArticleEditor } from "./article-editor";
+import { DeleteEntityButton } from "./delete-entity-button";
+import { WordEditor } from "./word-editor/word-editor";
+import { PropertyEditor } from "./property-editor";
+
+const ARTICLE_TAB_DATA: TableOfContentsItemData = {
+    label: "Article",
+    value: EntityViewKey.ArticleEditor,
+    rank: 1,
+    onClick: () => {
+        const service = getService();
+        service.openArticleEditor(service.entityEditor.info.id);
+    },
+};
+
+const PROPERTY_TAB_DATA: TableOfContentsItemData = {
+    label: "Properties",
+    value: EntityViewKey.PropertyEditor,
+    rank: 1,
+    onClick: () => {
+        const service = getService();
+        service.openPropertyEditor(service.entityEditor.info.id);
+    },
+};
+
+const LEXICON_TAB_DATA: TableOfContentsItemData = {
+    label: "Lexicon",
+    value: EntityViewKey.WordEditor,
+    rank: 1,
+    onClick: () => {
+        const service = getService();
+        service.openWordEditor(service.entityEditor.info.id);
+    },
+};
+
+function renderEntityEditorHeader() {
+    const service = getService();
+    return (
+        <Group className="entity-editor-header">
+            <Badge variant="outline" color="blue">
+                {service.entityEditor.info.entityTypeLabel}
+            </Badge>
+            <div className="grow" />
+            <DeleteEntityButton />
+        </Group>
+    );
+}
+
+const EntityEditorHeader = observer(renderEntityEditorHeader);
+
+function renderEntityEditorContent() {
+    const service = getService();
+    const viewKey = service.entityEditor.currentView;
+    if (viewKey === EntityViewKey.ArticleEditor) return <ArticleEditor />;
+    if (viewKey === EntityViewKey.PropertyEditor) return <PropertyEditor />;
+    if (viewKey === EntityViewKey.WordEditor) return <WordEditor />;
+    return null;
+}
+
+const EntityEditorContent = observer(renderEntityEditorContent);
+
+function renderEntityEditorTabs() {
+    const service = getService();
+    const entityType = service.entityType;
+
+    let tabData: TableOfContentsItemData[] = [
+        ARTICLE_TAB_DATA,
+        PROPERTY_TAB_DATA,
+    ];
+    if (entityType === EntityType.LANGUAGE) tabData.push(LEXICON_TAB_DATA);
+
+    const activeTabKey = service.entityEditor.currentView;
+
+    return (
+        <TableOfContents
+            className="entity-editor-toc"
+            data={tabData}
+            activeValue={activeTabKey}
+            itemSettings={{
+                className: "entity-editor-toc-item",
+                justify: "space-between",
+            }}
+        />
+    );
+}
+
+export const EntityEditorTabs = observer(renderEntityEditorTabs);
+
+function renderEntityEditor() {
+    return (
+        <Stack className="entity-editor" gap={0}>
+            <EntityEditorHeader />
+            <Space className="entity-editor-space-below-header" />
+            <Stack className="entity-editor-stack">
+                <Grid className="entity-editor-grid">
+                    <Grid.Col span={1}>
+                        <EntityEditorTabs />
+                    </Grid.Col>
+                    <Grid.Col span={10}>
+                        <EntityEditorContent />
+                    </Grid.Col>
+                </Grid>
+            </Stack>
+        </Stack>
+    );
+}
+
+export const EntityEditor = observer(renderEntityEditor);

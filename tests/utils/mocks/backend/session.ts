@@ -1,6 +1,6 @@
-import { ProjectResponse, SessionResponse } from "@/schema";
+import { ProjectResponse, SessionResponse } from "@/domain/schema";
 import { MockedInvoker } from "./invoker";
-import { CommandNames } from "@/constants";
+import { CommandNames } from "@/domain/constants";
 
 export interface MockGetSessionArguments {
     project: ProjectResponse;

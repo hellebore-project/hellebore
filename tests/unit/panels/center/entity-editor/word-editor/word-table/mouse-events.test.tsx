@@ -1,8 +1,8 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { GrammaticalGender } from "@/constants";
-import { WordTable } from "@/panels/center/entity-editor/word-editor/word-table/word-table";
+import { GrammaticalGender } from "@/domain/constants";
+import { WordTable } from "@/client/center/entity-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
 import {
     mockDeleteWord,
@@ -20,7 +20,7 @@ describe("cell selection", () => {
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -45,7 +45,7 @@ describe("cell selection", () => {
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -70,7 +70,7 @@ describe("cell selection", () => {
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -95,7 +95,7 @@ describe("cell selection", () => {
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -118,7 +118,7 @@ describe("cell selection", () => {
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(
             <>
@@ -149,7 +149,7 @@ describe("cell editing", () => {
         mockUpsertWords(mockedInvoker);
         mockGetWords(mockedInvoker, [word]);
 
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -170,7 +170,7 @@ describe("cell editing", () => {
         await user.click(otherCell);
 
         const rowData =
-            service.view.entityEditor.lexicon.spreadsheet.data.findRow("1");
+            service.entityEditor.lexicon.spreadsheet.data.findRow("1");
         if (!rowData) throw "Row data not found";
 
         expect(rowData.cells["spelling"].value).toBe("edited");
@@ -184,7 +184,7 @@ describe("cell editing", () => {
         mockUpsertWords(mockedInvoker);
         mockGetWords(mockedInvoker, [word]);
 
-        await service.view.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entityEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -205,7 +205,7 @@ describe("cell editing", () => {
         await user.click(otherCell);
 
         const rowData =
-            service.view.entityEditor.lexicon.spreadsheet.data.findRow("1");
+            service.entityEditor.lexicon.spreadsheet.data.findRow("1");
         if (!rowData) throw "Row data not found";
 
         expect(Number(rowData.cells["gender"].value)).toBe(
@@ -221,7 +221,7 @@ test("can delete a row", async ({ mockedInvoker, service, user }) => {
     mockGetWords(mockedInvoker, [word]);
     mockDeleteWord(mockedInvoker);
 
-    const wordEditor = service.view.entityEditor.lexicon;
+    const wordEditor = service.entityEditor.lexicon;
     await wordEditor.initialize(1, word.word_type);
 
     const row = wordEditor.spreadsheet.data.rowData[0];
