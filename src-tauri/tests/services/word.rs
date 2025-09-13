@@ -17,7 +17,7 @@ use hellebore::{
     },
     services::{entry_service, language_service, word_service},
     settings::Settings,
-    types::grammar::{GrammaticalGender, VerbForm, WordType},
+    types::grammar::WordType,
     utils::CodedEnum,
 };
 use rstest::*;
@@ -27,12 +27,8 @@ fn validate_word_response(actual: &WordResponseSchema, expected: &WordResponseSc
     assert_eq!(expected.language_id, actual.language_id);
     assert_eq!(expected.word_type.code(), actual.word_type.code());
     assert_eq!(expected.spelling, actual.spelling);
+    assert_eq!(expected.definition, actual.definition);
     assert_eq!(expected.translations, actual.translations);
-    assert_eq!(expected.number.code(), actual.number.code());
-    assert_eq!(expected.person.code(), actual.person.code());
-    assert_eq!(expected.gender.code(), actual.gender.code());
-    assert_eq!(expected.verb_form.code(), actual.verb_form.code());
-    assert_eq!(expected.verb_tense.code(), actual.verb_tense.code());
 }
 
 #[rstest]
@@ -117,18 +113,15 @@ async fn test_update_word(
     let id = upsert_word(&db, &create_word_payload).await.unwrap();
 
     let new_spelling = "conducteur";
+    let new_definition = "Pilot or operator of a vehicle.";
     let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
     let update_payload = WordUpdateSchema {
         id: Some(id),
         language_id: None,
         word_type: None,
         spelling: Some(new_spelling.to_owned()),
+        definition: Some(new_definition.to_owned()),
         translations: Some(new_translations.clone()),
-        number: None,
-        person: None,
-        gender: Some(GrammaticalGender::Masculine),
-        verb_form: None,
-        verb_tense: None,
     };
 
     let responses = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
@@ -146,8 +139,8 @@ async fn test_update_word(
     expected_word_response.id = word.id;
     expected_word_response.language_id = word.language_id;
     expected_word_response.spelling = new_spelling.to_owned();
+    expected_word_response.definition = new_definition.to_owned();
     expected_word_response.translations = new_translations;
-    expected_word_response.gender = GrammaticalGender::Masculine;
 
     validate_word_response(&word, &expected_word_response);
 }
@@ -164,18 +157,15 @@ async fn test_error_on_updating_nonexistent_word(
         .unwrap();
 
     let new_spelling = "conducteur";
+    let new_definition = "Pilot or operator of a vehicle.";
     let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
     let update_payload = WordUpdateSchema {
         id: Some(1),
         language_id: Some(language.id),
         word_type: None,
         spelling: Some(new_spelling.to_owned()),
+        definition: Some(new_definition.to_owned()),
         translations: Some(new_translations.clone()),
-        number: None,
-        person: None,
-        gender: Some(GrammaticalGender::Masculine),
-        verb_form: None,
-        verb_tense: None,
     };
 
     let responses = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
@@ -237,7 +227,6 @@ async fn test_get_all_words_for_a_language(
         word_type: Some(WordType::Noun),
         spelling: Some("rue".to_owned()),
         translations: Some(vec!["road".to_owned()]),
-        gender: Some(GrammaticalGender::Feminine),
         ..Default::default()
     };
     let id_1 = upsert_word(&db, &create_payload_1).await.unwrap();
@@ -247,7 +236,6 @@ async fn test_get_all_words_for_a_language(
         word_type: Some(WordType::Verb),
         spelling: Some("conduire".to_owned()),
         translations: Some(vec!["drive".to_owned()]),
-        verb_form: Some(VerbForm::Infinitive),
         ..Default::default()
     };
     let id_2 = upsert_word(&db, &create_payload_2).await.unwrap();
