@@ -16,7 +16,7 @@
     "dev": "env-cmd tauri dev",
     "rustfmt": "cargo fmt --manifest-path src-tauri/Cargo.toml",
     "rustfmt:check": "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
-    "typecheck": "tsc --noEmit",
+    "typecheck:fe": "tsc --noEmit",
     "lint": "pnpm run eslint && pnpm run stylelint",
     "eslint": "eslint .",
     "stylelint": "stylelint **/*.css",

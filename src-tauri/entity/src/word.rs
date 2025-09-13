@@ -11,11 +11,7 @@ pub struct Model {
     pub language_id: i32,
     pub word_type: i8,
     pub spelling: String,
-    pub number: i8,
-    pub person: i8,
-    pub gender: i8,
-    pub verb_form: i8,
-    pub verb_tense: i8,
+    pub definition: String,
     pub translations: Json,
 }
 

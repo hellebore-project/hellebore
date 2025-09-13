@@ -12,7 +12,7 @@ export enum EntityViewKey {
 
 export enum WordViewKey {
     RootWords = "ROOT_WORDS",
-    Articles = "ARTICLES",
+    Determiners = "DETERMINERS",
     Prepositions = "PREPOSITIONS",
     Conjunctions = "CONJUNCTIONS",
     Pronouns = "PRONOUNS",

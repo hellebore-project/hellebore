@@ -13,47 +13,47 @@ describe("headers", () => {
         {
             case_: "root word",
             wordType: WordType.RootWord,
-            headers: ["Spelling", "Translations"],
+            headers: ["Spelling", "Definition"],
         },
         {
             case_: "preposition",
             wordType: WordType.Preposition,
-            headers: ["Spelling", "Translations"],
+            headers: ["Spelling", "Definition", "Translations"],
         },
         {
             case_: "conjunction",
             wordType: WordType.Conjunction,
-            headers: ["Spelling", "Translations"],
+            headers: ["Spelling", "Definition", "Translations"],
         },
         {
-            case_: "article",
-            wordType: WordType.Article,
-            headers: ["Spelling", "Translations", "Gender", "Number"],
+            case_: "determiner",
+            wordType: WordType.Determiner,
+            headers: ["Spelling", "Definition", "Translations"],
         },
         {
             case_: "pronoun",
             wordType: WordType.Pronoun,
-            headers: ["Spelling", "Translations", "Gender", "Person", "Number"],
+            headers: ["Spelling", "Definition", "Translations"],
         },
         {
             case_: "noun",
             wordType: WordType.Noun,
-            headers: ["Spelling", "Translations", "Gender"],
+            headers: ["Spelling", "Definition", "Translations"],
         },
         {
             case_: "adjective",
             wordType: WordType.Adjective,
-            headers: ["Spelling", "Translations"],
+            headers: ["Spelling", "Definition", "Translations"],
         },
         {
             case_: "adverb",
             wordType: WordType.Adverb,
-            headers: ["Spelling", "Translations"],
+            headers: ["Spelling", "Definition", "Translations"],
         },
         {
             case_: "verb",
             wordType: WordType.Verb,
-            headers: ["Spelling", "Translations"],
+            headers: ["Spelling", "Definition", "Translations"],
         },
     ]) {
         test(`renders ${case_} table with correct columns`, async ({

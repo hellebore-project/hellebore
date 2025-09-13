@@ -17,7 +17,7 @@ describe("cell selection", () => {
         const word = {
             ...createWordData(),
             spelling: "cell1",
-            translations: ["cell2"],
+            definition: "cell2",
         };
         mockGetWords(mockedInvoker, [word]);
         await service.entityEditor.lexicon.initialize(1, word.word_type);
@@ -56,7 +56,7 @@ describe("cell selection", () => {
         const word = {
             ...createWordData(),
             spelling: "cell1",
-            translations: ["cell2"],
+            definition: "cell2",
         };
         mockGetWords(mockedInvoker, [word]);
         await service.entityEditor.lexicon.initialize(1, word.word_type);
@@ -152,62 +152,6 @@ describe("cell editing", () => {
         // Escape to cancel edit
         await user.keyboard("{Escape}");
         screen.getByText("cell1");
-    });
-
-    test("enter toggles edit mode of select cell", async ({
-        mockedInvoker,
-        service,
-        user,
-    }) => {
-        const word = {
-            ...createWordData(),
-            gender: GrammaticalGender.Masculine,
-        };
-        mockGetWords(mockedInvoker, [word]);
-        await service.entityEditor.lexicon.initialize(1, word.word_type);
-
-        render(<WordTable />);
-
-        const genderCell = screen.getByText("Masculine");
-
-        // select gender cell
-        await user.click(genderCell);
-
-        // toggle edit mode
-        await user.keyboard("{Enter}");
-
-        // edit the cell
-        await user.keyboard("{ArrowDown}");
-        await user.keyboard("{Enter}");
-
-        screen.getByText("Feminine");
-    });
-
-    test("escape exits edit mode of select cell", async ({
-        mockedInvoker,
-        service,
-        user,
-    }) => {
-        const word = {
-            ...createWordData(),
-            gender: GrammaticalGender.Masculine,
-        };
-        mockGetWords(mockedInvoker, [word]);
-        await service.entityEditor.lexicon.initialize(1, word.word_type);
-
-        render(<WordTable />);
-
-        const genderCell = screen.getByText("Masculine");
-
-        // select gender cell
-        await user.click(genderCell);
-
-        // toggle edit mode
-        await user.keyboard("{Enter}");
-
-        // Escape to cancel edit
-        await user.keyboard("{Escape}");
-        screen.getByText("Masculine");
     });
 
     test("enter reduces the selection to a single cell before toggling it to edit mode", async ({

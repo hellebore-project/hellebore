@@ -8,9 +8,7 @@ use crate::errors::ApiError;
 use crate::schema::word::WordUpdateSchema;
 use crate::schema::{response::ResponseDiagnosticsSchema, word::WordResponseSchema};
 use crate::types::entity::WORD;
-use crate::types::grammar::{
-    GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense, WordType,
-};
+use crate::types::grammar::WordType;
 
 pub async fn bulk_upsert(
     database: &DatabaseConnection,
@@ -79,11 +77,7 @@ async fn _create(
         word.language_id.unwrap(),
         word.word_type.unwrap(),
         word.spelling,
-        word.number,
-        word.person,
-        word.gender,
-        word.verb_form,
-        word.verb_tense,
+        word.definition,
         translations,
     )
     .await
@@ -119,11 +113,7 @@ async fn _update(
         word.language_id,
         word.word_type,
         word.spelling,
-        word.number,
-        word.person,
-        word.gender,
-        word.verb_form,
-        word.verb_tense,
+        word.definition,
         translations,
     )
     .await
@@ -190,11 +180,7 @@ fn generate_response(word: &Word) -> Result<WordResponseSchema, ApiError> {
         language_id: word.language_id,
         word_type: WordType::from(word.word_type),
         spelling: word.spelling.to_string(),
-        number: GrammaticalNumber::from(word.number),
-        person: GrammaticalPerson::from(word.person),
-        gender: GrammaticalGender::from(word.gender),
-        verb_form: VerbForm::from(word.verb_form),
-        verb_tense: VerbTense::from(word.verb_tense),
+        definition: word.definition.to_string(),
         translations: _convert_translations_to_vec(word.id, &word.translations)?,
     });
 }

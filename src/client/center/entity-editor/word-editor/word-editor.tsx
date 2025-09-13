@@ -12,7 +12,7 @@ import { WordTable } from "./word-table";
 
 const TAB_DATA: TabData[] = [
     { label: "Root Words", value: WordViewKey.RootWords },
-    { label: "Articles", value: WordViewKey.Articles },
+    { label: "Determiners", value: WordViewKey.Determiners },
     { label: "Prepositions", value: WordViewKey.Prepositions },
     { label: "Conjunctions", value: WordViewKey.Conjunctions },
     { label: "Pronouns", value: WordViewKey.Pronouns },

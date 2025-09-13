@@ -1,7 +1,6 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { GrammaticalGender } from "@/domain/constants";
 import { WordTable } from "@/client/center/entity-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
 import {
@@ -175,43 +174,6 @@ describe("cell editing", () => {
 
         expect(rowData.cells["spelling"].value).toBe("edited");
         screen.getByText("edited");
-    });
-
-    test("can edit a select cell", async ({ mockedInvoker, service, user }) => {
-        const word = createWordData();
-        word.gender = GrammaticalGender.Masculine;
-
-        mockUpsertWords(mockedInvoker);
-        mockGetWords(mockedInvoker, [word]);
-
-        await service.entityEditor.lexicon.initialize(1, word.word_type);
-
-        render(<WordTable />);
-
-        const genderCell = screen.getByText("Masculine");
-
-        // click the cell to select it
-        await user.click(genderCell);
-
-        // click the cell again to toggle edit mode
-        await user.click(genderCell);
-
-        // click an option in the dropdown
-        const option = await screen.findByRole("option", { name: "Feminine" });
-        await user.click(option);
-
-        // select another cell to deselect the first cell
-        const otherCell = screen.getByText(word.translations[0]);
-        await user.click(otherCell);
-
-        const rowData =
-            service.entityEditor.lexicon.spreadsheet.data.findRow("1");
-        if (!rowData) throw "Row data not found";
-
-        expect(Number(rowData.cells["gender"].value)).toBe(
-            GrammaticalGender.Feminine,
-        );
-        screen.getByText("Feminine");
     });
 });
 

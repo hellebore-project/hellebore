@@ -19,11 +19,7 @@ impl MigrationTrait for Migration {
                     .col(integer(Word::LanguageId))
                     .col(tiny_integer(Word::WordType))
                     .col(string(Word::Spelling))
-                    .col(tiny_integer(Word::Number))
-                    .col(tiny_integer(Word::Person))
-                    .col(tiny_integer(Word::Gender))
-                    .col(tiny_integer(Word::VerbForm))
-                    .col(tiny_integer(Word::VerbTense))
+                    .col(string(Word::Definition))
                     .col(json(Word::Translations))
                     .foreign_key(
                         ForeignKey::create()
@@ -56,10 +52,6 @@ enum Word {
     LanguageId,
     WordType,
     Spelling,
-    Number,
-    Person,
-    Gender,
-    VerbForm,
-    VerbTense,
+    Definition,
     Translations,
 }

@@ -12,14 +12,14 @@ use crate::utils::CodedEnum;
 pub enum WordType {
     None = 0,
     RootWord = 1,
-    Article = 11,
+    Determiner = 11,
     Preposition = 12,
     Conjunction = 13,
     Pronoun = 21,
     Noun = 31,
     Adjective = 41,
-    Adverb = 42,
-    Verb = 51,
+    Adverb = 51,
+    Verb = 61,
 }
 
 impl CodedEnum for WordType {

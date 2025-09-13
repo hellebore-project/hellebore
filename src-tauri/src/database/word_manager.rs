@@ -2,9 +2,7 @@ use sea_orm::*;
 
 use ::entity::{word, word::Entity as WordEntity};
 
-use crate::types::grammar::{
-    GrammaticalGender, GrammaticalNumber, GrammaticalPerson, VerbForm, VerbTense, WordType,
-};
+use crate::types::grammar::WordType;
 use crate::utils::CodedEnum;
 
 use super::utils;
@@ -14,11 +12,7 @@ pub async fn insert<C>(
     language_id: i32,
     word_type: WordType,
     spelling: Option<String>,
-    number: Option<GrammaticalNumber>,
-    person: Option<GrammaticalPerson>,
-    gender: Option<GrammaticalGender>,
-    verb_form: Option<VerbForm>,
-    verb_tense: Option<VerbTense>,
+    definition: Option<String>,
     translations: Option<serde_json::Value>,
 ) -> Result<word::Model, DbErr>
 where
@@ -33,11 +27,7 @@ where
         language_id: Set(language_id),
         word_type: Set(word_type.code()),
         spelling: utils::set_value_or_default(spelling),
-        number: utils::set_type_or_default(number),
-        person: utils::set_type_or_default(person),
-        gender: utils::set_type_or_default(gender),
-        verb_form: utils::set_type_or_default(verb_form),
-        verb_tense: utils::set_type_or_default(verb_tense),
+        definition: utils::set_value_or_default(definition),
         translations,
     };
     return new_entity.insert(con).await;
@@ -49,11 +39,7 @@ pub async fn update<C>(
     language_id: Option<i32>,
     word_type: Option<WordType>,
     spelling: Option<String>,
-    number: Option<GrammaticalNumber>,
-    person: Option<GrammaticalPerson>,
-    gender: Option<GrammaticalGender>,
-    verb_form: Option<VerbForm>,
-    verb_tense: Option<VerbTense>,
+    definition: Option<String>,
     translations: Option<serde_json::Value>,
 ) -> Result<word::Model, DbErr>
 where
@@ -68,11 +54,7 @@ where
         language_id: utils::set_value_or_null(language_id),
         word_type: utils::set_type_or_null(word_type),
         spelling: utils::set_value_or_null(spelling),
-        number: utils::set_type_or_null(number),
-        person: utils::set_type_or_null(person),
-        gender: utils::set_type_or_null(gender),
-        verb_form: utils::set_type_or_null(verb_form),
-        verb_tense: utils::set_type_or_null(verb_tense),
+        definition: utils::set_value_or_default(definition),
         translations,
     };
     updated_entity.update(con).await

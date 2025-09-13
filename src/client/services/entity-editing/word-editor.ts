@@ -1,14 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import {
-    GrammaticalGender,
-    GrammaticalNumber,
-    GrammaticalPerson,
-    VerbForm,
-    VerbTense,
-    WordType,
-    WordViewKey,
-} from "@/domain/constants";
+import { WordType, WordViewKey } from "@/domain/constants";
 import {
     EntityChangeHandler,
     IClientManager,
@@ -26,12 +18,11 @@ import {
 } from "@/shared/spreadsheet";
 import { WordResponse } from "@/domain/schema";
 import { Counter } from "@/utils/counter";
-import { numericEnumMapping } from "@/utils/enums";
 import { EntityInfoEditor } from "./info-editor";
 
 const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.RootWord, WordViewKey.RootWords],
-    [WordType.Article, WordViewKey.Articles],
+    [WordType.Determiner, WordViewKey.Determiners],
     [WordType.Preposition, WordViewKey.Prepositions],
     [WordType.Conjunction, WordViewKey.Conjunctions],
     [WordType.Pronoun, WordViewKey.Pronouns],
@@ -44,22 +35,10 @@ const VIEW_TO_TYPE_MAPPING: Map<WordViewKey, WordType> = new Map(
     Array.from(TYPE_TO_VIEW_MAPPING, (entry) => [entry[1], entry[0]]),
 );
 
-const GRAMMATICAL_NUMBERS = Object.entries(
-    numericEnumMapping(GrammaticalNumber),
-).map(([k, v]) => ({ label: k, value: String(v) }));
-const GRAMMATICAL_GENDERS = Object.entries(
-    numericEnumMapping(GrammaticalGender),
-).map(([k, v]) => ({ label: k, value: String(v) }));
-const GRAMMATICAL_PERSONS = Object.entries(
-    numericEnumMapping(GrammaticalPerson),
-).map(([k, v]) => ({ label: k, value: String(v) }));
-
 const COLUMN_ORDER = [
     WordTableColumnKey.Spelling,
+    WordTableColumnKey.Definition,
     WordTableColumnKey.Translations,
-    WordTableColumnKey.Gender,
-    WordTableColumnKey.Number,
-    WordTableColumnKey.Person,
 ];
 const COLUMN_DATA_MAPPING = {
     [WordTableColumnKey.Spelling]: {
@@ -67,31 +46,15 @@ const COLUMN_DATA_MAPPING = {
         type: SpreadsheetFieldType.TEXT,
         label: "Spelling",
     },
+    [WordTableColumnKey.Definition]: {
+        key: WordTableColumnKey.Definition,
+        type: SpreadsheetFieldType.TEXT,
+        label: "Definition",
+    },
     [WordTableColumnKey.Translations]: {
         key: WordTableColumnKey.Translations,
         type: SpreadsheetFieldType.TEXT,
         label: "Translations",
-    },
-    [WordTableColumnKey.Gender]: {
-        key: WordTableColumnKey.Gender,
-        type: SpreadsheetFieldType.SELECT,
-        label: "Gender",
-        options: GRAMMATICAL_GENDERS,
-        defaultValue: String(GrammaticalGender.None),
-    },
-    [WordTableColumnKey.Number]: {
-        key: WordTableColumnKey.Number,
-        type: SpreadsheetFieldType.SELECT,
-        label: "Number",
-        options: GRAMMATICAL_NUMBERS,
-        defaultValue: String(GrammaticalNumber.None),
-    },
-    [WordTableColumnKey.Person]: {
-        key: WordTableColumnKey.Person,
-        type: SpreadsheetFieldType.SELECT,
-        label: "Person",
-        options: GRAMMATICAL_PERSONS,
-        defaultValue: String(GrammaticalPerson.None),
     },
 };
 
@@ -288,11 +251,7 @@ export class WordEditor {
             language_id: this.languageId,
             word_type: this.wordType as WordType,
             spelling: "",
-            number: GrammaticalNumber.None,
-            person: GrammaticalPerson.None,
-            gender: GrammaticalGender.None,
-            verb_form: VerbForm.None,
-            verb_tense: VerbTense.None,
+            definition: "",
             translations: [],
         };
         this.spreadsheet.data.addRow(this._convertWordToRow(newWord));
@@ -319,30 +278,15 @@ export class WordEditor {
 
     private _getVisibleColumnKeys() {
         switch (this.wordType) {
-            case WordType.Article:
+            case WordType.RootWord:
                 return new Set([
                     WordTableColumnKey.Spelling,
-                    WordTableColumnKey.Translations,
-                    WordTableColumnKey.Gender,
-                    WordTableColumnKey.Number,
-                ]);
-            case WordType.Pronoun:
-                return new Set([
-                    WordTableColumnKey.Person,
-                    WordTableColumnKey.Gender,
-                    WordTableColumnKey.Number,
-                    WordTableColumnKey.Spelling,
-                    WordTableColumnKey.Translations,
-                ]);
-            case WordType.Noun:
-                return new Set([
-                    WordTableColumnKey.Spelling,
-                    WordTableColumnKey.Translations,
-                    WordTableColumnKey.Gender,
+                    WordTableColumnKey.Definition,
                 ]);
             default:
                 return new Set([
                     WordTableColumnKey.Spelling,
+                    WordTableColumnKey.Definition,
                     WordTableColumnKey.Translations,
                 ]);
         }
@@ -367,26 +311,13 @@ export class WordEditor {
                     key: `${word.key}-${WordTableColumnKey.Spelling}`,
                     value: word.spelling,
                 },
+                definition: {
+                    key: `${word.key}-${WordTableColumnKey.Definition}`,
+                    value: word.definition,
+                },
                 translations: {
                     key: `${word.key}-${WordTableColumnKey.Translations}`,
                     value: word.translations?.join(", ") ?? "",
-                },
-                // NOTE: generating these labels depends on typescript's reverse mapping for numeric enums;
-                // changing any of these enums to string-type or mixed-type would break this logic
-                gender: {
-                    key: `${word.key}-${WordTableColumnKey.Gender}`,
-                    label: GrammaticalGender[word.gender],
-                    value: String(word.gender),
-                },
-                number: {
-                    key: `${word.key}-${WordTableColumnKey.Number}`,
-                    label: GrammaticalNumber[word.number],
-                    value: String(word.number),
-                },
-                person: {
-                    key: `${word.key}-${WordTableColumnKey.Person}`,
-                    label: GrammaticalPerson[word.person],
-                    value: String(word.person),
                 },
             },
             metaData: {
@@ -402,12 +333,10 @@ export class WordEditor {
     ): Word {
         const spelling = String(row.cells.spelling.value ?? "");
 
+        const definition = String(row.cells.definition.value ?? "");
+
         const rawTranslations = row.cells.translations.value ?? "";
         const translations = rawTranslations.split(/,|;/).map((s) => s.trim());
-
-        const gender = Number(row.cells.gender.value);
-        const number = Number(row.cells.number.value);
-        const person = Number(row.cells.person.value);
 
         return {
             key: row.key,
@@ -415,12 +344,8 @@ export class WordEditor {
             language_id: this.languageId,
             word_type: this.wordType,
             spelling,
+            definition,
             translations,
-            gender,
-            number,
-            person,
-            verb_form: VerbForm.None,
-            verb_tense: VerbTense.None,
         };
     }
 }
