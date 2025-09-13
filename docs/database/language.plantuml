@@ -7,15 +7,146 @@ class Language {
 }
 
 enum WordType {
-    ROOT_WORD
-    ARTICLE
-    PREPOSITION
+    ROOT
+    DETERMINER
+    ADPOSITION
     CONJUNCTION
     PRONOUN
     NOUN
+    NUMERAL
     ADJECTIVE
     ADVERB
     VERB
+}
+
+enum GrammaticalCase {
+    ''' marks the subject of a verb
+    NOMINATIVE
+    ''' marks the subject of an intransitive verb or the object of a transitive verb
+    ABSOLUTIVE
+    ''' marks the direct object of a transitive verb
+    ACCUSATIVE
+    ''' marks the subject of a transitive verb
+    ERGATIVE
+    ''' marks a word that modifies another word
+    GENITIVE
+    ''' marks the indirect object of a verb
+    DATIVE
+    ''' marks a location
+    LOCATIVE
+    ''' marks motion to something
+    LATIVE  
+    ''' marks motion away from something
+    ABLATIVE
+    ''' marks the object of an adposition
+    ADPOSITIONAL
+    ''' marks the instrument by which the subject accomplishes an action
+    INSTRUMENTAL
+}
+
+enum GrammaticalVoice {
+    ACTIVE
+    PASSIVE
+    ANTI_PASSIVE
+    MIDDLE
+}
+
+enum GrammaticalMood {
+    /* realis moods */
+
+    ''' statement of fact
+    INDICATIVE
+    DECLARATIVE
+    ''' strong belief
+    ENERGETIC
+    ''' general statements
+    GENERIC
+
+    /* irrealis moods */
+
+    ''' event is questioned
+    INTERROGATIVE
+
+    ''' event is ordered
+    IMPERATIVE
+    ''' event is requested (less forceful than an order so that the addressee may decline)
+    PRECATIVE
+    ''' event is ordered or requested in a formal manner
+    BENEDICTIVE
+    ''' event is prescribed with the expectation it will occur, but not demanded
+    PRESCRIPTIVE
+
+    ''' event is exhorted or encouraged (may be limited to 1st person)
+    HORTATIVE
+    ''' event is exhorted or encouraged (may be limited to 2nd or 3rd person)
+    JUSSIVE
+
+    ''' event is permitted
+    PERMISSIVE
+    ''' event is prohibited
+    PROHIBITIVE
+
+    ''' event is warned against happening
+    ADMONITIVE
+
+    ''' event is necessary
+    NECESSITATIVE
+
+    ''' event is hoped for or expected
+    OPTATIVE
+    ''' event is desired or wished for
+    DESIDERATIVE
+    ''' 
+
+    ''' event is surprising
+    MIRATIVE
+
+    ''' unlikely event
+    SUBJUNCTIVE
+    ''' uncertain event
+    DUBITATIVE
+    ''' likely event
+    POTENTIAL
+
+    ''' event that depends upon another event
+    CONDITIONAL
+    ''' event is likely AND conditional
+    EVENTIVE
+
+    ''' hypothetical event
+    HYPOTHETICAL
+
+    ''' event is presumed to occur or have occurred
+    PRESUMPTIVE
+    ''' event is not confirmed to have occurred or to occur
+    INFERENTIAL
+    ''' event is presupposed or admitted to occur as a concession in the context of an argument
+    CONCESSIVE
+}
+
+enum GrammaticalTense {
+    REMOTE_PAST
+    PAST
+    RECENT_PAST
+    NON_PAST
+    PRESENT
+    NON_FUTURE
+    NEAR_FUTURE
+    FUTURE
+    REMOTE_FUTURE
+}
+
+enum GrammaticalAspect {
+    PERFECTIVE
+    IMPERFECTIVE
+    PROGRESSIVE
+    HABITUAL
+}
+
+enum GrammaticalPerson {
+    FIRST
+    SECOND
+    THIRD
 }
 
 enum GrammaticalNumber {
@@ -37,38 +168,49 @@ enum GrammaticalGender {
     NEUTRAL
 }
 
-enum GrammaticalPerson {
-    FIRST
-    SECOND
-    THIRD
+enum GrammaticalAnimacy {
+    PERSON
+    ANIMAL
+    PLANT
+    FORCE
+    CONCRETE_OBJECT
+    ABSTRACT_OBJECT
 }
 
-enum VerbForm {
-    INFINITIVE
-    FINITE
-}
-
-enum VerbTense {
-    PAST
-    PRESENT
-    FUTURE
+enum GrammaticalDefiniteness {
+    DEFINITE
+    INDEFINITE
 }
 
 class Word {
     int id
-    string spelling
     int language_id
     WordType word_type
-    GrammaticalNumber number
-    GrammaticalPerson person
-    GrammaticalGender gender
-    VerbForm verb_form
-    VerbTense verb_tense
+    string spelling
+    string definition
     json translations
+}
+
+class InflectedWord {
+    int id
+    int word_id
+    string spelling
+    string case
+    string voice
+    string mood
+    string tense
+    string aspect
+    GrammaticalDefiniteness definiteness
+    string number
+    string person
+    string gender
+    string animacy
 }
 
 ''' Relationships
 
 Language "1" *-- "*" Word
+
+Word "1" *-- "*" InflectedWord
 
 @enduml
