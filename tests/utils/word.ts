@@ -1,11 +1,4 @@
-import {
-    WordType,
-    GrammaticalNumber,
-    GrammaticalPerson,
-    GrammaticalGender,
-    VerbForm,
-    VerbTense,
-} from "@/domain/constants";
+import { WordType } from "@/domain/constants";
 
 export function createWordData(wordType: WordType = WordType.Noun) {
     return {
@@ -13,11 +6,7 @@ export function createWordData(wordType: WordType = WordType.Noun) {
         language_id: 1,
         word_type: wordType,
         spelling: "test-word",
-        number: GrammaticalNumber.Singular,
-        person: GrammaticalPerson.First,
-        gender: GrammaticalGender.Masculine,
-        verb_form: VerbForm.None,
-        verb_tense: VerbTense.None,
+        definition: "tets-definition",
         translations: ["translation1"],
     };
 }

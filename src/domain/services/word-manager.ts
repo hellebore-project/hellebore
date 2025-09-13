@@ -29,11 +29,7 @@ export class WordManager {
                     language_id: word.language_id,
                     word_type: word.word_type,
                     spelling: word.spelling,
-                    person: word.person,
-                    gender: word.gender,
-                    number: word.number,
-                    verb_form: word.verb_form,
-                    verb_tense: word.verb_tense,
+                    definition: word.definition,
                     translations: word.translations,
                 })),
             );

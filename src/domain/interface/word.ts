@@ -1,11 +1,4 @@
-import {
-    GrammaticalGender,
-    GrammaticalNumber,
-    GrammaticalPerson,
-    VerbForm,
-    VerbTense,
-    WordType,
-} from "@/domain";
+import { WordType } from "@/domain";
 import { IdentifiedObject } from "@/interface";
 
 export interface WordInfo {
@@ -15,21 +8,13 @@ export interface WordInfo {
 
 export interface WordProperties {
     spelling: string;
-    number: GrammaticalNumber;
-    person: GrammaticalPerson;
-    gender: GrammaticalGender;
-    verb_form: VerbForm;
-    verb_tense: VerbTense;
+    definition: string;
     translations: string[];
 }
 
 export interface OptionalWordProperties {
     spelling: string | null;
-    number: GrammaticalNumber | null;
-    person: GrammaticalPerson | null;
-    gender: GrammaticalGender | null;
-    verb_form: VerbForm | null;
-    verb_tense: VerbTense | null;
+    definition: string | null;
     translations: string[] | null;
 }
 
