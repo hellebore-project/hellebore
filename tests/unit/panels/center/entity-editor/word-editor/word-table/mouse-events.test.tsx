@@ -161,6 +161,7 @@ describe("cell editing", () => {
         await user.click(cell);
 
         // edit the cell value
+        // this ensures that the newly-rendered text field has focus
         await user.keyboard("[Backspace>9/]");
         await user.keyboard("edited");
 
