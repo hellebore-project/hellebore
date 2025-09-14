@@ -5,6 +5,8 @@ import { EntityType, ROOT_FOLDER_ID } from "@/domain/constants";
 import { Id } from "@/interface";
 import { IClientManager } from "@/client/interface";
 
+type PrivateKeys = "_client";
+
 export class EntryCreator {
     // STATE
     private _title: string = "";
@@ -13,11 +15,11 @@ export class EntryCreator {
     private _isTitleUnique: boolean = true;
 
     // SERVICES
-    view: IClientManager;
+    private _client: IClientManager;
 
-    constructor(view: IClientManager) {
-        makeAutoObservable(this, { view: false });
-        this.view = view;
+    constructor(client: IClientManager) {
+        this._client = client;
+        makeAutoObservable<EntryCreator, PrivateKeys>(this, { _client: false });
     }
 
     setEntityType(entityType: EntityType | null = null) {
@@ -54,7 +56,7 @@ export class EntryCreator {
     async submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const entity = this.view.createEntity(
+        const entity = this._client.createEntity(
             // HACK: assume that the user has entered an entity type
             // TODO: when entity type is null, we need to default to some sort of generic entity
             // without any properties

@@ -63,21 +63,6 @@ export class ClientManager implements IClientManager {
     domReferences: DOMReferenceManager;
 
     constructor() {
-        const overrides = {
-            domain: false,
-            dimensions: false,
-            style: false,
-            home: false,
-            settingsEditor: false,
-            navigation: false,
-            projectCreator: false,
-            folderRemover: false,
-            entityCreator: false,
-            entityEditor: false,
-            contextMenu: false,
-        };
-        makeAutoObservable(this, overrides);
-
         this.domain = new DomainManager();
 
         // miscellaneous
@@ -109,6 +94,22 @@ export class ClientManager implements IClientManager {
 
         // context menu
         this.contextMenu = new ContextMenuManager(this);
+
+        const overrides = {
+            domain: false,
+            dimensions: false,
+            style: false,
+            domReferences: false,
+            home: false,
+            settingsEditor: false,
+            navigation: false,
+            projectCreator: false,
+            folderRemover: false,
+            entityCreator: false,
+            entityEditor: false,
+            contextMenu: false,
+        };
+        makeAutoObservable(this, overrides);
     }
 
     get headerHeight() {

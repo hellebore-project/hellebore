@@ -64,11 +64,11 @@ type PrivateKeys =
     | "_modifiedWordKeys"
     | "_wordKeyGenerator"
     | "_onChange"
-    | "_view"
+    | "_client"
     | "_info";
 
 interface WordEditorArguments {
-    view: IClientManager;
+    client: IClientManager;
     info: EntityInfoEditor;
     editableCellRef: ObservableReference<HTMLInputElement>;
     onChange: EntityChangeHandler;
@@ -81,7 +81,7 @@ export class WordEditor {
     private _changed: boolean = false;
 
     // SERVICES
-    private _view: IClientManager;
+    private _client: IClientManager;
     private _info: EntityInfoEditor;
     spreadsheet: SpreadsheetService<WordColumnKeys, WordMetaData>;
 
@@ -93,24 +93,16 @@ export class WordEditor {
 
     // CONSTRUCTION
     constructor({
-        view,
+        client,
         info,
         editableCellRef,
         onChange,
     }: WordEditorArguments) {
-        makeAutoObservable<WordEditor, PrivateKeys>(this, {
-            _modifiedWordKeys: false,
-            _columnData: false,
-            _wordKeyGenerator: false,
-            _onChange: false,
-            _view: false,
-            _info: false,
-            spreadsheet: false,
-        });
-
         this._modifiedWordKeys = new Set();
+        this._wordKeyGenerator = new Counter();
+        this._onChange = onChange;
 
-        this._view = view;
+        this._client = client;
         this._info = info;
         this.spreadsheet = new SpreadsheetService({
             data: {
@@ -119,8 +111,16 @@ export class WordEditor {
                 onDeleteRow: (r) => this.deleteWord(r),
             },
         });
-        this._wordKeyGenerator = new Counter();
-        this._onChange = onChange;
+
+        makeAutoObservable<WordEditor, PrivateKeys>(this, {
+            _modifiedWordKeys: false,
+            _columnData: false,
+            _wordKeyGenerator: false,
+            _onChange: false,
+            _client: false,
+            _info: false,
+            spreadsheet: false,
+        });
     }
 
     // PROPERTIES
@@ -153,7 +153,7 @@ export class WordEditor {
         wordType: WordType = WordType.RootWord,
     ) {
         if (wordType !== undefined) this._wordType = wordType;
-        return this._view.domain.words
+        return this._client.domain.words
             .getAllForLanguage(languageId, wordType)
             .then((words) => this._setWords(words));
     }
@@ -181,7 +181,7 @@ export class WordEditor {
 
     changeView(viewKey: WordViewKey) {
         const wordType = VIEW_TO_TYPE_MAPPING.get(viewKey) as WordType;
-        return this._view.openWordEditor(this.languageId, wordType);
+        return this._client.openWordEditor(this.languageId, wordType);
     }
 
     afterSync(words: Word[] | undefined | null) {
@@ -271,7 +271,7 @@ export class WordEditor {
 
     deleteWord(row: SpreadsheetRowData<WordColumnKeys, WordMetaData>) {
         if (row.metaData.id !== null)
-            this._view.domain.words.delete(row.metaData.id);
+            this._client.domain.words.delete(row.metaData.id);
         this._modifiedWordKeys.delete(row.key);
     }
 

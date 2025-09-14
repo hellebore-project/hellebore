@@ -18,7 +18,11 @@ import { Counter } from "@/utils/counter";
 import { NavigatorErrorManager } from "./navigator-error-manager";
 import { ObservableReference } from "@/shared/observable-reference";
 
-type PrivateKeys = "_nodePositionCache" | "_tree" | "_editableTextRef";
+type PrivateKeys =
+    | "_nodePositionCache"
+    | "_tree"
+    | "_editableTextRef"
+    | "_client";
 
 export interface FileNavigatorArguments {
     client: IClientManager;
@@ -26,9 +30,11 @@ export interface FileNavigatorArguments {
 }
 
 export class FileNavigator {
+    // CONSTANTS
     NODE_DOM_ID_PREFIX = "file-nav-node-";
     NODE_TEXT_DOM_ID_PREFIX = "file-nav-node-text-";
 
+    // STATE
     private _nodes: FileNodeModel[];
     private _nodePositionCache: { [nodeId: NodeId]: number };
     private _expanded: boolean = true;
@@ -37,6 +43,7 @@ export class FileNavigator {
     private _selectedNode: FileNodeModel | null = null;
     private _openedNode: FileNodeModel | null = null;
 
+    // REFERENCES
     /**
      * Reference to the file tree element.
      * Its handlers must be called inside a component function to ensure that the DOM is updated.
@@ -44,22 +51,13 @@ export class FileNavigator {
     private _tree: RefObject<TreeMethods>;
     private _editableTextRef: ObservableReference<HTMLInputElement>;
 
+    // SERVICES
     _placeholderIdGenerator: Counter;
     outsideEventHandler: OutsideEventHandlerService;
     errorManager: NavigatorErrorManager;
-    view: IClientManager;
+    private _client: IClientManager;
 
     constructor({ client, editableTextRef }: FileNavigatorArguments) {
-        makeAutoObservable<FileNavigator, PrivateKeys>(this, {
-            _nodePositionCache: false,
-            _placeholderIdGenerator: false,
-            _tree: false,
-            _editableTextRef: false,
-            outsideEventHandler: false,
-            errorManager: false,
-            view: false,
-        });
-
         this._nodes = [];
         this._nodePositionCache = {};
 
@@ -75,11 +73,21 @@ export class FileNavigator {
             enabled: true,
         });
         this.errorManager = new NavigatorErrorManager(this);
-        this.view = client;
+        this._client = client;
+
+        makeAutoObservable<FileNavigator, PrivateKeys>(this, {
+            _nodePositionCache: false,
+            _placeholderIdGenerator: false,
+            _tree: false,
+            _editableTextRef: false,
+            outsideEventHandler: false,
+            errorManager: false,
+            _client: false,
+        });
     }
 
     get width() {
-        return this.view.navbarWidth;
+        return this._client.navbarWidth;
     }
 
     /**
@@ -395,7 +403,7 @@ export class FileNavigator {
             if (this.isFolderNode(node)) {
                 // folder
                 const parentId = this.convertNodeIdToEntityId(node.parent);
-                const validationResponse = this.view.domain.folders.validate(
+                const validationResponse = this._client.domain.folders.validate(
                     id,
                     parentId,
                     newText,
@@ -434,7 +442,7 @@ export class FileNavigator {
             if (this.isPlaceholderNode(node)) {
                 // add new folder
                 const parentId = this.convertNodeIdToEntityId(node.parent);
-                const folder = await this.view.domain.folders.create(
+                const folder = await this._client.domain.folders.create(
                     newText,
                     parentId,
                 );
@@ -455,7 +463,7 @@ export class FileNavigator {
                 }
             } else {
                 // update existing folder
-                const folder = await this.view.domain.folders.update({
+                const folder = await this._client.domain.folders.update({
                     id: this.convertNodeIdToEntityId(node.id),
                     name: newText,
                 });
@@ -652,7 +660,7 @@ export class FileNavigator {
         let response: any;
         if (this.isFolderNode(node)) {
             // folder
-            const validateResponse = this.view.domain.folders.validate(
+            const validateResponse = this._client.domain.folders.validate(
                 id,
                 destParentId,
                 node.text,
@@ -667,7 +675,7 @@ export class FileNavigator {
                 );
                 if (!replace) return false;
 
-                const deleteResponse = await this.view.deleteFolder(
+                const deleteResponse = await this._client.deleteFolder(
                     validateResponse.nameCollision.collidingFolderId,
                     false,
                 );
@@ -682,14 +690,14 @@ export class FileNavigator {
                 index = this.getNodeIndex(node.id) as number;
             }
 
-            response = await this.view.domain.folders.update({
+            response = await this._client.domain.folders.update({
                 id,
                 parentId: destParentId,
                 oldParentId: sourceParentId,
             });
         } else {
             // entity
-            response = await this.view.domain.entries.updateFolder(
+            response = await this._client.domain.entries.updateFolder(
                 id,
                 destParentId,
                 sourceParentId,

@@ -1,7 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
 import { ENTITY_TYPE_LABELS, EntityType } from "@/domain/constants";
-import { IClientManager } from "@/client/interface";
 
 const ENTITY_ID_SENTINEL = -1;
 
@@ -12,12 +11,8 @@ export class EntityInfoEditor {
     _isTitleUnique: boolean = true;
     _titleChanged: boolean = false;
 
-    // services
-    view: IClientManager;
-
-    constructor(view: IClientManager) {
-        makeAutoObservable(this, { view: false });
-        this.view = view;
+    constructor() {
+        makeAutoObservable(this);
     }
 
     get id() {
