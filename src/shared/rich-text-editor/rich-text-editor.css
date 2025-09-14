@@ -1,13 +1,13 @@
-.article-reference {
+.rich-text-reference {
     color: var(--mantine-color-blue-4);
     cursor: pointer;
 }
 
-.reference-item {
+.rich-text-reference-item {
     background-color: var(--mantine-color-dark-9);
 }
 
-.reference-item:hover {
+.rich-text-reference-item:hover {
     background-color: color-mix(
         in oklab,
         var(--button-bg, var(--mantine-color-dark-9)),
@@ -15,6 +15,6 @@
     );
 }
 
-.reference-item.selected {
+.rich-text-reference-item.selected {
     background-color: var(--selected-bg-color);
 }

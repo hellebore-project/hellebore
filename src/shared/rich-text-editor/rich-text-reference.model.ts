@@ -164,7 +164,7 @@ class ReferenceSuggestionRenderer {
 
     convertQueryResult(result: SuggestionData[]): VerticalSelectionData[] {
         return result.map((r, i) => ({
-            className: "reference-item",
+            className: "rich-text-reference-item",
             index: i,
             ...r,
         }));
@@ -181,6 +181,7 @@ function generateSuggestionOptions(
         setSelectedIndex,
     );
     return {
+        // TODO: need to decide what character to use; currently the default is '@'
         //char: "[[",
         items: queryItems,
         render: () => ({
@@ -206,7 +207,7 @@ export function useReferenceExtension({
             setSelectedIndex,
         ),
         HTMLAttributes: {
-            class: "article-reference",
+            class: "rich-text-reference",
         },
         renderHTML({ options, node }) {
             return [
