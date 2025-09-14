@@ -81,7 +81,7 @@ function renderSpreadsheetCell<K extends string, M>({
         if (colData.type === SpreadsheetFieldType.TEXT) {
             field = (
                 <TextField
-                    ref={service.data.editableCellElement}
+                    ref={service.data.editableCellRef}
                     value={data.value}
                     onChange={(e) =>
                         service.data.editCell(
@@ -103,7 +103,7 @@ function renderSpreadsheetCell<K extends string, M>({
         } else if (colData.type === SpreadsheetFieldType.SELECT) {
             field = (
                 <SelectField
-                    ref={service.data.editableCellElement}
+                    ref={service.data.editableCellRef}
                     placeholder=""
                     clearable={false}
                     allowDeselect={false}

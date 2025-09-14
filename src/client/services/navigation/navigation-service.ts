@@ -1,15 +1,20 @@
 import { makeAutoObservable } from "mobx";
 
 import { EntryInfoResponse, FolderResponse } from "@/domain/schema";
-import { FileNavigator } from "./file-navigator";
+import { FileNavigator, FileNavigatorArguments } from "./file-navigator";
 import { IClientManager } from "@/client/interface";
+
+export interface NavigationServiceArguments {
+    client: IClientManager;
+    files: Omit<FileNavigatorArguments, "client">;
+}
 
 export class NavigationService {
     files: FileNavigator;
 
-    constructor(view: IClientManager) {
+    constructor({ client, files }: NavigationServiceArguments) {
         makeAutoObservable(this, { files: false });
-        this.files = new FileNavigator(view);
+        this.files = new FileNavigator({ client, ...files });
     }
 
     initialize(entities: EntryInfoResponse[], folders: FolderResponse[]) {

@@ -4,11 +4,11 @@ import { createRef, MouseEvent, RefObject, useEffect } from "react";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { isFullyContained } from "@/utils/math-utils";
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";
-import { SpreadsheetDataService } from "./spreadsheet-data.service";
 import {
-    AddRowHandler,
-    DeleteRowHandler,
-    EditCellHandler,
+    SpreadsheetDataService,
+    SpreadsheetDataServiceArguments,
+} from "./spreadsheet-data.service";
+import {
     SpreadsheetCellData,
     SpreadsheetColumnData,
     SpreadsheetFieldType,
@@ -17,10 +17,8 @@ import {
 
 type PrivateKeys = "_sheet" | "_editableCell";
 
-interface SpreadsheetServiceArguments<K extends string, M> {
-    onAddRow?: AddRowHandler;
-    onDeleteRow?: DeleteRowHandler<K, M>;
-    onEditCell?: EditCellHandler<K, M>;
+export interface SpreadsheetServiceArguments<K extends string, M> {
+    data: SpreadsheetDataServiceArguments<K, M>;
 }
 
 export class SpreadsheetService<K extends string, M> {
@@ -30,11 +28,7 @@ export class SpreadsheetService<K extends string, M> {
     data: SpreadsheetDataService<K, M>;
     selection: SpreadsheetSelectionService<K, M>;
 
-    constructor({
-        onAddRow,
-        onDeleteRow,
-        onEditCell,
-    }: SpreadsheetServiceArguments<K, M>) {
+    constructor({ data }: SpreadsheetServiceArguments<K, M>) {
         makeAutoObservable<SpreadsheetService<K, M>, PrivateKeys>(this, {
             _sheet: false,
             _editableCell: false,
@@ -50,11 +44,7 @@ export class SpreadsheetService<K extends string, M> {
             node: this._sheet,
             enabled: true,
         });
-        this.data = new SpreadsheetDataService({
-            onAddRow,
-            onDeleteRow,
-            onEditCell,
-        });
+        this.data = new SpreadsheetDataService(data);
         this.selection = new SpreadsheetSelectionService(this.data);
     }
 
@@ -286,7 +276,7 @@ export class SpreadsheetService<K extends string, M> {
     // HOOKS
 
     hookEditableCellEffect() {
-        const ref = this.data.editableCellElement;
+        const ref = this.data.editableCellRef;
         useEffect(() => {
             if (ref?.current) {
                 if (document.activeElement === ref.current) return;

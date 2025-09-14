@@ -19,6 +19,7 @@ import {
 import { WordResponse } from "@/domain/schema";
 import { Counter } from "@/utils/counter";
 import { EntityInfoEditor } from "./info-editor";
+import { ObservableReference } from "@/shared/observable-reference";
 
 const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.RootWord, WordViewKey.RootWords],
@@ -66,9 +67,10 @@ type PrivateKeys =
     | "_view"
     | "_info";
 
-interface WordEditorSettings {
+interface WordEditorArguments {
     view: IClientManager;
     info: EntityInfoEditor;
+    editableCellRef: ObservableReference<HTMLInputElement>;
     onChange: EntityChangeHandler;
 }
 
@@ -90,7 +92,12 @@ export class WordEditor {
     private _onChange: EntityChangeHandler;
 
     // CONSTRUCTION
-    constructor({ view, info, onChange }: WordEditorSettings) {
+    constructor({
+        view,
+        info,
+        editableCellRef,
+        onChange,
+    }: WordEditorArguments) {
         makeAutoObservable<WordEditor, PrivateKeys>(this, {
             _modifiedWordKeys: false,
             _columnData: false,
@@ -106,8 +113,11 @@ export class WordEditor {
         this._view = view;
         this._info = info;
         this.spreadsheet = new SpreadsheetService({
-            onEditCell: (r) => this.editWord(r),
-            onDeleteRow: (r) => this.deleteWord(r),
+            data: {
+                editableCellRef,
+                onEditCell: (r) => this.editWord(r),
+                onDeleteRow: (r) => this.deleteWord(r),
+            },
         });
         this._wordKeyGenerator = new Counter();
         this._onChange = onChange;

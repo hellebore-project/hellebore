@@ -111,7 +111,7 @@ function renderFileNavItem({
             size: "xs",
             styles: { input: { fontSize: 16 } },
         };
-        textSettings.ref_ = fileNav.editableTextField ?? undefined;
+        textSettings.ref_ = fileNav.editableTextRef ?? undefined;
     } else
         textSettings.textSettings = {
             id: textElementId,

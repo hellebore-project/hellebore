@@ -14,6 +14,7 @@ import { PropertyEditor } from "./property-editor";
 import { ArticleTextEditor } from "./text-editor";
 import { EntityInfoEditor } from "./info-editor";
 import { WordEditor } from "./word-editor";
+import { ObservableReference } from "@/shared/observable-reference";
 
 const DEFAULT_SYNC_DELAY_TIME = 5000;
 
@@ -23,6 +24,13 @@ type PrivateKeys =
     | "_lastModified"
     | "_lastSynced"
     | "_syncDelayTime";
+
+export interface EntityEditorArguments {
+    client: IClientManager;
+    wordEditor: {
+        editableCellRef: ObservableReference<HTMLInputElement>;
+    };
+}
 
 interface SyncSettings {
     syncTitle?: boolean;
@@ -68,7 +76,7 @@ export class EntityEditor {
     text: ArticleTextEditor;
     lexicon: WordEditor;
 
-    constructor(view: IClientManager) {
+    constructor({ client, wordEditor }: EntityEditorArguments) {
         makeAutoObservable<EntityEditor, PrivateKeys>(this, {
             _waitingForSync: false,
             _syncing: false,
@@ -82,8 +90,8 @@ export class EntityEditor {
             lexicon: false,
         });
 
-        this.view = view;
-        this.info = new EntityInfoEditor(view);
+        this.view = client;
+        this.info = new EntityInfoEditor(client);
 
         const onChange = () => this._onChange();
         this.properties = new PropertyEditor({
@@ -91,11 +99,16 @@ export class EntityEditor {
             onChange,
         });
         this.text = new ArticleTextEditor({
-            view: view,
+            view: client,
             info: this.info,
             onChange,
         });
-        this.lexicon = new WordEditor({ view, info: this.info, onChange });
+        this.lexicon = new WordEditor({
+            view: client,
+            info: this.info,
+            editableCellRef: wordEditor.editableCellRef,
+            onChange,
+        });
     }
 
     get entityHeaderSpaceHeight() {

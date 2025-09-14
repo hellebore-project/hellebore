@@ -1,2 +1,2 @@
 export * from "./rich-text-editor";
-export * from "./reference.model";
+export * from "./rich-text-reference.model";

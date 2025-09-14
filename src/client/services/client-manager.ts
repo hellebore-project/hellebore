@@ -22,6 +22,7 @@ import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
 import { HeaderService } from "./header-service";
+import { DOMReferenceManager } from "./dom-reference-manager";
 
 export class ClientManager implements IClientManager {
     // constants
@@ -59,6 +60,7 @@ export class ClientManager implements IClientManager {
 
     // miscellaneous
     style: StyleManager;
+    domReferences: DOMReferenceManager;
 
     constructor() {
         const overrides = {
@@ -80,15 +82,26 @@ export class ClientManager implements IClientManager {
 
         // miscellaneous
         this.style = new StyleManager();
+        this.domReferences = new DOMReferenceManager();
 
         // central views
         this.home = new HomeManager(this);
         this.settingsEditor = new SettingsEditor(this);
-        this.entityEditor = new EntityEditor(this);
+        this.entityEditor = new EntityEditor({
+            client: this,
+            wordEditor: {
+                editableCellRef: this.domReferences.wordTableEditableCell,
+            },
+        });
 
         // bars
         this.header = new HeaderService(this);
-        this.navigation = new NavigationService(this);
+        this.navigation = new NavigationService({
+            client: this,
+            files: {
+                editableTextRef: this.domReferences.fileNavEditableText,
+            },
+        });
 
         // modals
         this.projectCreator = new ProjectCreator();
