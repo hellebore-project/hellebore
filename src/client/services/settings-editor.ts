@@ -2,11 +2,15 @@ import { makeAutoObservable } from "mobx";
 
 import { IClientManager } from "@/client/interface";
 
-export class SettingsEditor {
-    view: IClientManager;
+type PrivateKeys = "_client";
 
-    constructor(view: IClientManager) {
-        makeAutoObservable(this, { view: false });
-        this.view = view;
+export class SettingsEditor {
+    _client: IClientManager;
+
+    constructor(client: IClientManager) {
+        this._client = client;
+        makeAutoObservable<SettingsEditor, PrivateKeys>(this, {
+            _client: false,
+        });
     }
 }

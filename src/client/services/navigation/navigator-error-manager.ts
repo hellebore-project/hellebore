@@ -14,8 +14,8 @@ export class NavigatorErrorManager {
     dimensions: DimensionService;
 
     constructor(dimensions: DimensionService) {
-        makeAutoObservable(this, { dimensions: false });
         this.dimensions = dimensions;
+        makeAutoObservable(this, { dimensions: false });
     }
 
     get visible() {

@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 import { IClientManager } from "@/client/interface";
 import { DIVIDER_DATA, MenuDropdownElementData } from "@/shared/menu-dropdown";
 
-type PrivateKeys = "_menuItems";
+type PrivateKeys = "_menuItems" | "_client";
 
 interface MenuItems {
     project: {
@@ -20,44 +20,45 @@ interface MenuItems {
 export class HeaderService {
     private _menuItems: MenuItems;
 
-    view: IClientManager;
+    private _client: IClientManager;
 
-    constructor(view: IClientManager) {
-        makeAutoObservable<HeaderService, PrivateKeys>(this, {
-            _menuItems: false,
-            view: false,
-        });
-        this.view = view;
+    constructor(client: IClientManager) {
+        this._client = client;
         this._menuItems = {
             project: {
                 create: {
                     label: "New Project",
-                    onClick: () => this.view.openProjectCreator(),
+                    onClick: () => this._client.openProjectCreator(),
                 },
                 open: {
                     label: "Open Project",
-                    onClick: () => this.view.loadProject(),
+                    onClick: () => this._client.loadProject(),
                 },
                 close: {
                     label: "Close Project",
-                    onClick: () => this.view.closeProject(),
+                    onClick: () => this._client.closeProject(),
                 },
             },
             entry: {
                 create: {
                     label: "New Entry",
-                    onClick: () => this.view.openEntityCreator(),
+                    onClick: () => this._client.openEntityCreator(),
                 },
             },
             settings: {
                 label: "Settings",
-                onClick: () => this.view.openSettings(),
+                onClick: () => this._client.openSettings(),
             },
         };
+
+        makeAutoObservable<HeaderService, PrivateKeys>(this, {
+            _menuItems: false,
+            _client: false,
+        });
     }
 
     getFileMenuData() {
-        if (this.view.domain.hasProject)
+        if (this._client.domain.hasProject)
             return [
                 this._menuItems.project.create,
                 this._menuItems.project.open,

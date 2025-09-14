@@ -2,14 +2,16 @@ import { makeAutoObservable } from "mobx";
 
 import { IClientManager } from "@/client/interface";
 
+type PrivateKeys = "_client";
+
 export class HomeManager {
     _projectName: string = "";
 
-    view: IClientManager;
+    private _client: IClientManager;
 
-    constructor(view: IClientManager) {
-        makeAutoObservable(this, { view: false });
-        this.view = view;
+    constructor(client: IClientManager) {
+        this._client = client;
+        makeAutoObservable<HomeManager, PrivateKeys>(this, { _client: false });
     }
 
     get projectName() {
@@ -18,7 +20,7 @@ export class HomeManager {
 
     set projectName(name: string) {
         this._projectName = name;
-        if (name) this.view.domain.session.updateProject(name);
+        if (name) this._client.domain.session.updateProject(name);
     }
 
     initialize(name: string) {

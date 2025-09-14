@@ -31,14 +31,15 @@ export class PropertyEditor {
     onChange: EntityChangeHandler;
 
     constructor({ info, onChange }: PropertyEditorSettings) {
+        this.info = info;
+        this.onChange = onChange;
+        this.fields = this._generateFieldData();
+
         makeAutoObservable(this, {
             fields: false,
             onChange: false,
             info: false,
         });
-        this.info = info;
-        this.onChange = onChange;
-        this.fields = this._generateFieldData();
     }
 
     get data() {

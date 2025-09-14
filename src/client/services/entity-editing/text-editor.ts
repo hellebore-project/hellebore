@@ -11,8 +11,10 @@ import {
 } from "@/shared/rich-text-editor";
 import { EntityInfoEditor } from "./info-editor";
 
+type PrivateKeys = "_client";
+
 interface ArticleTextEditorSettings {
-    view: IClientManager;
+    client: IClientManager;
     info: EntityInfoEditor;
     onChange: EntityChangeHandler;
 }
@@ -22,23 +24,23 @@ export class ArticleTextEditor {
     changed: boolean = false;
     private _selectedRefIndex: number | null = null;
 
-    view: IClientManager;
+    private _client: IClientManager;
     info: EntityInfoEditor;
 
     onChange: EntityChangeHandler;
 
-    constructor({ view, info, onChange }: ArticleTextEditorSettings) {
-        makeAutoObservable(this, {
-            view: false,
-            info: false,
-            onChange: false,
-        });
-
-        this.view = view;
+    constructor({ client, info, onChange }: ArticleTextEditorSettings) {
+        this._client = client;
         this.info = info;
         this.onChange = onChange;
 
         this.editor = this._buildEditor();
+
+        makeAutoObservable<ArticleTextEditor, PrivateKeys>(this, {
+            _client: false,
+            info: false,
+            onChange: false,
+        });
     }
 
     get content(): any {
@@ -103,7 +105,7 @@ export class ArticleTextEditor {
 
     _queryByTitle(titleFragment: string): SuggestionData[] {
         this.selectedRefIndex = 0;
-        return this.view.domain.entries
+        return this._client.domain.entries
             .queryByTitle(titleFragment)
             .filter((info) => info.id != this.info.id)
             .map((info) => ({ label: info.title, value: info.id }));
@@ -112,7 +114,7 @@ export class ArticleTextEditor {
     _onClickEditor(node: PMNode) {
         if (node.type.name == "mention") {
             const id: number | null = node.attrs["id"] ?? null;
-            if (id !== null) this.view.openArticleEditor?.(id);
+            if (id !== null) this._client.openArticleEditor?.(id);
         }
     }
 }

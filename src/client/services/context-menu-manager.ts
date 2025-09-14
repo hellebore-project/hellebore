@@ -6,6 +6,8 @@ import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { IClientManager, NodeId } from "@/client/interface";
 import { VerticalSelectionData } from "@/shared/vertical-selection";
 
+type PrivateKeys = "_client";
+
 export interface OpenArguments {
     position: Point;
     id: number;
@@ -53,24 +55,25 @@ export class ContextMenuManager {
 
     menuData: ContextMenuDataMapping;
 
-    view: IClientManager;
+    private _client: IClientManager;
     fileNavigator: FileNavigatorContextMenuManager;
     outsideEventHandler: OutsideEventHandlerService;
 
-    constructor(view: IClientManager) {
-        makeAutoObservable(this, {
-            view: false,
-            fileNavigator: false,
-            menuData: false,
-            outsideEventHandler: false,
-        });
-        this.view = view;
+    constructor(client: IClientManager) {
+        this._client = client;
         this.fileNavigator = new FileNavigatorContextMenuManager();
         this.outsideEventHandler = new OutsideEventHandlerService({
             onOutsideEvent: () => this.close(),
             enabled: false,
         });
         this.menuData = this._generateMenuDataMapping();
+
+        makeAutoObservable<ContextMenuManager, PrivateKeys>(this, {
+            _client: false,
+            fileNavigator: false,
+            menuData: false,
+            outsideEventHandler: false,
+        });
     }
 
     get key() {
@@ -130,14 +133,14 @@ export class ContextMenuManager {
                 label: "Rename",
                 onConfirm: () => {
                     const id = this.fileNavigator.id as number;
-                    return new Promise(() => this.view.editFolderName(id));
+                    return new Promise(() => this._client.editFolderName(id));
                 },
             },
             {
                 label: "Delete",
                 onConfirm: () => {
                     const id = this.fileNavigator.id as number;
-                    return new Promise(() => this.view.deleteFolder(id));
+                    return new Promise(() => this._client.deleteFolder(id));
                 },
             },
         ]);
@@ -148,7 +151,9 @@ export class ContextMenuManager {
                 onConfirm: () => {
                     const id = this.fileNavigator.id as number;
                     const text = this.fileNavigator.text as string;
-                    return new Promise(() => this.view.deleteEntity(id, text));
+                    return new Promise(() =>
+                        this._client.deleteEntity(id, text),
+                    );
                 },
             },
         ]);

@@ -13,8 +13,8 @@ export class NavigationService {
     files: FileNavigator;
 
     constructor({ client, files }: NavigationServiceArguments) {
-        makeAutoObservable(this, { files: false });
         this.files = new FileNavigator({ client, ...files });
+        makeAutoObservable(this, { files: false });
     }
 
     initialize(entities: EntryInfoResponse[], folders: FolderResponse[]) {

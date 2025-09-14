@@ -23,7 +23,8 @@ type PrivateKeys =
     | "_syncing"
     | "_lastModified"
     | "_lastSynced"
-    | "_syncDelayTime";
+    | "_syncDelayTime"
+    | "_client";
 
 export interface EntityEditorArguments {
     client: IClientManager;
@@ -70,28 +71,15 @@ export class EntityEditor {
     private _syncDelayTime: number = DEFAULT_SYNC_DELAY_TIME;
 
     // SERVICES
-    view: IClientManager;
+    private _client: IClientManager;
     info: EntityInfoEditor;
     properties: PropertyEditor;
     text: ArticleTextEditor;
     lexicon: WordEditor;
 
     constructor({ client, wordEditor }: EntityEditorArguments) {
-        makeAutoObservable<EntityEditor, PrivateKeys>(this, {
-            _waitingForSync: false,
-            _syncing: false,
-            _lastModified: false,
-            _lastSynced: false,
-            _syncDelayTime: false,
-            view: false,
-            info: false,
-            properties: false,
-            text: false,
-            lexicon: false,
-        });
-
-        this.view = client;
-        this.info = new EntityInfoEditor(client);
+        this._client = client;
+        this.info = new EntityInfoEditor();
 
         const onChange = () => this._onChange();
         this.properties = new PropertyEditor({
@@ -99,15 +87,28 @@ export class EntityEditor {
             onChange,
         });
         this.text = new ArticleTextEditor({
-            view: client,
+            client,
             info: this.info,
             onChange,
         });
         this.lexicon = new WordEditor({
-            view: client,
+            client,
             info: this.info,
             editableCellRef: wordEditor.editableCellRef,
             onChange,
+        });
+
+        makeAutoObservable<EntityEditor, PrivateKeys>(this, {
+            _waitingForSync: false,
+            _syncing: false,
+            _lastModified: false,
+            _lastSynced: false,
+            _syncDelayTime: false,
+            _client: false,
+            info: false,
+            properties: false,
+            text: false,
+            lexicon: false,
         });
     }
 
@@ -292,11 +293,14 @@ export class EntityEditor {
 
         let titleUpdateResponse: EntryTitleUpdateResponse | null = null;
         if (typeof title === "string")
-            titleUpdateResponse = await this.view.updateEntityTitle(id, title);
+            titleUpdateResponse = await this._client.updateEntityTitle(
+                id,
+                title,
+            );
 
         let textUpdateResponse: EntryTextUpdateResponse | null = null;
         if (typeof text === "string")
-            textUpdateResponse = await this.view.domain.entries.updateText(
+            textUpdateResponse = await this._client.domain.entries.updateText(
                 id,
                 text,
             );
@@ -304,7 +308,7 @@ export class EntityEditor {
         let propertiesResponse: EntryUpdateResponse | null = null;
         if (properties)
             propertiesResponse =
-                await this.view.domain.entries.updateProperties(
+                await this._client.domain.entries.updateProperties(
                     id,
                     entityType,
                     properties,
@@ -313,7 +317,7 @@ export class EntityEditor {
         let lexiconResponse: WordUpsertResponse[] | null = null;
         if (words) {
             try {
-                lexiconResponse = await this.view.updateLexicon(words);
+                lexiconResponse = await this._client.updateLexicon(words);
             } catch (error) {
                 console.error("Failed to update lexicon.");
                 console.error(error);
