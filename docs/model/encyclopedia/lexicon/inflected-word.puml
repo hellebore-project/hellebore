@@ -1,0 +1,30 @@
+@startuml Inflected Word
+
+!include word.puml
+
+enum GrammaticalDefiniteness {
+    DEFINITE
+    INDEFINITE
+}
+
+class InflectedWord {
+    int id
+    int word_id
+    string spelling
+    string case
+    string voice
+    string mood
+    string tense
+    string aspect
+    GrammaticalDefiniteness definiteness
+    string number
+    string person
+    string gender
+    string animacy
+}
+
+InflectedWord --> GrammaticalDefiniteness
+
+Word "1" *-- "*" InflectedWord
+
+@enduml

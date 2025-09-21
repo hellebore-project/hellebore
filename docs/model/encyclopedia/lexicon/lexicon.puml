@@ -1,8 +1,0 @@
-@startuml Lexicon
-
-!include language.puml
-!include word.puml
-
-Language "1" *-- "*" Word
-
-@enduml
