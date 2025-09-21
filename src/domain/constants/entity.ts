@@ -29,6 +29,7 @@ export const ENTITY_TYPE_LABELS: { [entityType: number]: string } = {
     [EntityType.PERSON]: "Person",
     [EntityType.WORD]: "Word",
 };
+
 export const ENTITY_TYPE_PLURAL_LABELS = Object.fromEntries(
     Object.entries(ENTITY_TYPE_LABELS).map(([entityType, label]) => [
         entityType,

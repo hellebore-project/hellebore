@@ -4,7 +4,7 @@ export enum ViewKey {
     EntityEditor = "ENTITY_EDITOR",
 }
 
-export enum EntityViewKey {
+export enum EntryViewKey {
     ArticleEditor = "ARTICLE_EDITOR",
     PropertyEditor = "PROPERTY_EDITOR",
     WordEditor = "WORD_EDITOR",

@@ -1,9 +1,9 @@
 import { makeAutoObservable, toJS } from "mobx";
 
-import { ContextMenuKey } from "@/domain/constants";
 import { Point } from "@/interface";
-import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
+import { ContextMenuKey } from "@/client/constants";
 import { IClientManager, NodeId } from "@/client/interface";
+import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { VerticalSelectionData } from "@/shared/vertical-selection";
 
 type PrivateKeys = "_client";
@@ -152,7 +152,7 @@ export class ContextMenuManager {
                     const id = this.fileNavigator.id as number;
                     const text = this.fileNavigator.text as string;
                     return new Promise(() =>
-                        this._client.deleteEntity(id, text),
+                        this._client.deleteEntry(id, text),
                     );
                 },
             },

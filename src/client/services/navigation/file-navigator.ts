@@ -72,7 +72,7 @@ export class FileNavigator {
             },
             enabled: true,
         });
-        this.errorManager = new NavigatorErrorManager(this);
+        this.errorManager = new NavigatorErrorManager();
         this._client = client;
 
         makeAutoObservable<FileNavigator, PrivateKeys>(this, {
@@ -145,7 +145,7 @@ export class FileNavigator {
             let id = this.isFolderNode(this.selectedNode)
                 ? this.selectedNode.id
                 : this.selectedNode.parent;
-            return this.convertNodeIdToEntityId(id);
+            return this.convertNodeIdToEntryId(id);
         }
         return ROOT_FOLDER_ID;
     }
@@ -191,18 +191,14 @@ export class FileNavigator {
         return this.expanded && this.hover;
     }
 
-    initialize(entities: EntryInfoResponse[], folders: FolderResponse[]) {
+    initialize(entries: EntryInfoResponse[], folders: FolderResponse[]) {
         this._nodePositionCache = {};
 
         const nodes: FileNodeModel[] = [];
 
-        for (let entity of entities) {
+        for (let entry of entries) {
             nodes.push(
-                this._generateEntityNode(
-                    entity.id,
-                    entity.folder_id,
-                    entity.title,
-                ),
+                this._generateEntryNode(entry.id, entry.folder_id, entry.title),
             );
         }
         for (let folder of folders) {
@@ -225,7 +221,7 @@ export class FileNavigator {
 
     // ID CONVERSION
 
-    convertNodeIdToEntityId(id: NodeId): number {
+    convertNodeIdToEntryId(id: NodeId): number {
         if (id === ROOT_FOLDER_NODE_ID) return ROOT_FOLDER_ID;
         const _id = id.toString();
         return Number(_id.slice(1));
@@ -397,12 +393,12 @@ export class FileNavigator {
         else if (newText != node.text) {
             let id = this.isPlaceholderNode(node)
                 ? null
-                : this.convertNodeIdToEntityId(node.id);
+                : this.convertNodeIdToEntryId(node.id);
 
             // validate the new text
             if (this.isFolderNode(node)) {
                 // folder
-                const parentId = this.convertNodeIdToEntityId(node.parent);
+                const parentId = this.convertNodeIdToEntryId(node.parent);
                 const validationResponse = this._client.domain.folders.validate(
                     id,
                     parentId,
@@ -415,7 +411,7 @@ export class FileNavigator {
                     );
                 else this.clearNodeError(node);
             } else {
-                // entity
+                // entry
                 // TODO
             }
         } else this.clearNodeError(node);
@@ -441,7 +437,7 @@ export class FileNavigator {
         if (this.isFolderNode(node)) {
             if (this.isPlaceholderNode(node)) {
                 // add new folder
-                const parentId = this.convertNodeIdToEntityId(node.parent);
+                const parentId = this.convertNodeIdToEntryId(node.parent);
                 const folder = await this._client.domain.folders.create(
                     newText,
                     parentId,
@@ -464,7 +460,7 @@ export class FileNavigator {
             } else {
                 // update existing folder
                 const folder = await this._client.domain.folders.update({
-                    id: this.convertNodeIdToEntityId(node.id),
+                    id: this.convertNodeIdToEntryId(node.id),
                     name: newText,
                 });
 
@@ -476,7 +472,7 @@ export class FileNavigator {
                 }
             }
         }
-        // entity
+        // entry
         else {
             // TODO
         }
@@ -551,8 +547,8 @@ export class FileNavigator {
 
     // NODE GENERATION
 
-    addNodeForCreatedEntity({ id, folder_id, title }: EntryInfoResponse) {
-        const node = this._generateEntityNode(id, folder_id, title);
+    addNodeForCreatedEntry({ id, folder_id, title }: EntryInfoResponse) {
+        const node = this._generateEntryNode(id, folder_id, title);
         this._nodes.push(node);
     }
 
@@ -568,7 +564,7 @@ export class FileNavigator {
         return node;
     }
 
-    _generateEntityNode(
+    _generateEntryNode(
         id: Id,
         folder_id: Id,
         title: string,
@@ -653,9 +649,9 @@ export class FileNavigator {
 
         const sourceFolderNodeId = node.parent;
 
-        const id = this.convertNodeIdToEntityId(node.id);
-        const sourceParentId = this.convertNodeIdToEntityId(sourceFolderNodeId);
-        const destParentId = this.convertNodeIdToEntityId(destFolderNodeId);
+        const id = this.convertNodeIdToEntryId(node.id);
+        const sourceParentId = this.convertNodeIdToEntryId(sourceFolderNodeId);
+        const destParentId = this.convertNodeIdToEntryId(destFolderNodeId);
 
         let response: any;
         if (this.isFolderNode(node)) {
@@ -696,7 +692,7 @@ export class FileNavigator {
                 oldParentId: sourceParentId,
             });
         } else {
-            // entity
+            // entry
             response = await this._client.domain.entries.updateFolder(
                 id,
                 destParentId,

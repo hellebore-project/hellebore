@@ -1,58 +1,58 @@
-import "./entity-editor.css";
+import "./entry-editor.css";
 
 import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntityType, EntityViewKey } from "@/domain";
-import { getService } from "@/client";
+import { EntityType } from "@/domain";
+import { EntryViewKey, getService } from "@/client";
 import {
     TableOfContents,
     TableOfContentsItemData,
 } from "@/shared/table-of-contents";
 import { ArticleEditor } from "./article-editor";
-import { DeleteEntityButton } from "./delete-entity-button";
+import { DeleteEntryButton } from "./delete-entry-button";
 import { WordEditor } from "./word-editor/word-editor";
 import { PropertyEditor } from "./property-editor";
 
 const ARTICLE_TAB_DATA: TableOfContentsItemData = {
     label: "Article",
-    value: EntityViewKey.ArticleEditor,
+    value: EntryViewKey.ArticleEditor,
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.openArticleEditor(service.entityEditor.info.id);
+        service.openArticleEditor(service.entryEditor.info.id);
     },
 };
 
 const PROPERTY_TAB_DATA: TableOfContentsItemData = {
     label: "Properties",
-    value: EntityViewKey.PropertyEditor,
+    value: EntryViewKey.PropertyEditor,
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.openPropertyEditor(service.entityEditor.info.id);
+        service.openPropertyEditor(service.entryEditor.info.id);
     },
 };
 
 const LEXICON_TAB_DATA: TableOfContentsItemData = {
     label: "Lexicon",
-    value: EntityViewKey.WordEditor,
+    value: EntryViewKey.WordEditor,
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.openWordEditor(service.entityEditor.info.id);
+        service.openWordEditor(service.entryEditor.info.id);
     },
 };
 
 function renderEntityEditorHeader() {
     const service = getService();
     return (
-        <Group className="entity-editor-header">
+        <Group className="entry-editor-header">
             <Badge variant="outline" color="blue">
-                {service.entityEditor.info.entityTypeLabel}
+                {service.entryEditor.info.entityTypeLabel}
             </Badge>
             <div className="grow" />
-            <DeleteEntityButton />
+            <DeleteEntryButton />
         </Group>
     );
 }
@@ -61,10 +61,10 @@ const EntityEditorHeader = observer(renderEntityEditorHeader);
 
 function renderEntityEditorContent() {
     const service = getService();
-    const viewKey = service.entityEditor.currentView;
-    if (viewKey === EntityViewKey.ArticleEditor) return <ArticleEditor />;
-    if (viewKey === EntityViewKey.PropertyEditor) return <PropertyEditor />;
-    if (viewKey === EntityViewKey.WordEditor) return <WordEditor />;
+    const viewKey = service.entryEditor.currentView;
+    if (viewKey === EntryViewKey.ArticleEditor) return <ArticleEditor />;
+    if (viewKey === EntryViewKey.PropertyEditor) return <PropertyEditor />;
+    if (viewKey === EntryViewKey.WordEditor) return <WordEditor />;
     return null;
 }
 
@@ -80,15 +80,15 @@ function renderEntityEditorTabs() {
     ];
     if (entityType === EntityType.LANGUAGE) tabData.push(LEXICON_TAB_DATA);
 
-    const activeTabKey = service.entityEditor.currentView;
+    const activeTabKey = service.entryEditor.currentView;
 
     return (
         <TableOfContents
-            className="entity-editor-toc"
+            className="entry-editor-toc"
             data={tabData}
             activeValue={activeTabKey}
             itemSettings={{
-                className: "entity-editor-toc-item",
+                className: "entry-editor-toc-item",
                 justify: "space-between",
             }}
         />
@@ -97,13 +97,13 @@ function renderEntityEditorTabs() {
 
 export const EntityEditorTabs = observer(renderEntityEditorTabs);
 
-function renderEntityEditor() {
+function renderEntryEditor() {
     return (
-        <Stack className="entity-editor" gap={0}>
+        <Stack className="entry-editor" gap={0}>
             <EntityEditorHeader />
-            <Space className="entity-editor-space-below-header" />
-            <Stack className="entity-editor-stack">
-                <Grid className="entity-editor-grid">
+            <Space className="entry-editor-space-below-header" />
+            <Stack className="entry-editor-stack">
+                <Grid className="entry-editor-grid">
                     <Grid.Col span={1}>
                         <EntityEditorTabs />
                     </Grid.Col>
@@ -116,4 +116,4 @@ function renderEntityEditor() {
     );
 }
 
-export const EntityEditor = observer(renderEntityEditor);
+export const EntryEditor = observer(renderEntryEditor);

@@ -56,7 +56,7 @@ export class EntryCreator {
     async submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const entity = this._client.createEntity(
+        const entry = this._client.createEntry(
             // HACK: assume that the user has entered an entity type
             // TODO: when entity type is null, we need to default to some sort of generic entity
             // without any properties
@@ -65,7 +65,7 @@ export class EntryCreator {
             this._folderId,
         );
 
-        if (entity == null) {
+        if (entry == null) {
             // HACK: if the BE request fails, assume that it's a UNIQUE constraint violation
             // TODO: need to find a better way to handle errors here
             this.isTitleUnique = false;

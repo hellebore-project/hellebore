@@ -2,19 +2,19 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ask, open } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable } from "mobx";
 
+import { Id } from "@/interface";
 import {
     EntityType,
-    EntityViewKey,
-    ModalKey,
     ROOT_FOLDER_ID,
-    ViewKey,
     WordType,
-} from "@/domain/constants";
-import { Id } from "@/interface";
-import { OpenEntityCreatorArguments, IClientManager } from "@/client/interface";
-import { DomainManager, WordUpsert } from "@/domain";
+    DomainManager,
+    WordUpsert,
+} from "@/domain";
+import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
+import { OpenEntryCreatorArguments, IClientManager } from "@/client/interface";
+
 import { EntryCreator } from "./entry-creator";
-import { EntityEditor } from "./entity-editing";
+import { EntryEditor } from "./entry-editor";
 import { ContextMenuManager } from "./context-menu-manager";
 import { HomeManager } from "./home-manager";
 import { NavigationService } from "./navigation/navigation-service";
@@ -44,7 +44,7 @@ export class ClientManager implements IClientManager {
 
     // central view services
     home: HomeManager;
-    entityEditor: EntityEditor;
+    entryEditor: EntryEditor;
     settingsEditor: SettingsEditor;
 
     // bar services
@@ -72,7 +72,7 @@ export class ClientManager implements IClientManager {
         // central views
         this.home = new HomeManager(this);
         this.settingsEditor = new SettingsEditor(this);
-        this.entityEditor = new EntityEditor({
+        this.entryEditor = new EntryEditor({
             client: this,
             wordEditor: {
                 editableCellRef: this.domReferences.wordTableEditableCell,
@@ -159,26 +159,26 @@ export class ClientManager implements IClientManager {
     get isArticleEditorOpen() {
         return (
             this.currentView == ViewKey.EntityEditor &&
-            this.entityEditor.currentView == EntityViewKey.ArticleEditor
+            this.entryEditor.currentView == EntryViewKey.ArticleEditor
         );
     }
 
     get isPropertyEditorOpen() {
         return (
             this.currentView == ViewKey.EntityEditor &&
-            this.entityEditor.currentView == EntityViewKey.PropertyEditor
+            this.entryEditor.currentView == EntryViewKey.PropertyEditor
         );
     }
 
     get isWordEditorOpen() {
         return (
             this.currentView == ViewKey.EntityEditor &&
-            this.entityEditor.currentView == EntityViewKey.WordEditor
+            this.entryEditor.currentView == EntryViewKey.WordEditor
         );
     }
 
     get entityType() {
-        if (this.isEntityEditorOpen) return this.entityEditor.info.entityType;
+        if (this.isEntityEditorOpen) return this.entryEditor.info.entityType;
         return null;
     }
 
@@ -219,7 +219,7 @@ export class ClientManager implements IClientManager {
     injectHooks() {
         this.navigation.files.hookEditableNodeEffect();
 
-        const wordSpreadsheet = this.entityEditor.lexicon.spreadsheet;
+        const wordSpreadsheet = this.entryEditor.lexicon.spreadsheet;
         wordSpreadsheet.hookEditableCellEffect();
     }
 
@@ -251,7 +251,7 @@ export class ClientManager implements IClientManager {
         this._modalKey = ModalKey.ProjectCreator;
     }
 
-    openEntityCreator(args?: OpenEntityCreatorArguments) {
+    openEntryCreator(args?: OpenEntryCreatorArguments) {
         this.entityCreator.initialize(
             args?.entityType,
             args?.folderId ?? ROOT_FOLDER_ID,
@@ -260,7 +260,7 @@ export class ClientManager implements IClientManager {
     }
 
     async openArticleEditor(id: Id) {
-        if (this.isArticleEditorOpen && this.entityEditor.info.id == id) return; // the article is already open
+        if (this.isArticleEditorOpen && this.entryEditor.info.id == id) return; // the article is already open
         const response = await this.domain.entries.getArticle(id);
         if (response !== null)
             this._openArticleEditor(
@@ -279,14 +279,13 @@ export class ClientManager implements IClientManager {
     ) {
         // save any unsynced data before opening another view
         this.cleanUp(ViewKey.EntityEditor);
-        this.entityEditor.initializeArticleEditor(id, entityType, title, text);
+        this.entryEditor.initializeArticleEditor(id, entityType, title, text);
         this.navigation.files.openEntityNode(id);
         this._viewKey = ViewKey.EntityEditor;
     }
 
     async openPropertyEditor(id: Id) {
-        if (this.isPropertyEditorOpen && this.entityEditor.info.id == id)
-            return; // the property editor is already open
+        if (this.isPropertyEditorOpen && this.entryEditor.info.id == id) return; // the property editor is already open
 
         const response = await this.domain.entries.getProperties(id);
 
@@ -294,7 +293,7 @@ export class ClientManager implements IClientManager {
             // save any unsynced data before opening another view
             this.cleanUp(ViewKey.EntityEditor);
 
-            this.entityEditor.initializePropertyEditor(
+            this.entryEditor.initializePropertyEditor(
                 id,
                 response.info.entity_type,
                 response.info.title,
@@ -306,12 +305,12 @@ export class ClientManager implements IClientManager {
     }
 
     async openWordEditor(languageId: Id, wordType?: WordType) {
-        if (this.isWordEditorOpen && this.entityEditor.info.id == languageId) {
+        if (this.isWordEditorOpen && this.entryEditor.info.id == languageId) {
             if (wordType === undefined)
                 // don't care about which word type is displayed;
                 // since the word editor is already open for this language, don't reload it
                 return;
-            else if (wordType === this.entityEditor.lexicon.wordType)
+            else if (wordType === this.entryEditor.lexicon.wordType)
                 // the word editor is already open for this language and word type
                 return;
         }
@@ -322,7 +321,7 @@ export class ClientManager implements IClientManager {
         const info = await this.domain.entries.get(languageId);
 
         if (info !== null) {
-            this.entityEditor.initializeWordEditor(
+            this.entryEditor.initializeWordEditor(
                 languageId,
                 info.title,
                 wordType,
@@ -407,31 +406,31 @@ export class ClientManager implements IClientManager {
 
         if (
             this._viewKey == ViewKey.EntityEditor &&
-            fileIds.entries.includes(this.entityEditor.info.id)
+            fileIds.entries.includes(this.entryEditor.info.id)
         ) {
-            // currently-open entity has been deleted
+            // currently-open entry has been deleted
             this.openHome();
         }
 
         return fileIds;
     }
 
-    async createEntity(entityType: EntityType, title: string, folderId: Id) {
-        const entity = await this.domain.entries.create(
+    async createEntry(entityType: EntityType, title: string, folderId: Id) {
+        const entry = await this.domain.entries.create(
             entityType,
             title,
             folderId,
         );
 
-        if (entity) {
-            this.navigation.files.addNodeForCreatedEntity(entity);
-            this._openArticleEditor(entity.id, entityType, entity.title, "");
+        if (entry) {
+            this.navigation.files.addNodeForCreatedEntry(entry);
+            this._openArticleEditor(entry.id, entityType, entry.title, "");
         }
 
-        return entity;
+        return entry;
     }
 
-    async updateEntityTitle(id: Id, title: string) {
+    async updateEntryTitle(id: Id, title: string) {
         const response = await this.domain.entries.updateTitle(id, title);
         if (title != "" && response.isUnique)
             this.navigation.files.updateEntityNodeText(id, title);
@@ -442,13 +441,13 @@ export class ClientManager implements IClientManager {
         return await this.domain.words.bulkUpsert(updates);
     }
 
-    async deleteEntity(id: number, title: string, confirm: boolean = true) {
+    async deleteEntry(id: number, title: string, confirm: boolean = true) {
         if (confirm) {
             const message =
                 `Are you sure you want to delete '${title}' and all of its associated content? ` +
                 "This action is irreversible.";
             const canDelete = await ask(message, {
-                title: "Delete entity",
+                title: "Delete entry",
                 kind: "warning",
                 okLabel: "Delete",
                 cancelLabel: "Cancel",
@@ -458,14 +457,14 @@ export class ClientManager implements IClientManager {
 
         const success = await this.domain.entries.delete(id);
         if (!success)
-            // failed to delete the entity; aborting
+            // failed to delete the entry; aborting
             return false;
 
         if (
             this._viewKey == ViewKey.EntityEditor &&
-            this.entityEditor.info.id == id
+            this.entryEditor.info.id == id
         ) {
-            // deleted entity is currently open
+            // deleted entry is currently open
             this.openHome();
         }
 
@@ -477,7 +476,7 @@ export class ClientManager implements IClientManager {
     cleanUp(newViewKey: ViewKey | null = null) {
         if (this._modalKey) this.closeModal();
 
-        if (this._viewKey == ViewKey.EntityEditor) this.entityEditor.cleanUp();
+        if (this._viewKey == ViewKey.EntityEditor) this.entryEditor.cleanUp();
 
         if (
             this.isEntityEditorOpen &&

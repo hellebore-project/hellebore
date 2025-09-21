@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { ENTITY_TYPE_LABELS, EntityType } from "@/domain/constants";
+import { ENTITY_TYPE_LABELS, EntityType } from "@/domain";
 
 const ENTITY_ID_SENTINEL = -1;
 

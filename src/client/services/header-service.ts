@@ -42,7 +42,7 @@ export class HeaderService {
             entry: {
                 create: {
                     label: "New Entry",
-                    onClick: () => this._client.openEntityCreator(),
+                    onClick: () => this._client.openEntryCreator(),
                 },
             },
             settings: {

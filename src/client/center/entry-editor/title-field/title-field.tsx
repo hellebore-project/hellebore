@@ -12,8 +12,8 @@ const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 function renderTitleField() {
     const service = getService();
     let error: string | null = null;
-    if (service.entityEditor.title == "") error = "Empty title";
-    if (!service.entityEditor.info.isTitleUnique) error = "Duplicate title";
+    if (service.entryEditor.title == "") error = "Empty title";
+    if (!service.entryEditor.info.isTitleUnique) error = "Duplicate title";
 
     let className = "title-field";
     if (error) className += " error";
@@ -32,9 +32,9 @@ function renderTitleField() {
                         variant="unstyled"
                         styles={TITLE_FIELD_STYLES}
                         placeholder="Title"
-                        getValue={() => service.entityEditor.title}
+                        getValue={() => service.entryEditor.title}
                         onChange={(event) => {
-                            service.entityEditor.title =
+                            service.entryEditor.title =
                                 event.currentTarget.value;
                         }}
                     />

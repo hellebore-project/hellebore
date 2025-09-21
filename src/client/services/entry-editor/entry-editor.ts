@@ -1,20 +1,22 @@
 import { makeAutoObservable } from "mobx";
 
-import { EntityType, EntityViewKey, WordType } from "@/domain/constants";
 import { Id } from "@/interface";
+import { EntryViewKey } from "@/client/constants";
+import { IClientManager, PropertyFieldData, Word } from "@/client/interface";
 import {
     BaseEntity,
     EntryTextUpdateResponse,
     EntryTitleUpdateResponse,
     EntryUpdateResponse,
+    WordUpsertResponse,
+    EntityType,
+    WordType,
 } from "@/domain";
-import { IClientManager, PropertyFieldData, Word } from "@/client/interface";
-import { WordUpsertResponse } from "@/domain/schema";
+import { ObservableReference } from "@/shared/observable-reference";
 import { PropertyEditor } from "./property-editor";
 import { ArticleTextEditor } from "./text-editor";
 import { EntityInfoEditor } from "./info-editor";
 import { WordEditor } from "./word-editor";
-import { ObservableReference } from "@/shared/observable-reference";
 
 const DEFAULT_SYNC_DELAY_TIME = 5000;
 
@@ -26,7 +28,7 @@ type PrivateKeys =
     | "_syncDelayTime"
     | "_client";
 
-export interface EntityEditorArguments {
+export interface EntryEditorArguments {
     client: IClientManager;
     wordEditor: {
         editableCellRef: ObservableReference<HTMLInputElement>;
@@ -56,14 +58,14 @@ interface SyncResponse {
     lexicon: WordUpsertResponse[] | null;
 }
 
-export class EntityEditor {
+export class EntryEditor {
     // CONSTANTS
     ENTITY_HEADER_SPACE_HEIGHT = 25;
     BELOW_ENTITY_HEADER_SPACE_HEIGHT = 40;
     TITLE_FIELD_HEIGHT = 36;
 
     // STATE
-    private _viewKey: EntityViewKey = EntityViewKey.ArticleEditor;
+    private _viewKey: EntryViewKey = EntryViewKey.ArticleEditor;
     private _waitingForSync: boolean = false;
     private _syncing: boolean = false;
     private _lastModified: number = 0;
@@ -77,7 +79,7 @@ export class EntityEditor {
     text: ArticleTextEditor;
     lexicon: WordEditor;
 
-    constructor({ client, wordEditor }: EntityEditorArguments) {
+    constructor({ client, wordEditor }: EntryEditorArguments) {
         this._client = client;
         this.info = new EntityInfoEditor();
 
@@ -98,7 +100,7 @@ export class EntityEditor {
             onChange,
         });
 
-        makeAutoObservable<EntityEditor, PrivateKeys>(this, {
+        makeAutoObservable<EntryEditor, PrivateKeys>(this, {
             _waitingForSync: false,
             _syncing: false,
             _lastModified: false,
@@ -124,9 +126,9 @@ export class EntityEditor {
         return this._viewKey;
     }
 
-    set currentView(key: EntityViewKey) {
+    set currentView(key: EntryViewKey) {
         if (this._viewKey == key) return;
-        if (this._viewKey == EntityViewKey.WordEditor) this.lexicon.reset();
+        if (this._viewKey == EntryViewKey.WordEditor) this.lexicon.reset();
         this._viewKey = key;
     }
 
@@ -153,7 +155,7 @@ export class EntityEditor {
         title: string,
         text: string,
     ) {
-        this.currentView = EntityViewKey.ArticleEditor;
+        this.currentView = EntryViewKey.ArticleEditor;
         this.info.initialize(id, entityType, title);
         this.text.initialize(text);
     }
@@ -164,13 +166,13 @@ export class EntityEditor {
         title: string,
         properties: BaseEntity,
     ) {
-        this.currentView = EntityViewKey.PropertyEditor;
+        this.currentView = EntryViewKey.PropertyEditor;
         this.info.initialize(id, entityType, title);
         this.properties.initialize(properties);
     }
 
     async initializeWordEditor(id: number, title: string, wordType?: WordType) {
-        this.currentView = EntityViewKey.WordEditor;
+        this.currentView = EntryViewKey.WordEditor;
         this.info.initialize(id, EntityType.LANGUAGE, title);
         return this.lexicon.initialize(id, wordType);
     }
@@ -293,7 +295,7 @@ export class EntityEditor {
 
         let titleUpdateResponse: EntryTitleUpdateResponse | null = null;
         if (typeof title === "string")
-            titleUpdateResponse = await this._client.updateEntityTitle(
+            titleUpdateResponse = await this._client.updateEntryTitle(
                 id,
                 title,
             );

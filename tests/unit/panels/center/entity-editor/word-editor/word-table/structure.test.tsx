@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react";
 import { describe } from "vitest";
 
 import { WordType } from "@/domain/constants";
-import { WordTable } from "@/client/center/entity-editor/word-editor/word-table/word-table";
+import { WordTable } from "@/client/center/entry-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
 import { mockGetWords } from "@tests/utils/mocks/backend/word";
 import { render } from "@tests/utils/render";
@@ -63,7 +63,7 @@ describe("headers", () => {
             const word = createWordData(wordType);
             mockGetWords(mockedInvoker, [word]);
 
-            const wordEditor = service.entityEditor.lexicon;
+            const wordEditor = service.entryEditor.lexicon;
             await wordEditor.initialize(1, word.word_type);
 
             render(<WordTable />);
@@ -78,7 +78,7 @@ test("renders table with correct rows", async ({ mockedInvoker, service }) => {
     const word = createWordData();
     mockGetWords(mockedInvoker, [word]);
 
-    const wordEditor = service.entityEditor.lexicon;
+    const wordEditor = service.entryEditor.lexicon;
     await wordEditor.initialize(1, word.word_type);
 
     render(<WordTable />);

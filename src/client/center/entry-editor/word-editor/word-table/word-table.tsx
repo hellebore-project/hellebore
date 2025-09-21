@@ -5,7 +5,7 @@ import { Spreadsheet } from "@/shared/spreadsheet";
 
 function renderWordTable() {
     const service = getService();
-    const spreadsheetManager = service.entityEditor.lexicon.spreadsheet;
+    const spreadsheetManager = service.entryEditor.lexicon.spreadsheet;
     return <Spreadsheet service={spreadsheetManager} />;
 }
 
