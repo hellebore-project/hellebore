@@ -1,0 +1,11 @@
+@startuml Folder
+
+class Folder {
+    int id
+    int parent_id
+    string name
+}
+
+Folder "1" *-- "*" Folder
+
+@enduml

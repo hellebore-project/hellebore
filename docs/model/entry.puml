@@ -1,0 +1,14 @@
+@startuml Entry
+
+!include folder.puml
+
+class Entry {
+    int id
+    int folder_id
+    string title
+    string text
+}
+
+Folder "1" *-- "*" Entry
+
+@enduml

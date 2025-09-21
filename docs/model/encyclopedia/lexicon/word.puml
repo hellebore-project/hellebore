@@ -1,10 +1,4 @@
-@startuml Language
-
-''' Classes
-
-class Language {
-    int id
-}
+@startuml Word
 
 enum WordType {
     ROOT
@@ -206,10 +200,6 @@ class InflectedWord {
     string gender
     string animacy
 }
-
-''' Relationships
-
-Language "1" *-- "*" Word
 
 Word "1" *-- "*" InflectedWord
 

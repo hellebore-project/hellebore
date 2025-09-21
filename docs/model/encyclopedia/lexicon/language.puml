@@ -1,0 +1,12 @@
+@startuml Language
+
+!include ../../entry.puml
+
+class Language {
+    int id
+    int entry_id
+}
+
+Entry "1" *-- "1" Language
+
+@enduml
