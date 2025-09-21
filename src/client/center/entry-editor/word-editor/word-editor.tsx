@@ -3,8 +3,7 @@ import "./word-editor.css";
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { WordViewKey } from "@/domain";
-import { getService } from "@/client";
+import { getService, WordViewKey } from "@/client";
 import { SPACE } from "@/shared/common";
 import { TabData, Tabs } from "@/shared/tabs";
 import { TitleField } from "../title-field";
@@ -23,7 +22,7 @@ const TAB_DATA: TabData[] = [
 ];
 
 function renderWordEditor() {
-    let wordEditor = getService().entityEditor.lexicon;
+    let wordEditor = getService().entryEditor.lexicon;
     return (
         <Container className="word-editor">
             <Stack className="word-editor-stack" justify="flex-start" gap={0}>

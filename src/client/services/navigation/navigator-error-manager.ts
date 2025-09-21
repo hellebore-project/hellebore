@@ -2,20 +2,13 @@ import { makeAutoObservable } from "mobx";
 
 import { Rectangle } from "@/interface";
 
-export interface DimensionService {
-    width: number;
-}
-
 export class NavigatorErrorManager {
     private _visible: boolean = false;
     private _message: string = "";
     private _position: Rectangle | null = null;
 
-    dimensions: DimensionService;
-
-    constructor(dimensions: DimensionService) {
-        this.dimensions = dimensions;
-        makeAutoObservable(this, { dimensions: false });
+    constructor() {
+        makeAutoObservable(this);
     }
 
     get visible() {

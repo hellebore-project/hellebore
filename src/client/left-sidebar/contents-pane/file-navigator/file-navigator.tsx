@@ -45,7 +45,7 @@ const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
 
     fileNav.focused = false;
     fileNav.selectedNode = node;
-    const id = fileNav.convertNodeIdToEntityId(nodeId);
+    const id = fileNav.convertNodeIdToEntryId(nodeId);
 
     if (fileNav.isFolderNode(node))
         service.contextMenu.openForNavBarFolderNode({
@@ -86,9 +86,9 @@ function renderFileNavItem({
 
         toggle();
 
-        // in case of an entity node, open the corresponding entity in the editor
+        // in case of an entry node, open the corresponding entry in the editor
         if (!fileNav.isFolderNode(node)) {
-            const id = fileNav.convertNodeIdToEntityId(node.id);
+            const id = fileNav.convertNodeIdToEntryId(node.id);
             service.openArticleEditor(id).then(() => fileNav.openNode(node));
         }
     };

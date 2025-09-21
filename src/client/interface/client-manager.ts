@@ -1,7 +1,7 @@
 import { PhysicalSize } from "@tauri-apps/api/dpi";
 
-import { EntityType, ViewKey, WordType } from "@/domain/constants";
 import { Id } from "@/interface";
+import { ViewKey } from "@/client/constants";
 import {
     BulkData,
     EntryInfoResponse,
@@ -10,9 +10,11 @@ import {
     WordUpsertResponse,
     EntryTitleUpdateResponse,
     DomainManager,
+    EntityType,
+    WordType,
 } from "@/domain";
 
-export interface OpenEntityCreatorArguments {
+export interface OpenEntryCreatorArguments {
     entityType?: EntityType;
     folderId?: Id;
 }
@@ -29,7 +31,7 @@ export interface IClientManager {
     openHome(): void;
     openSettings(): void;
     openProjectCreator(): void;
-    openEntityCreator(args?: OpenEntityCreatorArguments): void;
+    openEntryCreator(args?: OpenEntryCreatorArguments): void;
     openArticleEditor(id: Id): Promise<void>;
     openPropertyEditor(id: Id): Promise<void>;
     openWordEditor(languageId: Id, wordType?: WordType): Promise<void>;
@@ -42,17 +44,13 @@ export interface IClientManager {
     closeProject(): Promise<boolean>;
     editFolderName(id: number): void;
     deleteFolder(id: number, confirm?: boolean): Promise<BulkData | null>;
-    createEntity(
+    createEntry(
         entityType: EntityType,
         title: string,
         folderId: Id,
     ): Promise<EntryInfoResponse | null>;
-    updateEntityTitle(id: Id, title: string): Promise<EntryTitleUpdateResponse>;
+    updateEntryTitle(id: Id, title: string): Promise<EntryTitleUpdateResponse>;
     updateLexicon(words: WordUpsert[]): Promise<WordUpsertResponse[] | null>;
-    deleteEntity(
-        id: number,
-        title: string,
-        confirm?: boolean,
-    ): Promise<boolean>;
+    deleteEntry(id: number, title: string, confirm?: boolean): Promise<boolean>;
     cleanUp(): void;
 }

@@ -9,7 +9,7 @@ import { OutsideEventHandler } from "@/shared/outside-event-handler";
 import { FileNavigator } from "./file-navigator";
 import { AddFolderButton } from "./add-folder-button";
 import { CollapseFoldersButton } from "./collapse-folders-button";
-import { AddEntityButton } from "./add-entity-button";
+import { AddEntryButton } from "./add-entry-button";
 
 function renderContentsPaneHeader() {
     const fileNav = getService().navigation.files;
@@ -27,7 +27,7 @@ function renderContentsPaneHeader() {
                 textSettings: { fw: 500 },
             }}
         >
-            {fileNav.canAddEntity && <AddEntityButton />}
+            {fileNav.canAddEntity && <AddEntryButton />}
             {fileNav.canAddFolder && <AddFolderButton />}
             {fileNav.canCollapseAllFolders && <CollapseFoldersButton />}
         </NavItem>
@@ -40,7 +40,7 @@ function renderContentsPane() {
     const service = getService();
     const fileNav = service.navigation.files;
     // the components have to take up as much vertical space as possible in order to allow
-    // dragging entity nodes to the top level of the file tree
+    // dragging nodes to the top level of the file tree
     return (
         <OutsideEventHandler
             className="contents-pane"

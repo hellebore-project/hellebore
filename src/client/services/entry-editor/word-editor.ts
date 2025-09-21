@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { WordType, WordViewKey } from "@/domain/constants";
+import { WordViewKey } from "@/client/constants";
 import {
     EntityChangeHandler,
     IClientManager,
@@ -10,16 +10,16 @@ import {
     WordMetaData,
     WordColumnKeys,
 } from "@/client/interface";
+import { WordResponse, WordType } from "@/domain";
+import { ObservableReference } from "@/shared/observable-reference";
 import {
     SpreadsheetRowData,
     SpreadsheetColumnData,
     SpreadsheetService,
     SpreadsheetFieldType,
 } from "@/shared/spreadsheet";
-import { WordResponse } from "@/domain/schema";
 import { Counter } from "@/utils/counter";
 import { EntityInfoEditor } from "./info-editor";
-import { ObservableReference } from "@/shared/observable-reference";
 
 const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.RootWord, WordViewKey.RootWords],

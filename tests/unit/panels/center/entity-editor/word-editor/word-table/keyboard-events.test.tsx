@@ -1,8 +1,7 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { GrammaticalGender } from "@/domain/constants";
-import { WordTable } from "@/client/center/entity-editor/word-editor/word-table/word-table";
+import { WordTable } from "@/client/center/entry-editor/word-editor/word-table/word-table";
 import { test } from "@tests/unit/base";
 import { mockGetWords } from "@tests/utils/mocks/backend/word";
 import { render } from "@tests/utils/render";
@@ -20,7 +19,7 @@ describe("cell selection", () => {
             definition: "cell2",
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entryEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -59,7 +58,7 @@ describe("cell selection", () => {
             definition: "cell2",
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entryEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -101,7 +100,7 @@ describe("cell editing", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entryEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -134,7 +133,7 @@ describe("cell editing", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entryEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 
@@ -165,7 +164,7 @@ describe("cell editing", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entityEditor.lexicon.initialize(1, word.word_type);
+        await service.entryEditor.lexicon.initialize(1, word.word_type);
 
         render(<WordTable />);
 

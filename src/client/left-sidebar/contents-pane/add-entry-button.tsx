@@ -5,18 +5,18 @@ import { observer } from "mobx-react-lite";
 import { getService } from "@/client";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
-function renderAddEntityButton() {
+function renderAddEntryButton() {
     const service = getService();
     return (
-        <ToolTipWrapper className="nav-sub-item compact" label="New Entity">
+        <ToolTipWrapper className="nav-sub-item compact" label="New Entry">
             <ActionIcon
-                key="add-entity"
+                key="add-entry"
                 variant="subtle"
                 color="gray"
                 size="sm"
                 onClick={(e) => {
                     e.stopPropagation(); // don't toggle the expanded status of the tab
-                    service.openEntityCreator({
+                    service.openEntryCreator({
                         folderId: service.navigation.files.activeFolderId,
                     });
                 }}
@@ -27,4 +27,4 @@ function renderAddEntityButton() {
     );
 }
 
-export const AddEntityButton = observer(renderAddEntityButton);
+export const AddEntryButton = observer(renderAddEntryButton);
