@@ -1,10 +1,13 @@
 @startuml Person
 
-''' Classes
+!include ../entry.puml
 
 class Person {
     int id
+    int entry_id
     string name
 }
+
+Entry "1" *-- "1" Person
 
 @enduml
