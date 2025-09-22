@@ -28,8 +28,6 @@ interface FileNavItemSettings extends BaseGroupSettings {
     toggle: () => void;
 }
 
-interface FileNavigatorSettings {}
-
 const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
 
@@ -93,7 +91,7 @@ function renderFileNavItem({
         }
     };
 
-    let textSettings: NavItemTextSettings = {
+    const textSettings: NavItemTextSettings = {
         editable,
         text: editable ? (node?.data?.editableText ?? node.text) : node.text,
         error: node?.data?.error,
@@ -163,7 +161,7 @@ function renderFileNavErrorPopover() {
 
 export const FileNavErrorPopover = observer(renderFileNavErrorPopover);
 
-function renderFileNavigator({}: FileNavigatorSettings) {
+function renderFileNavigator() {
     const service = getService();
     const fileNav = service.navigation.files;
 
@@ -174,7 +172,7 @@ function renderFileNavigator({}: FileNavigatorSettings) {
     ) => <div>{monitorProps.item.text}</div>;
 
     const onDrop = (
-        _: any,
+        _: unknown,
         { dragSource, dropTargetId }: DropOptions<FileNodeData>,
     ) => {
         if (dragSource)

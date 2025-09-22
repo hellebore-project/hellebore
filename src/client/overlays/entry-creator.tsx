@@ -32,16 +32,16 @@ function renderEntryCreator() {
             portalProps={{ target: service.sharedPortalSelector }}
         >
             <Container size="xs">
-                <form onSubmit={(event) => service.entityCreator.submit(event)}>
+                <form onSubmit={(event) => service.entryCreator.submit(event)}>
                     <SelectField
                         label="Entity"
                         placeholder="Select an entity type"
                         data={ENTITY_TYPE_DROPDOWN_DATA}
                         getValue={() =>
-                            service.entityCreator.entityType?.toString() ?? null
+                            service.entryCreator.entityType?.toString() ?? null
                         }
                         onChange={(entityType) =>
-                            service.entityCreator.setEntityType(
+                            service.entryCreator.setEntityType(
                                 Number(entityType),
                             )
                         }
@@ -50,14 +50,14 @@ function renderEntryCreator() {
                     <TextField
                         label={"Title"}
                         placeholder="Enter a unique title"
-                        getValue={() => service.entityCreator.title}
+                        getValue={() => service.entryCreator.title}
                         getError={() =>
-                            service.entityCreator.isTitleUnique
+                            service.entryCreator.isTitleUnique
                                 ? null
                                 : "Duplicate title"
                         }
                         onChange={(event) =>
-                            (service.entityCreator.title =
+                            (service.entryCreator.title =
                                 event.currentTarget.value)
                         }
                     />

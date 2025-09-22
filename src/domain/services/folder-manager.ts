@@ -7,6 +7,7 @@ import {
     FolderUpdate,
     FolderValidateResponse,
 } from "@/domain/schema";
+
 import { FileStructure } from "./file-structure";
 
 export interface FolderUpdateArguments {
@@ -61,7 +62,7 @@ export class FolderManager {
         parentId = null,
         oldParentId = null,
     }: FolderUpdateArguments) {
-        let folderNode = this._structure.folders[id];
+        const folderNode = this._structure.folders[id];
 
         const nameChanged = name !== null;
         const parentChanged =

@@ -1,10 +1,10 @@
 import "./tabs.css";
 
 import { forwardRef } from "react";
-
-import { BaseButtonSettings, BaseGroupSettings } from "@/interface";
 import { Button, Group } from "@mantine/core";
 import { observer } from "mobx-react-lite";
+
+import { BaseButtonSettings, BaseGroupSettings } from "@/interface";
 
 export interface TabData extends BaseButtonSettings {
     label: string;
@@ -17,7 +17,7 @@ export interface TabSettings extends BaseButtonSettings {
 
 export interface TabsSettings extends BaseGroupSettings {
     data: TabData[];
-    selectedValue: any;
+    selectedValue: number | string;
     tabSettings?: BaseButtonSettings;
 }
 

@@ -18,9 +18,7 @@ interface PrivateOpenArguments extends OpenArguments {
     key: ContextMenuKey;
 }
 
-type ContextMenuDataMapping = {
-    [key in ContextMenuKey]: VerticalSelectionData[];
-};
+type ContextMenuDataMapping = Record<ContextMenuKey, VerticalSelectionData[]>;
 
 class FileNavigatorContextMenuManager {
     _id: number | null = null;

@@ -9,26 +9,28 @@ import {
 import {
     PropertyFieldType,
     PropertyFieldData,
-    EntityChangeHandler,
+    TextPropertyFieldData,
 } from "@/client";
+
 import { EntityInfoEditor } from "./info-editor";
 
-type FieldDataCollection = { [type: number]: PropertyFieldData[] };
+type EditPropertyHandler = () => void;
+type FieldDataCollection = Record<number, PropertyFieldData[]>;
 
 interface PropertyEditorSettings {
     info: EntityInfoEditor;
-    onChange: EntityChangeHandler;
+    onChange: EditPropertyHandler;
 }
 
 export class PropertyEditor {
     private _entity: BaseEntity | null = null;
 
     fields: FieldDataCollection;
-    changed: boolean = false;
+    changed = false;
 
     info: EntityInfoEditor;
 
-    onChange: EntityChangeHandler;
+    onChange: EditPropertyHandler;
 
     constructor({ info, onChange }: PropertyEditorSettings) {
         this.info = info;
@@ -50,6 +52,7 @@ export class PropertyEditor {
         this._entity = entity;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     set(key: string, value: any) {
         try {
             if (this.info.entityType == EntityType.PERSON)
@@ -88,19 +91,20 @@ export class PropertyEditor {
 
     /* Person */
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     _setPersonProperty(key: string, value: any) {
         if (key == PersonProperty.NAME)
-            (<PersonProperties>this._entity).name = value;
+            (this._entity as PersonProperties).name = value;
         else throw `Unable to set property ${key} for a Person entity.`;
     }
 
-    _generatePersonFieldData(): PropertyFieldData[] {
+    _generatePersonFieldData(): TextPropertyFieldData[] {
         return [
             {
                 property: PersonProperty.NAME,
                 label: "Full Name",
                 type: PropertyFieldType.TEXT,
-                getValue: () => (<PersonProperties>this._entity).name,
+                getValue: () => (this._entity as PersonProperties).name,
                 setValue: (name: string) => this.set(PersonProperty.NAME, name),
             },
         ];

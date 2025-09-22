@@ -6,9 +6,10 @@ import "./client.css";
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { Footer, Header, Center, LeftSideBar } from ".";
 import { EntryCreator, ContextMenu, ProjectCreator } from "./overlays";
 import { getService } from "./services";
+
+import { Footer, Header, Center, LeftSideBar } from ".";
 
 function renderPortalContainer() {
     const service = getService();

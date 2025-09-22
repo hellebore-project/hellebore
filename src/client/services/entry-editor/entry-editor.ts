@@ -13,10 +13,11 @@ import {
     WordType,
 } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
-import { PropertyEditor } from "./property-editor";
-import { ArticleTextEditor } from "./text-editor";
-import { EntityInfoEditor } from "./info-editor";
+
 import { WordEditor } from "./word-editor";
+import { EntityInfoEditor } from "./info-editor";
+import { ArticleEditor } from "./text-editor";
+import { PropertyEditor } from "./property-editor";
 
 const DEFAULT_SYNC_DELAY_TIME = 5000;
 
@@ -66,17 +67,17 @@ export class EntryEditor {
 
     // STATE
     private _viewKey: EntryViewKey = EntryViewKey.ArticleEditor;
-    private _waitingForSync: boolean = false;
-    private _syncing: boolean = false;
-    private _lastModified: number = 0;
-    private _lastSynced: number = 0;
+    private _waitingForSync = false;
+    private _syncing = false;
+    private _lastModified = 0;
+    private _lastSynced = 0;
     private _syncDelayTime: number = DEFAULT_SYNC_DELAY_TIME;
 
     // SERVICES
     private _client: IClientManager;
     info: EntityInfoEditor;
     properties: PropertyEditor;
-    text: ArticleTextEditor;
+    article: ArticleEditor;
     lexicon: WordEditor;
 
     constructor({ client, wordEditor }: EntryEditorArguments) {
@@ -88,7 +89,7 @@ export class EntryEditor {
             info: this.info,
             onChange,
         });
-        this.text = new ArticleTextEditor({
+        this.article = new ArticleEditor({
             client,
             info: this.info,
             onChange,
@@ -109,7 +110,7 @@ export class EntryEditor {
             _client: false,
             info: false,
             properties: false,
-            text: false,
+            article: false,
             lexicon: false,
         });
     }
@@ -157,7 +158,7 @@ export class EntryEditor {
     ) {
         this.currentView = EntryViewKey.ArticleEditor;
         this.info.initialize(id, entityType, title);
-        this.text.initialize(text);
+        this.article.initialize(text);
     }
 
     initializePropertyEditor(
@@ -190,7 +191,7 @@ export class EntryEditor {
     reset() {
         this.info.reset();
         this.properties.reset();
-        this.text.reset();
+        this.article.reset();
         this.lexicon.reset();
     }
 
@@ -237,23 +238,24 @@ export class EntryEditor {
         if (
             !this.info.titleChanged &&
             !this.properties.changed &&
-            !this.text.changed &&
+            !this.article.changed &&
             !this.lexicon.changed
         )
             return new Promise(() => false);
 
-        let title =
+        const title =
             syncTitle && this.info.titleChanged && this.info.title
                 ? this.info.title
                 : null;
-        let properties =
+        const properties =
             syncProperties &&
             this.properties.changed &&
             this.properties.data != null
                 ? this.properties.data
                 : null;
-        let text = syncText && this.text.changed ? this.text.serialized : null;
-        let words =
+        const text =
+            syncText && this.article.changed ? this.article.serialized : null;
+        const words =
             syncLexicon && this.lexicon.changed
                 ? this.lexicon.claimModifiedWords()
                 : null;
@@ -347,7 +349,7 @@ export class EntryEditor {
             this.info.isTitleUnique = title.isUnique ?? true;
         }
 
-        if (text && text.updated) this.text.afterSync();
+        if (text && text.updated) this.article.afterSync();
 
         if (properties && properties.updated) this.properties.afterSync();
 

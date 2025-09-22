@@ -5,14 +5,14 @@ import { BulkData, EntryInfoResponse, FolderResponse } from "@/domain/schema";
 export type FileNode = EntryInfoResponse;
 
 export interface FolderNode extends FolderResponse {
-    subFolders: { [id: number]: FolderNode };
-    files: { [id: number]: FileNode };
+    subFolders: Record<number, FolderNode>;
+    files: Record<number, FileNode>;
 }
 
 export class FileStructure {
     // TODO: use Maps instead of vanilla objects
-    folders: { [id: number]: FolderNode };
-    files: { [id: number]: FileNode };
+    folders: Record<number, FolderNode>;
+    files: Record<number, FileNode>;
 
     constructor() {
         this.folders = {};

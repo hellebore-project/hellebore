@@ -9,8 +9,9 @@ import { OutsideEventHandler } from "@/shared/outside-event-handler";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
 import { ToolTipWrapper } from "@/shared/tool-tip";
-import { SpreadsheetService } from "./spreadsheet.service";
+
 import { SpreadsheetFieldType } from "./spreadsheet.interface";
+import { SpreadsheetService } from "./spreadsheet.service";
 
 interface SpreadsheetCellSettings<K extends string, M> {
     rowIndex: number;

@@ -1,6 +1,7 @@
 import { ProjectResponse, SessionResponse } from "@/domain/schema";
-import { MockedInvoker } from "./invoker";
 import { CommandNames } from "@/domain/constants";
+
+import { MockedInvoker } from "./invoker";
 
 export interface MockGetSessionArguments {
     project: ProjectResponse;
@@ -15,7 +16,7 @@ export function mockGetSession(
     mockedInvoker: MockedInvoker,
     { project, dbFilePath }: MockGetSessionArguments,
 ) {
-    let response: SessionResponse = {
+    const response: SessionResponse = {
         project,
         db_file_path: dbFilePath,
     };

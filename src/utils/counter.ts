@@ -1,7 +1,7 @@
 export class Counter {
-    _index: number = 0;
+    _index = 0;
 
-    constructor(start: number = 0) {
+    constructor(start = 0) {
         this._index = start;
     }
 

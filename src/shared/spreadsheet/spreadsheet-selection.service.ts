@@ -230,7 +230,7 @@ export class SpreadsheetSelectionService<K extends string, M> {
 
     // DIFFS
 
-    private _modifyDiffs(keys: Set<PositionKey>, positive: boolean = true) {
+    private _modifyDiffs(keys: Set<PositionKey>, positive = true) {
         if (positive) {
             this._positiveDiff = this._positiveDiff.union(keys);
             this._negativeDiff = this._negativeDiff.difference(keys);

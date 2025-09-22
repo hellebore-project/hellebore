@@ -2,49 +2,41 @@ import "./property-table.css";
 
 import { Card, CardProps, Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
+import { PropsWithChildren, ReactNode } from "react";
 
-import { getService } from "@/client";
-import { PropertyFieldData, PropertyFieldType } from "@/client";
+import { getService, PropertyFieldType, TextPropertyFieldData } from "@/client";
 import { TextField } from "@/shared/text-field";
 
-interface PropertyFieldSettings extends PropertyFieldData {}
-
-interface PropertyRowSettings {
-    data: PropertyFieldData;
+interface PropertyRowSettings extends PropsWithChildren {
+    label: string;
 }
 
 interface PropertyTableSettings extends CardProps {
     stackSettings?: StackProps;
 }
 
-function renderPropertyField({
+function renderTextPropertyField({
     label,
-    type,
     getValue,
     setValue,
-}: PropertyFieldSettings) {
-    if (type == PropertyFieldType.TEXT) {
-        return (
-            <TextField
-                variant="unstyled"
-                placeholder={label}
-                getValue={getValue}
-                onChange={(event) => setValue?.(event.currentTarget.value)}
-            />
-        );
-    }
-    return "";
+}: TextPropertyFieldData) {
+    return (
+        <TextField
+            variant="unstyled"
+            placeholder={label}
+            getValue={getValue}
+            onChange={(event) => setValue?.(event.currentTarget.value)}
+        />
+    );
 }
 
-const PropertyField = observer(renderPropertyField);
+const TextPropertyField = observer(renderTextPropertyField);
 
-function renderPropertyFieldRow({ data }: PropertyRowSettings) {
+function renderPropertyFieldRow({ label, children }: PropertyRowSettings) {
     return (
         <Grid justify="flex-start" align="center">
-            <Grid.Col span={3}>{data.label}</Grid.Col>
-            <Grid.Col span={9}>
-                <PropertyField {...data} />
-            </Grid.Col>
+            <Grid.Col span={3}>{label}</Grid.Col>
+            <Grid.Col span={9}>{children}</Grid.Col>
         </Grid>
     );
 }
@@ -57,9 +49,22 @@ function renderPropertyTable({
 }: PropertyTableSettings) {
     const data = getService().entryEditor.fieldData;
     if (data.length == 0) return null;
-    const rows = data.map((fieldData) => (
-        <PropertyFieldRow key={`${fieldData.property}-row`} data={fieldData} />
-    ));
+    const rows = data.map((fieldData) => {
+        let field: ReactNode = null;
+        if (fieldData.type == PropertyFieldType.TEXT)
+            field = (
+                <TextPropertyField {...(fieldData as TextPropertyFieldData)} />
+            );
+
+        return (
+            <PropertyFieldRow
+                key={`${fieldData.property}-row`}
+                label={fieldData.label}
+            >
+                {field}
+            </PropertyFieldRow>
+        );
+    });
 
     return (
         <Card className="property-table" {...rest}>

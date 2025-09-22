@@ -3,7 +3,6 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable, toJS } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
-import { ROOT_FOLDER_ID } from "@/domain/constants";
 import { Id } from "@/interface";
 import {
     FileNodeData,
@@ -12,11 +11,17 @@ import {
     NodeId,
     ROOT_FOLDER_NODE_ID,
 } from "@/client/interface";
-import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
-import { EntryInfoResponse, FolderResponse } from "@/domain/schema";
-import { Counter } from "@/utils/counter";
-import { NavigatorErrorManager } from "./navigator-error-manager";
+import {
+    FolderUpdateArguments,
+    ROOT_FOLDER_ID,
+    EntryInfoResponse,
+    FolderResponse,
+} from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
+import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
+import { Counter } from "@/utils/counter";
+
+import { NavigatorErrorManager } from "./navigator-error-manager";
 
 type PrivateKeys =
     | "_nodePositionCache"
@@ -36,10 +41,10 @@ export class FileNavigator {
 
     // STATE
     private _nodes: FileNodeModel[];
-    private _nodePositionCache: { [nodeId: NodeId]: number };
-    private _expanded: boolean = true;
-    private _focused: boolean = false;
-    private _hover: boolean = false;
+    private _nodePositionCache: Record<NodeId, number>;
+    private _expanded = true;
+    private _focused = false;
+    private _hover = false;
     private _selectedNode: FileNodeModel | null = null;
     private _openedNode: FileNodeModel | null = null;
 
@@ -142,7 +147,7 @@ export class FileNavigator {
 
     get activeFolderId() {
         if (this.selectedNode) {
-            let id = this.isFolderNode(this.selectedNode)
+            const id = this.isFolderNode(this.selectedNode)
                 ? this.selectedNode.id
                 : this.selectedNode.parent;
             return this.convertNodeIdToEntryId(id);
@@ -196,12 +201,12 @@ export class FileNavigator {
 
         const nodes: FileNodeModel[] = [];
 
-        for (let entry of entries) {
+        for (const entry of entries) {
             nodes.push(
                 this._generateEntryNode(entry.id, entry.folder_id, entry.title),
             );
         }
-        for (let folder of folders) {
+        for (const folder of folders) {
             nodes.push(
                 this._generateFolderNode(
                     folder.id,
@@ -261,16 +266,16 @@ export class FileNavigator {
         this._nodes[index] = node;
     }
 
-    getNodeIndex(nodeId: NodeId | null, cache: boolean = true): number | null {
+    getNodeIndex(nodeId: NodeId | null, cache = true): number | null {
         if (!nodeId) return null;
 
         let index = this._nodePositionCache[nodeId];
-        let node = this._nodes[index];
+        const node = this._nodes[index];
 
         if (node && node.id == nodeId) return index;
 
         index = 0;
-        for (let node of this._nodes) {
+        for (const node of this._nodes) {
             if (node.id != nodeId) {
                 index++;
                 continue;
@@ -282,19 +287,16 @@ export class FileNavigator {
         return null;
     }
 
-    _findNode(
-        nodeId: NodeId | null,
-        cache: boolean = true,
-    ): FileNodeModel | null {
+    _findNode(nodeId: NodeId | null, cache = true): FileNodeModel | null {
         if (!nodeId) return null;
 
         let index = this._nodePositionCache[nodeId];
-        let node = this._nodes[index];
+        const node = this._nodes[index];
 
         if (node && node.id == nodeId) return node;
 
         index = 0;
-        for (let node of this._nodes) {
+        for (const node of this._nodes) {
             if (node.id != nodeId) {
                 index++;
                 continue;
@@ -347,7 +349,7 @@ export class FileNavigator {
     private _toggleNodeAsEditable(
         node: FileNodeModel,
         index: number | null = null,
-        text: string = "",
+        text = "",
     ) {
         this._addNodeData(node, { isEditable: true, editableText: text });
 
@@ -391,7 +393,7 @@ export class FileNavigator {
         const newText = node.data?.editableText ?? "";
         if (!newText) this.setNodeError(node, "A name must be provided.");
         else if (newText != node.text) {
-            let id = this.isPlaceholderNode(node)
+            const id = this.isPlaceholderNode(node)
                 ? null
                 : this.convertNodeIdToEntryId(node.id);
 
@@ -653,7 +655,7 @@ export class FileNavigator {
         const sourceParentId = this.convertNodeIdToEntryId(sourceFolderNodeId);
         const destParentId = this.convertNodeIdToEntryId(destFolderNodeId);
 
-        let response: any;
+        let response: boolean | FolderUpdateArguments | null;
         if (this.isFolderNode(node)) {
             // folder
             const validateResponse = this._client.domain.folders.validate(

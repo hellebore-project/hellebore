@@ -1,5 +1,4 @@
 import { observer } from "mobx-react-lite";
-
 import { ReactNode } from "react";
 
 interface NavItemIndentSettings {

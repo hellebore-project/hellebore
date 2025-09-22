@@ -1,8 +1,8 @@
 import { makeAutoObservable } from "mobx";
 
 export class ProjectCreator {
-    _name: string = "";
-    _dbFilePath: string = "";
+    _name = "";
+    _dbFilePath = "";
 
     constructor() {
         makeAutoObservable(this);

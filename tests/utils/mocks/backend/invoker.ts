@@ -2,13 +2,13 @@ import { InvokeArgs } from "@tauri-apps/api/core";
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { expect, MockInstance, vi } from "vitest";
 
-type TauriInvoke = (name: string, args?: InvokeArgs) => any;
+type TauriInvoke = (name: string, args?: InvokeArgs) => unknown;
 
 interface TauriInternals {
-    invoke(name: string, args?: InvokeArgs): any;
+    invoke(name: string, args?: InvokeArgs): unknown;
 }
 
-export type MockedCommand = (args: any) => any;
+export type MockedCommand = (args: unknown) => unknown;
 
 export class MockedInvoker {
     commands: Map<string, MockedCommand>;
@@ -31,7 +31,7 @@ export class MockedInvoker {
             return command(args);
         });
 
-        // @ts-ignore
+        // @ts-expect-error: since __TAURI_INTERNALS__ is injected at runtime, the linter isn't aware of it
         const internals = window.__TAURI_INTERNALS__ as TauriInternals;
         this._spy = vi.spyOn(internals, "invoke");
     }
@@ -51,7 +51,7 @@ export class MockedInvoker {
         throw `Command ${name} was not called.`;
     }
 
-    expectCalledWith(name: string, args?: any) {
+    expectCalledWith(name: string, args?: unknown) {
         expect(this.spy).toHaveBeenCalledWith(name, args);
     }
 }

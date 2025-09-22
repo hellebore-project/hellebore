@@ -2,8 +2,9 @@ import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { SPACE } from "@/shared/common";
-import { TitleField } from "../title-field";
+
 import { PropertyTable } from "./property-table";
+import { TitleField } from "../title-field";
 
 function renderPropertyEditor() {
     return (

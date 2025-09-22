@@ -15,16 +15,16 @@ import {
     PersonProperties,
 } from "@/domain";
 import { Id } from "@/interface";
-import {} from "@/domain";
-import { FileStructure } from "./file-structure";
+
 import { is_field_unique, process_api_error } from "./error-handler";
+import { FileStructure } from "./file-structure";
 
 export enum EntryType {
     Language = "Language",
     Person = "Person",
 }
 
-export type EntryPropertyMapping = { [type in EntryType]: BaseEntity };
+export type EntryPropertyMapping = Record<EntryType, BaseEntity>;
 
 export interface RawEntryPropertyResponse {
     info: EntryInfoResponse;
@@ -125,7 +125,7 @@ export class EntryManager {
         id: Id,
         title: string,
     ): Promise<EntryTitleUpdateResponse> {
-        let response: EntryTitleUpdateResponse = {
+        const response: EntryTitleUpdateResponse = {
             updated: true,
             isUnique: true,
         };
@@ -136,7 +136,7 @@ export class EntryManager {
             response.updated = false;
             console.error(error);
 
-            let _error = process_api_error(error as ApiError);
+            const _error = process_api_error(error as ApiError);
             if (!is_field_unique(_error, EntityType.ENTRY, "title"))
                 response.isUnique = false;
         }
@@ -224,10 +224,7 @@ export class EntryManager {
         return response;
     }
 
-    queryByTitle(
-        titleFragment: string,
-        maxResults: number = 5,
-    ): EntryInfoResponse[] {
+    queryByTitle(titleFragment: string, maxResults = 5): EntryInfoResponse[] {
         const arg = titleFragment.toLowerCase();
         // TODO: query the backend instead of checking the cache
         return Object.values(this._structure.files)

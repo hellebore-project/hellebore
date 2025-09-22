@@ -5,7 +5,7 @@ import { IClientManager } from "@/client/interface";
 type PrivateKeys = "_client";
 
 export class HomeManager {
-    _projectName: string = "";
+    _projectName = "";
 
     private _client: IClientManager;
 

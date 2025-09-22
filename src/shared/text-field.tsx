@@ -1,7 +1,8 @@
-import { BaseTextInputSettings } from "@/interface";
 import { TextInput } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { forwardRef } from "react";
+
+import { BaseTextInputSettings } from "@/interface";
 
 export interface TextFieldSettings extends BaseTextInputSettings {
     value?: string;

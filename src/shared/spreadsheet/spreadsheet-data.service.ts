@@ -1,7 +1,8 @@
 import { makeAutoObservable } from "mobx";
 
 import {} from "@/interface";
-import { ObservableReference } from "@/shared//observable-reference";
+import { ObservableReference } from "@/shared/observable-reference";
+
 import {
     AddRowHandler,
     DeleteRowHandler,
@@ -32,7 +33,7 @@ export class SpreadsheetDataService<K extends string, M> {
     private _rowCache: Map<string, SpreadsheetRowData<K, M>>;
     private _columns: SpreadsheetColumnData<K>[];
 
-    private _selectedCellCount: number = 0;
+    private _selectedCellCount = 0;
 
     private _editableCell: SpreadsheetCellData | null = null;
     private _editableCellRef: ObservableReference<HTMLInputElement>;
@@ -148,9 +149,7 @@ export class SpreadsheetDataService<K extends string, M> {
     private _createRow(
         row: SpreadsheetRowData<K, M>,
     ): SpreadsheetRowData<K, M> {
-        const entries = Object.entries(row.cells) as Array<
-            [K, SpreadsheetCellData]
-        >;
+        const entries = Object.entries(row.cells) as [K, SpreadsheetCellData][];
         for (const [colKey, cell] of entries) {
             cell.key = cell.key ?? `${row.key}-${colKey}`;
             cell.label = cell.label ?? cell.value;
@@ -192,11 +191,7 @@ export class SpreadsheetDataService<K extends string, M> {
 
     // CELL SELECTION
 
-    toggleCellSelection(
-        rowIndex: number,
-        colIndex: number,
-        selected: boolean = true,
-    ) {
+    toggleCellSelection(rowIndex: number, colIndex: number, selected = true) {
         const cell = this.getCell(rowIndex, colIndex);
         if (!cell.selected && selected) {
             cell.selected = true;

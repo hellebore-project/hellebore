@@ -1,10 +1,10 @@
 import { DEFAULT_THEME, MantineProvider } from "@mantine/core";
 import { render as baseRender } from "@testing-library/react";
 import { PropsWithChildren, ReactNode } from "react";
+import { observer } from "mobx-react-lite";
 
 import { PortalContainer } from "@/client/client";
 import { getService } from "@/client";
-import { observer } from "mobx-react-lite";
 
 function renderTestApp({ children }: PropsWithChildren) {
     const service = getService();

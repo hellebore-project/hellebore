@@ -16,14 +16,14 @@ function renderVerticalSelectionItem({
     style: sharedStyle,
     ...sharedAttrs
 }: VerticalMenuSelectionSettings) {
-    let {
+    const {
         className: uniqueClassName,
         index,
         label,
-        onConfirm,
         style: uniqueStyle,
         ...uniqueAttrs
     } = data;
+    delete uniqueAttrs.onConfirm;
 
     let _className = "vertical-selection-item";
     if (uniqueClassName) _className += ` ${uniqueClassName}`;

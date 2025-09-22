@@ -1,4 +1,5 @@
 import { Rectangle } from "@/interface";
+
 import { PositionKey, SpreadsheetCellPosition } from "./spreadsheet.interface";
 
 export function generatePositionKey(row: number, col: number): PositionKey {
@@ -11,16 +12,16 @@ export function parsePositionKey(key: PositionKey): SpreadsheetCellPosition {
 }
 
 export class SpreadsheetSelectedRectangle implements Rectangle {
-    left: number = 0;
-    right: number = 0;
-    top: number = 0;
-    bottom: number = 0;
-    positive: boolean = true;
+    left = 0;
+    right = 0;
+    top = 0;
+    bottom = 0;
+    positive = true;
 
     constructor(
         start: SpreadsheetCellPosition,
         end?: SpreadsheetCellPosition,
-        positive: boolean = true,
+        positive = true,
     ) {
         this.set(start, end ?? start);
         this.positive = positive;

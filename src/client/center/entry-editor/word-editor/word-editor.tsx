@@ -6,8 +6,9 @@ import { observer } from "mobx-react-lite";
 import { getService, WordViewKey } from "@/client";
 import { SPACE } from "@/shared/common";
 import { TabData, Tabs } from "@/shared/tabs";
-import { TitleField } from "../title-field";
+
 import { WordTable } from "./word-table";
+import { TitleField } from "../title-field";
 
 const TAB_DATA: TabData[] = [
     { label: "Root Words", value: WordViewKey.RootWords },
@@ -22,7 +23,7 @@ const TAB_DATA: TabData[] = [
 ];
 
 function renderWordEditor() {
-    let wordEditor = getService().entryEditor.lexicon;
+    const wordEditor = getService().entryEditor.lexicon;
     return (
         <Container className="word-editor">
             <Stack className="word-editor-stack" justify="flex-start" gap={0}>

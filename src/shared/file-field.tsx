@@ -30,7 +30,7 @@ function renderFileField({
         styles["input"] = { cursor: "pointer", ...(styles?.input ?? {}) };
 
         let input: CSSProperties;
-        if (styles.hasOwnProperty("input")) input = styles["input"];
+        if (Object.hasOwn(styles, "input")) input = styles["input"];
         else {
             input = {};
             styles["input"] = input;

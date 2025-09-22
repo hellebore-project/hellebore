@@ -1,8 +1,9 @@
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { ask, open } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable } from "mobx";
+import { ask, open } from "@tauri-apps/plugin-dialog";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
-import { Id } from "@/interface";
+import { OpenEntryCreatorArguments, IClientManager } from "@/client/interface";
+import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
 import {
     EntityType,
     ROOT_FOLDER_ID,
@@ -10,8 +11,7 @@ import {
     DomainManager,
     WordUpsert,
 } from "@/domain";
-import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
-import { OpenEntryCreatorArguments, IClientManager } from "@/client/interface";
+import { Id } from "@/interface";
 
 import { EntryCreator } from "./entry-creator";
 import { EntryEditor } from "./entry-editor";
@@ -37,7 +37,7 @@ export class ClientManager implements IClientManager {
     // state variables
     _viewKey: ViewKey = ViewKey.Home;
     _modalKey: ModalKey | null = null;
-    _navBarMobileOpen: boolean = true;
+    _navBarMobileOpen = true;
 
     // domain service
     domain: DomainManager;
@@ -53,7 +53,7 @@ export class ClientManager implements IClientManager {
 
     // modal services
     projectCreator: ProjectCreator;
-    entityCreator: EntryCreator;
+    entryCreator: EntryCreator;
 
     // context menu service
     contextMenu: ContextMenuManager;
@@ -90,7 +90,7 @@ export class ClientManager implements IClientManager {
 
         // modals
         this.projectCreator = new ProjectCreator();
-        this.entityCreator = new EntryCreator(this);
+        this.entryCreator = new EntryCreator(this);
 
         // context menu
         this.contextMenu = new ContextMenuManager(this);
@@ -252,7 +252,7 @@ export class ClientManager implements IClientManager {
     }
 
     openEntryCreator(args?: OpenEntryCreatorArguments) {
-        this.entityCreator.initialize(
+        this.entryCreator.initialize(
             args?.entityType,
             args?.folderId ?? ROOT_FOLDER_ID,
         );
@@ -385,7 +385,7 @@ export class ClientManager implements IClientManager {
         this.navigation.files.toggleFolderAsEditable(id);
     }
 
-    async deleteFolder(id: number, confirm: boolean = true) {
+    async deleteFolder(id: number, confirm = true) {
         if (confirm) {
             const folder = this.domain.folders.getInfo(id);
             const canDelete = await ask(
@@ -441,7 +441,7 @@ export class ClientManager implements IClientManager {
         return await this.domain.words.bulkUpsert(updates);
     }
 
-    async deleteEntry(id: number, title: string, confirm: boolean = true) {
+    async deleteEntry(id: number, title: string, confirm = true) {
         if (confirm) {
             const message =
                 `Are you sure you want to delete '${title}' and all of its associated content? ` +

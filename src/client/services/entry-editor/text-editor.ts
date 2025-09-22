@@ -1,33 +1,35 @@
 import { Node as PMNode } from "prosemirror-model";
-import { Editor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
+import { Editor, JSONContent } from "@tiptap/react";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { EntityChangeHandler, IClientManager } from "@/client/interface";
+import { IClientManager } from "@/client/interface";
 import {
     SuggestionData,
     useReferenceExtension,
 } from "@/shared/rich-text-editor";
+
 import { EntityInfoEditor } from "./info-editor";
 
+type EditArticleHandler = () => void;
 type PrivateKeys = "_client";
 
 interface ArticleTextEditorSettings {
     client: IClientManager;
     info: EntityInfoEditor;
-    onChange: EntityChangeHandler;
+    onChange: EditArticleHandler;
 }
 
-export class ArticleTextEditor {
+export class ArticleEditor {
     editor: Editor;
-    changed: boolean = false;
+    changed = false;
     private _selectedRefIndex: number | null = null;
 
     private _client: IClientManager;
     info: EntityInfoEditor;
 
-    onChange: EntityChangeHandler;
+    onChange: EditArticleHandler;
 
     constructor({ client, info, onChange }: ArticleTextEditorSettings) {
         this._client = client;
@@ -36,18 +38,18 @@ export class ArticleTextEditor {
 
         this.editor = this._buildEditor();
 
-        makeAutoObservable<ArticleTextEditor, PrivateKeys>(this, {
+        makeAutoObservable<ArticleEditor, PrivateKeys>(this, {
             _client: false,
             info: false,
             onChange: false,
         });
     }
 
-    get content(): any {
+    get content(): JSONContent {
         return this.editor.getJSON();
     }
 
-    set content(content: any) {
+    set content(content: JSONContent) {
         this.editor.commands.setContent(content);
     }
 
@@ -79,7 +81,8 @@ export class ArticleTextEditor {
         const Reference = useReferenceExtension({
             queryItems: ({ query }) => this._queryByTitle(query),
             getSelectedIndex: () => this.selectedRefIndex,
-            setSelectedIndex: (index) => (this.selectedRefIndex = index),
+            setSelectedIndex: (index) =>
+                (this.selectedRefIndex = index as number),
         });
 
         return new Editor({

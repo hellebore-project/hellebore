@@ -7,9 +7,9 @@ const ENTITY_ID_SENTINEL = -1;
 export class EntityInfoEditor {
     _id: number = ENTITY_ID_SENTINEL;
     _entityType: EntityType | null = null;
-    _title: string = "";
-    _isTitleUnique: boolean = true;
-    _titleChanged: boolean = false;
+    _title = "";
+    _isTitleUnique = true;
+    _titleChanged = false;
 
     constructor() {
         makeAutoObservable(this);
