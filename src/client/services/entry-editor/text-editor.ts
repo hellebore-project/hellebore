@@ -4,22 +4,24 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { EntityChangeHandler, IClientManager } from "@/client/interface";
+import { IClientManager } from "@/client/interface";
 import {
     SuggestionData,
     useReferenceExtension,
 } from "@/shared/rich-text-editor";
+
 import { EntityInfoEditor } from "./info-editor";
 
+type EditArticleHandler = () => void;
 type PrivateKeys = "_client";
 
 interface ArticleTextEditorSettings {
     client: IClientManager;
     info: EntityInfoEditor;
-    onChange: EntityChangeHandler;
+    onChange: EditArticleHandler;
 }
 
-export class ArticleTextEditor {
+export class ArticleEditor {
     editor: Editor;
     changed: boolean = false;
     private _selectedRefIndex: number | null = null;
@@ -27,7 +29,7 @@ export class ArticleTextEditor {
     private _client: IClientManager;
     info: EntityInfoEditor;
 
-    onChange: EntityChangeHandler;
+    onChange: EditArticleHandler;
 
     constructor({ client, info, onChange }: ArticleTextEditorSettings) {
         this._client = client;
@@ -36,7 +38,7 @@ export class ArticleTextEditor {
 
         this.editor = this._buildEditor();
 
-        makeAutoObservable<ArticleTextEditor, PrivateKeys>(this, {
+        makeAutoObservable<ArticleEditor, PrivateKeys>(this, {
             _client: false,
             info: false,
             onChange: false,

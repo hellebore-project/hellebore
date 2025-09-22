@@ -14,7 +14,7 @@ import {
 } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
 import { PropertyEditor } from "./property-editor";
-import { ArticleTextEditor } from "./text-editor";
+import { ArticleEditor } from "./text-editor";
 import { EntityInfoEditor } from "./info-editor";
 import { WordEditor } from "./word-editor";
 
@@ -76,7 +76,7 @@ export class EntryEditor {
     private _client: IClientManager;
     info: EntityInfoEditor;
     properties: PropertyEditor;
-    text: ArticleTextEditor;
+    article: ArticleEditor;
     lexicon: WordEditor;
 
     constructor({ client, wordEditor }: EntryEditorArguments) {
@@ -88,7 +88,7 @@ export class EntryEditor {
             info: this.info,
             onChange,
         });
-        this.text = new ArticleTextEditor({
+        this.article = new ArticleEditor({
             client,
             info: this.info,
             onChange,
@@ -109,7 +109,7 @@ export class EntryEditor {
             _client: false,
             info: false,
             properties: false,
-            text: false,
+            article: false,
             lexicon: false,
         });
     }
@@ -157,7 +157,7 @@ export class EntryEditor {
     ) {
         this.currentView = EntryViewKey.ArticleEditor;
         this.info.initialize(id, entityType, title);
-        this.text.initialize(text);
+        this.article.initialize(text);
     }
 
     initializePropertyEditor(
@@ -190,7 +190,7 @@ export class EntryEditor {
     reset() {
         this.info.reset();
         this.properties.reset();
-        this.text.reset();
+        this.article.reset();
         this.lexicon.reset();
     }
 
@@ -237,7 +237,7 @@ export class EntryEditor {
         if (
             !this.info.titleChanged &&
             !this.properties.changed &&
-            !this.text.changed &&
+            !this.article.changed &&
             !this.lexicon.changed
         )
             return new Promise(() => false);
@@ -252,7 +252,8 @@ export class EntryEditor {
             this.properties.data != null
                 ? this.properties.data
                 : null;
-        let text = syncText && this.text.changed ? this.text.serialized : null;
+        let text =
+            syncText && this.article.changed ? this.article.serialized : null;
         let words =
             syncLexicon && this.lexicon.changed
                 ? this.lexicon.claimModifiedWords()
@@ -347,7 +348,7 @@ export class EntryEditor {
             this.info.isTitleUnique = title.isUnique ?? true;
         }
 
-        if (text && text.updated) this.text.afterSync();
+        if (text && text.updated) this.article.afterSync();
 
         if (properties && properties.updated) this.properties.afterSync();
 

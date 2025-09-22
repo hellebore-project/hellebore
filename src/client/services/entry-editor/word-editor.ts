@@ -2,13 +2,10 @@ import { makeAutoObservable } from "mobx";
 
 import { WordViewKey } from "@/client/constants";
 import {
-    EntityChangeHandler,
     IClientManager,
     WordKey,
     Word,
-    WordTableColumnKey,
     WordMetaData,
-    WordColumnKeys,
 } from "@/client/interface";
 import { WordResponse, WordType } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
@@ -19,7 +16,16 @@ import {
     SpreadsheetFieldType,
 } from "@/shared/spreadsheet";
 import { Counter } from "@/utils/counter";
+
 import { EntityInfoEditor } from "./info-editor";
+
+type WordColumnKeys = "spelling" | "definition" | "translations";
+
+enum WordTableColumnKey {
+    Spelling = "spelling",
+    Definition = "definition",
+    Translations = "translations",
+}
 
 const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.RootWord, WordViewKey.RootWords],
@@ -67,11 +73,13 @@ type PrivateKeys =
     | "_client"
     | "_info";
 
+type ChangeWordHandler = () => void;
+
 interface WordEditorArguments {
     client: IClientManager;
     info: EntityInfoEditor;
     editableCellRef: ObservableReference<HTMLInputElement>;
-    onChange: EntityChangeHandler;
+    onChange: ChangeWordHandler;
 }
 
 export class WordEditor {
@@ -89,7 +97,7 @@ export class WordEditor {
     private _wordKeyGenerator: Counter;
 
     // CALLBACKS
-    private _onChange: EntityChangeHandler;
+    private _onChange: ChangeWordHandler;
 
     // CONSTRUCTION
     constructor({

@@ -6,18 +6,15 @@ import {
     PersonProperties,
     PersonProperty,
 } from "@/domain";
-import {
-    PropertyFieldType,
-    PropertyFieldData,
-    EntityChangeHandler,
-} from "@/client";
+import { PropertyFieldType, PropertyFieldData } from "@/client";
 import { EntityInfoEditor } from "./info-editor";
 
+type EditPropertyHandler = () => void;
 type FieldDataCollection = { [type: number]: PropertyFieldData[] };
 
 interface PropertyEditorSettings {
     info: EntityInfoEditor;
-    onChange: EntityChangeHandler;
+    onChange: EditPropertyHandler;
 }
 
 export class PropertyEditor {
@@ -28,7 +25,7 @@ export class PropertyEditor {
 
     info: EntityInfoEditor;
 
-    onChange: EntityChangeHandler;
+    onChange: EditPropertyHandler;
 
     constructor({ info, onChange }: PropertyEditorSettings) {
         this.info = info;

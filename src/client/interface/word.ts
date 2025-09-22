@@ -15,11 +15,3 @@ export interface Word extends BaseWordData, WordMetaData {
     id: Id | null;
     key: WordKey;
 }
-
-export type WordColumnKeys = "spelling" | "definition" | "translations";
-
-export enum WordTableColumnKey {
-    Spelling = "spelling",
-    Definition = "definition",
-    Translations = "translations",
-}

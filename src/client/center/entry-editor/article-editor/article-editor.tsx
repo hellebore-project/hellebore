@@ -28,7 +28,7 @@ function renderArticleEditor() {
 
                 <RichTextEditor
                     className="article-editor-text"
-                    getEditor={() => service.entryEditor.text.editor}
+                    getEditor={() => service.entryEditor.article.editor}
                     styles={RICH_TEXT_EDITOR_STYLES}
                 />
             </Stack>

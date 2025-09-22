@@ -53,7 +53,7 @@ export class ClientManager implements IClientManager {
 
     // modal services
     projectCreator: ProjectCreator;
-    entityCreator: EntryCreator;
+    entryCreator: EntryCreator;
 
     // context menu service
     contextMenu: ContextMenuManager;
@@ -90,7 +90,7 @@ export class ClientManager implements IClientManager {
 
         // modals
         this.projectCreator = new ProjectCreator();
-        this.entityCreator = new EntryCreator(this);
+        this.entryCreator = new EntryCreator(this);
 
         // context menu
         this.contextMenu = new ContextMenuManager(this);
@@ -252,7 +252,7 @@ export class ClientManager implements IClientManager {
     }
 
     openEntryCreator(args?: OpenEntryCreatorArguments) {
-        this.entityCreator.initialize(
+        this.entryCreator.initialize(
             args?.entityType,
             args?.folderId ?? ROOT_FOLDER_ID,
         );
