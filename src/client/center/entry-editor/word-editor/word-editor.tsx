@@ -6,8 +6,9 @@ import { observer } from "mobx-react-lite";
 import { getService, WordViewKey } from "@/client";
 import { SPACE } from "@/shared/common";
 import { TabData, Tabs } from "@/shared/tabs";
-import { TitleField } from "../title-field";
+
 import { WordTable } from "./word-table";
+import { TitleField } from "../title-field";
 
 const TAB_DATA: TabData[] = [
     { label: "Root Words", value: WordViewKey.RootWords },

@@ -7,6 +7,7 @@ import {
     FolderUpdate,
     FolderValidateResponse,
 } from "@/domain/schema";
+
 import { FileStructure } from "./file-structure";
 
 export interface FolderUpdateArguments {

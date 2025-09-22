@@ -1,7 +1,8 @@
-import { getService } from "@/client";
 import { Select, SelectProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { forwardRef } from "react";
+
+import { getService } from "@/client";
 
 interface SelectFieldSettings extends SelectProps {
     getValue?: () => string | null;

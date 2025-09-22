@@ -13,10 +13,11 @@ import {
     WordType,
 } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
-import { PropertyEditor } from "./property-editor";
-import { ArticleEditor } from "./text-editor";
-import { EntityInfoEditor } from "./info-editor";
+
 import { WordEditor } from "./word-editor";
+import { EntityInfoEditor } from "./info-editor";
+import { ArticleEditor } from "./text-editor";
+import { PropertyEditor } from "./property-editor";
 
 const DEFAULT_SYNC_DELAY_TIME = 5000;
 

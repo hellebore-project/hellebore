@@ -1,6 +1,7 @@
-import { getService } from "@/client";
 import { Tooltip, TooltipProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
+
+import { getService } from "@/client";
 
 export type ToolTipSettings = TooltipProps;
 

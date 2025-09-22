@@ -1,8 +1,9 @@
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { ask, open } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable } from "mobx";
+import { ask, open } from "@tauri-apps/plugin-dialog";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
-import { Id } from "@/interface";
+import { OpenEntryCreatorArguments, IClientManager } from "@/client/interface";
+import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
 import {
     EntityType,
     ROOT_FOLDER_ID,
@@ -10,8 +11,7 @@ import {
     DomainManager,
     WordUpsert,
 } from "@/domain";
-import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
-import { OpenEntryCreatorArguments, IClientManager } from "@/client/interface";
+import { Id } from "@/interface";
 
 import { EntryCreator } from "./entry-creator";
 import { EntryEditor } from "./entry-editor";

@@ -9,10 +9,11 @@ import {
     TableOfContents,
     TableOfContentsItemData,
 } from "@/shared/table-of-contents";
-import { ArticleEditor } from "./article-editor";
-import { DeleteEntryButton } from "./delete-entry-button";
-import { WordEditor } from "./word-editor/word-editor";
+
 import { PropertyEditor } from "./property-editor";
+import { WordEditor } from "./word-editor/word-editor";
+import { DeleteEntryButton } from "./delete-entry-button";
+import { ArticleEditor } from "./article-editor";
 
 const ARTICLE_TAB_DATA: TableOfContentsItemData = {
     label: "Article",

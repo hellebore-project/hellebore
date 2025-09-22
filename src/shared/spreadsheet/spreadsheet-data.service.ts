@@ -1,7 +1,8 @@
 import { makeAutoObservable } from "mobx";
 
 import {} from "@/interface";
-import { ObservableReference } from "@/shared//observable-reference";
+import { ObservableReference } from "@/shared/observable-reference";
+
 import {
     AddRowHandler,
     DeleteRowHandler,

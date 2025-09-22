@@ -15,9 +15,9 @@ import {
     PersonProperties,
 } from "@/domain";
 import { Id } from "@/interface";
-import {} from "@/domain";
-import { FileStructure } from "./file-structure";
+
 import { is_field_unique, process_api_error } from "./error-handler";
+import { FileStructure } from "./file-structure";
 
 export enum EntryType {
     Language = "Language",

@@ -1,7 +1,7 @@
 import { Node as PMNode } from "prosemirror-model";
 import { Editor, JSONContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { IClientManager } from "@/client/interface";

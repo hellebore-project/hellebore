@@ -1,8 +1,9 @@
 import { makeAutoObservable } from "mobx";
 
 import { EntryInfoResponse, FolderResponse } from "@/domain/schema";
-import { FileNavigator, FileNavigatorArguments } from "./file-navigator";
 import { IClientManager } from "@/client/interface";
+
+import { FileNavigator, FileNavigatorArguments } from "./file-navigator";
 
 export interface NavigationServiceArguments {
     client: IClientManager;

@@ -11,6 +11,7 @@ import {
     PropertyFieldData,
     TextPropertyFieldData,
 } from "@/client";
+
 import { EntityInfoEditor } from "./info-editor";
 
 type EditPropertyHandler = () => void;

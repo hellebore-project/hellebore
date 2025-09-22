@@ -2,11 +2,10 @@ import "./property-table.css";
 
 import { Card, CardProps, Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
-
-import { getService } from "@/client";
-import { PropertyFieldType, TextPropertyFieldData } from "@/client";
-import { TextField } from "@/shared/text-field";
 import { PropsWithChildren, ReactNode } from "react";
+
+import { getService, PropertyFieldType, TextPropertyFieldData } from "@/client";
+import { TextField } from "@/shared/text-field";
 
 interface PropertyRowSettings extends PropsWithChildren {
     label: string;

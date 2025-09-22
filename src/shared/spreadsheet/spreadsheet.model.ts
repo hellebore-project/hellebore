@@ -1,4 +1,5 @@
 import { Rectangle } from "@/interface";
+
 import { PositionKey, SpreadsheetCellPosition } from "./spreadsheet.interface";
 
 export function generatePositionKey(row: number, col: number): PositionKey {

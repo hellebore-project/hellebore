@@ -6,10 +6,11 @@ import { observer } from "mobx-react-lite";
 import { getService } from "@/client";
 import { NavItem } from "@/shared/nav-item";
 import { OutsideEventHandler } from "@/shared/outside-event-handler";
-import { FileNavigator } from "./file-navigator";
-import { AddFolderButton } from "./add-folder-button";
-import { CollapseFoldersButton } from "./collapse-folders-button";
+
 import { AddEntryButton } from "./add-entry-button";
+import { CollapseFoldersButton } from "./collapse-folders-button";
+import { AddFolderButton } from "./add-folder-button";
+import { FileNavigator } from "./file-navigator";
 
 function renderContentsPaneHeader() {
     const fileNav = getService().navigation.files;
