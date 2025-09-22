@@ -1,1 +1,1 @@
-export interface BaseEntity {}
+export type BaseEntity = object;

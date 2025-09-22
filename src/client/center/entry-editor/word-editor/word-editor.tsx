@@ -22,7 +22,7 @@ const TAB_DATA: TabData[] = [
 ];
 
 function renderWordEditor() {
-    let wordEditor = getService().entryEditor.lexicon;
+    const wordEditor = getService().entryEditor.lexicon;
     return (
         <Container className="word-editor">
             <Stack className="word-editor-stack" justify="flex-start" gap={0}>

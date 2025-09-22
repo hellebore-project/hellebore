@@ -74,7 +74,7 @@ function renderEntityEditorTabs() {
     const service = getService();
     const entityType = service.entityType;
 
-    let tabData: TableOfContentsItemData[] = [
+    const tabData: TableOfContentsItemData[] = [
         ARTICLE_TAB_DATA,
         PROPERTY_TAB_DATA,
     ];

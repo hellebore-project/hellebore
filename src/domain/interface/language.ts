@@ -1,3 +1,3 @@
 import { BaseEntity } from "./base";
 
-export interface LanguageProperties extends BaseEntity {}
+export type LanguageProperties = BaseEntity;

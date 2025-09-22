@@ -2,7 +2,7 @@ import { getService } from "@/client";
 import { Tooltip, TooltipProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-export interface ToolTipSettings extends TooltipProps {}
+export type ToolTipSettings = TooltipProps;
 
 function renderToolTip({ children, ...rest }: ToolTipSettings) {
     const service = getService();

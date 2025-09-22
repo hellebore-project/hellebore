@@ -1,24 +1,26 @@
 import { CommandNames, WordType } from "@/domain/constants";
 import { Id } from "@/interface";
 import { WordResponse, WordUpsert, ApiError } from "@/domain/schema";
-import { MockedInvoker } from "./invoker";
+import { MockedCommand, MockedInvoker } from "./invoker";
 
 export function mockUpsertWords(
     mockedInvoker: MockedInvoker,
     wordIds: Id[] | null = null,
-    errors: Array<ApiError[]> | null = null,
+    errors: ApiError[][] | null = null,
 ) {
     wordIds = wordIds ?? [];
     errors = errors ?? [];
 
+    const command = async ({ words }: { words: WordUpsert[] }) => {
+        return words.map((w, i) => ({
+            data: w.id ?? wordIds[i],
+            errors: errors[i] ?? [],
+        }));
+    };
+
     mockedInvoker.mockCommand(
         CommandNames.Word.BulkUpsert,
-        async ({ words }: { words: WordUpsert[] }) => {
-            return words.map((w, i) => ({
-                data: w.id ?? wordIds[i],
-                errors: errors[i] ?? [],
-            }));
-        },
+        command as MockedCommand,
     );
 }
 
@@ -26,24 +28,27 @@ export function mockGetWords(
     mockedInvoker: MockedInvoker,
     words: WordResponse[] = [],
 ) {
+    const command = async ({
+        languageId,
+        wordType,
+    }: {
+        languageId: number;
+        wordType: WordType | null;
+    }) => {
+        return words.map((w) => ({
+            ...w,
+            language_id: languageId,
+            word_type: wordType ?? WordType.RootWord,
+        }));
+    };
     mockedInvoker.mockCommand(
         CommandNames.Word.GetMany,
-        async ({
-            languageId,
-            wordType,
-        }: {
-            languageId: number;
-            wordType: WordType | null;
-        }) => {
-            return words.map((w) => ({
-                ...w,
-                language_id: languageId,
-                word_type: wordType ?? WordType.RootWord,
-            }));
-        },
+        command as MockedCommand,
     );
 }
 
 export function mockDeleteWord(mockedInvoker: MockedInvoker) {
-    mockedInvoker.mockCommand(CommandNames.Word.Delete, async () => {});
+    mockedInvoker.mockCommand(CommandNames.Word.Delete, async () => {
+        /* no-op */
+    });
 }

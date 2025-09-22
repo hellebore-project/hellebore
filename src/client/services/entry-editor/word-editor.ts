@@ -2,8 +2,8 @@ import { makeAutoObservable } from "mobx";
 
 import { WordViewKey } from "@/client/constants";
 import {
-    IClientManager,
     WordKey,
+    IClientManager,
     Word,
     WordMetaData,
 } from "@/client/interface";
@@ -27,7 +27,7 @@ enum WordTableColumnKey {
     Translations = "translations",
 }
 
-const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
+const TYPE_TO_VIEW_MAPPING = new Map<WordType, WordViewKey>([
     [WordType.RootWord, WordViewKey.RootWords],
     [WordType.Determiner, WordViewKey.Determiners],
     [WordType.Preposition, WordViewKey.Prepositions],
@@ -38,7 +38,7 @@ const TYPE_TO_VIEW_MAPPING: Map<WordType, WordViewKey> = new Map([
     [WordType.Adverb, WordViewKey.Adverbs],
     [WordType.Verb, WordViewKey.Verbs],
 ]);
-const VIEW_TO_TYPE_MAPPING: Map<WordViewKey, WordType> = new Map(
+const VIEW_TO_TYPE_MAPPING = new Map<WordViewKey, WordType>(
     Array.from(TYPE_TO_VIEW_MAPPING, (entry) => [entry[1], entry[0]]),
 );
 
@@ -86,7 +86,7 @@ export class WordEditor {
     // STATE VARIABLES
     private _wordType: WordType = WordType.RootWord;
     private _modifiedWordKeys: Set<WordKey>;
-    private _changed: boolean = false;
+    private _changed = false;
 
     // SERVICES
     private _client: IClientManager;
@@ -169,7 +169,7 @@ export class WordEditor {
     private _setWords(words: WordResponse[] | null) {
         if (!words) words = [];
 
-        const mapping: { [key: WordKey]: Word } = {};
+        const mapping: Record<WordKey, Word> = {};
         for (const word of words) {
             const wordRow = this._convertResponseToData(word);
             mapping[wordRow.key] = wordRow;
@@ -185,7 +185,9 @@ export class WordEditor {
         this._addNewWordRow();
     }
 
-    reset() {}
+    reset() {
+        // placeholder in case we need to add clean-up logic
+    }
 
     changeView(viewKey: WordViewKey) {
         const wordType = VIEW_TO_TYPE_MAPPING.get(viewKey) as WordType;

@@ -46,7 +46,7 @@ test("clicking the New Project button opens the project creator", async ({
     screen.getByText("Create a new project");
 });
 
-test("clicking the Open Project button loads another project", async ({}) => {
+test("clicking the Open Project button loads another project", async () => {
     render(<Header />);
     // TODO: not clear how to mock the `open` function in the tauri API
 });

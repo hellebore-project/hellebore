@@ -11,7 +11,7 @@ import {
 } from "@/domain";
 
 type _UpsertWordResponse = DiagnosticResponse<Id | null>;
-type _BulkUpsertWordsResponse = Array<_UpsertWordResponse>;
+type _BulkUpsertWordsResponse = _UpsertWordResponse[];
 
 export class WordManager {
     constructor() {
@@ -95,7 +95,7 @@ export class WordManager {
     }
 
     async _bulkUpsertWords(
-        words: Array<WordUpsert>,
+        words: WordUpsert[],
     ): Promise<_BulkUpsertWordsResponse> {
         return invoke<_BulkUpsertWordsResponse>(CommandNames.Word.BulkUpsert, {
             words,

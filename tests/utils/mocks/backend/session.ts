@@ -15,7 +15,7 @@ export function mockGetSession(
     mockedInvoker: MockedInvoker,
     { project, dbFilePath }: MockGetSessionArguments,
 ) {
-    let response: SessionResponse = {
+    const response: SessionResponse = {
         project,
         db_file_path: dbFilePath,
     };

@@ -17,7 +17,7 @@ export interface TabSettings extends BaseButtonSettings {
 
 export interface TabsSettings extends BaseGroupSettings {
     data: TabData[];
-    selectedValue: any;
+    selectedValue: number | string;
     tabSettings?: BaseButtonSettings;
 }
 

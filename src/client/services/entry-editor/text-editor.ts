@@ -1,5 +1,5 @@
 import { Node as PMNode } from "prosemirror-model";
-import { Editor } from "@tiptap/react";
+import { Editor, JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
@@ -23,7 +23,7 @@ interface ArticleTextEditorSettings {
 
 export class ArticleEditor {
     editor: Editor;
-    changed: boolean = false;
+    changed = false;
     private _selectedRefIndex: number | null = null;
 
     private _client: IClientManager;
@@ -45,11 +45,11 @@ export class ArticleEditor {
         });
     }
 
-    get content(): any {
+    get content(): JSONContent {
         return this.editor.getJSON();
     }
 
-    set content(content: any) {
+    set content(content: JSONContent) {
         this.editor.commands.setContent(content);
     }
 
@@ -81,7 +81,8 @@ export class ArticleEditor {
         const Reference = useReferenceExtension({
             queryItems: ({ query }) => this._queryByTitle(query),
             getSelectedIndex: () => this.selectedRefIndex,
-            setSelectedIndex: (index) => (this.selectedRefIndex = index),
+            setSelectedIndex: (index) =>
+                (this.selectedRefIndex = index as number),
         });
 
         return new Editor({

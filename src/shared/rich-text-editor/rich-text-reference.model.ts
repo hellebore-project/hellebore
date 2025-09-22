@@ -5,7 +5,7 @@ import {
     SuggestionOptions,
     SuggestionProps,
 } from "@tiptap/suggestion";
-import tippy from "tippy.js";
+import tippy, { Instance } from "tippy.js";
 
 import {
     VerticalSelection,
@@ -13,12 +13,19 @@ import {
     VerticalSelectionSettings,
 } from "@/shared/vertical-selection";
 
+export type ReferenceId = number | string;
+
+export interface ReferenceData {
+    id: ReferenceId;
+    label: string;
+}
+
 type QueryResult = string;
 type DOMRectAccessor = () => DOMRect;
 
 export interface SuggestionData {
     label: string;
-    value: any;
+    value: number | string;
 }
 
 export interface QuerySettings {
@@ -26,9 +33,9 @@ export interface QuerySettings {
 }
 
 export interface ReferenceExtensionSettings {
-    queryItems: (settings: QuerySettings) => any[];
+    queryItems: (settings: QuerySettings) => SuggestionData[];
     getSelectedIndex: () => number | null;
-    setSelectedIndex: (value: any) => void;
+    setSelectedIndex: (value: number | string) => void;
 }
 
 class ReferenceSuggestionRenderer {
@@ -36,16 +43,16 @@ class ReferenceSuggestionRenderer {
         typeof VerticalSelection,
         VerticalSelectionSettings
     > | null = null;
-    _popup: any[];
-    _data: any[];
-    _confirm: ((item: any) => void) | null = null;
+    _popup: Instance[];
+    _data: VerticalSelectionData[];
+    _confirm: ((item: ReferenceData) => void) | null = null;
 
     getSelectedIndex: () => number | null;
-    setSelectedIndex: (value: any) => void;
+    setSelectedIndex: (value: number | string) => void;
 
     constructor(
         getSelectedIndex: () => number | null,
-        setSelectedIndex: (value: any) => void,
+        setSelectedIndex: (value: number | string) => void,
     ) {
         this._popup = [];
         this._data = [];
@@ -122,12 +129,17 @@ class ReferenceSuggestionRenderer {
         this.component.updateProps({ data: this._data });
         if (!props.clientRect) return;
         this._popup[0].setProps({
+            // @ts-expect-error: `props.clientRect` is typed as potentially returning null
             getReferenceClientRect: props.clientRect,
         });
     }
 
     async onConfirm(item: VerticalSelectionData) {
-        if (item) this._confirm?.({ id: item.value, label: item.label });
+        if (item)
+            this._confirm?.({
+                id: item.value as ReferenceId,
+                label: item.label,
+            });
     }
 
     onKeyDown(props: SuggestionKeyDownProps) {
@@ -174,7 +186,7 @@ class ReferenceSuggestionRenderer {
 function generateSuggestionOptions(
     queryItems: (settings: QuerySettings) => SuggestionData[],
     getSelectedIndex: () => number | null,
-    setSelectedIndex: (value: any) => void,
+    setSelectedIndex: (value: number | string) => void,
 ): Partial<SuggestionOptions> {
     const renderer = new ReferenceSuggestionRenderer(
         getSelectedIndex,

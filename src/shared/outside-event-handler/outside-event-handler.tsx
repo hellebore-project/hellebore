@@ -25,10 +25,7 @@ function renderOutsideEventHandler({
         }
     }, [service.enabled]);
 
-    if (style && style.display == "block") {
-        const { display, ...styleRest } = style;
-        style = styleRest;
-    }
+    if (style && style.display == "block") delete style.display;
 
     return (
         <div

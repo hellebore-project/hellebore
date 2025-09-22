@@ -28,6 +28,9 @@ export interface BaseUnitFixtures {
     setup: null;
 }
 
+// NOTE: the first argument inside a fixture must use the object destructuring pattern;
+// don't get rid of the empty objects in the arrow functions below
+
 export const test = baseTest.extend<BaseUnitFixtures>({
     // data
     dbFilePath: ["mocked/db/file/path", { injected: true }],
@@ -47,6 +50,7 @@ export const test = baseTest.extend<BaseUnitFixtures>({
 
     // mocking
     mockedInvoker: [
+        // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
             const invoker = new MockedInvoker();
             invoker.inject();
@@ -56,6 +60,7 @@ export const test = baseTest.extend<BaseUnitFixtures>({
     ],
 
     user: [
+        // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
             await use(userEvent.setup());
         },
@@ -72,7 +77,7 @@ export const test = baseTest.extend<BaseUnitFixtures>({
             mockGetEntries(mockedInvoker, { entities });
             mockGetFolders(mockedInvoker, { folders });
 
-            let appManager = new ClientManager();
+            const appManager = new ClientManager();
             await appManager.initialize();
             state.manager = appManager;
 
@@ -84,7 +89,8 @@ export const test = baseTest.extend<BaseUnitFixtures>({
 
     // setup and teardown
     setup: [
-        // @ts-ignore
+        // @ts-expect-error: the user and service fixtures need to be set up first
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         async ({ mockedInvoker, user, service }, use) => {
             await use(null);
 

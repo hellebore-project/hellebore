@@ -3,8 +3,8 @@ import { makeAutoObservable } from "mobx";
 import { Rectangle } from "@/interface";
 
 export class NavigatorErrorManager {
-    private _visible: boolean = false;
-    private _message: string = "";
+    private _visible = false;
+    private _message = "";
     private _position: Rectangle | null = null;
 
     constructor() {

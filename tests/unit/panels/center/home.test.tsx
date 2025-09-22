@@ -24,7 +24,7 @@ test("can edit the project name", async ({
 
     render(<Home />);
 
-    let titleInput = screen.getByDisplayValue(project.name);
+    const titleInput = screen.getByDisplayValue(project.name);
 
     await user.click(titleInput);
     await user.keyboard("[Backspace>14/]");

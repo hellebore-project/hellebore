@@ -29,7 +29,7 @@ function renderNavItem({
     active = false,
     focused = false,
     rank = 0,
-    groupSettings: groupSettings,
+    groupSettings,
     expandButtonSettings,
     textSettings,
     children,
@@ -59,10 +59,8 @@ function renderNavItem({
         else if (selected) className += " selected";
     }
 
-    const { styles, ...groupRest } = groupSettings ?? {};
-
     return (
-        <Group className={className} gap={0} align="stretch" {...groupRest}>
+        <Group className={className} gap={0} align="stretch" {...groupSettings}>
             <NavItemIndents itemKey={id} rank={rank} />
             {expandNode}
             <NavItemText ref={ref_} {...textRest} />

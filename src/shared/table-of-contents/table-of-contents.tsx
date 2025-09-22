@@ -7,7 +7,7 @@ import { BaseBoxSettings, BaseButtonSettings } from "@/interface";
 
 export interface TableOfContentsItemData extends BaseButtonSettings {
     label?: string;
-    value: any;
+    value: number | string;
     rank: number;
 }
 
@@ -18,7 +18,7 @@ export interface TableOfContentsItemSettings extends BaseButtonSettings {
 
 export interface TableOfContentsSettings extends BaseBoxSettings {
     data: TableOfContentsItemData[];
-    activeValue: any;
+    activeValue: number | string;
     itemSettings?: BaseButtonSettings;
 }
 

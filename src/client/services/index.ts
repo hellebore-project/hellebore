@@ -1,7 +1,7 @@
 import { ClientManager } from "./client-manager";
 import { AppState } from "./state";
 
-export let state: AppState = new AppState();
+export const state: AppState = new AppState();
 
 export function getService() {
     if (state.manager === null) {

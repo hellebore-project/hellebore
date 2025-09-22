@@ -37,7 +37,7 @@ export class ClientManager implements IClientManager {
     // state variables
     _viewKey: ViewKey = ViewKey.Home;
     _modalKey: ModalKey | null = null;
-    _navBarMobileOpen: boolean = true;
+    _navBarMobileOpen = true;
 
     // domain service
     domain: DomainManager;
@@ -385,7 +385,7 @@ export class ClientManager implements IClientManager {
         this.navigation.files.toggleFolderAsEditable(id);
     }
 
-    async deleteFolder(id: number, confirm: boolean = true) {
+    async deleteFolder(id: number, confirm = true) {
         if (confirm) {
             const folder = this.domain.folders.getInfo(id);
             const canDelete = await ask(
@@ -441,7 +441,7 @@ export class ClientManager implements IClientManager {
         return await this.domain.words.bulkUpsert(updates);
     }
 
-    async deleteEntry(id: number, title: string, confirm: boolean = true) {
+    async deleteEntry(id: number, title: string, confirm = true) {
         if (confirm) {
             const message =
                 `Are you sure you want to delete '${title}' and all of its associated content? ` +

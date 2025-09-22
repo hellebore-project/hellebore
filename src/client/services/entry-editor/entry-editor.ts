@@ -66,10 +66,10 @@ export class EntryEditor {
 
     // STATE
     private _viewKey: EntryViewKey = EntryViewKey.ArticleEditor;
-    private _waitingForSync: boolean = false;
-    private _syncing: boolean = false;
-    private _lastModified: number = 0;
-    private _lastSynced: number = 0;
+    private _waitingForSync = false;
+    private _syncing = false;
+    private _lastModified = 0;
+    private _lastSynced = 0;
     private _syncDelayTime: number = DEFAULT_SYNC_DELAY_TIME;
 
     // SERVICES
@@ -242,19 +242,19 @@ export class EntryEditor {
         )
             return new Promise(() => false);
 
-        let title =
+        const title =
             syncTitle && this.info.titleChanged && this.info.title
                 ? this.info.title
                 : null;
-        let properties =
+        const properties =
             syncProperties &&
             this.properties.changed &&
             this.properties.data != null
                 ? this.properties.data
                 : null;
-        let text =
+        const text =
             syncText && this.article.changed ? this.article.serialized : null;
-        let words =
+        const words =
             syncLexicon && this.lexicon.changed
                 ? this.lexicon.claimModifiedWords()
                 : null;

@@ -24,7 +24,7 @@ export enum EntityType {
     PERSON = 30,
 }
 
-export const ENTITY_TYPE_LABELS: { [entityType: number]: string } = {
+export const ENTITY_TYPE_LABELS: Record<number, string> = {
     [EntityType.LANGUAGE]: "Language",
     [EntityType.PERSON]: "Person",
     [EntityType.WORD]: "Word",

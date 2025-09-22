@@ -9,10 +9,10 @@ type PrivateKeys = "_client";
 
 export class EntryCreator {
     // STATE
-    private _title: string = "";
+    private _title = "";
     private _folderId: Id = ROOT_FOLDER_ID;
     private _entityType: EntityType | null = null;
-    private _isTitleUnique: boolean = true;
+    private _isTitleUnique = true;
 
     // SERVICES
     private _client: IClientManager;
