@@ -1,47 +1,14 @@
 import "./header.css";
 
-import { Burger, Button, Flex } from "@mantine/core";
+import { Burger, Flex } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { getService } from "@/client";
+import { MenuButton } from "@/shared/menu-button";
 import { MenuDropdown } from "@/shared/menu-dropdown";
 
-function renderNavBarMobileToggleButton() {
-    const service = getService();
-    return (
-        <Burger
-            opened={service.navBarMobileOpen}
-            onClick={() => service.toggleNavBar()}
-            hiddenFrom="sm"
-            size="sm"
-            pr="8"
-        />
-    );
-}
-const NavBarMobileToggleButton = observer(renderNavBarMobileToggleButton);
-
-function renderHomeButton() {
-    const service = getService();
-    return (
-        <Button
-            className="menu-button"
-            size="compact-sm"
-            onClick={() => service.openHome()}
-        >
-            Home
-        </Button>
-    );
-}
-export const HomeButton = observer(renderHomeButton);
-
-function renderFileMenuDropdown() {
-    const service = getService();
-    const data = service.header.getFileMenuData();
-    return <MenuDropdown label="File" data={data} />;
-}
-export const FileMenuDropdown = observer(renderFileMenuDropdown);
-
 function renderHeader() {
+    const service = getService();
     return (
         <Flex
             className="header"
@@ -51,9 +18,18 @@ function renderHeader() {
             direction="row"
             wrap="nowrap"
         >
-            <NavBarMobileToggleButton />
-            <HomeButton />
-            <FileMenuDropdown />
+            <Burger
+                opened={service.navBarMobileOpen}
+                onClick={() => service.toggleNavBar()}
+                hiddenFrom="sm"
+                size="sm"
+                pr="8"
+            />
+            <MenuButton label="Home" onClick={() => service.openHome()} />
+            <MenuDropdown
+                label="File"
+                data={service.header.getFileMenuData()}
+            />
         </Flex>
     );
 }

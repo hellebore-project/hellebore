@@ -1,10 +1,9 @@
-import "./menu-button.css";
-
-import { Button, Menu, MenuProps } from "@mantine/core";
+import { Menu, MenuProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { BaseButtonSettings } from "@/interface";
 import { getService } from "@/client";
+import { MenuButton } from "@/shared/menu-button";
 
 import {
     DIVIDER_DATA,
@@ -56,13 +55,13 @@ function renderMenuDropdown({
             {...rest}
         >
             <Menu.Target>
-                <Button
+                <MenuButton
+                    label={label}
+                    // HACK: need to include the class name because for some reason
+                    // mantine is ignoring the class of the underlying component
                     className="menu-button"
-                    size="compact-sm"
                     {...buttonSettings}
-                >
-                    {label}
-                </Button>
+                />
             </Menu.Target>
             <Menu.Dropdown>
                 {data.map((element, index) => (
