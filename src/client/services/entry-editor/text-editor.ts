@@ -15,7 +15,7 @@ import { EntityInfoEditor } from "./info-editor";
 type EditArticleHandler = () => void;
 type PrivateKeys = "_client";
 
-interface ArticleTextEditorSettings {
+interface ArticleEditorSettings {
     client: IClientManager;
     info: EntityInfoEditor;
     onChange: EditArticleHandler;
@@ -31,7 +31,7 @@ export class ArticleEditor {
 
     onChange: EditArticleHandler;
 
-    constructor({ client, info, onChange }: ArticleTextEditorSettings) {
+    constructor({ client, info, onChange }: ArticleEditorSettings) {
         this._client = client;
         this.info = info;
         this.onChange = onChange;

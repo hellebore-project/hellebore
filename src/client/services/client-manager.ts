@@ -153,7 +153,7 @@ export class ClientManager implements IClientManager {
     }
 
     get isEntityEditorOpen() {
-        return this._viewKey == ViewKey.EntityEditor;
+        return this.currentView == ViewKey.EntityEditor;
     }
 
     get isArticleEditorOpen() {
@@ -238,17 +238,17 @@ export class ClientManager implements IClientManager {
 
     openHome() {
         this.cleanUp(ViewKey.Home);
-        this._viewKey = ViewKey.Home;
+        this.currentView = ViewKey.Home;
     }
 
     openSettings() {
         this.cleanUp(ViewKey.Settings);
-        this._viewKey = ViewKey.Settings;
+        this.currentView = ViewKey.Settings;
     }
 
     openProjectCreator() {
         this.projectCreator.initialize();
-        this._modalKey = ModalKey.ProjectCreator;
+        this.currentModal = ModalKey.ProjectCreator;
     }
 
     openEntryCreator(args?: OpenEntryCreatorArguments) {
@@ -256,7 +256,7 @@ export class ClientManager implements IClientManager {
             args?.entityType,
             args?.folderId ?? ROOT_FOLDER_ID,
         );
-        this._modalKey = ModalKey.EntryCreator;
+        this.currentModal = ModalKey.EntryCreator;
     }
 
     async openArticleEditor(id: Id) {
@@ -281,7 +281,7 @@ export class ClientManager implements IClientManager {
         this.cleanUp(ViewKey.EntityEditor);
         this.entryEditor.initializeArticleEditor(id, entityType, title, text);
         this.navigation.files.openEntityNode(id);
-        this._viewKey = ViewKey.EntityEditor;
+        this.currentView = ViewKey.EntityEditor;
     }
 
     async openPropertyEditor(id: Id) {
@@ -327,17 +327,17 @@ export class ClientManager implements IClientManager {
                 wordType,
             );
             this.navigation.files.openEntityNode(languageId);
-            this._viewKey = ViewKey.EntityEditor;
+            this.currentView = ViewKey.EntityEditor;
         }
     }
 
     closeModal() {
-        this._modalKey = null;
+        this.currentModal = null;
     }
 
     async createProject(name: string, dbFilePath: string) {
         // save any unsynced data before loading a new project
-        this.cleanUp(this._viewKey);
+        this.cleanUp(this.currentView);
 
         const response = await this.domain.session.createProject(
             name,
@@ -357,7 +357,7 @@ export class ClientManager implements IClientManager {
         const path = await open();
         if (!path) return null;
         // save any unsynced data before loading another project
-        this.cleanUp(this._viewKey);
+        this.cleanUp(this.currentView);
 
         const response = await this.domain.session.loadProject(path);
         if (response) {
@@ -370,7 +370,7 @@ export class ClientManager implements IClientManager {
 
     async closeProject() {
         // save any unsynced data before closing the project
-        this.cleanUp(this._viewKey);
+        this.cleanUp(this.currentView);
 
         const success = await this.domain.session.closeProject();
         if (success) {
@@ -405,7 +405,7 @@ export class ClientManager implements IClientManager {
         this.navigation.files.deleteManyNodes(fileIds.entries, fileIds.folders);
 
         if (
-            this._viewKey == ViewKey.EntityEditor &&
+            this.currentView == ViewKey.EntityEditor &&
             fileIds.entries.includes(this.entryEditor.info.id)
         ) {
             // currently-open entry has been deleted
@@ -461,7 +461,7 @@ export class ClientManager implements IClientManager {
             return false;
 
         if (
-            this._viewKey == ViewKey.EntityEditor &&
+            this.currentView == ViewKey.EntityEditor &&
             this.entryEditor.info.id == id
         ) {
             // deleted entry is currently open
@@ -474,9 +474,10 @@ export class ClientManager implements IClientManager {
     }
 
     cleanUp(newViewKey: ViewKey | null = null) {
-        if (this._modalKey) this.closeModal();
+        if (this.currentModal) this.closeModal();
 
-        if (this._viewKey == ViewKey.EntityEditor) this.entryEditor.cleanUp();
+        if (this.currentView == ViewKey.EntityEditor)
+            this.entryEditor.cleanUp();
 
         if (
             this.isEntityEditorOpen &&

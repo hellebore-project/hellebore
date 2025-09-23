@@ -1,11 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
+import { makeAutoObservable } from "mobx";
 
-import { ProjectResponse, SessionResponse } from "@/domain/schema";
-import { CommandNames } from "@/domain/constants";
+import { CommandNames, ProjectResponse, SessionResponse } from "@/domain";
 
 export class SessionManager {
     _dbFilePath: string | null = null;
     _project: ProjectResponse | null = null;
+
+    constructor() {
+        // the UI depends on the project info, so it needs to be observable
+        makeAutoObservable(this);
+    }
 
     get project() {
         return this._project;
@@ -57,6 +62,7 @@ export class SessionManager {
             console.error(error);
             return null;
         }
+        console.log(response);
         this.project = response;
         this.dbFilePath = dbFilePath;
         return response;

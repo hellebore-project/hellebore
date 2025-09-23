@@ -30,14 +30,6 @@ export class SpreadsheetService<K extends string, M> {
     selection: SpreadsheetSelectionService<K, M>;
 
     constructor({ data }: SpreadsheetServiceArguments<K, M>) {
-        makeAutoObservable<SpreadsheetService<K, M>, PrivateKeys>(this, {
-            _sheet: false,
-            _editableCell: false,
-            outsideEvent: false,
-            data: false,
-            selection: false,
-        });
-
         this._sheet = createRef();
 
         this.outsideEvent = new OutsideEventHandlerService({
@@ -47,6 +39,14 @@ export class SpreadsheetService<K extends string, M> {
         });
         this.data = new SpreadsheetDataService(data);
         this.selection = new SpreadsheetSelectionService(this.data);
+
+        makeAutoObservable<SpreadsheetService<K, M>, PrivateKeys>(this, {
+            _sheet: false,
+            _editableCell: false,
+            outsideEvent: false,
+            data: false,
+            selection: false,
+        });
     }
 
     get sheet() {
