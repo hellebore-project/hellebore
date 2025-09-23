@@ -35,6 +35,12 @@ export class SpreadsheetSelectionService<K extends string, M> {
     private _data: SpreadsheetDataService<K, M>;
 
     constructor(data: SpreadsheetDataService<K, M>) {
+        this._baseSelection = new Set();
+        this._positiveDiff = new Set();
+        this._negativeDiff = new Set();
+
+        this._data = data;
+
         makeAutoObservable<SpreadsheetSelectionService<K, M>, PrivateKeys>(
             this,
             {
@@ -45,12 +51,6 @@ export class SpreadsheetSelectionService<K extends string, M> {
                 _data: false,
             },
         );
-
-        this._baseSelection = new Set();
-        this._positiveDiff = new Set();
-        this._negativeDiff = new Set();
-
-        this._data = data;
     }
 
     get activePosition() {

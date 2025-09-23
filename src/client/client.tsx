@@ -1,8 +1,3 @@
-// mantine package styles must be imported before the application styles
-import "@mantine/core/styles.css";
-import "@mantine/tiptap/styles.css";
-import "./client.css";
-
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
