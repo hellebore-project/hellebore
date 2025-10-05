@@ -8,7 +8,6 @@ import {
     ProjectResponse,
     WordUpsert,
     WordUpsertResponse,
-    EntryTitleUpdateResponse,
     DomainManager,
     EntityType,
     WordType,
@@ -48,7 +47,6 @@ export interface IClientManager {
         title: string,
         folderId: Id,
     ): Promise<EntryInfoResponse | null>;
-    updateEntryTitle(id: Id, title: string): Promise<EntryTitleUpdateResponse>;
     updateLexicon(words: WordUpsert[]): Promise<WordUpsertResponse[] | null>;
     deleteEntry(id: number, title: string, confirm?: boolean): Promise<boolean>;
     cleanUp(): void;

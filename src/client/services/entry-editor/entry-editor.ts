@@ -18,6 +18,7 @@ import {
     WordType,
 } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
+import { EventProducer } from "@/utils/event";
 
 import { WordEditor } from "./word-editor";
 import { EntityInfoEditor } from "./info-editor";
@@ -39,6 +40,12 @@ export interface EntryEditorArguments {
     wordEditor: {
         editableCellRef: ObservableReference<HTMLInputElement>;
     };
+}
+
+interface ChangeTitleEvent {
+    id: Id;
+    title: string;
+    isUnique: boolean;
 }
 
 interface SyncSettings {
@@ -85,6 +92,10 @@ export class EntryEditor implements IViewManager {
     article: ArticleEditor;
     lexicon: WordEditor;
 
+    // EVENTS
+    onOpen: EventProducer<Id, void>;
+    onChangeTitle: EventProducer<ChangeTitleEvent, void>;
+
     constructor({ client, wordEditor }: EntryEditorArguments) {
         this._client = client;
         this.info = new EntityInfoEditor();
@@ -106,6 +117,9 @@ export class EntryEditor implements IViewManager {
             onChange,
         });
 
+        this.onOpen = new EventProducer();
+        this.onChangeTitle = new EventProducer();
+
         makeAutoObservable<EntryEditor, PrivateKeys>(this, {
             _waitingForSync: false,
             _syncing: false,
@@ -117,6 +131,8 @@ export class EntryEditor implements IViewManager {
             properties: false,
             article: false,
             lexicon: false,
+            onOpen: false,
+            onChangeTitle: false,
         });
     }
 
@@ -168,6 +184,7 @@ export class EntryEditor implements IViewManager {
         this.currentView = EntryViewKey.ArticleEditor;
         this.info.initialize(id, entityType, title);
         this.article.initialize(text);
+        this.onOpen.produce(id);
     }
 
     initializePropertyEditor(
@@ -179,12 +196,23 @@ export class EntryEditor implements IViewManager {
         this.currentView = EntryViewKey.PropertyEditor;
         this.info.initialize(id, entityType, title);
         this.properties.initialize(properties);
+        this.onOpen.produce(id);
     }
 
     async initializeWordEditor(id: number, title: string, wordType?: WordType) {
         this.currentView = EntryViewKey.WordEditor;
         this.info.initialize(id, EntityType.LANGUAGE, title);
+        this.onOpen.produce(id);
         return this.lexicon.initialize(id, wordType);
+    }
+
+    private async _updateEntryTitle(id: Id, title: string) {
+        const response = await this._client.domain.entries.updateTitle(
+            id,
+            title,
+        );
+        this.onChangeTitle.produce({ id, title, isUnique: response.isUnique });
+        return response;
     }
 
     cleanUp() {
@@ -306,10 +334,7 @@ export class EntryEditor implements IViewManager {
 
         let titleUpdateResponse: EntryTitleUpdateResponse | null = null;
         if (typeof title === "string")
-            titleUpdateResponse = await this._client.updateEntryTitle(
-                id,
-                title,
-            );
+            titleUpdateResponse = await this._updateEntryTitle(id, title);
 
         let textUpdateResponse: EntryTextUpdateResponse | null = null;
         if (typeof text === "string")

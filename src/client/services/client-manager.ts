@@ -67,17 +67,25 @@ export class ClientManager implements IClientManager {
         this.style = new StyleManager();
         this.domReferences = new DOMReferenceManager();
 
-        // central views
+        // central panel
         this.home = new HomeManager(this);
         this.settingsEditor = new SettingsEditor(this);
+
         this.entryEditor = new EntryEditor({
             client: this,
             wordEditor: {
                 editableCellRef: this.domReferences.wordTableEditableCell,
             },
         });
+        this.entryEditor.onOpen.subscribe((id) =>
+            this.navigation.files.openEntityNode(id),
+        );
+        this.entryEditor.onChangeTitle.subscribe(({ id, title, isUnique }) => {
+            if (title != "" && isUnique)
+                this.navigation.files.updateEntityNodeText(id, title);
+        });
 
-        // bars
+        // peripheral panels
         this.header = new HeaderManager(this);
         this.footer = new FooterManager();
         this.navigation = new NavigationService({
@@ -247,7 +255,6 @@ export class ClientManager implements IClientManager {
         // save any unsynced data before opening another view
         this.cleanUp(ViewKey.EntryEditor);
         this.entryEditor.initializeArticleEditor(id, entityType, title, text);
-        this.navigation.files.openEntityNode(id);
         this.currentView = ViewKey.EntryEditor;
     }
 
@@ -266,7 +273,6 @@ export class ClientManager implements IClientManager {
                 response.info.title,
                 response.properties,
             );
-            this.navigation.files.openEntityNode(id);
             this.currentView = ViewKey.EntryEditor;
         }
     }
@@ -293,7 +299,6 @@ export class ClientManager implements IClientManager {
                 info.title,
                 wordType,
             );
-            this.navigation.files.openEntityNode(languageId);
             this.currentView = ViewKey.EntryEditor;
         }
     }
@@ -395,13 +400,6 @@ export class ClientManager implements IClientManager {
         }
 
         return entry;
-    }
-
-    async updateEntryTitle(id: Id, title: string) {
-        const response = await this.domain.entries.updateTitle(id, title);
-        if (title != "" && response.isUnique)
-            this.navigation.files.updateEntityNodeText(id, title);
-        return response;
     }
 
     async updateLexicon(updates: WordUpsert[]) {
