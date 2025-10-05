@@ -13,31 +13,28 @@ import {
 } from "@/domain";
 import { Id } from "@/interface";
 
+import { ContextMenuManager } from "./context-menu-manager";
+import { DOMReferenceManager } from "./dom-reference-manager";
 import { EntryCreator } from "./entry-creator";
 import { EntryEditor } from "./entry-editor";
-import { ContextMenuManager } from "./context-menu-manager";
+import { FooterManager } from "./footer-manager";
+import { HeaderManager } from "./header-manager";
 import { HomeManager } from "./home-manager";
 import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
-import { HeaderService } from "./header-service";
-import { DOMReferenceManager } from "./dom-reference-manager";
 
 export class ClientManager implements IClientManager {
     // constants
-    HEADER_HEIGHT = 30;
-    FOOTER_HEIGHT = 25;
-    NAVBAR_WIDTH = 300;
-    MAIN_PADDING = 20;
-    DEFAULT_DIVIDER_HEIGHT = 24.8;
-    DEFAULT_SPACE_HEIGHT = 20;
-    SHARED_PORTAL_ID = "shared-portal";
+    readonly DEFAULT_CENTER_PADDING = 20;
+    readonly DEFAULT_DIVIDER_HEIGHT = 24.8;
+    readonly DEFAULT_SPACE_HEIGHT = 20;
+    readonly SHARED_PORTAL_ID = "shared-portal";
 
     // state variables
     _viewKey: ViewKey = ViewKey.Home;
     _modalKey: ModalKey | null = null;
-    _navBarMobileOpen = true;
 
     // domain service
     domain: DomainManager;
@@ -48,8 +45,9 @@ export class ClientManager implements IClientManager {
     settingsEditor: SettingsEditor;
 
     // bar services
-    header: HeaderService;
+    header: HeaderManager;
     navigation: NavigationService;
+    footer: FooterManager;
 
     // modal services
     projectCreator: ProjectCreator;
@@ -80,7 +78,8 @@ export class ClientManager implements IClientManager {
         });
 
         // bars
-        this.header = new HeaderService(this);
+        this.header = new HeaderManager(this);
+        this.footer = new FooterManager();
         this.navigation = new NavigationService({
             client: this,
             files: {
@@ -101,6 +100,9 @@ export class ClientManager implements IClientManager {
             domReferences: false,
             home: false,
             settingsEditor: false,
+            entryEditor: false,
+            header: false,
+            footer: false,
             navigation: false,
             projectCreator: false,
             entryCreator: false,
@@ -109,28 +111,8 @@ export class ClientManager implements IClientManager {
         makeAutoObservable(this, overrides);
     }
 
-    get headerHeight() {
-        return this.HEADER_HEIGHT;
-    }
-
-    get footerHeight() {
-        return this.FOOTER_HEIGHT;
-    }
-
-    get navbarWidth() {
-        return this.NAVBAR_WIDTH;
-    }
-
-    get mainPadding() {
-        return this.MAIN_PADDING;
-    }
-
-    get defaultDividerHeight() {
-        return this.DEFAULT_DIVIDER_HEIGHT;
-    }
-
-    get defaultSpaceHeight() {
-        return this.DEFAULT_SPACE_HEIGHT;
+    get centerPadding() {
+        return this.DEFAULT_CENTER_PADDING;
     }
 
     get sharedPortalId() {
@@ -187,14 +169,6 @@ export class ClientManager implements IClientManager {
         this._modalKey = key;
     }
 
-    get navBarMobileOpen() {
-        return this._navBarMobileOpen;
-    }
-
-    set navBarMobileOpen(open: boolean) {
-        this._navBarMobileOpen = open;
-    }
-
     async initialize() {
         const project = await this.fetchProjectInfo();
         if (project) this.populateNavigator();
@@ -227,10 +201,6 @@ export class ClientManager implements IClientManager {
         const folders = await this.domain.folders.getAll();
 
         if (entries && folders) this.navigation.initialize(entries, folders);
-    }
-
-    toggleNavBar() {
-        this._navBarMobileOpen = !this._navBarMobileOpen;
     }
 
     openHome() {
@@ -483,6 +453,6 @@ export class ClientManager implements IClientManager {
             this.navigation.files.selectedNode = null;
         }
 
-        this.navBarMobileOpen = false;
+        this.navigation.mobileOpen = false;
     }
 }

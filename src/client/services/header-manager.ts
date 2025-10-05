@@ -17,7 +17,9 @@ interface MenuItems {
     settings: MenuDropdownElementData;
 }
 
-export class HeaderService {
+export class HeaderManager {
+    readonly DEFAULT_HEIGHT = 30;
+
     private _menuItems: MenuItems;
 
     private _client: IClientManager;
@@ -51,10 +53,14 @@ export class HeaderService {
             },
         };
 
-        makeAutoObservable<HeaderService, PrivateKeys>(this, {
+        makeAutoObservable<HeaderManager, PrivateKeys>(this, {
             _menuItems: false,
             _client: false,
         });
+    }
+
+    get height() {
+        return this.DEFAULT_HEIGHT;
     }
 
     getFileMenuData() {

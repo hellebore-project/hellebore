@@ -22,21 +22,21 @@ function renderClient() {
             theme={service.style.theme}
         >
             <AppShell
-                header={{ height: { base: service.headerHeight } }}
+                header={{ height: { base: service.header.height } }}
                 navbar={{
-                    width: service.navbarWidth,
+                    width: service.navigation.width,
                     breakpoint: "sm",
                     collapsed: {
                         desktop: !service.domain.hasProject,
                         mobile:
-                            !service.navBarMobileOpen ||
+                            !service.navigation.mobileOpen ||
                             !service.domain.hasProject,
                     },
                 }}
                 footer={{
-                    height: service.footerHeight,
+                    height: service.footer.height,
                 }}
-                padding={service.mainPadding}
+                padding={service.centerPadding}
             >
                 <AppShell.Header className="header-panel">
                     <Header />

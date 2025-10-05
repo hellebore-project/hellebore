@@ -22,7 +22,6 @@ export interface OpenEntryCreatorArguments {
 export interface IClientManager {
     domain: DomainManager;
 
-    get navbarWidth(): number;
     get currentView(): ViewKey;
 
     getViewSize(): Promise<PhysicalSize>;
