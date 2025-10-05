@@ -1,8 +1,13 @@
 import { makeAutoObservable } from "mobx";
 
 import { Id } from "@/interface";
-import { EntryViewKey } from "@/client/constants";
-import { IClientManager, PropertyFieldData, Word } from "@/client/interface";
+import { EntryViewKey, ViewKey } from "@/client/constants";
+import {
+    IClientManager,
+    IViewManager,
+    PropertyFieldData,
+    Word,
+} from "@/client/interface";
 import {
     BaseEntity,
     EntryTextUpdateResponse,
@@ -16,7 +21,7 @@ import { ObservableReference } from "@/shared/observable-reference";
 
 import { WordEditor } from "./word-editor";
 import { EntityInfoEditor } from "./info-editor";
-import { ArticleEditor } from "./text-editor";
+import { ArticleEditor } from "./article-editor";
 import { PropertyEditor } from "./property-editor";
 
 const DEFAULT_SYNC_DELAY_TIME = 5000;
@@ -59,7 +64,7 @@ interface SyncResponse {
     lexicon: WordUpsertResponse[] | null;
 }
 
-export class EntryEditor {
+export class EntryEditor implements IViewManager {
     // CONSTANTS
     ENTITY_HEADER_SPACE_HEIGHT = 25;
     BELOW_ENTITY_HEADER_SPACE_HEIGHT = 40;
@@ -113,6 +118,10 @@ export class EntryEditor {
             article: false,
             lexicon: false,
         });
+    }
+
+    get key() {
+        return ViewKey.EntryEditor;
     }
 
     get entityHeaderSpaceHeight() {

@@ -97,16 +97,13 @@ export class ClientManager implements IClientManager {
 
         const overrides = {
             domain: false,
-            dimensions: false,
             style: false,
             domReferences: false,
             home: false,
             settingsEditor: false,
             navigation: false,
             projectCreator: false,
-            folderRemover: false,
-            entityCreator: false,
-            entityEditor: false,
+            entryCreator: false,
             contextMenu: false,
         };
         makeAutoObservable(this, overrides);
@@ -153,26 +150,26 @@ export class ClientManager implements IClientManager {
     }
 
     get isEntityEditorOpen() {
-        return this.currentView == ViewKey.EntityEditor;
+        return this.currentView == ViewKey.EntryEditor;
     }
 
     get isArticleEditorOpen() {
         return (
-            this.currentView == ViewKey.EntityEditor &&
+            this.currentView == ViewKey.EntryEditor &&
             this.entryEditor.currentView == EntryViewKey.ArticleEditor
         );
     }
 
     get isPropertyEditorOpen() {
         return (
-            this.currentView == ViewKey.EntityEditor &&
+            this.currentView == ViewKey.EntryEditor &&
             this.entryEditor.currentView == EntryViewKey.PropertyEditor
         );
     }
 
     get isWordEditorOpen() {
         return (
-            this.currentView == ViewKey.EntityEditor &&
+            this.currentView == ViewKey.EntryEditor &&
             this.entryEditor.currentView == EntryViewKey.WordEditor
         );
     }
@@ -278,10 +275,10 @@ export class ClientManager implements IClientManager {
         text: string,
     ) {
         // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.EntityEditor);
+        this.cleanUp(ViewKey.EntryEditor);
         this.entryEditor.initializeArticleEditor(id, entityType, title, text);
         this.navigation.files.openEntityNode(id);
-        this.currentView = ViewKey.EntityEditor;
+        this.currentView = ViewKey.EntryEditor;
     }
 
     async openPropertyEditor(id: Id) {
@@ -291,7 +288,7 @@ export class ClientManager implements IClientManager {
 
         if (response !== null) {
             // save any unsynced data before opening another view
-            this.cleanUp(ViewKey.EntityEditor);
+            this.cleanUp(ViewKey.EntryEditor);
 
             this.entryEditor.initializePropertyEditor(
                 id,
@@ -300,7 +297,7 @@ export class ClientManager implements IClientManager {
                 response.properties,
             );
             this.navigation.files.openEntityNode(id);
-            this.currentView = ViewKey.EntityEditor;
+            this.currentView = ViewKey.EntryEditor;
         }
     }
 
@@ -316,7 +313,7 @@ export class ClientManager implements IClientManager {
         }
 
         // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.EntityEditor);
+        this.cleanUp(ViewKey.EntryEditor);
 
         const info = await this.domain.entries.get(languageId);
 
@@ -327,7 +324,7 @@ export class ClientManager implements IClientManager {
                 wordType,
             );
             this.navigation.files.openEntityNode(languageId);
-            this.currentView = ViewKey.EntityEditor;
+            this.currentView = ViewKey.EntryEditor;
         }
     }
 
@@ -405,7 +402,7 @@ export class ClientManager implements IClientManager {
         this.navigation.files.deleteManyNodes(fileIds.entries, fileIds.folders);
 
         if (
-            this.currentView == ViewKey.EntityEditor &&
+            this.currentView == ViewKey.EntryEditor &&
             fileIds.entries.includes(this.entryEditor.info.id)
         ) {
             // currently-open entry has been deleted
@@ -461,7 +458,7 @@ export class ClientManager implements IClientManager {
             return false;
 
         if (
-            this.currentView == ViewKey.EntityEditor &&
+            this.currentView == ViewKey.EntryEditor &&
             this.entryEditor.info.id == id
         ) {
             // deleted entry is currently open
@@ -476,8 +473,7 @@ export class ClientManager implements IClientManager {
     cleanUp(newViewKey: ViewKey | null = null) {
         if (this.currentModal) this.closeModal();
 
-        if (this.currentView == ViewKey.EntityEditor)
-            this.entryEditor.cleanUp();
+        if (this.currentView == ViewKey.EntryEditor) this.entryEditor.cleanUp();
 
         if (
             this.isEntityEditorOpen &&

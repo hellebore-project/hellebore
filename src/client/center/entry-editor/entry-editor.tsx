@@ -45,7 +45,7 @@ const LEXICON_TAB_DATA: TableOfContentsItemData = {
     },
 };
 
-function renderEntityEditorHeader() {
+function renderEntryEditorHeader() {
     const service = getService();
     return (
         <Group className="entry-editor-header">
@@ -58,9 +58,9 @@ function renderEntityEditorHeader() {
     );
 }
 
-const EntityEditorHeader = observer(renderEntityEditorHeader);
+const EntryEditorHeader = observer(renderEntryEditorHeader);
 
-function renderEntityEditorContent() {
+function renderEntryEditorContent() {
     const service = getService();
     const viewKey = service.entryEditor.currentView;
     if (viewKey === EntryViewKey.ArticleEditor) return <ArticleEditor />;
@@ -69,9 +69,9 @@ function renderEntityEditorContent() {
     return null;
 }
 
-const EntityEditorContent = observer(renderEntityEditorContent);
+const EntryEditorContent = observer(renderEntryEditorContent);
 
-function renderEntityEditorTabs() {
+function renderEntryEditorTabs() {
     const service = getService();
     const entityType = service.entityType;
 
@@ -96,20 +96,20 @@ function renderEntityEditorTabs() {
     );
 }
 
-export const EntityEditorTabs = observer(renderEntityEditorTabs);
+export const EntryEditorTabs = observer(renderEntryEditorTabs);
 
 function renderEntryEditor() {
     return (
         <Stack className="entry-editor" gap={0}>
-            <EntityEditorHeader />
+            <EntryEditorHeader />
             <Space className="entry-editor-space-below-header" />
             <Stack className="entry-editor-stack">
                 <Grid className="entry-editor-grid">
                     <Grid.Col span={1}>
-                        <EntityEditorTabs />
+                        <EntryEditorTabs />
                     </Grid.Col>
                     <Grid.Col span={10}>
-                        <EntityEditorContent />
+                        <EntryEditorContent />
                     </Grid.Col>
                 </Grid>
             </Stack>

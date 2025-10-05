@@ -1,5 +1,4 @@
 import { invoke } from "@tauri-apps/api/core";
-import { makeAutoObservable } from "mobx";
 
 import { CommandNames, WordType } from "@/domain/constants";
 import { Id } from "@/interface";
@@ -14,10 +13,6 @@ type _UpsertWordResponse = DiagnosticResponse<Id | null>;
 type _BulkUpsertWordsResponse = _UpsertWordResponse[];
 
 export class WordManager {
-    constructor() {
-        makeAutoObservable(this);
-    }
-
     async bulkUpsert(
         words: WordUpsert[],
     ): Promise<WordUpsertResponse[] | null> {
