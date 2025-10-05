@@ -11,15 +11,16 @@ import {
     PropertyFieldData,
     TextPropertyFieldData,
 } from "@/client";
+import { EventProducer } from "@/utils/event";
 
 import { EntityInfoEditor } from "./info-editor";
 
-type EditPropertyHandler = () => void;
+type PrivateKeys = "_info";
+
 type FieldDataCollection = Record<number, PropertyFieldData[]>;
 
 interface PropertyEditorSettings {
     info: EntityInfoEditor;
-    onChange: EditPropertyHandler;
 }
 
 export class PropertyEditor {
@@ -28,19 +29,21 @@ export class PropertyEditor {
     fields: FieldDataCollection;
     changed = false;
 
-    info: EntityInfoEditor;
+    private _info: EntityInfoEditor;
 
-    onChange: EditPropertyHandler;
+    onChange: EventProducer<void, void>;
 
-    constructor({ info, onChange }: PropertyEditorSettings) {
-        this.info = info;
-        this.onChange = onChange;
+    constructor({ info }: PropertyEditorSettings) {
         this.fields = this._generateFieldData();
 
-        makeAutoObservable(this, {
+        this._info = info;
+
+        this.onChange = new EventProducer();
+
+        makeAutoObservable<PropertyEditor, PrivateKeys>(this, {
             fields: false,
+            _info: false,
             onChange: false,
-            info: false,
         });
     }
 
@@ -55,11 +58,11 @@ export class PropertyEditor {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     set(key: string, value: any) {
         try {
-            if (this.info.entityType == EntityType.PERSON)
+            if (this._info.entityType == EntityType.PERSON)
                 this._setPersonProperty(key, value);
             else {
                 console.error(
-                    `Unable to set property ${key} for an entity of type ${this.info.entityType}.`,
+                    `Unable to set property ${key} for an entity of type ${this._info.entityType}.`,
                 );
                 return;
             }
@@ -68,7 +71,7 @@ export class PropertyEditor {
             return;
         }
         this.changed = true;
-        this.onChange();
+        this.onChange.produce();
     }
 
     initialize<E extends BaseEntity>(entity: E) {

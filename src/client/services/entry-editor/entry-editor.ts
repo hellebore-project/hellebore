@@ -101,21 +101,24 @@ export class EntryEditor implements IViewManager {
         this.info = new EntityInfoEditor();
 
         const onChange = () => this._onChange();
-        this.properties = new PropertyEditor({
-            info: this.info,
-            onChange,
-        });
+
         this.article = new ArticleEditor({
             client,
             info: this.info,
-            onChange,
         });
+        this.article.onChange.subscribe(onChange);
+
+        this.properties = new PropertyEditor({
+            info: this.info,
+        });
+        this.properties.onChange.subscribe(onChange);
+
         this.lexicon = new WordEditor({
             client,
             info: this.info,
             editableCellRef: wordEditor.editableCellRef,
-            onChange,
         });
+        this.lexicon.onChange.subscribe(onChange);
 
         this.onOpen = new EventProducer();
         this.onChangeTitle = new EventProducer();

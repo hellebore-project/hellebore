@@ -16,6 +16,7 @@ import {
     SpreadsheetFieldType,
 } from "@/shared/spreadsheet";
 import { Counter } from "@/utils/counter";
+import { EventProducer } from "@/utils/event";
 
 import { EntityInfoEditor } from "./info-editor";
 
@@ -69,17 +70,13 @@ type PrivateKeys =
     | "_columnData"
     | "_modifiedWordKeys"
     | "_wordKeyGenerator"
-    | "_onChange"
     | "_client"
     | "_info";
-
-type ChangeWordHandler = () => void;
 
 interface WordEditorArguments {
     client: IClientManager;
     info: EntityInfoEditor;
     editableCellRef: ObservableReference<HTMLInputElement>;
-    onChange: ChangeWordHandler;
 }
 
 export class WordEditor {
@@ -96,19 +93,14 @@ export class WordEditor {
     // UTILITIES
     private _wordKeyGenerator: Counter;
 
-    // CALLBACKS
-    private _onChange: ChangeWordHandler;
+    // EVENTS
+    onChange: EventProducer<void, void>;
 
     // CONSTRUCTION
-    constructor({
-        client,
-        info,
-        editableCellRef,
-        onChange,
-    }: WordEditorArguments) {
+    constructor({ client, info, editableCellRef }: WordEditorArguments) {
         this._modifiedWordKeys = new Set();
         this._wordKeyGenerator = new Counter();
-        this._onChange = onChange;
+        this.onChange = new EventProducer();
 
         this._client = client;
         this._info = info;
@@ -124,10 +116,10 @@ export class WordEditor {
             _modifiedWordKeys: false,
             _columnData: false,
             _wordKeyGenerator: false,
-            _onChange: false,
             _client: false,
             _info: false,
             spreadsheet: false,
+            onChange: false,
         });
     }
 
@@ -259,7 +251,7 @@ export class WordEditor {
         if (key == this.newKey) this._addNewWordRow();
         this._modifiedWordKeys.add(key);
         this._changed = true;
-        this._onChange();
+        this.onChange.produce();
     }
 
     // WORD CREATION
