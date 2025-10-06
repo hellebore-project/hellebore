@@ -25,6 +25,12 @@ import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
 
+interface OpenEntryEditorArguments {
+    id: Id;
+    viewKey: EntryViewKey;
+    wordType?: WordType;
+}
+
 export class ClientManager implements IClientManager {
     // constants
     readonly DEFAULT_CENTER_PADDING = 20;
@@ -139,33 +145,12 @@ export class ClientManager implements IClientManager {
         this._viewKey = key;
     }
 
-    get isEntityEditorOpen() {
+    get isEntryEditorOpen() {
         return this.currentView == ViewKey.EntryEditor;
     }
 
-    get isArticleEditorOpen() {
-        return (
-            this.currentView == ViewKey.EntryEditor &&
-            this.entryEditor.currentView == EntryViewKey.ArticleEditor
-        );
-    }
-
-    get isPropertyEditorOpen() {
-        return (
-            this.currentView == ViewKey.EntryEditor &&
-            this.entryEditor.currentView == EntryViewKey.PropertyEditor
-        );
-    }
-
-    get isWordEditorOpen() {
-        return (
-            this.currentView == ViewKey.EntryEditor &&
-            this.entryEditor.currentView == EntryViewKey.WordEditor
-        );
-    }
-
     get entityType() {
-        if (this.isEntityEditorOpen) return this.entryEditor.info.entityType;
+        if (this.isEntryEditorOpen) return this.entryEditor.info.entityType;
         return null;
     }
 
@@ -221,6 +206,19 @@ export class ClientManager implements IClientManager {
         this.currentView = ViewKey.Settings;
     }
 
+    async openEntryEditor({ id, viewKey, wordType }: OpenEntryEditorArguments) {
+        this.cleanUp(ViewKey.EntryEditor);
+        this.currentView = ViewKey.EntryEditor;
+
+        if (viewKey == EntryViewKey.ArticleEditor)
+            return this.entryEditor.openArticleEditor({ id });
+        else if (viewKey == EntryViewKey.PropertyEditor)
+            return this.entryEditor.openPropertyEditor(id);
+        else if (viewKey == EntryViewKey.WordEditor)
+            return this.entryEditor.openWordEditor(id, wordType);
+        throw `Unable to open view with key ${viewKey}.`;
+    }
+
     openProjectCreator() {
         this.projectCreator.initialize();
         this.currentModal = ModalKey.ProjectCreator;
@@ -232,75 +230,6 @@ export class ClientManager implements IClientManager {
             args?.folderId ?? ROOT_FOLDER_ID,
         );
         this.currentModal = ModalKey.EntryCreator;
-    }
-
-    async openArticleEditor(id: Id) {
-        if (this.isArticleEditorOpen && this.entryEditor.info.id == id) return; // the article is already open
-        const response = await this.domain.entries.getArticle(id);
-        if (response !== null)
-            this._openArticleEditor(
-                id,
-                response.info.entity_type,
-                response.info.title,
-                response.text,
-            );
-    }
-
-    _openArticleEditor(
-        id: Id,
-        entityType: EntityType,
-        title: string,
-        text: string,
-    ) {
-        // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.EntryEditor);
-        this.entryEditor.initializeArticleEditor(id, entityType, title, text);
-        this.currentView = ViewKey.EntryEditor;
-    }
-
-    async openPropertyEditor(id: Id) {
-        if (this.isPropertyEditorOpen && this.entryEditor.info.id == id) return; // the property editor is already open
-
-        const response = await this.domain.entries.getProperties(id);
-
-        if (response !== null) {
-            // save any unsynced data before opening another view
-            this.cleanUp(ViewKey.EntryEditor);
-
-            this.entryEditor.initializePropertyEditor(
-                id,
-                response.info.entity_type,
-                response.info.title,
-                response.properties,
-            );
-            this.currentView = ViewKey.EntryEditor;
-        }
-    }
-
-    async openWordEditor(languageId: Id, wordType?: WordType) {
-        if (this.isWordEditorOpen && this.entryEditor.info.id == languageId) {
-            if (wordType === undefined)
-                // don't care about which word type is displayed;
-                // since the word editor is already open for this language, don't reload it
-                return;
-            else if (wordType === this.entryEditor.lexicon.wordType)
-                // the word editor is already open for this language and word type
-                return;
-        }
-
-        // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.EntryEditor);
-
-        const info = await this.domain.entries.get(languageId);
-
-        if (info !== null) {
-            this.entryEditor.initializeWordEditor(
-                languageId,
-                info.title,
-                wordType,
-            );
-            this.currentView = ViewKey.EntryEditor;
-        }
     }
 
     closeModal() {
@@ -396,7 +325,12 @@ export class ClientManager implements IClientManager {
 
         if (entry) {
             this.navigation.files.addNodeForCreatedEntry(entry);
-            this._openArticleEditor(entry.id, entityType, entry.title, "");
+            this.entryEditor.openArticleEditor({
+                id: entry.id,
+                entityType,
+                title: entry.title,
+                text: "",
+            });
         }
 
         return entry;
@@ -444,13 +378,11 @@ export class ClientManager implements IClientManager {
         if (this.currentView == ViewKey.EntryEditor) this.entryEditor.cleanUp();
 
         if (
-            this.isEntityEditorOpen &&
-            (!newViewKey || !this.isEntityEditorOpen)
+            this.isEntryEditorOpen &&
+            (!newViewKey || newViewKey != ViewKey.EntryEditor)
         ) {
             this.navigation.files.openedNode = null;
             this.navigation.files.selectedNode = null;
         }
-
-        this.navigation.mobileOpen = false;
     }
 }

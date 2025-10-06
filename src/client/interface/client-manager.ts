@@ -10,7 +10,6 @@ import {
     WordUpsertResponse,
     DomainManager,
     EntityType,
-    WordType,
 } from "@/domain";
 
 export interface OpenEntryCreatorArguments {
@@ -30,9 +29,6 @@ export interface IClientManager {
     openSettings(): void;
     openProjectCreator(): void;
     openEntryCreator(args?: OpenEntryCreatorArguments): void;
-    openArticleEditor(id: Id): Promise<void>;
-    openPropertyEditor(id: Id): Promise<void>;
-    openWordEditor(languageId: Id, wordType?: WordType): Promise<void>;
     closeModal(): void;
     createProject(
         name: string,

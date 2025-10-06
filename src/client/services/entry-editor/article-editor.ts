@@ -9,6 +9,7 @@ import {
     SuggestionData,
     useReferenceExtension,
 } from "@/shared/rich-text-editor";
+import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
 import { EntityInfoEditor } from "./info-editor";
@@ -29,11 +30,14 @@ export class ArticleEditor {
     private _info: EntityInfoEditor;
 
     onChange: EventProducer<void, void>;
+    onSelectReference: EventProducer<Id, void>;
 
     constructor({ client, info }: ArticleEditorSettings) {
         this._client = client;
         this._info = info;
+
         this.onChange = new EventProducer();
+        this.onSelectReference = new EventProducer();
 
         this.editor = this._buildEditor();
 
@@ -41,6 +45,7 @@ export class ArticleEditor {
             _client: false,
             _info: false,
             onChange: false,
+            onSelectReference: false,
         });
     }
 
@@ -116,7 +121,7 @@ export class ArticleEditor {
     _onClickEditor(node: PMNode) {
         if (node.type.name == "mention") {
             const id: number | null = node.attrs["id"] ?? null;
-            if (id !== null) this._client.openArticleEditor?.(id);
+            if (id !== null) this.onSelectReference.produce(id);
         }
     }
 }

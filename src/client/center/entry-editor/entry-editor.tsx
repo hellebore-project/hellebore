@@ -3,8 +3,8 @@ import "./entry-editor.css";
 import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntityType } from "@/domain";
 import { EntryViewKey, getService } from "@/client";
+import { EntityType } from "@/domain";
 import {
     TableOfContents,
     TableOfContentsItemData,
@@ -21,7 +21,10 @@ const ARTICLE_TAB_DATA: TableOfContentsItemData = {
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.openArticleEditor(service.entryEditor.info.id);
+        service.openEntryEditor({
+            id: service.entryEditor.info.id,
+            viewKey: EntryViewKey.ArticleEditor,
+        });
     },
 };
 
@@ -31,7 +34,10 @@ const PROPERTY_TAB_DATA: TableOfContentsItemData = {
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.openPropertyEditor(service.entryEditor.info.id);
+        service.openEntryEditor({
+            id: service.entryEditor.info.id,
+            viewKey: EntryViewKey.PropertyEditor,
+        });
     },
 };
 
@@ -41,7 +47,10 @@ const LEXICON_TAB_DATA: TableOfContentsItemData = {
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.openWordEditor(service.entryEditor.info.id);
+        service.openEntryEditor({
+            id: service.entryEditor.info.id,
+            viewKey: EntryViewKey.WordEditor,
+        });
     },
 };
 

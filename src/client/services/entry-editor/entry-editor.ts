@@ -42,13 +42,20 @@ export interface EntryEditorArguments {
     };
 }
 
+interface OpenArticleEditorArguments {
+    id: Id;
+    entityType?: EntityType;
+    title?: string;
+    text?: string;
+}
+
 interface ChangeTitleEvent {
     id: Id;
     title: string;
     isUnique: boolean;
 }
 
-interface SyncSettings {
+interface SyncArguments {
     syncTitle?: boolean;
     syncProperties?: boolean;
     syncText?: boolean;
@@ -73,8 +80,8 @@ interface SyncResponse {
 
 export class EntryEditor implements IViewManager {
     // CONSTANTS
-    ENTITY_HEADER_SPACE_HEIGHT = 25;
-    BELOW_ENTITY_HEADER_SPACE_HEIGHT = 40;
+    ENTRY_HEADER_SPACE_HEIGHT = 25;
+    DEFAULT_BELOW_HEADER_SPACE_HEIGHT = 40;
     TITLE_FIELD_HEIGHT = 36;
 
     // STATE
@@ -107,6 +114,9 @@ export class EntryEditor implements IViewManager {
             info: this.info,
         });
         this.article.onChange.subscribe(onChange);
+        this.article.onSelectReference.subscribe((id) =>
+            this.openArticleEditor({ id }),
+        );
 
         this.properties = new PropertyEditor({
             info: this.info,
@@ -119,6 +129,9 @@ export class EntryEditor implements IViewManager {
             editableCellRef: wordEditor.editableCellRef,
         });
         this.lexicon.onChange.subscribe(onChange);
+        this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) =>
+            this.openWordEditor(languageId, wordType),
+        );
 
         this.onOpen = new EventProducer();
         this.onChangeTitle = new EventProducer();
@@ -143,12 +156,24 @@ export class EntryEditor implements IViewManager {
         return ViewKey.EntryEditor;
     }
 
-    get entityHeaderSpaceHeight() {
-        return this.ENTITY_HEADER_SPACE_HEIGHT;
+    get headerSpaceHeight() {
+        return this.ENTRY_HEADER_SPACE_HEIGHT;
     }
 
-    get belowEntityHeaderSpaceHeight() {
-        return this.BELOW_ENTITY_HEADER_SPACE_HEIGHT;
+    get belowHeaderSpaceHeight() {
+        return this.DEFAULT_BELOW_HEADER_SPACE_HEIGHT;
+    }
+
+    get isArticleEditorOpen() {
+        return this.currentView == EntryViewKey.ArticleEditor;
+    }
+
+    get isPropertyEditorOpen() {
+        return this.currentView == EntryViewKey.PropertyEditor;
+    }
+
+    get isWordEditorOpen() {
+        return this.currentView == EntryViewKey.WordEditor;
     }
 
     get currentView() {
@@ -190,6 +215,27 @@ export class EntryEditor implements IViewManager {
         this.onOpen.produce(id);
     }
 
+    async openArticleEditor({
+        id,
+        entityType,
+        title,
+        text,
+    }: OpenArticleEditorArguments) {
+        if (this.isArticleEditorOpen && this.info.id == id) return; // the article is already open
+
+        if (!entityType || title === undefined || text === undefined) {
+            const response = await this._client.domain.entries.getArticle(id);
+            if (response) {
+                entityType = response.info.entity_type;
+                title = response.info.title;
+                text = response.text;
+            }
+        }
+
+        if (entityType && title !== undefined && text !== undefined)
+            this.initializeArticleEditor(id, entityType, title, text);
+    }
+
     initializePropertyEditor(
         id: Id,
         entityType: EntityType,
@@ -202,11 +248,42 @@ export class EntryEditor implements IViewManager {
         this.onOpen.produce(id);
     }
 
+    async openPropertyEditor(id: Id) {
+        if (this.isPropertyEditorOpen && this.info.id == id) return; // the property editor is already open
+
+        const response = await this._client.domain.entries.getProperties(id);
+
+        if (response !== null)
+            this.initializePropertyEditor(
+                id,
+                response.info.entity_type,
+                response.info.title,
+                response.properties,
+            );
+    }
+
     async initializeWordEditor(id: number, title: string, wordType?: WordType) {
         this.currentView = EntryViewKey.WordEditor;
         this.info.initialize(id, EntityType.LANGUAGE, title);
         this.onOpen.produce(id);
         return this.lexicon.initialize(id, wordType);
+    }
+
+    async openWordEditor(languageId: Id, wordType?: WordType) {
+        if (this.isWordEditorOpen && this.info.id == languageId) {
+            if (wordType === undefined)
+                // don't care about which word type is displayed;
+                // since the word editor is already open for this language, don't reload it
+                return;
+            else if (wordType === this.lexicon.wordType)
+                // the word editor is already open for this language and word type
+                return;
+        }
+
+        const info = await this._client.domain.entries.get(languageId);
+
+        if (info !== null)
+            this.initializeWordEditor(languageId, info.title, wordType);
     }
 
     private async _updateEntryTitle(id: Id, title: string) {
@@ -240,7 +317,7 @@ export class EntryEditor implements IViewManager {
         syncProperties = false,
         syncText = false,
         syncLexicon = false,
-    }: SyncSettings) {
+    }: SyncArguments) {
         while (true) {
             await new Promise((r) => setTimeout(r, this._syncDelayTime));
 
@@ -270,7 +347,7 @@ export class EntryEditor implements IViewManager {
         syncProperties = false,
         syncText = false,
         syncLexicon = false,
-    }: SyncSettings): Promise<boolean> {
+    }: SyncArguments): Promise<boolean> {
         // NOTE: this function must run synchronously
 
         if (!syncTitle && !syncProperties && !syncText)

@@ -8,6 +8,7 @@ import {
     WordMetaData,
 } from "@/client/interface";
 import { WordResponse, WordType } from "@/domain";
+import { Id } from "@/interface";
 import { ObservableReference } from "@/shared/observable-reference";
 import {
     SpreadsheetRowData,
@@ -79,6 +80,11 @@ interface WordEditorArguments {
     editableCellRef: ObservableReference<HTMLInputElement>;
 }
 
+interface ChangeWordTypeEvent {
+    languageId: Id;
+    wordType: WordType;
+}
+
 export class WordEditor {
     // STATE VARIABLES
     private _wordType: WordType = WordType.RootWord;
@@ -95,12 +101,15 @@ export class WordEditor {
 
     // EVENTS
     onChange: EventProducer<void, void>;
+    onChangeWordType: EventProducer<ChangeWordTypeEvent, void>;
 
     // CONSTRUCTION
     constructor({ client, info, editableCellRef }: WordEditorArguments) {
         this._modifiedWordKeys = new Set();
         this._wordKeyGenerator = new Counter();
+
         this.onChange = new EventProducer();
+        this.onChangeWordType = new EventProducer();
 
         this._client = client;
         this._info = info;
@@ -120,6 +129,7 @@ export class WordEditor {
             _info: false,
             spreadsheet: false,
             onChange: false,
+            onChangeWordType: false,
         });
     }
 
@@ -183,7 +193,10 @@ export class WordEditor {
 
     changeView(viewKey: WordViewKey) {
         const wordType = VIEW_TO_TYPE_MAPPING.get(viewKey) as WordType;
-        return this._client.openWordEditor(this.languageId, wordType);
+        this.onChangeWordType.produce({
+            languageId: this.languageId,
+            wordType,
+        });
     }
 
     afterSync(words: Word[] | undefined | null) {
