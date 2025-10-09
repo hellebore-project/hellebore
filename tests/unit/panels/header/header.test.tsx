@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { describe, expect } from "vitest";
 
-import { ProjectCreator, EntryCreator } from "@/client/overlays";
+import { ProjectCreator, EntryCreator } from "@/client/ui/overlays";
 import { Center, Header } from "@/client";
 import { test } from "@tests/unit/base";
 import { render } from "@tests/utils/render";

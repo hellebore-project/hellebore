@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { WordTable } from "@/client/center/entry-editor/word-editor/word-table/word-table";
+import { WordTable } from "@/client/ui/center/entry-editor/word-editor/word-table";
 import { test } from "@tests/unit/base";
 import {
     mockDeleteWord,
