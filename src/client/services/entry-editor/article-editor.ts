@@ -5,31 +5,31 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { IClientManager } from "@/client/interface";
+import { Id } from "@/interface";
 import {
     SuggestionData,
     useReferenceExtension,
 } from "@/shared/rich-text-editor";
-import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
-import { EntityInfoEditor } from "./info-editor";
+import { EntryInfoEditor } from "./info-editor";
 
-type PrivateKeys = "_client" | "_info";
+type PrivateKeys = "_changed" | "_client" | "_info";
 
 interface ArticleEditorSettings {
     client: IClientManager;
-    info: EntityInfoEditor;
+    info: EntryInfoEditor;
 }
 
 export class ArticleEditor {
     editor: Editor;
-    changed = false;
+    private _changed = false;
     private _selectedRefIndex: number | null = null;
 
     private _client: IClientManager;
-    private _info: EntityInfoEditor;
+    private _info: EntryInfoEditor;
 
-    onChange: EventProducer<void, void>;
+    onChange: EventProducer<Id, void>;
     onSelectReference: EventProducer<Id, void>;
 
     constructor({ client, info }: ArticleEditorSettings) {
@@ -42,6 +42,7 @@ export class ArticleEditor {
         this.editor = this._buildEditor();
 
         makeAutoObservable<ArticleEditor, PrivateKeys>(this, {
+            _changed: false,
             _client: false,
             _info: false,
             onChange: false,
@@ -61,6 +62,14 @@ export class ArticleEditor {
         return JSON.stringify(this.content);
     }
 
+    get changed() {
+        return this._changed;
+    }
+
+    set changed(changed: boolean) {
+        this._changed = changed;
+    }
+
     get selectedRefIndex() {
         return this._selectedRefIndex;
     }
@@ -73,12 +82,9 @@ export class ArticleEditor {
         this.content = text ? JSON.parse(text) : "";
     }
 
-    afterSync() {
-        this.changed = false;
-    }
-
     reset() {
         this.editor.commands.clearContent();
+        this._changed = false;
     }
 
     _buildEditor() {
@@ -106,8 +112,8 @@ export class ArticleEditor {
 
     _updateEditor(editor: Editor) {
         this.editor = editor;
-        this.changed = true;
-        this.onChange.produce();
+        this._changed = true;
+        this.onChange.produce(this._info.id);
     }
 
     _queryByTitle(titleFragment: string): SuggestionData[] {

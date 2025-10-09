@@ -11,27 +11,27 @@ import {
     PropertyFieldData,
     TextPropertyFieldData,
 } from "@/client";
+import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
-import { EntityInfoEditor } from "./info-editor";
+import { EntryInfoEditor } from "./info-editor";
 
-type PrivateKeys = "_info";
+type PrivateKeys = "_changed" | "_info";
 
 type FieldDataCollection = Record<number, PropertyFieldData[]>;
 
 interface PropertyEditorSettings {
-    info: EntityInfoEditor;
+    info: EntryInfoEditor;
 }
 
 export class PropertyEditor {
     private _entity: BaseEntity | null = null;
-
     fields: FieldDataCollection;
-    changed = false;
+    private _changed = false;
 
-    private _info: EntityInfoEditor;
+    private _info: EntryInfoEditor;
 
-    onChange: EventProducer<void, void>;
+    onChange: EventProducer<Id, void>;
 
     constructor({ info }: PropertyEditorSettings) {
         this.fields = this._generateFieldData();
@@ -42,6 +42,7 @@ export class PropertyEditor {
 
         makeAutoObservable<PropertyEditor, PrivateKeys>(this, {
             fields: false,
+            _changed: false,
             _info: false,
             onChange: false,
         });
@@ -53,6 +54,14 @@ export class PropertyEditor {
 
     set data(entity: BaseEntity | null) {
         this._entity = entity;
+    }
+
+    get changed() {
+        return this._changed;
+    }
+
+    set changed(changed: boolean) {
+        this._changed = changed;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,20 +79,17 @@ export class PropertyEditor {
             console.error(error);
             return;
         }
-        this.changed = true;
-        this.onChange.produce();
+        this._changed = true;
+        this.onChange.produce(this._info.id);
     }
 
     initialize<E extends BaseEntity>(entity: E) {
         this.data = entity;
     }
 
-    afterSync() {
-        this.changed = false;
-    }
-
     reset() {
         this.data = null;
+        this._changed = false;
     }
 
     _generateFieldData(): FieldDataCollection {

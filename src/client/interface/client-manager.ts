@@ -6,8 +6,6 @@ import {
     BulkData,
     EntryInfoResponse,
     ProjectResponse,
-    WordUpsert,
-    WordUpsertResponse,
     DomainManager,
     EntityType,
 } from "@/domain";
@@ -43,7 +41,6 @@ export interface IClientManager {
         title: string,
         folderId: Id,
     ): Promise<EntryInfoResponse | null>;
-    updateLexicon(words: WordUpsert[]): Promise<WordUpsertResponse[] | null>;
     deleteEntry(id: number, title: string, confirm?: boolean): Promise<boolean>;
     cleanUp(): void;
 }

@@ -4,13 +4,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import { OpenEntryCreatorArguments, IClientManager } from "@/client/interface";
 import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
-import {
-    EntityType,
-    ROOT_FOLDER_ID,
-    WordType,
-    DomainManager,
-    WordUpsert,
-} from "@/domain";
+import { EntityType, ROOT_FOLDER_ID, WordType, DomainManager } from "@/domain";
 import { Id } from "@/interface";
 
 import { ContextMenuManager } from "./context-menu-manager";
@@ -24,6 +18,7 @@ import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
+import { PollEvent, SyncEntryEvent, Synchronizer } from "./synchronizer";
 
 interface OpenEntryEditorArguments {
     id: Id;
@@ -42,8 +37,9 @@ export class ClientManager implements IClientManager {
     _viewKey: ViewKey = ViewKey.Home;
     _modalKey: ModalKey | null = null;
 
-    // domain service
+    // domain services
     domain: DomainManager;
+    synchronizer: Synchronizer;
 
     // central view services
     home: HomeManager;
@@ -69,6 +65,14 @@ export class ClientManager implements IClientManager {
     constructor() {
         this.domain = new DomainManager();
 
+        this.synchronizer = new Synchronizer(this.domain);
+        this.synchronizer.onPoll.subscribe((event) =>
+            this._fetchChanges(event),
+        );
+        this.synchronizer.onSyncEntry.subscribe((event) =>
+            this._handleEntrySynchronization(event),
+        );
+
         // miscellaneous
         this.style = new StyleManager();
         this.domReferences = new DOMReferenceManager();
@@ -79,6 +83,7 @@ export class ClientManager implements IClientManager {
 
         this.entryEditor = new EntryEditor({
             client: this,
+            synchronizer: this.synchronizer,
             wordEditor: {
                 editableCellRef: this.domReferences.wordTableEditableCell,
             },
@@ -86,10 +91,6 @@ export class ClientManager implements IClientManager {
         this.entryEditor.onOpen.subscribe((id) =>
             this.navigation.files.openEntityNode(id),
         );
-        this.entryEditor.onChangeTitle.subscribe(({ id, title, isUnique }) => {
-            if (title != "" && isUnique)
-                this.navigation.files.updateEntityNodeText(id, title);
-        });
 
         // peripheral panels
         this.header = new HeaderManager(this);
@@ -336,10 +337,6 @@ export class ClientManager implements IClientManager {
         return entry;
     }
 
-    async updateLexicon(updates: WordUpsert[]) {
-        return await this.domain.words.bulkUpsert(updates);
-    }
-
     async deleteEntry(id: number, title: string, confirm = true) {
         if (confirm) {
             const message =
@@ -384,5 +381,23 @@ export class ClientManager implements IClientManager {
             this.navigation.files.openedNode = null;
             this.navigation.files.selectedNode = null;
         }
+    }
+
+    private _fetchChanges(event: PollEvent) {
+        return { entries: this.entryEditor.fetchChanges(event) };
+    }
+
+    private _handleEntrySynchronization(event: SyncEntryEvent) {
+        this.entryEditor.handleSynchronization(event);
+
+        if (
+            event.request.title &&
+            event.response.title &&
+            event.response.title.isUnique
+        )
+            this.navigation.files.updateEntityNodeText(
+                event.request.id,
+                event.request.title,
+            );
     }
 }

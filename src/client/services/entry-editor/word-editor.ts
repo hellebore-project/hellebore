@@ -19,7 +19,7 @@ import {
 import { Counter } from "@/utils/counter";
 import { EventProducer } from "@/utils/event";
 
-import { EntityInfoEditor } from "./info-editor";
+import { EntryInfoEditor } from "./info-editor";
 
 type WordColumnKeys = "spelling" | "definition" | "translations";
 
@@ -76,7 +76,7 @@ type PrivateKeys =
 
 interface WordEditorArguments {
     client: IClientManager;
-    info: EntityInfoEditor;
+    info: EntryInfoEditor;
     editableCellRef: ObservableReference<HTMLInputElement>;
 }
 
@@ -93,14 +93,14 @@ export class WordEditor {
 
     // SERVICES
     private _client: IClientManager;
-    private _info: EntityInfoEditor;
+    private _info: EntryInfoEditor;
     spreadsheet: SpreadsheetService<WordColumnKeys, WordMetaData>;
 
     // UTILITIES
     private _wordKeyGenerator: Counter;
 
     // EVENTS
-    onChange: EventProducer<void, void>;
+    onChange: EventProducer<Id, void>;
     onChangeWordType: EventProducer<ChangeWordTypeEvent, void>;
 
     // CONSTRUCTION
@@ -264,7 +264,7 @@ export class WordEditor {
         if (key == this.newKey) this._addNewWordRow();
         this._modifiedWordKeys.add(key);
         this._changed = true;
-        this.onChange.produce();
+        this.onChange.produce(this._info.id);
     }
 
     // WORD CREATION
