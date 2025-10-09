@@ -1,10 +1,17 @@
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntryCreator, ContextMenu, ProjectCreator } from "./overlays";
-import { getService } from "./services";
+import { getService } from "@/client/services";
 
-import { Footer, Header, Center, LeftSideBar } from ".";
+import {
+    Footer,
+    Header,
+    Center,
+    LeftSideBar,
+    EntryCreator,
+    ContextMenu,
+    ProjectCreator,
+} from ".";
 
 function renderPortalContainer() {
     const service = getService();
