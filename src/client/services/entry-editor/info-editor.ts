@@ -9,10 +9,10 @@ const ENTRY_ID_SENTINEL = -1;
 type PrivateKeys = "_titleChanged";
 
 export class EntryInfoEditor {
-    _id: number = ENTRY_ID_SENTINEL;
-    _entityType: EntityType | null = null;
-    _title = "";
-    _isTitleUnique = true;
+    private _id: number = ENTRY_ID_SENTINEL;
+    private _entityType: EntityType | null = null;
+    private _title = "";
+    private _isTitleUnique = true;
     private _titleChanged = false;
 
     onChangeTitle: EventProducer<Id, void>;
