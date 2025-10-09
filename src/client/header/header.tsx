@@ -19,8 +19,8 @@ function renderHeader() {
             wrap="nowrap"
         >
             <Burger
-                opened={service.navBarMobileOpen}
-                onClick={() => service.toggleNavBar()}
+                opened={service.navigation.mobileOpen}
+                onClick={() => service.navigation.toggleMobileOpen()}
                 hiddenFrom="sm"
                 size="sm"
                 pr="8"

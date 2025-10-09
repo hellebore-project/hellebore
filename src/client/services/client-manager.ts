@@ -4,43 +4,42 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import { OpenEntryCreatorArguments, IClientManager } from "@/client/interface";
 import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
-import {
-    EntityType,
-    ROOT_FOLDER_ID,
-    WordType,
-    DomainManager,
-    WordUpsert,
-} from "@/domain";
+import { EntityType, ROOT_FOLDER_ID, WordType, DomainManager } from "@/domain";
 import { Id } from "@/interface";
 
+import { ContextMenuManager } from "./context-menu-manager";
+import { DOMReferenceManager } from "./dom-reference-manager";
 import { EntryCreator } from "./entry-creator";
 import { EntryEditor } from "./entry-editor";
-import { ContextMenuManager } from "./context-menu-manager";
+import { FooterManager } from "./footer-manager";
+import { HeaderManager } from "./header-manager";
 import { HomeManager } from "./home-manager";
 import { NavigationService } from "./navigation/navigation-service";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
-import { HeaderService } from "./header-service";
-import { DOMReferenceManager } from "./dom-reference-manager";
+import { PollEvent, SyncEntryEvent, Synchronizer } from "./synchronizer";
+
+interface OpenEntryEditorArguments {
+    id: Id;
+    viewKey: EntryViewKey;
+    wordType?: WordType;
+}
 
 export class ClientManager implements IClientManager {
     // constants
-    HEADER_HEIGHT = 30;
-    FOOTER_HEIGHT = 25;
-    NAVBAR_WIDTH = 300;
-    MAIN_PADDING = 20;
-    DEFAULT_DIVIDER_HEIGHT = 24.8;
-    DEFAULT_SPACE_HEIGHT = 20;
-    SHARED_PORTAL_ID = "shared-portal";
+    readonly DEFAULT_CENTER_PADDING = 20;
+    readonly DEFAULT_DIVIDER_HEIGHT = 24.8;
+    readonly DEFAULT_SPACE_HEIGHT = 20;
+    readonly SHARED_PORTAL_ID = "shared-portal";
 
     // state variables
     _viewKey: ViewKey = ViewKey.Home;
     _modalKey: ModalKey | null = null;
-    _navBarMobileOpen = true;
 
-    // domain service
+    // domain services
     domain: DomainManager;
+    synchronizer: Synchronizer;
 
     // central view services
     home: HomeManager;
@@ -48,8 +47,9 @@ export class ClientManager implements IClientManager {
     settingsEditor: SettingsEditor;
 
     // bar services
-    header: HeaderService;
+    header: HeaderManager;
     navigation: NavigationService;
+    footer: FooterManager;
 
     // modal services
     projectCreator: ProjectCreator;
@@ -65,22 +65,36 @@ export class ClientManager implements IClientManager {
     constructor() {
         this.domain = new DomainManager();
 
+        this.synchronizer = new Synchronizer(this.domain);
+        this.synchronizer.onPoll.subscribe((event) =>
+            this._fetchChanges(event),
+        );
+        this.synchronizer.onSyncEntry.subscribe((event) =>
+            this._handleEntrySynchronization(event),
+        );
+
         // miscellaneous
         this.style = new StyleManager();
         this.domReferences = new DOMReferenceManager();
 
-        // central views
+        // central panel
         this.home = new HomeManager(this);
         this.settingsEditor = new SettingsEditor(this);
+
         this.entryEditor = new EntryEditor({
             client: this,
+            synchronizer: this.synchronizer,
             wordEditor: {
                 editableCellRef: this.domReferences.wordTableEditableCell,
             },
         });
+        this.entryEditor.onOpen.subscribe((id) =>
+            this.navigation.files.openEntityNode(id),
+        );
 
-        // bars
-        this.header = new HeaderService(this);
+        // peripheral panels
+        this.header = new HeaderManager(this);
+        this.footer = new FooterManager();
         this.navigation = new NavigationService({
             client: this,
             files: {
@@ -97,43 +111,23 @@ export class ClientManager implements IClientManager {
 
         const overrides = {
             domain: false,
-            dimensions: false,
             style: false,
             domReferences: false,
             home: false,
             settingsEditor: false,
+            entryEditor: false,
+            header: false,
+            footer: false,
             navigation: false,
             projectCreator: false,
-            folderRemover: false,
-            entityCreator: false,
-            entityEditor: false,
+            entryCreator: false,
             contextMenu: false,
         };
         makeAutoObservable(this, overrides);
     }
 
-    get headerHeight() {
-        return this.HEADER_HEIGHT;
-    }
-
-    get footerHeight() {
-        return this.FOOTER_HEIGHT;
-    }
-
-    get navbarWidth() {
-        return this.NAVBAR_WIDTH;
-    }
-
-    get mainPadding() {
-        return this.MAIN_PADDING;
-    }
-
-    get defaultDividerHeight() {
-        return this.DEFAULT_DIVIDER_HEIGHT;
-    }
-
-    get defaultSpaceHeight() {
-        return this.DEFAULT_SPACE_HEIGHT;
+    get centerPadding() {
+        return this.DEFAULT_CENTER_PADDING;
     }
 
     get sharedPortalId() {
@@ -152,33 +146,12 @@ export class ClientManager implements IClientManager {
         this._viewKey = key;
     }
 
-    get isEntityEditorOpen() {
-        return this.currentView == ViewKey.EntityEditor;
-    }
-
-    get isArticleEditorOpen() {
-        return (
-            this.currentView == ViewKey.EntityEditor &&
-            this.entryEditor.currentView == EntryViewKey.ArticleEditor
-        );
-    }
-
-    get isPropertyEditorOpen() {
-        return (
-            this.currentView == ViewKey.EntityEditor &&
-            this.entryEditor.currentView == EntryViewKey.PropertyEditor
-        );
-    }
-
-    get isWordEditorOpen() {
-        return (
-            this.currentView == ViewKey.EntityEditor &&
-            this.entryEditor.currentView == EntryViewKey.WordEditor
-        );
+    get isEntryEditorOpen() {
+        return this.currentView == ViewKey.EntryEditor;
     }
 
     get entityType() {
-        if (this.isEntityEditorOpen) return this.entryEditor.info.entityType;
+        if (this.isEntryEditorOpen) return this.entryEditor.info.entityType;
         return null;
     }
 
@@ -188,14 +161,6 @@ export class ClientManager implements IClientManager {
 
     set currentModal(key: ModalKey | null) {
         this._modalKey = key;
-    }
-
-    get navBarMobileOpen() {
-        return this._navBarMobileOpen;
-    }
-
-    set navBarMobileOpen(open: boolean) {
-        this._navBarMobileOpen = open;
     }
 
     async initialize() {
@@ -232,10 +197,6 @@ export class ClientManager implements IClientManager {
         if (entries && folders) this.navigation.initialize(entries, folders);
     }
 
-    toggleNavBar() {
-        this._navBarMobileOpen = !this._navBarMobileOpen;
-    }
-
     openHome() {
         this.cleanUp(ViewKey.Home);
         this.currentView = ViewKey.Home;
@@ -244,6 +205,19 @@ export class ClientManager implements IClientManager {
     openSettings() {
         this.cleanUp(ViewKey.Settings);
         this.currentView = ViewKey.Settings;
+    }
+
+    async openEntryEditor({ id, viewKey, wordType }: OpenEntryEditorArguments) {
+        this.cleanUp(ViewKey.EntryEditor);
+        this.currentView = ViewKey.EntryEditor;
+
+        if (viewKey == EntryViewKey.ArticleEditor)
+            return this.entryEditor.openArticleEditor({ id });
+        else if (viewKey == EntryViewKey.PropertyEditor)
+            return this.entryEditor.openPropertyEditor(id);
+        else if (viewKey == EntryViewKey.WordEditor)
+            return this.entryEditor.openWordEditor(id, wordType);
+        throw `Unable to open view with key ${viewKey}.`;
     }
 
     openProjectCreator() {
@@ -257,78 +231,6 @@ export class ClientManager implements IClientManager {
             args?.folderId ?? ROOT_FOLDER_ID,
         );
         this.currentModal = ModalKey.EntryCreator;
-    }
-
-    async openArticleEditor(id: Id) {
-        if (this.isArticleEditorOpen && this.entryEditor.info.id == id) return; // the article is already open
-        const response = await this.domain.entries.getArticle(id);
-        if (response !== null)
-            this._openArticleEditor(
-                id,
-                response.info.entity_type,
-                response.info.title,
-                response.text,
-            );
-    }
-
-    _openArticleEditor(
-        id: Id,
-        entityType: EntityType,
-        title: string,
-        text: string,
-    ) {
-        // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.EntityEditor);
-        this.entryEditor.initializeArticleEditor(id, entityType, title, text);
-        this.navigation.files.openEntityNode(id);
-        this.currentView = ViewKey.EntityEditor;
-    }
-
-    async openPropertyEditor(id: Id) {
-        if (this.isPropertyEditorOpen && this.entryEditor.info.id == id) return; // the property editor is already open
-
-        const response = await this.domain.entries.getProperties(id);
-
-        if (response !== null) {
-            // save any unsynced data before opening another view
-            this.cleanUp(ViewKey.EntityEditor);
-
-            this.entryEditor.initializePropertyEditor(
-                id,
-                response.info.entity_type,
-                response.info.title,
-                response.properties,
-            );
-            this.navigation.files.openEntityNode(id);
-            this.currentView = ViewKey.EntityEditor;
-        }
-    }
-
-    async openWordEditor(languageId: Id, wordType?: WordType) {
-        if (this.isWordEditorOpen && this.entryEditor.info.id == languageId) {
-            if (wordType === undefined)
-                // don't care about which word type is displayed;
-                // since the word editor is already open for this language, don't reload it
-                return;
-            else if (wordType === this.entryEditor.lexicon.wordType)
-                // the word editor is already open for this language and word type
-                return;
-        }
-
-        // save any unsynced data before opening another view
-        this.cleanUp(ViewKey.EntityEditor);
-
-        const info = await this.domain.entries.get(languageId);
-
-        if (info !== null) {
-            this.entryEditor.initializeWordEditor(
-                languageId,
-                info.title,
-                wordType,
-            );
-            this.navigation.files.openEntityNode(languageId);
-            this.currentView = ViewKey.EntityEditor;
-        }
     }
 
     closeModal() {
@@ -405,7 +307,7 @@ export class ClientManager implements IClientManager {
         this.navigation.files.deleteManyNodes(fileIds.entries, fileIds.folders);
 
         if (
-            this.currentView == ViewKey.EntityEditor &&
+            this.currentView == ViewKey.EntryEditor &&
             fileIds.entries.includes(this.entryEditor.info.id)
         ) {
             // currently-open entry has been deleted
@@ -424,21 +326,15 @@ export class ClientManager implements IClientManager {
 
         if (entry) {
             this.navigation.files.addNodeForCreatedEntry(entry);
-            this._openArticleEditor(entry.id, entityType, entry.title, "");
+            this.entryEditor.openArticleEditor({
+                id: entry.id,
+                entityType,
+                title: entry.title,
+                text: "",
+            });
         }
 
         return entry;
-    }
-
-    async updateEntryTitle(id: Id, title: string) {
-        const response = await this.domain.entries.updateTitle(id, title);
-        if (title != "" && response.isUnique)
-            this.navigation.files.updateEntityNodeText(id, title);
-        return response;
-    }
-
-    async updateLexicon(updates: WordUpsert[]) {
-        return await this.domain.words.bulkUpsert(updates);
     }
 
     async deleteEntry(id: number, title: string, confirm = true) {
@@ -461,7 +357,7 @@ export class ClientManager implements IClientManager {
             return false;
 
         if (
-            this.currentView == ViewKey.EntityEditor &&
+            this.currentView == ViewKey.EntryEditor &&
             this.entryEditor.info.id == id
         ) {
             // deleted entry is currently open
@@ -476,17 +372,32 @@ export class ClientManager implements IClientManager {
     cleanUp(newViewKey: ViewKey | null = null) {
         if (this.currentModal) this.closeModal();
 
-        if (this.currentView == ViewKey.EntityEditor)
-            this.entryEditor.cleanUp();
+        if (this.currentView == ViewKey.EntryEditor) this.entryEditor.cleanUp();
 
         if (
-            this.isEntityEditorOpen &&
-            (!newViewKey || !this.isEntityEditorOpen)
+            this.isEntryEditorOpen &&
+            (!newViewKey || newViewKey != ViewKey.EntryEditor)
         ) {
             this.navigation.files.openedNode = null;
             this.navigation.files.selectedNode = null;
         }
+    }
 
-        this.navBarMobileOpen = false;
+    private _fetchChanges(event: PollEvent) {
+        return { entries: this.entryEditor.fetchChanges(event) };
+    }
+
+    private _handleEntrySynchronization(event: SyncEntryEvent) {
+        this.entryEditor.handleSynchronization(event);
+
+        if (
+            event.request.title &&
+            event.response.title &&
+            event.response.title.isUnique
+        )
+            this.navigation.files.updateEntityNodeText(
+                event.request.id,
+                event.request.title,
+            );
     }
 }

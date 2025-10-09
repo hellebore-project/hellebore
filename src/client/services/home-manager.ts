@@ -1,10 +1,11 @@
 import { makeAutoObservable } from "mobx";
 
-import { IClientManager } from "@/client/interface";
+import { IClientManager, IViewManager } from "@/client/interface";
+import { ViewKey } from "@/client/constants";
 
 type PrivateKeys = "_client";
 
-export class HomeManager {
+export class HomeManager implements IViewManager {
     _projectName = "";
 
     private _client: IClientManager;
@@ -12,6 +13,10 @@ export class HomeManager {
     constructor(client: IClientManager) {
         this._client = client;
         makeAutoObservable<HomeManager, PrivateKeys>(this, { _client: false });
+    }
+
+    get key() {
+        return ViewKey.Home;
     }
 
     get projectName() {

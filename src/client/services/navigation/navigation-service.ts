@@ -11,11 +11,27 @@ export interface NavigationServiceArguments {
 }
 
 export class NavigationService {
+    readonly NAVBAR_WIDTH = 300;
+
+    private _mobileOpen = true;
+
     files: FileNavigator;
 
     constructor({ client, files }: NavigationServiceArguments) {
         this.files = new FileNavigator({ client, ...files });
         makeAutoObservable(this, { files: false });
+    }
+
+    get width() {
+        return this.NAVBAR_WIDTH;
+    }
+
+    get mobileOpen() {
+        return this._mobileOpen;
+    }
+
+    set mobileOpen(open: boolean) {
+        this._mobileOpen = open;
     }
 
     initialize(entities: EntryInfoResponse[], folders: FolderResponse[]) {
@@ -24,5 +40,9 @@ export class NavigationService {
 
     reset() {
         this.files.reset();
+    }
+
+    toggleMobileOpen() {
+        this._mobileOpen = !this._mobileOpen;
     }
 }

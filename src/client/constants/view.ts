@@ -1,7 +1,7 @@
 export enum ViewKey {
     Home = "HOME",
     Settings = "SETTINGS",
-    EntityEditor = "ENTITY_EDITOR",
+    EntryEditor = "ENTRY_EDITOR",
 }
 
 export enum EntryViewKey {

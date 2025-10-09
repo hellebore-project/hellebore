@@ -8,6 +8,7 @@ import {
     WordMetaData,
 } from "@/client/interface";
 import { WordResponse, WordType } from "@/domain";
+import { Id } from "@/interface";
 import { ObservableReference } from "@/shared/observable-reference";
 import {
     SpreadsheetRowData,
@@ -16,8 +17,9 @@ import {
     SpreadsheetFieldType,
 } from "@/shared/spreadsheet";
 import { Counter } from "@/utils/counter";
+import { EventProducer } from "@/utils/event";
 
-import { EntityInfoEditor } from "./info-editor";
+import { EntryInfoEditor } from "./info-editor";
 
 type WordColumnKeys = "spelling" | "definition" | "translations";
 
@@ -69,17 +71,18 @@ type PrivateKeys =
     | "_columnData"
     | "_modifiedWordKeys"
     | "_wordKeyGenerator"
-    | "_onChange"
     | "_client"
     | "_info";
 
-type ChangeWordHandler = () => void;
-
 interface WordEditorArguments {
     client: IClientManager;
-    info: EntityInfoEditor;
+    info: EntryInfoEditor;
     editableCellRef: ObservableReference<HTMLInputElement>;
-    onChange: ChangeWordHandler;
+}
+
+interface ChangeWordTypeEvent {
+    languageId: Id;
+    wordType: WordType;
 }
 
 export class WordEditor {
@@ -90,25 +93,23 @@ export class WordEditor {
 
     // SERVICES
     private _client: IClientManager;
-    private _info: EntityInfoEditor;
+    private _info: EntryInfoEditor;
     spreadsheet: SpreadsheetService<WordColumnKeys, WordMetaData>;
 
     // UTILITIES
     private _wordKeyGenerator: Counter;
 
-    // CALLBACKS
-    private _onChange: ChangeWordHandler;
+    // EVENTS
+    onChange: EventProducer<Id, void>;
+    onChangeWordType: EventProducer<ChangeWordTypeEvent, void>;
 
     // CONSTRUCTION
-    constructor({
-        client,
-        info,
-        editableCellRef,
-        onChange,
-    }: WordEditorArguments) {
+    constructor({ client, info, editableCellRef }: WordEditorArguments) {
         this._modifiedWordKeys = new Set();
         this._wordKeyGenerator = new Counter();
-        this._onChange = onChange;
+
+        this.onChange = new EventProducer();
+        this.onChangeWordType = new EventProducer();
 
         this._client = client;
         this._info = info;
@@ -124,10 +125,11 @@ export class WordEditor {
             _modifiedWordKeys: false,
             _columnData: false,
             _wordKeyGenerator: false,
-            _onChange: false,
             _client: false,
             _info: false,
             spreadsheet: false,
+            onChange: false,
+            onChangeWordType: false,
         });
     }
 
@@ -191,7 +193,10 @@ export class WordEditor {
 
     changeView(viewKey: WordViewKey) {
         const wordType = VIEW_TO_TYPE_MAPPING.get(viewKey) as WordType;
-        return this._client.openWordEditor(this.languageId, wordType);
+        this.onChangeWordType.produce({
+            languageId: this.languageId,
+            wordType,
+        });
     }
 
     afterSync(words: Word[] | undefined | null) {
@@ -259,7 +264,7 @@ export class WordEditor {
         if (key == this.newKey) this._addNewWordRow();
         this._modifiedWordKeys.add(key);
         this._changed = true;
-        this._onChange();
+        this.onChange.produce(this._info.id);
     }
 
     // WORD CREATION

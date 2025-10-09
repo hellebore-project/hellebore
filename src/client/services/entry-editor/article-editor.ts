@@ -5,43 +5,48 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { IClientManager } from "@/client/interface";
+import { Id } from "@/interface";
 import {
     SuggestionData,
     useReferenceExtension,
 } from "@/shared/rich-text-editor";
+import { EventProducer } from "@/utils/event";
 
-import { EntityInfoEditor } from "./info-editor";
+import { EntryInfoEditor } from "./info-editor";
 
-type EditArticleHandler = () => void;
-type PrivateKeys = "_client";
+type PrivateKeys = "_changed" | "_client" | "_info";
 
 interface ArticleEditorSettings {
     client: IClientManager;
-    info: EntityInfoEditor;
-    onChange: EditArticleHandler;
+    info: EntryInfoEditor;
 }
 
 export class ArticleEditor {
     editor: Editor;
-    changed = false;
+    private _changed = false;
     private _selectedRefIndex: number | null = null;
 
     private _client: IClientManager;
-    info: EntityInfoEditor;
+    private _info: EntryInfoEditor;
 
-    onChange: EditArticleHandler;
+    onChange: EventProducer<Id, void>;
+    onSelectReference: EventProducer<Id, void>;
 
-    constructor({ client, info, onChange }: ArticleEditorSettings) {
+    constructor({ client, info }: ArticleEditorSettings) {
         this._client = client;
-        this.info = info;
-        this.onChange = onChange;
+        this._info = info;
+
+        this.onChange = new EventProducer();
+        this.onSelectReference = new EventProducer();
 
         this.editor = this._buildEditor();
 
         makeAutoObservable<ArticleEditor, PrivateKeys>(this, {
+            _changed: false,
             _client: false,
-            info: false,
+            _info: false,
             onChange: false,
+            onSelectReference: false,
         });
     }
 
@@ -57,6 +62,14 @@ export class ArticleEditor {
         return JSON.stringify(this.content);
     }
 
+    get changed() {
+        return this._changed;
+    }
+
+    set changed(changed: boolean) {
+        this._changed = changed;
+    }
+
     get selectedRefIndex() {
         return this._selectedRefIndex;
     }
@@ -69,12 +82,9 @@ export class ArticleEditor {
         this.content = text ? JSON.parse(text) : "";
     }
 
-    afterSync() {
-        this.changed = false;
-    }
-
     reset() {
         this.editor.commands.clearContent();
+        this._changed = false;
     }
 
     _buildEditor() {
@@ -102,22 +112,22 @@ export class ArticleEditor {
 
     _updateEditor(editor: Editor) {
         this.editor = editor;
-        this.changed = true;
-        this.onChange();
+        this._changed = true;
+        this.onChange.produce(this._info.id);
     }
 
     _queryByTitle(titleFragment: string): SuggestionData[] {
         this.selectedRefIndex = 0;
         return this._client.domain.entries
             .queryByTitle(titleFragment)
-            .filter((info) => info.id != this.info.id)
+            .filter((info) => info.id != this._info.id)
             .map((info) => ({ label: info.title, value: info.id }));
     }
 
     _onClickEditor(node: PMNode) {
         if (node.type.name == "mention") {
             const id: number | null = node.attrs["id"] ?? null;
-            if (id !== null) this._client.openArticleEditor?.(id);
+            if (id !== null) this.onSelectReference.produce(id);
         }
     }
 }

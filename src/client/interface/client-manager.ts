@@ -6,12 +6,8 @@ import {
     BulkData,
     EntryInfoResponse,
     ProjectResponse,
-    WordUpsert,
-    WordUpsertResponse,
-    EntryTitleUpdateResponse,
     DomainManager,
     EntityType,
-    WordType,
 } from "@/domain";
 
 export interface OpenEntryCreatorArguments {
@@ -22,7 +18,6 @@ export interface OpenEntryCreatorArguments {
 export interface IClientManager {
     domain: DomainManager;
 
-    get navbarWidth(): number;
     get currentView(): ViewKey;
 
     getViewSize(): Promise<PhysicalSize>;
@@ -32,9 +27,6 @@ export interface IClientManager {
     openSettings(): void;
     openProjectCreator(): void;
     openEntryCreator(args?: OpenEntryCreatorArguments): void;
-    openArticleEditor(id: Id): Promise<void>;
-    openPropertyEditor(id: Id): Promise<void>;
-    openWordEditor(languageId: Id, wordType?: WordType): Promise<void>;
     closeModal(): void;
     createProject(
         name: string,
@@ -49,8 +41,6 @@ export interface IClientManager {
         title: string,
         folderId: Id,
     ): Promise<EntryInfoResponse | null>;
-    updateEntryTitle(id: Id, title: string): Promise<EntryTitleUpdateResponse>;
-    updateLexicon(words: WordUpsert[]): Promise<WordUpsertResponse[] | null>;
     deleteEntry(id: number, title: string, confirm?: boolean): Promise<boolean>;
     cleanUp(): void;
 }

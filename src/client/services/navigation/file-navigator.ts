@@ -91,10 +91,6 @@ export class FileNavigator {
         });
     }
 
-    get width() {
-        return this._client.navbarWidth;
-    }
-
     /**
      * Reference to the file tree element.
      * Its handlers must be called inside a component function to ensure that the DOM is updated.

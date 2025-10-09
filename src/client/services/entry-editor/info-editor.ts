@@ -1,18 +1,29 @@
 import { makeAutoObservable } from "mobx";
 
 import { ENTITY_TYPE_LABELS, EntityType } from "@/domain";
+import { Id } from "@/interface";
+import { EventProducer } from "@/utils/event";
 
-const ENTITY_ID_SENTINEL = -1;
+const ENTRY_ID_SENTINEL = -1;
 
-export class EntityInfoEditor {
-    _id: number = ENTITY_ID_SENTINEL;
-    _entityType: EntityType | null = null;
-    _title = "";
-    _isTitleUnique = true;
-    _titleChanged = false;
+type PrivateKeys = "_titleChanged";
+
+export class EntryInfoEditor {
+    private _id: number = ENTRY_ID_SENTINEL;
+    private _entityType: EntityType | null = null;
+    private _title = "";
+    private _isTitleUnique = true;
+    private _titleChanged = false;
+
+    onChangeTitle: EventProducer<Id, void>;
 
     constructor() {
-        makeAutoObservable(this);
+        this.onChangeTitle = new EventProducer();
+
+        makeAutoObservable<EntryInfoEditor, PrivateKeys>(this, {
+            onChangeTitle: false,
+            _titleChanged: false,
+        });
     }
 
     get id() {
@@ -40,8 +51,11 @@ export class EntityInfoEditor {
     }
 
     set title(title: string) {
+        if (title == this.title) return;
+
         this._title = title;
         this._titleChanged = true;
+        this.onChangeTitle.produce(this.id);
     }
 
     get isTitleUnique() {
@@ -50,6 +64,10 @@ export class EntityInfoEditor {
 
     set isTitleUnique(unique: boolean) {
         this._isTitleUnique = unique;
+    }
+
+    get isTitleValid() {
+        return this.isTitleUnique && this.title !== "";
     }
 
     get titleChanged() {
@@ -65,18 +83,13 @@ export class EntityInfoEditor {
         this.entityType = type;
         this.title = title;
         this.isTitleUnique = true;
-        this.titleChanged = false;
-    }
-
-    afterSync() {
-        this.titleChanged = false;
     }
 
     reset() {
-        this.id = ENTITY_ID_SENTINEL;
+        this.id = ENTRY_ID_SENTINEL;
         this.entityType = null;
         this.title = "";
         this.isTitleUnique = true;
-        this.titleChanged = false;
+        this._titleChanged = false;
     }
 }

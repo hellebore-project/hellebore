@@ -4,8 +4,8 @@ import { makeAutoObservable } from "mobx";
 import { CommandNames, ProjectResponse, SessionResponse } from "@/domain";
 
 export class SessionManager {
-    _dbFilePath: string | null = null;
-    _project: ProjectResponse | null = null;
+    private _dbFilePath: string | null = null;
+    private _project: ProjectResponse | null = null;
 
     constructor() {
         // the UI depends on the project info, so it needs to be observable

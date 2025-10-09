@@ -11,36 +11,40 @@ import {
     PropertyFieldData,
     TextPropertyFieldData,
 } from "@/client";
+import { Id } from "@/interface";
+import { EventProducer } from "@/utils/event";
 
-import { EntityInfoEditor } from "./info-editor";
+import { EntryInfoEditor } from "./info-editor";
 
-type EditPropertyHandler = () => void;
+type PrivateKeys = "_changed" | "_info";
+
 type FieldDataCollection = Record<number, PropertyFieldData[]>;
 
 interface PropertyEditorSettings {
-    info: EntityInfoEditor;
-    onChange: EditPropertyHandler;
+    info: EntryInfoEditor;
 }
 
 export class PropertyEditor {
     private _entity: BaseEntity | null = null;
-
     fields: FieldDataCollection;
-    changed = false;
+    private _changed = false;
 
-    info: EntityInfoEditor;
+    private _info: EntryInfoEditor;
 
-    onChange: EditPropertyHandler;
+    onChange: EventProducer<Id, void>;
 
-    constructor({ info, onChange }: PropertyEditorSettings) {
-        this.info = info;
-        this.onChange = onChange;
+    constructor({ info }: PropertyEditorSettings) {
         this.fields = this._generateFieldData();
 
-        makeAutoObservable(this, {
+        this._info = info;
+
+        this.onChange = new EventProducer();
+
+        makeAutoObservable<PropertyEditor, PrivateKeys>(this, {
             fields: false,
+            _changed: false,
+            _info: false,
             onChange: false,
-            info: false,
         });
     }
 
@@ -52,14 +56,22 @@ export class PropertyEditor {
         this._entity = entity;
     }
 
+    get changed() {
+        return this._changed;
+    }
+
+    set changed(changed: boolean) {
+        this._changed = changed;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     set(key: string, value: any) {
         try {
-            if (this.info.entityType == EntityType.PERSON)
+            if (this._info.entityType == EntityType.PERSON)
                 this._setPersonProperty(key, value);
             else {
                 console.error(
-                    `Unable to set property ${key} for an entity of type ${this.info.entityType}.`,
+                    `Unable to set property ${key} for an entity of type ${this._info.entityType}.`,
                 );
                 return;
             }
@@ -67,20 +79,17 @@ export class PropertyEditor {
             console.error(error);
             return;
         }
-        this.changed = true;
-        this.onChange();
+        this._changed = true;
+        this.onChange.produce(this._info.id);
     }
 
     initialize<E extends BaseEntity>(entity: E) {
         this.data = entity;
     }
 
-    afterSync() {
-        this.changed = false;
-    }
-
     reset() {
         this.data = null;
+        this._changed = false;
     }
 
     _generateFieldData(): FieldDataCollection {

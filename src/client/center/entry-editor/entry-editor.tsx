@@ -3,8 +3,8 @@ import "./entry-editor.css";
 import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntityType } from "@/domain";
 import { EntryViewKey, getService } from "@/client";
+import { EntityType } from "@/domain";
 import {
     TableOfContents,
     TableOfContentsItemData,
@@ -21,7 +21,10 @@ const ARTICLE_TAB_DATA: TableOfContentsItemData = {
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.openArticleEditor(service.entryEditor.info.id);
+        service.openEntryEditor({
+            id: service.entryEditor.info.id,
+            viewKey: EntryViewKey.ArticleEditor,
+        });
     },
 };
 
@@ -31,7 +34,10 @@ const PROPERTY_TAB_DATA: TableOfContentsItemData = {
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.openPropertyEditor(service.entryEditor.info.id);
+        service.openEntryEditor({
+            id: service.entryEditor.info.id,
+            viewKey: EntryViewKey.PropertyEditor,
+        });
     },
 };
 
@@ -41,11 +47,14 @@ const LEXICON_TAB_DATA: TableOfContentsItemData = {
     rank: 1,
     onClick: () => {
         const service = getService();
-        service.openWordEditor(service.entryEditor.info.id);
+        service.openEntryEditor({
+            id: service.entryEditor.info.id,
+            viewKey: EntryViewKey.WordEditor,
+        });
     },
 };
 
-function renderEntityEditorHeader() {
+function renderEntryEditorHeader() {
     const service = getService();
     return (
         <Group className="entry-editor-header">
@@ -58,9 +67,9 @@ function renderEntityEditorHeader() {
     );
 }
 
-const EntityEditorHeader = observer(renderEntityEditorHeader);
+const EntryEditorHeader = observer(renderEntryEditorHeader);
 
-function renderEntityEditorContent() {
+function renderEntryEditorContent() {
     const service = getService();
     const viewKey = service.entryEditor.currentView;
     if (viewKey === EntryViewKey.ArticleEditor) return <ArticleEditor />;
@@ -69,9 +78,9 @@ function renderEntityEditorContent() {
     return null;
 }
 
-const EntityEditorContent = observer(renderEntityEditorContent);
+const EntryEditorContent = observer(renderEntryEditorContent);
 
-function renderEntityEditorTabs() {
+function renderEntryEditorTabs() {
     const service = getService();
     const entityType = service.entityType;
 
@@ -96,20 +105,20 @@ function renderEntityEditorTabs() {
     );
 }
 
-export const EntityEditorTabs = observer(renderEntityEditorTabs);
+export const EntryEditorTabs = observer(renderEntryEditorTabs);
 
 function renderEntryEditor() {
     return (
         <Stack className="entry-editor" gap={0}>
-            <EntityEditorHeader />
+            <EntryEditorHeader />
             <Space className="entry-editor-space-below-header" />
             <Stack className="entry-editor-stack">
                 <Grid className="entry-editor-grid">
                     <Grid.Col span={1}>
-                        <EntityEditorTabs />
+                        <EntryEditorTabs />
                     </Grid.Col>
                     <Grid.Col span={10}>
-                        <EntityEditorContent />
+                        <EntryEditorContent />
                     </Grid.Col>
                 </Grid>
             </Stack>

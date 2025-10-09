@@ -1,126 +1,142 @@
 import { makeAutoObservable } from "mobx";
 
 import { Id } from "@/interface";
-import { EntryViewKey } from "@/client/constants";
-import { IClientManager, PropertyFieldData, Word } from "@/client/interface";
+import { EntryViewKey, ViewKey } from "@/client/constants";
 import {
-    BaseEntity,
-    EntryTextUpdateResponse,
-    EntryTitleUpdateResponse,
-    EntryUpdateResponse,
-    WordUpsertResponse,
-    EntityType,
-    WordType,
-} from "@/domain";
+    IClientManager,
+    IViewManager,
+    PropertyFieldData,
+    Word,
+} from "@/client/interface";
+import {
+    PollEvent,
+    PollResultEntryData,
+    SyncEntryEvent,
+    Synchronizer,
+} from "@/client/services/synchronizer";
+import { BaseEntity, EntityType, WordType } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
+import { EventProducer } from "@/utils/event";
 
 import { WordEditor } from "./word-editor";
-import { EntityInfoEditor } from "./info-editor";
-import { ArticleEditor } from "./text-editor";
+import { EntryInfoEditor } from "./info-editor";
+import { ArticleEditor } from "./article-editor";
 import { PropertyEditor } from "./property-editor";
 
-const DEFAULT_SYNC_DELAY_TIME = 5000;
-
-type PrivateKeys =
-    | "_waitingForSync"
-    | "_syncing"
-    | "_lastModified"
-    | "_lastSynced"
-    | "_syncDelayTime"
-    | "_client";
+type PrivateKeys = "_client" | "_synchronizer";
 
 export interface EntryEditorArguments {
     client: IClientManager;
+    synchronizer: Synchronizer;
     wordEditor: {
         editableCellRef: ObservableReference<HTMLInputElement>;
     };
 }
 
-interface SyncSettings {
-    syncTitle?: boolean;
-    syncProperties?: boolean;
-    syncText?: boolean;
-    syncLexicon?: boolean;
-}
-
-interface SyncRequest {
+interface OpenArticleEditorArguments {
     id: Id;
-    entityType: EntityType;
-    title?: string | null;
-    properties?: BaseEntity | null;
-    text?: string | null;
-    words: Word[] | null;
+    entityType?: EntityType;
+    title?: string;
+    text?: string;
 }
 
-interface SyncResponse {
-    title: EntryTitleUpdateResponse | null;
-    text: EntryTextUpdateResponse | null;
-    properties: EntryUpdateResponse | null;
-    lexicon: WordUpsertResponse[] | null;
-}
-
-export class EntryEditor {
+export class EntryEditor implements IViewManager {
     // CONSTANTS
-    ENTITY_HEADER_SPACE_HEIGHT = 25;
-    BELOW_ENTITY_HEADER_SPACE_HEIGHT = 40;
+    ENTRY_HEADER_SPACE_HEIGHT = 25;
+    DEFAULT_BELOW_HEADER_SPACE_HEIGHT = 40;
     TITLE_FIELD_HEIGHT = 36;
 
     // STATE
     private _viewKey: EntryViewKey = EntryViewKey.ArticleEditor;
-    private _waitingForSync = false;
-    private _syncing = false;
-    private _lastModified = 0;
-    private _lastSynced = 0;
-    private _syncDelayTime: number = DEFAULT_SYNC_DELAY_TIME;
 
     // SERVICES
     private _client: IClientManager;
-    info: EntityInfoEditor;
+    private _synchronizer: Synchronizer;
+    info: EntryInfoEditor;
     properties: PropertyEditor;
     article: ArticleEditor;
     lexicon: WordEditor;
 
-    constructor({ client, wordEditor }: EntryEditorArguments) {
-        this._client = client;
-        this.info = new EntityInfoEditor();
+    // EVENTS
+    onOpen: EventProducer<Id, void>;
+    onCleanUp: EventProducer<EntryViewKey, void>;
 
-        const onChange = () => this._onChange();
-        this.properties = new PropertyEditor({
-            info: this.info,
-            onChange,
-        });
+    constructor({ client, synchronizer, wordEditor }: EntryEditorArguments) {
+        this._client = client;
+        this._synchronizer = synchronizer;
+
+        this.info = new EntryInfoEditor();
+        this.info.onChangeTitle.subscribe(() =>
+            this._synchronizer.requestSynchronization({ syncTitle: true }),
+        );
+
         this.article = new ArticleEditor({
             client,
             info: this.info,
-            onChange,
         });
+        this.article.onChange.subscribe(() =>
+            this._synchronizer.requestDelayedSynchronization(),
+        );
+        this.article.onSelectReference.subscribe((id) =>
+            this.openArticleEditor({ id }),
+        );
+
+        this.properties = new PropertyEditor({
+            info: this.info,
+        });
+        this.properties.onChange.subscribe(() =>
+            this._synchronizer.requestDelayedSynchronization(),
+        );
+
         this.lexicon = new WordEditor({
             client,
             info: this.info,
             editableCellRef: wordEditor.editableCellRef,
-            onChange,
         });
+        this.lexicon.onChange.subscribe(() =>
+            this._synchronizer.requestDelayedSynchronization(),
+        );
+        this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) =>
+            this.openWordEditor(languageId, wordType),
+        );
+
+        this.onOpen = new EventProducer();
+        this.onCleanUp = new EventProducer();
 
         makeAutoObservable<EntryEditor, PrivateKeys>(this, {
-            _waitingForSync: false,
-            _syncing: false,
-            _lastModified: false,
-            _lastSynced: false,
-            _syncDelayTime: false,
             _client: false,
+            _synchronizer: false,
             info: false,
             properties: false,
             article: false,
             lexicon: false,
+            onOpen: false,
+            onCleanUp: false,
         });
     }
 
-    get entityHeaderSpaceHeight() {
-        return this.ENTITY_HEADER_SPACE_HEIGHT;
+    get key() {
+        return ViewKey.EntryEditor;
     }
 
-    get belowEntityHeaderSpaceHeight() {
-        return this.BELOW_ENTITY_HEADER_SPACE_HEIGHT;
+    get headerSpaceHeight() {
+        return this.ENTRY_HEADER_SPACE_HEIGHT;
+    }
+
+    get belowHeaderSpaceHeight() {
+        return this.DEFAULT_BELOW_HEADER_SPACE_HEIGHT;
+    }
+
+    get isArticleEditorOpen() {
+        return this.currentView == EntryViewKey.ArticleEditor;
+    }
+
+    get isPropertyEditorOpen() {
+        return this.currentView == EntryViewKey.PropertyEditor;
+    }
+
+    get isWordEditorOpen() {
+        return this.currentView == EntryViewKey.WordEditor;
     }
 
     get currentView() {
@@ -131,19 +147,6 @@ export class EntryEditor {
         if (this._viewKey == key) return;
         if (this._viewKey == EntryViewKey.WordEditor) this.lexicon.reset();
         this._viewKey = key;
-    }
-
-    get title() {
-        return this.info.title;
-    }
-
-    set title(title: string) {
-        if (title != this.info.title) {
-            this.info.title = title;
-            this.sync({
-                syncTitle: true,
-            });
-        }
     }
 
     get fieldData(): PropertyFieldData[] {
@@ -159,6 +162,28 @@ export class EntryEditor {
         this.currentView = EntryViewKey.ArticleEditor;
         this.info.initialize(id, entityType, title);
         this.article.initialize(text);
+        this.onOpen.produce(id);
+    }
+
+    async openArticleEditor({
+        id,
+        entityType,
+        title,
+        text,
+    }: OpenArticleEditorArguments) {
+        if (this.isArticleEditorOpen && this.info.id == id) return; // the article is already open
+
+        if (!entityType || title === undefined || text === undefined) {
+            const response = await this._client.domain.entries.getArticle(id);
+            if (response) {
+                entityType = response.info.entity_type;
+                title = response.info.title;
+                text = response.text;
+            }
+        }
+
+        if (entityType && title !== undefined && text !== undefined)
+            this.initializeArticleEditor(id, entityType, title, text);
     }
 
     initializePropertyEditor(
@@ -170,21 +195,113 @@ export class EntryEditor {
         this.currentView = EntryViewKey.PropertyEditor;
         this.info.initialize(id, entityType, title);
         this.properties.initialize(properties);
+        this.onOpen.produce(id);
+    }
+
+    async openPropertyEditor(id: Id) {
+        if (this.isPropertyEditorOpen && this.info.id == id) return; // the property editor is already open
+
+        const response = await this._client.domain.entries.getProperties(id);
+
+        if (response !== null)
+            this.initializePropertyEditor(
+                id,
+                response.info.entity_type,
+                response.info.title,
+                response.properties,
+            );
     }
 
     async initializeWordEditor(id: number, title: string, wordType?: WordType) {
         this.currentView = EntryViewKey.WordEditor;
         this.info.initialize(id, EntityType.LANGUAGE, title);
+        this.onOpen.produce(id);
         return this.lexicon.initialize(id, wordType);
     }
 
+    async openWordEditor(languageId: Id, wordType?: WordType) {
+        if (this.isWordEditorOpen && this.info.id == languageId) {
+            if (wordType === undefined)
+                // don't care about which word type is displayed;
+                // since the word editor is already open for this language, don't reload it
+                return;
+            else if (wordType === this.lexicon.wordType)
+                // the word editor is already open for this language and word type
+                return;
+        }
+
+        const info = await this._client.domain.entries.get(languageId);
+
+        if (info !== null)
+            this.initializeWordEditor(languageId, info.title, wordType);
+    }
+
+    fetchChanges({
+        syncTitle = false,
+        syncProperties = false,
+        syncText = false,
+        syncLexicon = false,
+    }: PollEvent) {
+        if (this.info.id === null || this.info.entityType === null) return [];
+
+        const entry: PollResultEntryData = {
+            id: this.info.id,
+            entityType: this.info.entityType,
+        };
+
+        if (syncTitle && this.info.titleChanged && this.info.isTitleValid)
+            entry.title = this.info.title;
+
+        if (syncProperties && this.properties.changed) {
+            const properties = this.properties.data;
+            if (properties) entry.properties = properties;
+        }
+
+        if (syncText && this.article.changed)
+            entry.text = this.article.serialized;
+
+        if (syncLexicon) {
+            const words = this.lexicon.claimModifiedWords();
+            if (words.length > 0) entry.words = words;
+        }
+
+        return [entry];
+    }
+
+    handleSynchronization({ request, response }: SyncEntryEvent) {
+        if (this.info.id != request.id) return;
+
+        if (response.title && response.title.updated) {
+            this.info.isTitleUnique = response.title.isUnique ?? true;
+            this.info.titleChanged = false;
+        }
+
+        if (response.properties && response.properties.updated)
+            this.properties.changed = false;
+
+        if (response.text && response.text.updated)
+            this.article.changed = false;
+
+        if (request.words && response.lexicon) {
+            const wordResponses = response.lexicon;
+
+            const words: Word[] = request.words.map((word, i) => {
+                const wordResponse = wordResponses[i];
+                return {
+                    ...word,
+                    id: wordResponse.id,
+                    created: wordResponse.created,
+                    updated: wordResponse.updated,
+                };
+            });
+
+            this.lexicon.afterSync(words);
+        }
+    }
+
     cleanUp() {
-        this.sync({
-            syncTitle: true,
-            syncProperties: true,
-            syncText: true,
-            syncLexicon: true,
-        });
+        this._synchronizer.requestFullSynchronization();
+        this.onCleanUp.produce(this.currentView);
         this.lexicon.cleanUp();
     }
 
@@ -193,190 +310,5 @@ export class EntryEditor {
         this.properties.reset();
         this.article.reset();
         this.lexicon.reset();
-    }
-
-    private async _delayedSync({
-        syncTitle = false,
-        syncProperties = false,
-        syncText = false,
-        syncLexicon = false,
-    }: SyncSettings) {
-        while (true) {
-            await new Promise((r) => setTimeout(r, this._syncDelayTime));
-
-            // if the backend has already been synced with the view since the last change event,
-            // cancel the sync
-            if (this._lastSynced > this._lastModified) return false;
-
-            // if too little time has passed since the last change event in the view, delay the sync again
-            if (Date.now() - this._lastModified < this._syncDelayTime) continue;
-
-            // if the backend is currently being synced, delay the sync again
-            if (this._syncing) continue;
-
-            // otherwise, proceed with the sync
-            break;
-        }
-        return this.sync({
-            syncTitle,
-            syncProperties,
-            syncText,
-            syncLexicon,
-        });
-    }
-
-    sync({
-        syncTitle = false,
-        syncProperties = false,
-        syncText = false,
-        syncLexicon = false,
-    }: SyncSettings): Promise<boolean> {
-        // NOTE: this function must run synchronously
-
-        if (!syncTitle && !syncProperties && !syncText)
-            return new Promise(() => false);
-        if (
-            !this.info.titleChanged &&
-            !this.properties.changed &&
-            !this.article.changed &&
-            !this.lexicon.changed
-        )
-            return new Promise(() => false);
-
-        const title =
-            syncTitle && this.info.titleChanged && this.info.title
-                ? this.info.title
-                : null;
-        const properties =
-            syncProperties &&
-            this.properties.changed &&
-            this.properties.data != null
-                ? this.properties.data
-                : null;
-        const text =
-            syncText && this.article.changed ? this.article.serialized : null;
-        const words =
-            syncLexicon && this.lexicon.changed
-                ? this.lexicon.claimModifiedWords()
-                : null;
-
-        const request: SyncRequest = {
-            id: this.info.id,
-            entityType: this.info.entityType as EntityType,
-            title,
-            properties,
-            text,
-            words,
-        };
-        // the last synced time corresponds to the moment that the view data is retrieved
-        this._lastSynced = Date.now();
-        // the syncing flag is set to true as soon as the request is prepared;
-        // this forces the delayed sync event to be delayed until the current sync event is handled
-        this._syncing = true;
-        // the waiting-for-sync flag is set to false to permit the creation of a delayed sync event
-        this._waitingForSync = false;
-
-        return this._sync(request).then((response) => {
-            this._syncing = false;
-            if (!response) return false;
-            this._afterSync(request, response);
-            return true;
-        });
-    }
-
-    private async _sync({
-        id,
-        entityType,
-        title,
-        properties,
-        text,
-        words,
-    }: SyncRequest): Promise<SyncResponse> {
-        // TODO: rework this so that the data gets sent in a single IPC call.
-        // syncing the entity via multiple IPC calls is really bad
-
-        let titleUpdateResponse: EntryTitleUpdateResponse | null = null;
-        if (typeof title === "string")
-            titleUpdateResponse = await this._client.updateEntryTitle(
-                id,
-                title,
-            );
-
-        let textUpdateResponse: EntryTextUpdateResponse | null = null;
-        if (typeof text === "string")
-            textUpdateResponse = await this._client.domain.entries.updateText(
-                id,
-                text,
-            );
-
-        let propertiesResponse: EntryUpdateResponse | null = null;
-        if (properties)
-            propertiesResponse =
-                await this._client.domain.entries.updateProperties(
-                    id,
-                    entityType,
-                    properties,
-                );
-
-        let lexiconResponse: WordUpsertResponse[] | null = null;
-        if (words) {
-            try {
-                lexiconResponse = await this._client.updateLexicon(words);
-            } catch (error) {
-                console.error("Failed to update lexicon.");
-                console.error(error);
-            }
-            if (lexiconResponse === null)
-                console.error("Failed to update lexicon.");
-        }
-
-        return {
-            title: titleUpdateResponse,
-            text: textUpdateResponse,
-            properties: propertiesResponse,
-            lexicon: lexiconResponse,
-        };
-    }
-
-    private _afterSync(
-        request: SyncRequest,
-        { title, text, properties, lexicon }: SyncResponse,
-    ) {
-        if (this.info.id != request.id) return;
-
-        if (title && title.updated) {
-            this.info.afterSync();
-            this.info.isTitleUnique = title.isUnique ?? true;
-        }
-
-        if (text && text.updated) this.article.afterSync();
-
-        if (properties && properties.updated) this.properties.afterSync();
-
-        if (request.words && lexicon) {
-            const words: Word[] = request.words.map((word, i) => {
-                const wordResponse = lexicon[i];
-                return {
-                    ...word,
-                    id: wordResponse.id,
-                    created: wordResponse.created,
-                    updated: wordResponse.updated,
-                };
-            });
-            this.lexicon.afterSync(words);
-        }
-    }
-
-    private _onChange() {
-        this._lastModified = Date.now();
-        if (!this._waitingForSync) {
-            this._waitingForSync = true;
-            this._delayedSync({
-                syncTitle: true,
-                syncProperties: true,
-                syncText: true,
-                syncLexicon: true,
-            }).then(() => (this._waitingForSync = false));
-        }
     }
 }
