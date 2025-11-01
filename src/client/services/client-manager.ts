@@ -27,40 +27,32 @@ interface OpenEntryEditorArguments {
 }
 
 export class ClientManager implements IClientManager {
-    // constants
+    // CONSTANTS
     readonly DEFAULT_CENTER_PADDING = 20;
     readonly DEFAULT_DIVIDER_HEIGHT = 24.8;
     readonly DEFAULT_SPACE_HEIGHT = 20;
     readonly SHARED_PORTAL_ID = "shared-portal";
 
-    // state variables
+    // STATE VARIABLES
     _viewKey: ViewKey = ViewKey.Home;
     _modalKey: ModalKey | null = null;
 
-    // domain services
+    // SERVICES
     domain: DomainManager;
     synchronizer: Synchronizer;
-
-    // central view services
     home: HomeManager;
     entryEditor: EntryEditor;
     settingsEditor: SettingsEditor;
-
-    // bar services
     header: HeaderManager;
     navigation: NavigationService;
     footer: FooterManager;
-
-    // modal services
     projectCreator: ProjectCreator;
     entryCreator: EntryCreator;
-
-    // context menu service
     contextMenu: ContextMenuManager;
-
-    // miscellaneous
     style: StyleManager;
     domReferences: DOMReferenceManager;
+
+    // CONSTRUCTION
 
     constructor() {
         this.domain = new DomainManager();
@@ -126,6 +118,8 @@ export class ClientManager implements IClientManager {
         makeAutoObservable(this, overrides);
     }
 
+    // PROPERTIES
+
     get centerPadding() {
         return this.DEFAULT_CENTER_PADDING;
     }
@@ -163,14 +157,16 @@ export class ClientManager implements IClientManager {
         this._modalKey = key;
     }
 
+    get viewSize() {
+        const window = getCurrentWindow();
+        return window.innerSize();
+    }
+
+    // INITIALIZATION
+
     async initialize() {
         const project = await this.fetchProjectInfo();
         if (project) this.populateNavigator();
-    }
-
-    async getViewSize() {
-        const window = getCurrentWindow();
-        return window.innerSize();
     }
 
     async fetchProjectInfo() {
@@ -198,6 +194,8 @@ export class ClientManager implements IClientManager {
 
         if (entries && folders) this.navigation.initialize(entries, folders);
     }
+
+    // VIEWS
 
     openHome() {
         this.cleanUp(ViewKey.Home);
@@ -257,6 +255,8 @@ export class ClientManager implements IClientManager {
         return response;
     }
 
+    // PROJECT HANDLING
+
     async loadProject() {
         const path = await open();
         if (!path) return null;
@@ -284,6 +284,8 @@ export class ClientManager implements IClientManager {
         }
         return success;
     }
+
+    // FOLDER HANDLING
 
     editFolderName(id: number) {
         this.navigation.files.toggleFolderAsEditable(id);
@@ -318,6 +320,8 @@ export class ClientManager implements IClientManager {
 
         return fileIds;
     }
+
+    // ENTRY HANDLING
 
     async createEntry(entityType: EntityType, title: string, folderId: Id) {
         const entry = await this.domain.entries.create(
@@ -371,19 +375,7 @@ export class ClientManager implements IClientManager {
         return true;
     }
 
-    cleanUp(newViewKey: ViewKey | null = null) {
-        if (this.currentModal) this.closeModal();
-
-        if (this.currentView == ViewKey.EntryEditor) this.entryEditor.cleanUp();
-
-        if (
-            this.isEntryEditorOpen &&
-            (!newViewKey || newViewKey != ViewKey.EntryEditor)
-        ) {
-            this.navigation.files.openedNode = null;
-            this.navigation.files.selectedNode = null;
-        }
-    }
+    // SYNCHRONIZATION
 
     private _fetchChanges(event: PollEvent) {
         return { entries: this.entryEditor.fetchChanges(event) };
@@ -401,5 +393,21 @@ export class ClientManager implements IClientManager {
                 event.request.id,
                 event.request.title,
             );
+    }
+
+    // CLEAN UP
+
+    cleanUp(newViewKey: ViewKey | null = null) {
+        if (this.currentModal) this.closeModal();
+
+        if (this.currentView == ViewKey.EntryEditor) this.entryEditor.cleanUp();
+
+        if (
+            this.isEntryEditorOpen &&
+            (!newViewKey || newViewKey != ViewKey.EntryEditor)
+        ) {
+            this.navigation.files.openedNode = null;
+            this.navigation.files.selectedNode = null;
+        }
     }
 }
