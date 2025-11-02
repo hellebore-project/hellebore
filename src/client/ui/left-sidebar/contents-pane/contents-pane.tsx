@@ -45,7 +45,7 @@ function renderContentsPane() {
     return (
         <OutsideEventHandler
             className="contents-pane"
-            service={fileNav.outsideEventHandler}
+            service={fileNav.outsideEvent}
             onClick={() => {
                 fileNav.selectedNode = null;
                 fileNav.focused = true;

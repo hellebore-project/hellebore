@@ -182,10 +182,12 @@ export class ClientManager implements IClientManager {
     }
 
     injectHooks() {
-        this.navigation.files.hookEditableNodeEffect();
+        this.contextMenu.hook();
+
+        this.navigation.files.hook();
 
         const wordSpreadsheet = this.entryEditor.lexicon.spreadsheet;
-        wordSpreadsheet.hookEditableCellEffect();
+        wordSpreadsheet.hook();
     }
 
     async populateNavigator() {

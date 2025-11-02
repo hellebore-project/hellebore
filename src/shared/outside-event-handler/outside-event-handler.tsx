@@ -1,7 +1,7 @@
 import "./outside-event-handler.css";
 
 import { observer } from "mobx-react-lite";
-import { HTMLAttributes, PropsWithChildren, useEffect } from "react";
+import { HTMLAttributes, PropsWithChildren } from "react";
 
 import { OutsideEventHandlerService } from "./outside-event-handler.service";
 
@@ -16,21 +16,12 @@ function renderOutsideEventHandler({
     style,
     ...rest
 }: PropsWithChildren<OutsideEventHandlerSettings>) {
-    useEffect(() => {
-        if (service.enabled) {
-            service.addMouseDownEventListener(service.capture);
-            return () => service.removeEventListeners();
-        } else {
-            service.removeEventListeners();
-        }
-    }, [service.enabled]);
-
     if (style && style.display == "block") delete style.display;
 
     return (
         <div
             className={`outside-event-handler ${className}`}
-            ref={service.node}
+            ref={service.ref}
             style={style}
             {...rest}
         >

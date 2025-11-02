@@ -1,88 +1,125 @@
-import { createRef, RefObject } from "react";
 import { addEventListener } from "consolidated-events";
+import { makeAutoObservable } from "mobx";
+import { createRef, RefObject, useEffect } from "react";
 
-type StateEventHandler = () => void;
+// https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent
+const MOUSE_DOWN_EVENT = "mousedown";
+const MOUSE_UP_EVENT = "mouseup";
+
+type PrivateKeys =
+    | "_ref"
+    | "_onOutsideEvent"
+    | "_removeMouseDown"
+    | "_removeMouseUp";
+
 type RemoveEventListener = () => void;
 
 interface OutsideEventHandlerServiceArguments {
-    onOutsideEvent: (e: Event) => void;
-    node?: RefObject<HTMLDivElement>;
-    capture?: boolean;
     enabled?: boolean;
+    ref?: RefObject<HTMLDivElement>;
+    onOutsideEvent: (e: Event) => void;
 }
 
 export class OutsideEventHandlerService {
-    node: RefObject<HTMLDivElement>;
+    private _enabled: boolean;
+    /** Set by the handler itself, so passing a null reference is acceptable. */
+    private _ref: RefObject<HTMLDivElement>;
 
-    capture: boolean;
-    enabled: boolean;
-
-    onOutsideEvent: (e: Event) => void;
-    onEnable: StateEventHandler | null = null;
-    onDisable: StateEventHandler | null = null;
-    removeMouseDown: RemoveEventListener | null = null;
-    removeMouseUp: RemoveEventListener | null = null;
+    private _onOutsideEvent: (e: Event) => void;
+    private _removeMouseDown: RemoveEventListener | null = null;
+    private _removeMouseUp: RemoveEventListener | null = null;
 
     constructor({
         onOutsideEvent,
-        node,
-        capture = true,
+        ref,
         enabled = true,
     }: OutsideEventHandlerServiceArguments) {
-        this.node = node ?? createRef();
-        this.onOutsideEvent = onOutsideEvent;
-        this.capture = capture;
-        this.enabled = enabled;
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onMouseUp = this.onMouseUp.bind(this);
+        this._enabled = enabled;
+
+        this._ref = ref ?? createRef();
+
+        this._onOutsideEvent = onOutsideEvent;
+        this._onMouseDown = this._onMouseDown.bind(this);
+        this._onMouseUp = this._onMouseUp.bind(this);
+
+        makeAutoObservable<OutsideEventHandlerService, PrivateKeys>(this, {
+            _ref: false,
+            _onOutsideEvent: false,
+            _removeMouseDown: false,
+            _removeMouseUp: false,
+        });
+    }
+
+    get enabled() {
+        return this._enabled;
+    }
+
+    set enabled(value: boolean) {
+        this._enabled = value;
+    }
+
+    get ref() {
+        return this._ref;
     }
 
     isDescendant(element: Node | undefined | null) {
-        if (!this.node || !element) return false;
-        return this.node.current?.contains(element);
+        if (!this.ref || !element) return false;
+        return this.ref.current?.contains(element);
     }
 
-    // Use mousedown/mouseup to enforce that clicks remain outside the root's
-    // descendant tree, even when dragged. This should also get triggered on
-    // touch devices.
-
-    onMouseDown(e: Event) {
-        if (!this.isDescendant(e.target as Node)) {
-            if (this.removeMouseUp) {
-                this.removeMouseUp();
-                this.removeMouseUp = null;
-            }
-            this.removeMouseUp = addEventListener(
-                document,
-                "mouseup",
-                this.onMouseUp,
-                { capture: this.capture },
-            );
-        }
-    }
-
-    onMouseUp(e: Event) {
-        if (this.removeMouseUp) {
-            this.removeMouseUp();
-            this.removeMouseUp = null;
+    private _onMouseDown(e: Event) {
+        if (this._removeMouseUp) {
+            this._removeMouseUp();
+            this._removeMouseUp = null;
         }
 
-        if (!this.isDescendant(e.target as Node)) {
-            this.onOutsideEvent(e);
-        }
-    }
+        if (!e.target) return;
+        if (!this.ref.current) return;
+        if (this.ref.current.contains(e.target as Node)) return;
 
-    addMouseDownEventListener(useCapture: boolean) {
-        this.removeMouseDown = addEventListener(
+        this._removeMouseUp = addEventListener(
             document,
-            "mousedown",
-            this.onMouseDown,
-            { capture: useCapture },
+            MOUSE_UP_EVENT,
+            this._onMouseUp,
+            { capture: true },
         );
     }
 
-    removeEventListeners() {
-        if (this.removeMouseDown) this.removeMouseDown();
-        if (this.removeMouseUp) this.removeMouseUp();
+    private _onMouseUp(e: Event) {
+        if (this._removeMouseUp) {
+            this._removeMouseUp();
+            this._removeMouseUp = null;
+        }
+
+        if (!e.target) return;
+        if (!this.ref.current) return;
+        if (this.ref.current.contains(e.target as Node)) return;
+
+        this._onOutsideEvent(e);
+    }
+
+    private _addMouseDownEventListener() {
+        this._removeMouseDown = addEventListener(
+            document,
+            MOUSE_DOWN_EVENT,
+            this._onMouseDown,
+            { capture: true },
+        );
+    }
+
+    private _removeEventListeners() {
+        if (this._removeMouseDown) this._removeMouseDown();
+        if (this._removeMouseUp) this._removeMouseUp();
+    }
+
+    hook() {
+        useEffect(() => {
+            if (this._enabled) {
+                this._addMouseDownEventListener();
+                return () => this._removeEventListeners();
+            } else {
+                this._removeEventListeners();
+            }
+        }, [this._enabled]);
     }
 }

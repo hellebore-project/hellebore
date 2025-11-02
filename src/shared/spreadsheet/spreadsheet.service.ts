@@ -16,41 +16,43 @@ import {
 } from "./spreadsheet-data.service";
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";
 
-type PrivateKeys = "_sheet" | "_editableCell";
+type PrivateKeys = "_sheetRef";
 
 export interface SpreadsheetServiceArguments<K extends string, M> {
     data: SpreadsheetDataServiceArguments<K, M>;
 }
 
 export class SpreadsheetService<K extends string, M> {
-    private _sheet: RefObject<HTMLDivElement>;
+    /** Reference to the parent of the the table element; set at render-time by the outside-event handler. */
+    private _sheetRef: RefObject<HTMLDivElement>;
 
     outsideEvent: OutsideEventHandlerService;
     data: SpreadsheetDataService<K, M>;
     selection: SpreadsheetSelectionService<K, M>;
 
     constructor({ data }: SpreadsheetServiceArguments<K, M>) {
-        this._sheet = createRef();
+        this._sheetRef = createRef();
 
         this.outsideEvent = new OutsideEventHandlerService({
-            onOutsideEvent: () => this.selection.clear(),
-            node: this._sheet,
             enabled: true,
+            ref: this._sheetRef,
+            onOutsideEvent: () => this.selection.clear(),
         });
         this.data = new SpreadsheetDataService(data);
         this.selection = new SpreadsheetSelectionService(this.data);
 
         makeAutoObservable<SpreadsheetService<K, M>, PrivateKeys>(this, {
-            _sheet: false,
-            _editableCell: false,
+            // NOTE: making the sheet reference observable prevents
+            // it from getting set by outside-event handler
+            _sheetRef: false,
             outsideEvent: false,
             data: false,
             selection: false,
         });
     }
 
-    get sheet() {
-        return this._sheet;
+    get sheetRef() {
+        return this._sheetRef;
     }
 
     // STATE MANAGEMENT
@@ -66,9 +68,9 @@ export class SpreadsheetService<K extends string, M> {
     // CELLS
 
     private _getCellDomElement(rowIndex: number, colIndex: number) {
-        if (!this.sheet.current) return null;
+        if (!this.sheetRef.current) return null;
 
-        const table = this.sheet.current.children[0];
+        const table = this.sheetRef.current.children[0];
         const body = table.children[2];
         const row = body.children[rowIndex];
         return row.children[colIndex];
@@ -89,18 +91,18 @@ export class SpreadsheetService<K extends string, M> {
     // FOCUS
 
     private _focus() {
-        if (this._sheet?.current) {
-            this._sheet.current.focus();
-        }
+        console.log(this.sheetRef.current);
+        if (!this.sheetRef.current) return;
+        this.sheetRef.current.focus();
     }
 
     // SCROLLING
 
     private _scrollCellIntoView(rowIndex: number, colIndex: number) {
         const cell = this._getCellDomElement(rowIndex, colIndex);
-        if (cell && this.sheet.current) {
+        if (cell && this.sheetRef.current) {
             const cellRect = cell.getBoundingClientRect();
-            const sheetRect = this.sheet.current.getBoundingClientRect();
+            const sheetRect = this.sheetRef.current.getBoundingClientRect();
 
             if (!isFullyContained(cellRect, sheetRect)) {
                 cell.scrollIntoView({
@@ -113,7 +115,7 @@ export class SpreadsheetService<K extends string, M> {
     }
 
     private _scrollToTop() {
-        if (this.sheet.current) this.sheet.current.scrollTop = 0;
+        if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0;
     }
 
     // MOUSE
@@ -161,6 +163,8 @@ export class SpreadsheetService<K extends string, M> {
     // KEYBOARD
 
     handleKeyDown(event: React.KeyboardEvent) {
+        console.log(`key press ${event.key}`);
+        console.log(this._sheetRef.current);
         const propagate = this._handleKeyDown(event);
         if (!propagate) {
             event.preventDefault();
@@ -276,7 +280,7 @@ export class SpreadsheetService<K extends string, M> {
 
     // HOOKS
 
-    hookEditableCellEffect() {
+    hook() {
         const ref = this.data.editableCellRef;
         useEffect(() => {
             if (ref?.current) {
@@ -293,5 +297,7 @@ export class SpreadsheetService<K extends string, M> {
                     ref.current.click(); // expand the dropdown
             }
         }, [ref]);
+
+        this.outsideEvent.hook();
     }
 }
