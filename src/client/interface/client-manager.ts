@@ -1,5 +1,3 @@
-import { PhysicalSize } from "@tauri-apps/api/dpi";
-
 import { Id } from "@/interface";
 import { ViewKey } from "@/client/constants";
 import {
@@ -20,7 +18,6 @@ export interface IClientManager {
 
     get currentView(): ViewKey;
 
-    getViewSize(): Promise<PhysicalSize>;
     fetchProjectInfo(): Promise<ProjectResponse | null>;
     populateNavigator(): Promise<void>;
     openHome(): void;

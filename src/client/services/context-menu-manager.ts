@@ -55,14 +55,14 @@ export class ContextMenuManager {
 
     private _client: IClientManager;
     fileNavigator: FileNavigatorContextMenuManager;
-    outsideEventHandler: OutsideEventHandlerService;
+    outsideEvent: OutsideEventHandlerService;
 
     constructor(client: IClientManager) {
         this._client = client;
         this.fileNavigator = new FileNavigatorContextMenuManager();
-        this.outsideEventHandler = new OutsideEventHandlerService({
-            onOutsideEvent: () => this.close(),
+        this.outsideEvent = new OutsideEventHandlerService({
             enabled: false,
+            onOutsideEvent: () => this.close(),
         });
         this.menuData = this._generateMenuDataMapping();
 
@@ -70,7 +70,7 @@ export class ContextMenuManager {
             _client: false,
             fileNavigator: false,
             menuData: false,
-            outsideEventHandler: false,
+            outsideEvent: false,
         });
     }
 
@@ -107,7 +107,7 @@ export class ContextMenuManager {
     }
 
     close() {
-        this.outsideEventHandler.enabled = false;
+        this.outsideEvent.enabled = false;
         this.reset();
     }
 
@@ -117,12 +117,16 @@ export class ContextMenuManager {
         this.selectedIndex = null;
     }
 
+    hook() {
+        this.outsideEvent.hook();
+    }
+
     private _open({ key, position, id, text }: PrivateOpenArguments) {
         this.key = key;
         this.position = position;
         this.fileNavigator.id = id;
         this.fileNavigator.text = text;
-        this.outsideEventHandler.enabled = true;
+        this.outsideEvent.enabled = true;
     }
 
     private _generateMenuDataMapping() {

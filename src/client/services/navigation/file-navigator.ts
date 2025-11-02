@@ -58,7 +58,7 @@ export class FileNavigator {
 
     // SERVICES
     _placeholderIdGenerator: Counter;
-    outsideEventHandler: OutsideEventHandlerService;
+    outsideEvent: OutsideEventHandlerService;
     errorManager: NavigatorErrorManager;
     private _client: IClientManager;
 
@@ -70,12 +70,12 @@ export class FileNavigator {
         this._editableTextRef = editableTextRef;
 
         this._placeholderIdGenerator = new Counter();
-        this.outsideEventHandler = new OutsideEventHandlerService({
+        this.outsideEvent = new OutsideEventHandlerService({
+            enabled: true,
             onOutsideEvent: () => {
                 this.focused = false;
                 this.selectedNode = null;
             },
-            enabled: true,
         });
         this.errorManager = new NavigatorErrorManager();
         this._client = client;
@@ -85,7 +85,7 @@ export class FileNavigator {
             _placeholderIdGenerator: false,
             _tree: false,
             _editableTextRef: false,
-            outsideEventHandler: false,
+            outsideEvent: false,
             errorManager: false,
             _client: false,
         });
@@ -714,7 +714,7 @@ export class FileNavigator {
 
     // HOOKS
 
-    hookEditableNodeEffect() {
+    hook() {
         const ref = this._editableTextRef.reference;
         useEffect(() => {
             if (ref?.current) {
@@ -722,6 +722,8 @@ export class FileNavigator {
                 ref.current.focus();
             }
         }, [ref]);
+
+        this.outsideEvent.hook();
     }
 }
 

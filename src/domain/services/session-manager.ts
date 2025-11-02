@@ -62,7 +62,6 @@ export class SessionManager {
             console.error(error);
             return null;
         }
-        console.log(response);
         this.project = response;
         this.dbFilePath = dbFilePath;
         return response;

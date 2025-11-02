@@ -29,7 +29,7 @@ function renderContextMenu() {
     return (
         <OutsideEventHandler
             id="context-menu"
-            service={contextMenuService.outsideEventHandler}
+            service={contextMenuService.outsideEvent}
         >
             <VerticalSelection
                 className="context-menu-selection"
