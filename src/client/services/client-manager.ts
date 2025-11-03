@@ -7,14 +7,14 @@ import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
 import { EntityType, ROOT_FOLDER_ID, WordType, DomainManager } from "@/domain";
 import { Id } from "@/interface";
 
-import { ContextMenuManager } from "./context-menu-manager";
+import { ContextMenuManager } from "./context-menu";
 import { DOMReferenceManager } from "./dom-reference-manager";
 import { EntryCreator } from "./entry-creator";
 import { EntryEditor } from "./entry-editor";
 import { FooterManager } from "./footer-manager";
 import { HeaderManager } from "./header-manager";
 import { HomeManager } from "./home-manager";
-import { NavigationService } from "./navigation/navigation-service";
+import { NavigationService } from "./navigation";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
@@ -58,12 +58,6 @@ export class ClientManager implements IClientManager {
         this.domain = new DomainManager();
 
         this.synchronizer = new Synchronizer(this.domain);
-        this.synchronizer.onPoll.subscribe((event) =>
-            this._fetchChanges(event),
-        );
-        this.synchronizer.onSyncEntry.subscribe((event) =>
-            this._handleEntrySynchronization(event),
-        );
 
         // miscellaneous
         this.style = new StyleManager();
@@ -80,9 +74,6 @@ export class ClientManager implements IClientManager {
                 editableCellRef: this.domReferences.wordTableEditableCell,
             },
         });
-        this.entryEditor.onOpen.subscribe((id) =>
-            this.navigation.files.openEntityNode(id),
-        );
 
         // peripheral panels
         this.header = new HeaderManager(this);
@@ -99,7 +90,7 @@ export class ClientManager implements IClientManager {
         this.entryCreator = new EntryCreator(this);
 
         // context menu
-        this.contextMenu = new ContextMenuManager(this);
+        this.contextMenu = new ContextMenuManager();
 
         const overrides = {
             domain: false,
@@ -116,6 +107,8 @@ export class ClientManager implements IClientManager {
             contextMenu: false,
         };
         makeAutoObservable(this, overrides);
+
+        this._createSubscriptions();
     }
 
     // PROPERTIES
@@ -162,14 +155,46 @@ export class ClientManager implements IClientManager {
         return window.innerSize();
     }
 
-    // INITIALIZATION
+    // STARTUP
 
-    async initialize() {
-        const project = await this.fetchProjectInfo();
-        if (project) this.populateNavigator();
+    private _createSubscriptions() {
+        this.entryEditor.onOpen.subscribe((id) =>
+            this.navigation.files.openEntityNode(id),
+        );
+
+        this.navigation.files.onOpenFolderContext.subscribe((args) =>
+            this.contextMenu.openForNavBarFolderNode(args),
+        );
+        this.navigation.files.onOpenEntryContext.subscribe((args) =>
+            this.contextMenu.openForNavBarEntryNode(args),
+        );
+
+        this.contextMenu.onEditFolderName.subscribe(({ id }) =>
+            this.editFolderName(id),
+        );
+        this.contextMenu.onDeleteFolder.subscribe(({ id }) =>
+            this.deleteFolder(id),
+        );
+        this.contextMenu.onDeleteEntry.subscribe(({ id, title }) =>
+            this.deleteEntry(id, title),
+        );
+
+        this.synchronizer.onPoll.subscribe((event) =>
+            this._fetchChanges(event),
+        );
+        this.synchronizer.onSyncEntry.subscribe((event) =>
+            this._handleEntrySynchronization(event),
+        );
     }
 
-    async fetchProjectInfo() {
+    // LOADING
+
+    async load() {
+        const project = await this._fetchProjectInfo();
+        if (project) this._populateNavigator();
+    }
+
+    private async _fetchProjectInfo() {
         return this.domain.session.getSession().then((session) => {
             // TODO: trigger UI error state if the project info is unavailable
             this.home.initialize(session?.project?.name ?? "Error");
@@ -177,16 +202,7 @@ export class ClientManager implements IClientManager {
         });
     }
 
-    injectHooks() {
-        this.contextMenu.hook();
-
-        this.navigation.files.hook();
-
-        const wordSpreadsheet = this.entryEditor.lexicon.spreadsheet;
-        wordSpreadsheet.hook();
-    }
-
-    async populateNavigator() {
+    private async _populateNavigator() {
         // for now, the navigator is populated with ALL entries;
         // TODO: once entry pinning is supported, fetch the pinned entries from the backend
         const entries = await this.domain.entries.getAll();
@@ -237,6 +253,8 @@ export class ClientManager implements IClientManager {
         this.currentModal = null;
     }
 
+    // PROJECT HANDLING
+
     async createProject(name: string, dbFilePath: string) {
         // save any unsynced data before loading a new project
         this.cleanUp(this.currentView);
@@ -247,15 +265,13 @@ export class ClientManager implements IClientManager {
         );
 
         if (response) {
-            this.populateNavigator();
+            this._populateNavigator();
             this.home.initialize(response.name);
             this.openHome();
         }
 
         return response;
     }
-
-    // PROJECT HANDLING
 
     async loadProject() {
         const path = await open();
@@ -265,7 +281,7 @@ export class ClientManager implements IClientManager {
 
         const response = await this.domain.session.loadProject(path);
         if (response) {
-            this.populateNavigator();
+            this._populateNavigator();
             this.home.initialize(response.name);
             this.openHome();
         }
@@ -344,6 +360,11 @@ export class ClientManager implements IClientManager {
     }
 
     async deleteEntry(id: number, title: string, confirm = true) {
+        // Currently, the title of the entry could be fetched from the cached file structure
+        // rather than providing it as an argument. However, in the future, the file tree will
+        // only include pinned entries. Once that feature is implemented, there will be no
+        // guarantee that the entry is in the file tree.
+
         if (confirm) {
             const message =
                 `Are you sure you want to delete '${title}' and all of its associated content? ` +
@@ -393,6 +414,17 @@ export class ClientManager implements IClientManager {
                 event.request.id,
                 event.request.title,
             );
+    }
+
+    // HOOKS
+
+    hook() {
+        this.contextMenu.hook();
+
+        this.navigation.files.hook();
+
+        const wordSpreadsheet = this.entryEditor.lexicon.spreadsheet;
+        wordSpreadsheet.hook();
     }
 
     // CLEAN UP

@@ -7,7 +7,7 @@ export function getService() {
     if (state.manager === null) {
         console.info("Setting up frontend services");
         state.manager = new ClientManager();
-        state.manager.initialize();
+        state.manager.load();
     }
     return state.manager;
 }

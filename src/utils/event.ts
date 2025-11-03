@@ -7,8 +7,20 @@ export class EventProducer<I, O> {
         this._subscriptions = [];
     }
 
+    get subscriptions() {
+        return this._subscriptions;
+    }
+
+    set subscriptions(subs: Subscription<I, O>[]) {
+        this._subscriptions = subs;
+    }
+
     subscribe(subscription: Subscription<I, O>) {
         this._subscriptions.push(subscription);
+    }
+
+    clear() {
+        this._subscriptions = [];
     }
 
     produce(arg: I) {

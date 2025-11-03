@@ -6,7 +6,7 @@ import { BaseButtonSettings, BasePaperSettings } from "@/interface";
 export interface VerticalSelectionData extends BaseButtonSettings {
     index: number;
     label: string;
-    onConfirm?: (e: SyntheticEvent<HTMLButtonElement>) => Promise<void>;
+    onConfirm?: (e: SyntheticEvent<HTMLButtonElement>) => Promise<unknown>;
 }
 
 export interface VerticalMenuSelectionSettings extends BaseButtonSettings {

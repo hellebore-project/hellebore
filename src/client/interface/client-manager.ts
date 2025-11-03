@@ -18,8 +18,6 @@ export interface IClientManager {
 
     get currentView(): ViewKey;
 
-    fetchProjectInfo(): Promise<ProjectResponse | null>;
-    populateNavigator(): Promise<void>;
     openHome(): void;
     openSettings(): void;
     openProjectCreator(): void;

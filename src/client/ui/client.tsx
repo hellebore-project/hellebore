@@ -22,7 +22,7 @@ export const PortalContainer = observer(renderPortalContainer);
 
 function renderClient() {
     const service = getService();
-    service.injectHooks();
+    service.hook();
     return (
         <MantineProvider
             defaultColorScheme={service.style.colorScheme}
