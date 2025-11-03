@@ -1,46 +1,54 @@
-import { makeObservable, toJS } from "mobx";
+import { makeAutoObservable, toJS } from "mobx";
 
-import { Id, Point } from "@/interface";
-import { IClientManager } from "@/client/interface";
+import {
+    DeleteEntryEvent,
+    DeleteFolderEvent,
+    EditFolderNameEvent,
+    OpenFileContextMenuEvent,
+} from "@/client/interface";
+import { Point } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
+import { EventProducer } from "@/utils/event";
 
-import { BaseContextMenu } from "./context-menu.model";
+import { BaseContextMenu } from "./base-context-menu.model";
 import {
     EntryFileContextMenu,
     FolderContextMenu,
 } from "./file-context-menu.model";
-
-type PrivateKeys = "_client";
-
-export interface OpenArguments {
-    position: Point;
-}
 
 export class ContextMenuManager {
     readonly DEFAULT_POSITION: Point = { x: 0, y: 0 };
 
     private _visible = false;
     private _position: Point;
-    private _selectedIndex = 0;
+    private _selectedIndex: number | null = null;
 
     menu: BaseContextMenu | null = null;
 
-    protected _client: IClientManager;
     outsideEvent: OutsideEventHandlerService;
 
-    constructor(client: IClientManager) {
+    onEditFolderName: EventProducer<EditFolderNameEvent, unknown>;
+    onDeleteFolder: EventProducer<DeleteFolderEvent, unknown>;
+    onDeleteEntry: EventProducer<DeleteEntryEvent, unknown>;
+
+    constructor() {
         this._position = this.DEFAULT_POSITION;
 
-        this._client = client;
         this.outsideEvent = new OutsideEventHandlerService({
             onOutsideEvent: () => this.close(),
             enabled: false,
         });
 
-        makeObservable<ContextMenuManager, PrivateKeys>(this, {
-            _client: false,
+        this.onEditFolderName = new EventProducer();
+        this.onDeleteFolder = new EventProducer();
+        this.onDeleteEntry = new EventProducer();
+
+        makeAutoObservable(this, {
             menu: false,
             outsideEvent: false,
+            onDeleteEntry: false,
+            onEditFolderName: false,
+            onDeleteFolder: false,
         });
     }
 
@@ -60,30 +68,38 @@ export class ContextMenuManager {
         return this._selectedIndex;
     }
 
-    set selectedIndex(index: number) {
+    set selectedIndex(index: number | null) {
         this._selectedIndex = index;
     }
 
-    openForNavBarFolderNode(id: Id, text: string, position: Point) {
-        this.menu = new FolderContextMenu(id, text, this._client);
-        this._open(position);
+    hook() {
+        this.outsideEvent.hook();
     }
 
-    openForNavBarEntryNode(id: Id, text: string, position: Point) {
-        this.menu = new EntryFileContextMenu(id, text, this._client);
-        this._open(position);
+    openForNavBarFolderNode({ id, text, position }: OpenFileContextMenuEvent) {
+        const menu = new FolderContextMenu(id, text);
+        menu.onRename.subscriptions = this.onEditFolderName.subscriptions;
+        menu.onDelete.subscriptions = this.onDeleteFolder.subscriptions;
+        this._open(menu, position);
     }
 
-    private _open(position: Point) {
+    openForNavBarEntryNode({ id, text, position }: OpenFileContextMenuEvent) {
+        const menu = new EntryFileContextMenu(id, text);
+        menu.onDelete.subscriptions = this.onDeleteEntry.subscriptions;
+        this._open(menu, position);
+    }
+
+    private _open(menu: BaseContextMenu, position: Point) {
         this._visible = true;
         this._position = position;
-        this._selectedIndex = 0;
+        this._selectedIndex = null;
+        this.menu = menu;
         this.outsideEvent.enabled = true;
     }
 
     reset() {
         this._position = this.DEFAULT_POSITION;
-        this._selectedIndex = 0;
+        this._selectedIndex = null;
         this.menu = null;
     }
 

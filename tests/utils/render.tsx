@@ -7,7 +7,7 @@ import { getService, PortalContainer } from "@/client";
 
 function renderTestApp({ children }: PropsWithChildren) {
     const service = getService();
-    service.injectHooks();
+    service.hook();
     return (
         <MantineProvider theme={DEFAULT_THEME} env="test">
             {children}

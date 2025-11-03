@@ -91,7 +91,6 @@ export class SpreadsheetService<K extends string, M> {
     // FOCUS
 
     private _focus() {
-        console.log(this.sheetRef.current);
         if (!this.sheetRef.current) return;
         this.sheetRef.current.focus();
     }
@@ -163,8 +162,6 @@ export class SpreadsheetService<K extends string, M> {
     // KEYBOARD
 
     handleKeyDown(event: React.KeyboardEvent) {
-        console.log(`key press ${event.key}`);
-        console.log(this._sheetRef.current);
         const propagate = this._handleKeyDown(event);
         if (!propagate) {
             event.preventDefault();

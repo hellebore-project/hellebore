@@ -1,7 +1,7 @@
 import { TreeMethods } from "@minoru/react-dnd-treeview";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable, toJS } from "mobx";
-import { createRef, RefObject, useEffect } from "react";
+import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
 import { Id } from "@/interface";
 import {
@@ -9,6 +9,7 @@ import {
     FileNodeModel,
     IClientManager,
     NodeId,
+    OpenFileContextMenuEvent,
     ROOT_FOLDER_NODE_ID,
 } from "@/client/interface";
 import {
@@ -20,6 +21,7 @@ import {
 import { ObservableReference } from "@/shared/observable-reference";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { Counter } from "@/utils/counter";
+import { EventProducer } from "@/utils/event";
 
 import { NavigatorErrorManager } from "./navigator-error-manager";
 
@@ -62,6 +64,10 @@ export class FileNavigator {
     errorManager: NavigatorErrorManager;
     private _client: IClientManager;
 
+    // EVENTS
+    onOpenFolderContext: EventProducer<OpenFileContextMenuEvent, unknown>;
+    onOpenEntryContext: EventProducer<OpenFileContextMenuEvent, unknown>;
+
     constructor({ client, editableTextRef }: FileNavigatorArguments) {
         this._nodes = [];
         this._nodePositionCache = {};
@@ -80,6 +86,9 @@ export class FileNavigator {
         this.errorManager = new NavigatorErrorManager();
         this._client = client;
 
+        this.onOpenFolderContext = new EventProducer();
+        this.onOpenEntryContext = new EventProducer();
+
         makeAutoObservable<FileNavigator, PrivateKeys>(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
@@ -88,6 +97,8 @@ export class FileNavigator {
             outsideEvent: false,
             errorManager: false,
             _client: false,
+            onOpenFolderContext: false,
+            onOpenEntryContext: false,
         });
     }
 
@@ -710,6 +721,36 @@ export class FileNavigator {
         this.setNode(node, index);
 
         return true;
+    }
+
+    // CONTEXT MENU
+
+    openContextMenu(event: MouseEvent<HTMLDivElement>) {
+        event.preventDefault();
+
+        const elementId = event.currentTarget.id;
+        if (!elementId) return;
+
+        const nodeId = this.convertDOMIdToNodeId(elementId);
+        const node = this.getNode(nodeId);
+        if (!node) return;
+
+        this.focused = false;
+        this.selectedNode = node;
+        const id = this.convertNodeIdToEntryId(nodeId);
+
+        if (this.isFolderNode(node))
+            this.onOpenFolderContext.produce({
+                id,
+                text: node.text,
+                position: { x: event.pageX, y: event.pageY },
+            });
+        else
+            this.onOpenEntryContext.produce({
+                id,
+                text: node.text,
+                position: { x: event.pageX, y: event.pageY },
+            });
     }
 
     // HOOKS

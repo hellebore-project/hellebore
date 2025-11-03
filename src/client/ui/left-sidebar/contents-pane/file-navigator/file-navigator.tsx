@@ -29,37 +29,6 @@ interface FileNavItemSettings extends BaseGroupSettings {
     toggle: () => void;
 }
 
-const openContextMenu = (e: MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-
-    const service = getService();
-    const fileNav = service.navigation.files;
-
-    const elementId = e.currentTarget.id;
-    if (!elementId) return;
-
-    const nodeId = fileNav.convertDOMIdToNodeId(elementId);
-    const node = fileNav.getNode(nodeId);
-    if (!node) return;
-
-    fileNav.focused = false;
-    fileNav.selectedNode = node;
-    const id = fileNav.convertNodeIdToEntryId(nodeId);
-
-    if (fileNav.isFolderNode(node))
-        service.contextMenu.openForNavBarFolderNode({
-            id,
-            position: { x: e.pageX, y: e.pageY },
-            text: node.text,
-        });
-    else
-        service.contextMenu.openForNavBarEntityNode({
-            id,
-            position: { x: e.pageX, y: e.pageY },
-            text: node.text,
-        });
-};
-
 function renderFileNavItem({
     node,
     depth,
@@ -127,7 +96,7 @@ function renderFileNavItem({
             groupSettings={{
                 id: fileNav.convertNodeIdToDOMId(node.id),
                 onClick: onActivate,
-                onContextMenu: openContextMenu,
+                onContextMenu: (e) => fileNav.openContextMenu(e),
                 ...rest,
             }}
             textSettings={textSettings}

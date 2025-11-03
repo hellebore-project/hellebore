@@ -11,39 +11,35 @@ import {
 } from "@/shared/vertical-selection";
 
 function renderContextMenu() {
-    const service = getService();
-    const contextMenuService = service.contextMenu;
-    if (!contextMenuService.key || !contextMenuService.position) return null;
+    const service = getService().contextMenu;
+    if (!service.visible || !service.menu) return null;
 
-    const data = contextMenuService.menuData[contextMenuService.key];
+    const itemData = service.menu.itemData;
 
     const onConfirm = async (
         e: SyntheticEvent<HTMLButtonElement>,
         item: VerticalSelectionData,
     ) => {
         e.stopPropagation();
-        contextMenuService.close();
+        service.close();
         await item?.onConfirm?.(e);
     };
 
     return (
-        <OutsideEventHandler
-            id="context-menu"
-            service={contextMenuService.outsideEvent}
-        >
+        <OutsideEventHandler id="context-menu" service={service.outsideEvent}>
             <VerticalSelection
                 className="context-menu-selection"
-                left={`${contextMenuService.position.x}px`}
-                top={`${contextMenuService.position.y}px`}
+                left={`${service.position.x}px`}
+                top={`${service.position.y}px`}
                 withBorder={true}
-                data={data}
+                data={itemData}
                 itemSettings={{
                     className: "context-menu-item",
                     variant: "transparent",
                     size: "compact-md",
                     justify: "space-between",
                     onMouseOver: (e) => {
-                        contextMenuService.selectedIndex = Number(
+                        service.selectedIndex = Number(
                             e.currentTarget.getAttribute("data-index"),
                         );
                     },
@@ -51,11 +47,11 @@ function renderContextMenu() {
                         const index = Number(
                             e.currentTarget.getAttribute("data-index"),
                         );
-                        if (index == contextMenuService.selectedIndex)
-                            contextMenuService.selectedIndex = null;
+                        if (index == service.selectedIndex)
+                            service.selectedIndex = null;
                     },
                 }}
-                getSelectedIndex={() => contextMenuService.selectedIndex}
+                getSelectedIndex={() => service.selectedIndex}
                 onConfirm={onConfirm}
             />
         </OutsideEventHandler>

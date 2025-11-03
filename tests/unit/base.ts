@@ -78,7 +78,7 @@ export const test = baseTest.extend<BaseUnitFixtures>({
             mockGetFolders(mockedInvoker, { folders });
 
             const appManager = new ClientManager();
-            await appManager.initialize();
+            await appManager.load();
             state.manager = appManager;
 
             await use(appManager);

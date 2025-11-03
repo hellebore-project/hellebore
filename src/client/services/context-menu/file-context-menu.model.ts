@@ -1,52 +1,64 @@
+import {
+    DeleteEntryEvent,
+    DeleteFolderEvent,
+    EditFolderNameEvent,
+} from "@/client/interface";
 import { Id } from "@/interface";
-import { IClientManager } from "@/client/interface";
-import { VerticalSelectionData } from "@/shared/vertical-selection";
+import { EventProducer } from "@/utils/event";
 
-import { BaseContextMenu } from "./context-menu.model";
+import { BaseContextMenu } from "./base-context-menu.model";
 
 abstract class BaseFileContextMenu extends BaseContextMenu {
     id: Id;
     text: string;
 
-    constructor(id: Id, text: string, data: Partial<VerticalSelectionData>[]) {
-        super(data);
+    constructor(id: Id, text: string) {
+        super();
         this.id = id;
         this.text = text;
     }
 }
 
 export class FolderContextMenu extends BaseFileContextMenu {
-    constructor(id: Id, text: string, client: IClientManager) {
-        const data: Partial<VerticalSelectionData>[] = [
+    onRename: EventProducer<EditFolderNameEvent, unknown>;
+    onDelete: EventProducer<DeleteFolderEvent, unknown>;
+
+    constructor(id: Id, text: string) {
+        super(id, text);
+        this.onRename = new EventProducer();
+        this.onDelete = new EventProducer();
+    }
+
+    protected _generateMenuData() {
+        return [
             {
                 label: "Rename",
-                onConfirm: () => {
-                    return new Promise(() => client.editFolderName(this.id));
-                },
+                onConfirm: async () => this.onRename.produce({ id: this.id }),
             },
             {
                 label: "Delete",
-                onConfirm: () => {
-                    return new Promise(() => client.deleteFolder(this.id));
-                },
+                onConfirm: async () =>
+                    this.onDelete.produce({ id: this.id, name: this.text }),
             },
         ];
-        super(id, text, data);
     }
 }
 
 export class EntryFileContextMenu extends BaseFileContextMenu {
-    constructor(id: Id, text: string, client: IClientManager) {
-        const data: Partial<VerticalSelectionData>[] = [
+    onDelete: EventProducer<DeleteEntryEvent, unknown>;
+
+    constructor(id: Id, text: string) {
+        super(id, text);
+        this.onDelete = new EventProducer();
+    }
+
+    protected _generateMenuData() {
+        return [
             {
                 label: "Delete",
-                onConfirm: () => {
-                    return new Promise(() =>
-                        client.deleteEntry(this.id, this.text),
-                    );
-                },
+                onConfirm: async () =>
+                    this.onDelete.produce({ id: this.id, title: this.text }),
             },
         ];
-        super(id, text, data);
     }
 }
