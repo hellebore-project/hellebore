@@ -1,7 +1,5 @@
 import { Id } from "@/interface";
-import { ViewKey } from "@/client/constants";
 import {
-    BulkData,
     EntryInfoResponse,
     ProjectResponse,
     DomainManager,
@@ -16,8 +14,6 @@ export interface OpenEntryCreatorArguments {
 export interface IClientManager {
     domain: DomainManager;
 
-    get currentView(): ViewKey;
-
     openHome(): void;
     openSettings(): void;
     openProjectCreator(): void;
@@ -29,13 +25,9 @@ export interface IClientManager {
     ): Promise<ProjectResponse | null>;
     loadProject(): Promise<ProjectResponse | null>;
     closeProject(): Promise<boolean>;
-    editFolderName(id: number): void;
-    deleteFolder(id: number, confirm?: boolean): Promise<BulkData | null>;
     createEntry(
         entityType: EntityType,
         title: string,
         folderId: Id,
     ): Promise<EntryInfoResponse | null>;
-    deleteEntry(id: number, title: string, confirm?: boolean): Promise<boolean>;
-    cleanUp(): void;
 }

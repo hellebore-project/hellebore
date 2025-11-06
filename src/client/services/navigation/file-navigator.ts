@@ -5,6 +5,7 @@ import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
 import { Id } from "@/interface";
 import {
+    DeleteFolderEvent,
     FileNodeData,
     FileNodeModel,
     IClientManager,
@@ -17,6 +18,7 @@ import {
     ROOT_FOLDER_ID,
     EntryInfoResponse,
     FolderResponse,
+    BulkFileData,
 } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
@@ -65,6 +67,10 @@ export class FileNavigator {
     private _client: IClientManager;
 
     // EVENTS
+    onDeleteFolder: EventProducer<
+        DeleteFolderEvent,
+        Promise<BulkFileData | null>
+    >;
     onOpenFolderContext: EventProducer<OpenFileContextMenuEvent, unknown>;
     onOpenEntryContext: EventProducer<OpenFileContextMenuEvent, unknown>;
 
@@ -86,6 +92,7 @@ export class FileNavigator {
         this.errorManager = new NavigatorErrorManager();
         this._client = client;
 
+        this.onDeleteFolder = new EventProducer();
         this.onOpenFolderContext = new EventProducer();
         this.onOpenEntryContext = new EventProducer();
 
@@ -97,6 +104,7 @@ export class FileNavigator {
             outsideEvent: false,
             errorManager: false,
             _client: false,
+            onDeleteFolder: false,
             onOpenFolderContext: false,
             onOpenEntryContext: false,
         });
@@ -680,10 +688,11 @@ export class FileNavigator {
                 );
                 if (!replace) return false;
 
-                const deleteResponse = await this._client.deleteFolder(
-                    validateResponse.nameCollision.collidingFolderId,
-                    false,
-                );
+                const [promise] = this.onDeleteFolder.produce({
+                    id: validateResponse.nameCollision.collidingFolderId,
+                    confirm: false,
+                });
+                const deleteResponse = await promise;
                 if (!deleteResponse) {
                     console.error(
                         "Failed to delete colliding folder. Aborting move.",

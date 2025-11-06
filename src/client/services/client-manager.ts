@@ -2,7 +2,12 @@ import { makeAutoObservable } from "mobx";
 import { ask, open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
-import { OpenEntryCreatorArguments, IClientManager } from "@/client/interface";
+import {
+    OpenEntryCreatorArguments,
+    IClientManager,
+    PollEvent,
+    SyncEntryEvent,
+} from "@/client/interface";
 import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
 import { EntityType, ROOT_FOLDER_ID, WordType, DomainManager } from "@/domain";
 import { Id } from "@/interface";
@@ -18,7 +23,7 @@ import { NavigationService } from "./navigation";
 import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
-import { PollEvent, SyncEntryEvent, Synchronizer } from "./synchronizer";
+import { Synchronizer } from "./synchronizer";
 
 interface OpenEntryEditorArguments {
     id: Id;
@@ -162,10 +167,14 @@ export class ClientManager implements IClientManager {
             this.navigation.files.openEntityNode(id),
         );
 
-        this.navigation.files.onOpenFolderContext.subscribe((args) =>
+        const fileNav = this.navigation.files;
+        fileNav.onDeleteFolder.subscribe(({ id, confirm }) =>
+            this.deleteFolder(id, confirm),
+        );
+        fileNav.onOpenFolderContext.subscribe((args) =>
             this.contextMenu.openForNavBarFolderNode(args),
         );
-        this.navigation.files.onOpenEntryContext.subscribe((args) =>
+        fileNav.onOpenEntryContext.subscribe((args) =>
             this.contextMenu.openForNavBarEntryNode(args),
         );
 
