@@ -1,10 +1,10 @@
 import { makeAutoObservable } from "mobx";
 
-import { IClientManager } from "@/client/interface";
+import { DomainManager } from "@/domain";
 import { DIVIDER_DATA, MenuDropdownElementData } from "@/shared/menu-dropdown";
 import { EventProducer } from "@/utils/event";
 
-type PrivateKeys = "_menuItems" | "_client";
+type PrivateKeys = "_menuItems" | "_domain";
 
 interface MenuItems {
     project: {
@@ -23,7 +23,7 @@ export class HeaderManager {
 
     private _menuItems: MenuItems;
 
-    private _client: IClientManager;
+    private _domain: DomainManager;
 
     onCreateProject: EventProducer<void, unknown>;
     onLoadProject: EventProducer<void, unknown>;
@@ -31,8 +31,8 @@ export class HeaderManager {
     onCreateEntry: EventProducer<void, unknown>;
     onOpenSettings: EventProducer<void, unknown>;
 
-    constructor(client: IClientManager) {
-        this._client = client;
+    constructor(domain: DomainManager) {
+        this._domain = domain;
 
         this.onCreateProject = new EventProducer();
         this.onLoadProject = new EventProducer();
@@ -69,7 +69,7 @@ export class HeaderManager {
 
         makeAutoObservable<HeaderManager, PrivateKeys>(this, {
             _menuItems: false,
-            _client: false,
+            _domain: false,
             onCreateProject: false,
             onLoadProject: false,
             onCloseProject: false,
@@ -83,7 +83,7 @@ export class HeaderManager {
     }
 
     getFileMenuData() {
-        if (this._client.domain.hasProject)
+        if (this._domain.hasProject)
             return [
                 this._menuItems.project.create,
                 this._menuItems.project.open,

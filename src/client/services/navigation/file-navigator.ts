@@ -8,7 +8,6 @@ import {
     DeleteFolderEvent,
     FileNodeData,
     FileNodeModel,
-    IClientManager,
     NodeId,
     OpenFileContextMenuEvent,
     ROOT_FOLDER_NODE_ID,
@@ -19,6 +18,7 @@ import {
     EntryInfoResponse,
     FolderResponse,
     BulkFileData,
+    DomainManager,
 } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
@@ -31,10 +31,10 @@ type PrivateKeys =
     | "_nodePositionCache"
     | "_tree"
     | "_editableTextRef"
-    | "_client";
+    | "_domain";
 
 export interface FileNavigatorArguments {
-    client: IClientManager;
+    domain: DomainManager;
     editableTextRef: ObservableReference<HTMLInputElement>;
 }
 
@@ -64,7 +64,7 @@ export class FileNavigator {
     _placeholderIdGenerator: Counter;
     outsideEvent: OutsideEventHandlerService;
     errorManager: NavigatorErrorManager;
-    private _client: IClientManager;
+    private _domain: DomainManager;
 
     // EVENTS
     onDeleteFolder: EventProducer<
@@ -74,7 +74,7 @@ export class FileNavigator {
     onOpenFolderContext: EventProducer<OpenFileContextMenuEvent, unknown>;
     onOpenEntryContext: EventProducer<OpenFileContextMenuEvent, unknown>;
 
-    constructor({ client, editableTextRef }: FileNavigatorArguments) {
+    constructor({ domain, editableTextRef }: FileNavigatorArguments) {
         this._nodes = [];
         this._nodePositionCache = {};
 
@@ -90,7 +90,7 @@ export class FileNavigator {
             },
         });
         this.errorManager = new NavigatorErrorManager();
-        this._client = client;
+        this._domain = domain;
 
         this.onDeleteFolder = new EventProducer();
         this.onOpenFolderContext = new EventProducer();
@@ -103,7 +103,7 @@ export class FileNavigator {
             _editableTextRef: false,
             outsideEvent: false,
             errorManager: false,
-            _client: false,
+            _domain: false,
             onDeleteFolder: false,
             onOpenFolderContext: false,
             onOpenEntryContext: false,
@@ -416,7 +416,7 @@ export class FileNavigator {
             if (this.isFolderNode(node)) {
                 // folder
                 const parentId = this.convertNodeIdToEntryId(node.parent);
-                const validationResponse = this._client.domain.folders.validate(
+                const validationResponse = this._domain.folders.validate(
                     id,
                     parentId,
                     newText,
@@ -455,7 +455,7 @@ export class FileNavigator {
             if (this.isPlaceholderNode(node)) {
                 // add new folder
                 const parentId = this.convertNodeIdToEntryId(node.parent);
-                const folder = await this._client.domain.folders.create(
+                const folder = await this._domain.folders.create(
                     newText,
                     parentId,
                 );
@@ -476,7 +476,7 @@ export class FileNavigator {
                 }
             } else {
                 // update existing folder
-                const folder = await this._client.domain.folders.update({
+                const folder = await this._domain.folders.update({
                     id: this.convertNodeIdToEntryId(node.id),
                     name: newText,
                 });
@@ -673,7 +673,7 @@ export class FileNavigator {
         let response: boolean | FolderUpdateArguments | null;
         if (this.isFolderNode(node)) {
             // folder
-            const validateResponse = this._client.domain.folders.validate(
+            const validateResponse = this._domain.folders.validate(
                 id,
                 destParentId,
                 node.text,
@@ -703,14 +703,14 @@ export class FileNavigator {
                 index = this.getNodeIndex(node.id) as number;
             }
 
-            response = await this._client.domain.folders.update({
+            response = await this._domain.folders.update({
                 id,
                 parentId: destParentId,
                 oldParentId: sourceParentId,
             });
         } else {
             // entry
-            response = await this._client.domain.entries.updateFolder(
+            response = await this._domain.entries.updateFolder(
                 id,
                 destParentId,
                 sourceParentId,

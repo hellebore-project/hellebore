@@ -1,13 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
-import { EntryInfoResponse, FolderResponse } from "@/domain/schema";
-import { IClientManager } from "@/client/interface";
+import { DomainManager, EntryInfoResponse, FolderResponse } from "@/domain";
 
 import { FileNavigator, FileNavigatorArguments } from "./file-navigator";
 
 export interface NavigationServiceArguments {
-    client: IClientManager;
-    files: Omit<FileNavigatorArguments, "client">;
+    domain: DomainManager;
+    files: Omit<FileNavigatorArguments, "domain">;
 }
 
 export class NavigationService {
@@ -17,8 +16,8 @@ export class NavigationService {
 
     files: FileNavigator;
 
-    constructor({ client, files }: NavigationServiceArguments) {
-        this.files = new FileNavigator({ client, ...files });
+    constructor({ domain, files }: NavigationServiceArguments) {
+        this.files = new FileNavigator({ domain, ...files });
         makeAutoObservable(this, { files: false });
     }
 

@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 import { ask, open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
-import { IClientManager, PollEvent, SyncEntryEvent } from "@/client/interface";
+import { PollEvent, SyncEntryEvent } from "@/client/interface";
 import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
 import { EntityType, ROOT_FOLDER_ID, WordType, DomainManager } from "@/domain";
 import { Id } from "@/interface";
@@ -31,7 +31,7 @@ interface OpenEntryEditorArguments {
     wordType?: WordType;
 }
 
-export class ClientManager implements IClientManager {
+export class ClientManager {
     // CONSTANTS
     readonly DEFAULT_CENTER_PADDING = 20;
     readonly DEFAULT_DIVIDER_HEIGHT = 24.8;
@@ -69,11 +69,11 @@ export class ClientManager implements IClientManager {
         this.domReferences = new DOMReferenceManager();
 
         // central panel
-        this.home = new HomeManager(this);
-        this.settingsEditor = new SettingsEditor(this);
+        this.home = new HomeManager(this.domain);
+        this.settingsEditor = new SettingsEditor();
 
         this.entryEditor = new EntryEditor({
-            client: this,
+            domain: this.domain,
             synchronizer: this.synchronizer,
             wordEditor: {
                 editableCellRef: this.domReferences.wordTableEditableCell,
@@ -81,10 +81,10 @@ export class ClientManager implements IClientManager {
         });
 
         // peripheral panels
-        this.header = new HeaderManager(this);
+        this.header = new HeaderManager(this.domain);
         this.footer = new FooterManager();
         this.navigation = new NavigationService({
-            client: this,
+            domain: this.domain,
             files: {
                 editableTextRef: this.domReferences.fileNavEditableText,
             },

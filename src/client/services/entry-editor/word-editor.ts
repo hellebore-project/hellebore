@@ -1,13 +1,8 @@
 import { makeAutoObservable } from "mobx";
 
 import { WordViewKey } from "@/client/constants";
-import {
-    WordKey,
-    IClientManager,
-    Word,
-    WordMetaData,
-} from "@/client/interface";
-import { WordResponse, WordType } from "@/domain";
+import { WordKey, Word, WordMetaData } from "@/client/interface";
+import { DomainManager, WordResponse, WordType } from "@/domain";
 import { Id } from "@/interface";
 import { ObservableReference } from "@/shared/observable-reference";
 import {
@@ -71,11 +66,11 @@ type PrivateKeys =
     | "_columnData"
     | "_modifiedWordKeys"
     | "_wordKeyGenerator"
-    | "_client"
+    | "_domain"
     | "_info";
 
 interface WordEditorArguments {
-    client: IClientManager;
+    domain: DomainManager;
     info: EntryInfoEditor;
     editableCellRef: ObservableReference<HTMLInputElement>;
 }
@@ -92,7 +87,7 @@ export class WordEditor {
     private _changed = false;
 
     // SERVICES
-    private _client: IClientManager;
+    private _domain: DomainManager;
     private _info: EntryInfoEditor;
     spreadsheet: SpreadsheetService<WordColumnKeys, WordMetaData>;
 
@@ -104,14 +99,14 @@ export class WordEditor {
     onChangeWordType: EventProducer<ChangeWordTypeEvent, void>;
 
     // CONSTRUCTION
-    constructor({ client, info, editableCellRef }: WordEditorArguments) {
+    constructor({ domain, info, editableCellRef }: WordEditorArguments) {
         this._modifiedWordKeys = new Set();
         this._wordKeyGenerator = new Counter();
 
         this.onChange = new EventProducer();
         this.onChangeWordType = new EventProducer();
 
-        this._client = client;
+        this._domain = domain;
         this._info = info;
         this.spreadsheet = new SpreadsheetService({
             data: {
@@ -125,7 +120,7 @@ export class WordEditor {
             _modifiedWordKeys: false,
             _columnData: false,
             _wordKeyGenerator: false,
-            _client: false,
+            _domain: false,
             _info: false,
             spreadsheet: false,
             onChange: false,
@@ -163,7 +158,7 @@ export class WordEditor {
         wordType: WordType = WordType.RootWord,
     ) {
         if (wordType !== undefined) this._wordType = wordType;
-        return this._client.domain.words
+        return this._domain.words
             .getAllForLanguage(languageId, wordType)
             .then((words) => this._setWords(words));
     }
@@ -286,7 +281,7 @@ export class WordEditor {
 
     deleteWord(row: SpreadsheetRowData<WordColumnKeys, WordMetaData>) {
         if (row.metaData.id !== null)
-            this._client.domain.words.delete(row.metaData.id);
+            this._domain.words.delete(row.metaData.id);
         this._modifiedWordKeys.delete(row.key);
     }
 

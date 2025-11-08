@@ -1,4 +1,3 @@
-export * from "./client-manager";
 export * from "./event";
 export * from "./file-node";
 export * from "./property";
