@@ -1,18 +1,19 @@
 import { makeAutoObservable } from "mobx";
 
-import { IClientManager, IViewManager } from "@/client/interface";
+import { DomainManager } from "@/domain";
+import { IViewManager } from "@/client/interface";
 import { ViewKey } from "@/client/constants";
 
-type PrivateKeys = "_client";
+type PrivateKeys = "_domain";
 
 export class HomeManager implements IViewManager {
     _projectName = "";
 
-    private _client: IClientManager;
+    private _domain: DomainManager;
 
-    constructor(client: IClientManager) {
-        this._client = client;
-        makeAutoObservable<HomeManager, PrivateKeys>(this, { _client: false });
+    constructor(domain: DomainManager) {
+        this._domain = domain;
+        makeAutoObservable<HomeManager, PrivateKeys>(this, { _domain: false });
     }
 
     get key() {
@@ -25,7 +26,7 @@ export class HomeManager implements IViewManager {
 
     set projectName(name: string) {
         this._projectName = name;
-        if (name) this._client.domain.session.updateProject(name);
+        if (name) this._domain.session.updateProject(name);
     }
 
     initialize(name: string) {

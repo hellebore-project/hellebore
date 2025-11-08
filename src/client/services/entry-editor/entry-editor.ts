@@ -3,7 +3,6 @@ import { makeAutoObservable } from "mobx";
 import { Id } from "@/interface";
 import { EntryViewKey, ViewKey } from "@/client/constants";
 import {
-    IClientManager,
     IViewManager,
     PollEvent,
     PollResultEntryData,
@@ -12,7 +11,7 @@ import {
     Word,
 } from "@/client/interface";
 import { Synchronizer } from "@/client/services/synchronizer";
-import { BaseEntity, EntityType, WordType } from "@/domain";
+import { BaseEntity, DomainManager, EntityType, WordType } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
 import { EventProducer } from "@/utils/event";
 
@@ -21,10 +20,10 @@ import { EntryInfoEditor } from "./info-editor";
 import { ArticleEditor } from "./article-editor";
 import { PropertyEditor } from "./property-editor";
 
-type PrivateKeys = "_client" | "_synchronizer";
+type PrivateKeys = "_domain" | "_synchronizer";
 
 export interface EntryEditorArguments {
-    client: IClientManager;
+    domain: DomainManager;
     synchronizer: Synchronizer;
     wordEditor: {
         editableCellRef: ObservableReference<HTMLInputElement>;
@@ -48,7 +47,7 @@ export class EntryEditor implements IViewManager {
     private _viewKey: EntryViewKey = EntryViewKey.ArticleEditor;
 
     // SERVICES
-    private _client: IClientManager;
+    private _domain: DomainManager;
     private _synchronizer: Synchronizer;
     info: EntryInfoEditor;
     properties: PropertyEditor;
@@ -59,8 +58,8 @@ export class EntryEditor implements IViewManager {
     onOpen: EventProducer<Id, void>;
     onCleanUp: EventProducer<EntryViewKey, void>;
 
-    constructor({ client, synchronizer, wordEditor }: EntryEditorArguments) {
-        this._client = client;
+    constructor({ domain, synchronizer, wordEditor }: EntryEditorArguments) {
+        this._domain = domain;
         this._synchronizer = synchronizer;
 
         this.info = new EntryInfoEditor();
@@ -69,7 +68,7 @@ export class EntryEditor implements IViewManager {
         );
 
         this.article = new ArticleEditor({
-            client,
+            domain,
             info: this.info,
         });
         this.article.onChange.subscribe(() =>
@@ -87,7 +86,7 @@ export class EntryEditor implements IViewManager {
         );
 
         this.lexicon = new WordEditor({
-            client,
+            domain,
             info: this.info,
             editableCellRef: wordEditor.editableCellRef,
         });
@@ -102,7 +101,7 @@ export class EntryEditor implements IViewManager {
         this.onCleanUp = new EventProducer();
 
         makeAutoObservable<EntryEditor, PrivateKeys>(this, {
-            _client: false,
+            _domain: false,
             _synchronizer: false,
             info: false,
             properties: false,
@@ -172,7 +171,7 @@ export class EntryEditor implements IViewManager {
         if (this.isArticleEditorOpen && this.info.id == id) return; // the article is already open
 
         if (!entityType || title === undefined || text === undefined) {
-            const response = await this._client.domain.entries.getArticle(id);
+            const response = await this._domain.entries.getArticle(id);
             if (response) {
                 entityType = response.info.entity_type;
                 title = response.info.title;
@@ -199,7 +198,7 @@ export class EntryEditor implements IViewManager {
     async openPropertyEditor(id: Id) {
         if (this.isPropertyEditorOpen && this.info.id == id) return; // the property editor is already open
 
-        const response = await this._client.domain.entries.getProperties(id);
+        const response = await this._domain.entries.getProperties(id);
 
         if (response !== null)
             this.initializePropertyEditor(
@@ -228,7 +227,7 @@ export class EntryEditor implements IViewManager {
                 return;
         }
 
-        const info = await this._client.domain.entries.get(languageId);
+        const info = await this._domain.entries.get(languageId);
 
         if (info !== null)
             this.initializeWordEditor(languageId, info.title, wordType);

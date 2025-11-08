@@ -4,7 +4,7 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { IClientManager } from "@/client/interface";
+import { DomainManager } from "@/domain";
 import { Id } from "@/interface";
 import {
     SuggestionData,
@@ -14,10 +14,10 @@ import { EventProducer } from "@/utils/event";
 
 import { EntryInfoEditor } from "./info-editor";
 
-type PrivateKeys = "_changed" | "_client" | "_info";
+type PrivateKeys = "_changed" | "_domain" | "_info";
 
 interface ArticleEditorSettings {
-    client: IClientManager;
+    domain: DomainManager;
     info: EntryInfoEditor;
 }
 
@@ -26,14 +26,14 @@ export class ArticleEditor {
     private _changed = false;
     private _selectedRefIndex: number | null = null;
 
-    private _client: IClientManager;
+    private _domain: DomainManager;
     private _info: EntryInfoEditor;
 
     onChange: EventProducer<Id, void>;
     onSelectReference: EventProducer<Id, void>;
 
-    constructor({ client, info }: ArticleEditorSettings) {
-        this._client = client;
+    constructor({ domain, info }: ArticleEditorSettings) {
+        this._domain = domain;
         this._info = info;
 
         this.onChange = new EventProducer();
@@ -43,7 +43,7 @@ export class ArticleEditor {
 
         makeAutoObservable<ArticleEditor, PrivateKeys>(this, {
             _changed: false,
-            _client: false,
+            _domain: false,
             _info: false,
             onChange: false,
             onSelectReference: false,
@@ -118,7 +118,7 @@ export class ArticleEditor {
 
     _queryByTitle(titleFragment: string): SuggestionData[] {
         this.selectedRefIndex = 0;
-        return this._client.domain.entries
+        return this._domain.entries
             .queryByTitle(titleFragment)
             .filter((info) => info.id != this._info.id)
             .map((info) => ({ label: info.title, value: info.id }));

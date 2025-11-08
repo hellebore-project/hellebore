@@ -54,18 +54,3 @@ To regenerate the DB entity models, run the following:
 ```sh
 pnpm run build:entities
 ```
-
-### Troubleshooting
-
-#### File navigator drag and drop not working
-
-On Windows systems, the `dragDropEnabled` option in the tauri config must be set to `false` in order to use drag and drop on the frontend.
-
-#### Dev server loading old source code
-
-Delete the webview cache for the application.
-
-```sh
-# Windows
-C:\Users\<USER>\AppData\Local\com.hellebore.dev
-```
