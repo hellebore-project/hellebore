@@ -24,6 +24,12 @@ export interface DeleteFolderEvent {
 
 // ENTRY EVENTS
 
+export interface CreateEntryEvent {
+    entityType: EntityType;
+    title: string;
+    folderId: Id;
+}
+
 export interface DeleteEntryEvent {
     id: Id;
     title: string;

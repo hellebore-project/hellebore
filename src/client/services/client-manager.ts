@@ -92,7 +92,7 @@ export class ClientManager implements IClientManager {
 
         // modals
         this.projectCreator = new ProjectCreator();
-        this.entryCreator = new EntryCreator(this);
+        this.entryCreator = new EntryCreator();
 
         // context menu
         this.contextMenu = new ContextMenuManager();
@@ -176,6 +176,11 @@ export class ClientManager implements IClientManager {
         );
         fileNav.onOpenEntryContext.subscribe((args) =>
             this.contextMenu.openForNavBarEntryNode(args),
+        );
+
+        this.entryCreator.onCreateEntry.subscribe(
+            ({ entityType, title, folderId }) =>
+                this.createEntry(entityType, title, folderId),
         );
 
         this.contextMenu.onEditFolderName.subscribe(({ id }) =>

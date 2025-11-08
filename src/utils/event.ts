@@ -26,4 +26,8 @@ export class EventProducer<I, O> {
     produce(arg: I) {
         return this._subscriptions.map((s) => s(arg));
     }
+
+    produceOne(arg: I) {
+        return this._subscriptions[0](arg);
+    }
 }

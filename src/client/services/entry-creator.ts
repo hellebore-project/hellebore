@@ -1,11 +1,10 @@
 import { makeAutoObservable } from "mobx";
 import { FormEvent } from "react";
 
-import { EntityType, ROOT_FOLDER_ID } from "@/domain/constants";
+import { EntryInfoResponse, EntityType, ROOT_FOLDER_ID } from "@/domain";
+import { CreateEntryEvent } from "@/client/interface";
 import { Id } from "@/interface";
-import { IClientManager } from "@/client/interface";
-
-type PrivateKeys = "_client";
+import { EventProducer } from "@/utils/event";
 
 export class EntryCreator {
     // STATE
@@ -14,16 +13,15 @@ export class EntryCreator {
     private _entityType: EntityType | null = null;
     private _isTitleUnique = true;
 
-    // SERVICES
-    private _client: IClientManager;
+    // EVENTS
+    onCreateEntry: EventProducer<
+        CreateEntryEvent,
+        Promise<EntryInfoResponse | null>
+    >;
 
-    constructor(client: IClientManager) {
-        this._client = client;
-        makeAutoObservable<EntryCreator, PrivateKeys>(this, { _client: false });
-    }
-
-    setEntityType(entityType: EntityType | null = null) {
-        this._entityType = entityType;
+    constructor() {
+        this.onCreateEntry = new EventProducer();
+        makeAutoObservable(this, { onCreateEntry: false });
     }
 
     get title() {
@@ -36,6 +34,10 @@ export class EntryCreator {
 
     get entityType() {
         return this._entityType;
+    }
+
+    set entityType(value: EntityType | null) {
+        this._entityType = value;
     }
 
     get isTitleUnique() {
@@ -56,14 +58,14 @@ export class EntryCreator {
     async submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const entry = this._client.createEntry(
+        const entry = await this.onCreateEntry.produceOne({
             // HACK: assume that the user has entered an entity type
             // TODO: when entity type is null, we need to default to some sort of generic entity
             // without any properties
-            this.entityType as EntityType,
-            this._title,
-            this._folderId,
-        );
+            entityType: this.entityType as EntityType,
+            title: this._title,
+            folderId: this._folderId,
+        });
 
         if (entry == null) {
             // HACK: if the BE request fails, assume that it's a UNIQUE constraint violation
