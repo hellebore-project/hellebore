@@ -5,15 +5,13 @@ import { EntryViewKey, ViewKey } from "@/client/constants";
 import {
     IClientManager,
     IViewManager,
-    PropertyFieldData,
-    Word,
-} from "@/client/interface";
-import {
     PollEvent,
     PollResultEntryData,
+    PropertyFieldData,
     SyncEntryEvent,
-    Synchronizer,
-} from "@/client/services/synchronizer";
+    Word,
+} from "@/client/interface";
+import { Synchronizer } from "@/client/services/synchronizer";
 import { BaseEntity, EntityType, WordType } from "@/domain";
 import { ObservableReference } from "@/shared/observable-reference";
 import { EventProducer } from "@/utils/event";

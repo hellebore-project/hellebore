@@ -1,58 +1,22 @@
-import { Word } from "@/client/interface";
 import {
-    BaseEntity,
     EntryTextUpdateResponse,
     EntryTitleUpdateResponse,
     EntryUpdateResponse,
     WordUpsertResponse,
-    EntityType,
     DomainManager,
 } from "@/domain";
-import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
-interface SyncArguments {
-    syncTitle?: boolean;
-    syncProperties?: boolean;
-    syncText?: boolean;
-    syncLexicon?: boolean;
-}
+import {
+    PollEvent,
+    PollResult,
+    PollResultEntryData,
+    SyncEntryEvent,
+    SyncEntryRequest,
+    SyncEntryResponse,
+} from "../interface";
 
-interface SyncEntryRequest {
-    id: Id;
-    entityType: EntityType;
-    title?: string | null;
-    properties?: BaseEntity | null;
-    text?: string | null;
-    words: Word[] | null;
-}
-
-interface SyncEntryResponse {
-    title: EntryTitleUpdateResponse | null;
-    text: EntryTextUpdateResponse | null;
-    properties: EntryUpdateResponse | null;
-    lexicon: WordUpsertResponse[] | null;
-}
-
-export type PollEvent = SyncArguments;
-
-export interface PollResultEntryData {
-    id: Id;
-    entityType: EntityType;
-    title?: string;
-    properties?: BaseEntity;
-    text?: string;
-    words?: Word[];
-}
-
-export interface PollResult {
-    entries: PollResultEntryData[];
-}
-
-export interface SyncEntryEvent {
-    request: SyncEntryRequest;
-    response: SyncEntryResponse;
-}
+export type SyncArguments = PollEvent;
 
 export class Synchronizer {
     readonly DEFAULT_SYNC_DELAY_TIME = 5000;
