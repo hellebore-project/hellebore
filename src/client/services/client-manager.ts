@@ -2,12 +2,7 @@ import { makeAutoObservable } from "mobx";
 import { ask, open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
-import {
-    OpenEntryCreatorArguments,
-    IClientManager,
-    PollEvent,
-    SyncEntryEvent,
-} from "@/client/interface";
+import { IClientManager, PollEvent, SyncEntryEvent } from "@/client/interface";
 import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
 import { EntityType, ROOT_FOLDER_ID, WordType, DomainManager } from "@/domain";
 import { Id } from "@/interface";
@@ -24,6 +19,11 @@ import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
 import { Synchronizer } from "./synchronizer";
+
+interface OpenEntryCreatorArguments {
+    entityType?: EntityType;
+    folderId?: Id;
+}
 
 interface OpenEntryEditorArguments {
     id: Id;
@@ -166,6 +166,12 @@ export class ClientManager implements IClientManager {
         this.entryEditor.onOpen.subscribe((id) =>
             this.navigation.files.openEntityNode(id),
         );
+
+        this.header.onCreateProject.subscribe(() => this.openProjectCreator());
+        this.header.onLoadProject.subscribe(() => this.loadProject());
+        this.header.onCloseProject.subscribe(() => this.closeProject());
+        this.header.onCreateEntry.subscribe(() => this.openEntryCreator());
+        this.header.onOpenSettings.subscribe(() => this.openSettings());
 
         const fileNav = this.navigation.files;
         fileNav.onDeleteFolder.subscribe(({ id, confirm }) =>
