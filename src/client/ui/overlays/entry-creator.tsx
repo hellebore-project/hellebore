@@ -41,9 +41,8 @@ function renderEntryCreator() {
                             service.entryCreator.entityType?.toString() ?? null
                         }
                         onChange={(entityType) =>
-                            service.entryCreator.setEntityType(
-                                Number(entityType),
-                            )
+                            (service.entryCreator.entityType =
+                                Number(entityType))
                         }
                     />
                     <Space h="xs" />

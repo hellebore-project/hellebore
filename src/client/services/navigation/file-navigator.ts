@@ -688,11 +688,10 @@ export class FileNavigator {
                 );
                 if (!replace) return false;
 
-                const [promise] = this.onDeleteFolder.produce({
+                const deleteResponse = await this.onDeleteFolder.produceOne({
                     id: validateResponse.nameCollision.collidingFolderId,
                     confirm: false,
                 });
-                const deleteResponse = await promise;
                 if (!deleteResponse) {
                     console.error(
                         "Failed to delete colliding folder. Aborting move.",
