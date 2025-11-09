@@ -1,17 +1,11 @@
-import {
-    Button,
-    ComboboxItem,
-    Container,
-    Group,
-    Modal,
-    Space,
-} from "@mantine/core";
+import { Button, ComboboxItem, Container, Group, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
+import { getService } from "@/client";
+import { EntryCreator as EntryCreatorService } from "@/client/services/modal/entry-creator";
 import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "@/domain";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
-import { getService, ModalKey } from "@/client";
 import { compareStrings } from "@/utils/string";
 
 const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = FILE_ENTITY_TYPES.map(
@@ -22,50 +16,37 @@ const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = FILE_ENTITY_TYPES.map(
 ).sort((a, b) => compareStrings(a.label, b.label));
 
 function renderEntryCreator() {
-    const service = getService();
+    const entryCreator = getService().modal.content as EntryCreatorService;
 
     return (
-        <Modal
-            title="Create a new entry"
-            opened={service.currentModal == ModalKey.EntryCreator}
-            onClose={() => service.closeModal()}
-            portalProps={{ target: service.sharedPortalSelector }}
-        >
-            <Container size="xs">
-                <form onSubmit={(event) => service.entryCreator.submit(event)}>
-                    <SelectField
-                        label="Entity"
-                        placeholder="Select an entity type"
-                        data={ENTITY_TYPE_DROPDOWN_DATA}
-                        getValue={() =>
-                            service.entryCreator.entityType?.toString() ?? null
-                        }
-                        onChange={(entityType) =>
-                            (service.entryCreator.entityType =
-                                Number(entityType))
-                        }
-                    />
-                    <Space h="xs" />
-                    <TextField
-                        label={"Title"}
-                        placeholder="Enter a unique title"
-                        getValue={() => service.entryCreator.title}
-                        getError={() =>
-                            service.entryCreator.isTitleUnique
-                                ? null
-                                : "Duplicate title"
-                        }
-                        onChange={(event) =>
-                            (service.entryCreator.title =
-                                event.currentTarget.value)
-                        }
-                    />
-                    <Group justify="flex-end" mt="md">
-                        <Button type="submit">Submit</Button>
-                    </Group>
-                </form>
-            </Container>
-        </Modal>
+        <Container size="xs">
+            <form onSubmit={(event) => entryCreator.submit(event)}>
+                <SelectField
+                    label="Entity"
+                    placeholder="Select an entity type"
+                    data={ENTITY_TYPE_DROPDOWN_DATA}
+                    getValue={() => entryCreator.entityType?.toString() ?? null}
+                    onChange={(entityType) =>
+                        (entryCreator.entityType = Number(entityType))
+                    }
+                />
+                <Space h="xs" />
+                <TextField
+                    label={"Title"}
+                    placeholder="Enter a unique title"
+                    getValue={() => entryCreator.entryTitle}
+                    getError={() =>
+                        entryCreator.isTitleUnique ? null : "Duplicate title"
+                    }
+                    onChange={(event) =>
+                        (entryCreator.entryTitle = event.currentTarget.value)
+                    }
+                />
+                <Group justify="flex-end" mt="md">
+                    <Button type="submit">Submit</Button>
+                </Group>
+            </form>
+        </Container>
     );
 }
 

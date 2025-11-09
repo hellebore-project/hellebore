@@ -16,9 +16,7 @@ function renderAddEntryButton() {
                 size="sm"
                 onClick={(e) => {
                     e.stopPropagation(); // don't toggle the expanded status of the tab
-                    service.openEntryCreator({
-                        folderId: service.navigation.files.activeFolderId,
-                    });
+                    service.navigation.files.onClickAddEntryButton();
                 }}
             >
                 <IconFilePlus size={18} />

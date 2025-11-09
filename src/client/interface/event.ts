@@ -10,6 +10,13 @@ import { Id, Point } from "@/interface";
 
 import { Word } from "./word";
 
+// PROJECT EVENTS
+
+export interface CreateProjectEvent {
+    name: string;
+    dbFilePath: string;
+}
+
 // FOLDER EVENTS
 
 export interface EditFolderNameEvent {
@@ -78,6 +85,13 @@ export interface SyncEntryResponse {
 export interface SyncEntryEvent {
     request: SyncEntryRequest;
     response: SyncEntryResponse;
+}
+
+// OPEN VIEW EVENTS
+
+export interface OpenEntryCreatorEvent {
+    entityType?: EntityType;
+    folderId?: Id;
 }
 
 // CONTEXT MENU EVENTS

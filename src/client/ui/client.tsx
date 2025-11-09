@@ -3,15 +3,7 @@ import { observer } from "mobx-react-lite";
 
 import { getService } from "@/client/services";
 
-import {
-    Footer,
-    Header,
-    Center,
-    LeftSideBar,
-    EntryCreator,
-    ContextMenu,
-    ProjectCreator,
-} from ".";
+import { Center, ContextMenu, Footer, Header, LeftSideBar, Modal } from ".";
 
 function renderPortalContainer() {
     const service = getService();
@@ -62,8 +54,7 @@ function renderClient() {
                 </AppShell.Footer>
             </AppShell>
 
-            <ProjectCreator />
-            <EntryCreator />
+            <Modal />
 
             <ContextMenu />
 
