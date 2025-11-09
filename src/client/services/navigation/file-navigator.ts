@@ -9,6 +9,7 @@ import {
     FileNodeData,
     FileNodeModel,
     NodeId,
+    OpenEntryCreatorEvent,
     OpenFileContextMenuEvent,
     ROOT_FOLDER_NODE_ID,
 } from "@/client/interface";
@@ -67,6 +68,7 @@ export class FileNavigator {
     private _domain: DomainManager;
 
     // EVENTS
+    onCreateEntry: EventProducer<OpenEntryCreatorEvent, unknown>;
     onDeleteFolder: EventProducer<
         DeleteFolderEvent,
         Promise<BulkFileData | null>
@@ -92,6 +94,7 @@ export class FileNavigator {
         this.errorManager = new NavigatorErrorManager();
         this._domain = domain;
 
+        this.onCreateEntry = new EventProducer();
         this.onDeleteFolder = new EventProducer();
         this.onOpenFolderContext = new EventProducer();
         this.onOpenEntryContext = new EventProducer();
@@ -104,6 +107,7 @@ export class FileNavigator {
             outsideEvent: false,
             errorManager: false,
             _domain: false,
+            onCreateEntry: false,
             onDeleteFolder: false,
             onOpenFolderContext: false,
             onOpenEntryContext: false,
@@ -729,6 +733,26 @@ export class FileNavigator {
         this.setNode(node, index);
 
         return true;
+    }
+
+    // NODE COLLAPSING
+
+    collapseNodes() {
+        this.tree?.current?.closeAll();
+    }
+
+    // HEADER BUTTONS
+
+    onClickAddEntryButton() {
+        this.onCreateEntry.produce({
+            folderId: this.activeFolderId,
+        });
+    }
+
+    onClickAddFolderButton() {
+        const node = this.addPlaceholderNodeForNewFolder();
+        // the parent folder needs to be open
+        this.tree?.current?.open(node.parent);
     }
 
     // CONTEXT MENU

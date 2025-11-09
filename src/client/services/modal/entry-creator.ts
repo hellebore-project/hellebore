@@ -2,13 +2,17 @@ import { makeAutoObservable } from "mobx";
 import { FormEvent } from "react";
 
 import { EntryInfoResponse, EntityType, ROOT_FOLDER_ID } from "@/domain";
-import { CreateEntryEvent } from "@/client/interface";
+import { ModalKey } from "@/client/constants";
+import { CreateEntryEvent, IModalContentManager } from "@/client/interface";
 import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
-export class EntryCreator {
+export class EntryCreator implements IModalContentManager {
+    // CONSTANTS
+    readonly TITLE = "Create a new entry";
+
     // STATE
-    private _title = "";
+    private _entryTitle = "";
     private _folderId: Id = ROOT_FOLDER_ID;
     private _entityType: EntityType | null = null;
     private _isTitleUnique = true;
@@ -18,18 +22,24 @@ export class EntryCreator {
         CreateEntryEvent,
         Promise<EntryInfoResponse | null>
     >;
+    onClose: EventProducer<void, unknown>;
 
     constructor() {
         this.onCreateEntry = new EventProducer();
-        makeAutoObservable(this, { onCreateEntry: false });
+        this.onClose = new EventProducer();
+        makeAutoObservable(this, { onCreateEntry: false, onClose: false });
     }
 
-    get title() {
-        return this._title;
+    get key() {
+        return ModalKey.EntryCreator;
     }
 
-    set title(title: string) {
-        this._title = title;
+    get entryTitle() {
+        return this._entryTitle;
+    }
+
+    set entryTitle(title: string) {
+        this._entryTitle = title;
     }
 
     get entityType() {
@@ -51,7 +61,7 @@ export class EntryCreator {
     initialize(entityType: EntityType | null = null, folderId?: Id) {
         this._entityType = entityType;
         this._folderId = folderId ?? ROOT_FOLDER_ID;
-        this.title = "";
+        this.entryTitle = "";
         this._isTitleUnique = true;
     }
 
@@ -63,7 +73,7 @@ export class EntryCreator {
             // TODO: when entity type is null, we need to default to some sort of generic entity
             // without any properties
             entityType: this.entityType as EntityType,
-            title: this._title,
+            title: this._entryTitle,
             folderId: this._folderId,
         });
 
@@ -71,13 +81,6 @@ export class EntryCreator {
             // HACK: if the BE request fails, assume that it's a UNIQUE constraint violation
             // TODO: need to find a better way to handle errors here
             this.isTitleUnique = false;
-        } else this.reset();
-    }
-
-    reset() {
-        this._entityType = null;
-        this._title = "";
-        this._folderId = ROOT_FOLDER_ID;
-        this._isTitleUnique = true;
+        } else this.onClose.produce();
     }
 }

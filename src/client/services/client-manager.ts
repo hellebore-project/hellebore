@@ -3,27 +3,21 @@ import { ask, open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import { PollEvent, SyncEntryEvent } from "@/client/interface";
-import { EntryViewKey, ModalKey, ViewKey } from "@/client/constants";
-import { EntityType, ROOT_FOLDER_ID, WordType, DomainManager } from "@/domain";
+import { EntryViewKey, ViewKey } from "@/client/constants";
+import { EntityType, WordType, DomainManager } from "@/domain";
 import { Id } from "@/interface";
 
 import { ContextMenuManager } from "./context-menu";
 import { DOMReferenceManager } from "./dom-reference-manager";
-import { EntryCreator } from "./entry-creator";
 import { EntryEditor } from "./entry-editor";
 import { FooterManager } from "./footer-manager";
 import { HeaderManager } from "./header-manager";
 import { HomeManager } from "./home-manager";
+import { ModalManager } from "./modal";
 import { NavigationService } from "./navigation";
-import { ProjectCreator } from "./project-creator";
 import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
 import { Synchronizer } from "./synchronizer";
-
-interface OpenEntryCreatorArguments {
-    entityType?: EntityType;
-    folderId?: Id;
-}
 
 interface OpenEntryEditorArguments {
     id: Id;
@@ -40,7 +34,6 @@ export class ClientManager {
 
     // STATE VARIABLES
     _viewKey: ViewKey = ViewKey.Home;
-    _modalKey: ModalKey | null = null;
 
     // SERVICES
     domain: DomainManager;
@@ -51,8 +44,7 @@ export class ClientManager {
     header: HeaderManager;
     navigation: NavigationService;
     footer: FooterManager;
-    projectCreator: ProjectCreator;
-    entryCreator: EntryCreator;
+    modal: ModalManager;
     contextMenu: ContextMenuManager;
     style: StyleManager;
     domReferences: DOMReferenceManager;
@@ -90,11 +82,8 @@ export class ClientManager {
             },
         });
 
-        // modals
-        this.projectCreator = new ProjectCreator();
-        this.entryCreator = new EntryCreator();
-
-        // context menu
+        // overlays
+        this.modal = new ModalManager();
         this.contextMenu = new ContextMenuManager();
 
         const overrides = {
@@ -107,8 +96,7 @@ export class ClientManager {
             header: false,
             footer: false,
             navigation: false,
-            projectCreator: false,
-            entryCreator: false,
+            modal: false,
             contextMenu: false,
         };
         makeAutoObservable(this, overrides);
@@ -147,14 +135,6 @@ export class ClientManager {
         return null;
     }
 
-    get currentModal() {
-        return this._modalKey;
-    }
-
-    set currentModal(key: ModalKey | null) {
-        this._modalKey = key;
-    }
-
     get viewSize() {
         const window = getCurrentWindow();
         return window.innerSize();
@@ -167,13 +147,20 @@ export class ClientManager {
             this.navigation.files.openEntityNode(id),
         );
 
-        this.header.onCreateProject.subscribe(() => this.openProjectCreator());
+        this.header.onCreateProject.subscribe(() =>
+            this.modal.openProjectCreator(),
+        );
         this.header.onLoadProject.subscribe(() => this.loadProject());
         this.header.onCloseProject.subscribe(() => this.closeProject());
-        this.header.onCreateEntry.subscribe(() => this.openEntryCreator());
+        this.header.onCreateEntry.subscribe(() =>
+            this.modal.openEntryCreator({}),
+        );
         this.header.onOpenSettings.subscribe(() => this.openSettings());
 
         const fileNav = this.navigation.files;
+        fileNav.onCreateEntry.subscribe((args) =>
+            this.modal.openEntryCreator(args),
+        );
         fileNav.onDeleteFolder.subscribe(({ id, confirm }) =>
             this.deleteFolder(id, confirm),
         );
@@ -184,9 +171,11 @@ export class ClientManager {
             this.contextMenu.openForNavBarEntryNode(args),
         );
 
-        this.entryCreator.onCreateEntry.subscribe(
-            ({ entityType, title, folderId }) =>
-                this.createEntry(entityType, title, folderId),
+        this.modal.onCreateProject.subscribe(({ name, dbFilePath }) =>
+            this.createProject(name, dbFilePath),
+        );
+        this.modal.onCreateEntry.subscribe(({ entityType, title, folderId }) =>
+            this.createEntry(entityType, title, folderId),
         );
 
         this.contextMenu.onEditFolderName.subscribe(({ id }) =>
@@ -254,23 +243,6 @@ export class ClientManager {
         else if (viewKey == EntryViewKey.WordEditor)
             return this.entryEditor.openWordEditor(id, wordType);
         throw `Unable to open view with key ${viewKey}.`;
-    }
-
-    openProjectCreator() {
-        this.projectCreator.initialize();
-        this.currentModal = ModalKey.ProjectCreator;
-    }
-
-    openEntryCreator(args?: OpenEntryCreatorArguments) {
-        this.entryCreator.initialize(
-            args?.entityType,
-            args?.folderId ?? ROOT_FOLDER_ID,
-        );
-        this.currentModal = ModalKey.EntryCreator;
-    }
-
-    closeModal() {
-        this.currentModal = null;
     }
 
     // PROJECT HANDLING
@@ -450,7 +422,7 @@ export class ClientManager {
     // CLEAN UP
 
     cleanUp(newViewKey: ViewKey | null = null) {
-        if (this.currentModal) this.closeModal();
+        this.modal.close();
 
         if (this.currentView == ViewKey.EntryEditor) this.entryEditor.cleanUp();
 

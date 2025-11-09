@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { describe, expect } from "vitest";
 
-import { ProjectCreator, EntryCreator } from "@/client/ui/overlays";
+import { Modal } from "@/client/ui/overlays";
 import { Center, Header } from "@/client";
 import { test } from "@tests/unit/base";
 import { render } from "@tests/utils/render";
@@ -33,7 +33,7 @@ test("clicking the New Project button opens the project creator", async ({
     render(
         <>
             <Header />
-            <ProjectCreator />
+            <Modal />
         </>,
     );
 
@@ -77,7 +77,7 @@ test("clicking the New Entry button opens the entry creator", async ({
     render(
         <>
             <Header />
-            <EntryCreator />
+            <Modal />
         </>,
     );
 
