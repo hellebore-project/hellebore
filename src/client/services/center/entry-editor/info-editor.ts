@@ -12,6 +12,7 @@ export class EntryInfoEditor {
     private _title = "";
     private _isTitleUnique = true;
     private _titleChanged = false;
+    private _loaded = false;
 
     onChangeTitle: EventProducer<ChangeEntryEvent, unknown>;
 
@@ -79,10 +80,16 @@ export class EntryInfoEditor {
         this._titleChanged = changed;
     }
 
+    get loaded() {
+        return this._loaded;
+    }
+
     load(id: number, type: EntityType, title: string) {
-        this.entityType = type;
-        this.title = title;
-        this.isTitleUnique = true;
         this.id = id;
+        this.entityType = type;
+        // mutate the private title variable directly to avoid an unnecessary sync
+        this._title = title;
+        this.isTitleUnique = true;
+        this._loaded = true;
     }
 }

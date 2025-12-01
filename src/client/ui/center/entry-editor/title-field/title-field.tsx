@@ -5,7 +5,6 @@ import { IconExclamationCircle } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
 import { EntryInfoEditor, getService } from "@/client";
-import { ENTRY_ID_SENTINEL } from "@/domain";
 import { TextField } from "@/shared/text-field";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
@@ -18,7 +17,7 @@ function renderTitleField({ service }: TitleFieldSettings) {
     const client = getService();
 
     let error: string | null;
-    if (service.id === ENTRY_ID_SENTINEL) error = null;
+    if (!service.loaded) error = null;
     else if (service.title == "") error = "Empty title";
     else if (!service.isTitleUnique) error = "Duplicate title";
     else error = null;
