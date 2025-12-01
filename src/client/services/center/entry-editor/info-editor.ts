@@ -1,10 +1,8 @@
 import { makeAutoObservable } from "mobx";
 
 import { ChangeEntryEvent } from "@/client/interface";
-import { ENTITY_TYPE_LABELS, EntityType } from "@/domain";
+import { ENTITY_TYPE_LABELS, EntityType, ENTRY_ID_SENTINEL } from "@/domain";
 import { EventProducer } from "@/utils/event";
-
-const ENTRY_ID_SENTINEL = -1;
 
 type PrivateKeys = "_titleChanged";
 
@@ -81,18 +79,10 @@ export class EntryInfoEditor {
         this._titleChanged = changed;
     }
 
-    initialize(id: number, type: EntityType, title: string) {
-        this.id = id;
+    load(id: number, type: EntityType, title: string) {
         this.entityType = type;
         this.title = title;
         this.isTitleUnique = true;
-    }
-
-    reset() {
-        this.id = ENTRY_ID_SENTINEL;
-        this.entityType = null;
-        this.title = "";
-        this.isTitleUnique = true;
-        this._titleChanged = false;
+        this.id = id;
     }
 }

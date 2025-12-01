@@ -233,7 +233,7 @@ export class EntryEditor implements ICentralPanelContentManager {
 
         if (entityType && title !== undefined && text !== undefined) {
             this.currentView = EntryViewType.ArticleEditor;
-            this.info.initialize(id, entityType, title);
+            this.info.load(id, entityType, title);
             this.article.initialize(text);
             this.onOpen.produce({ id, viewKey: this.currentView });
         }
@@ -246,11 +246,7 @@ export class EntryEditor implements ICentralPanelContentManager {
 
         if (response !== null) {
             this.currentView = EntryViewType.PropertyEditor;
-            this.info.initialize(
-                id,
-                response.info.entity_type,
-                response.info.title,
-            );
+            this.info.load(id, response.info.entity_type, response.info.title);
             this.properties.initialize(response.properties);
             this.onOpen.produce({ id, viewKey: this.currentView });
         }
@@ -271,7 +267,7 @@ export class EntryEditor implements ICentralPanelContentManager {
 
         if (info !== null) {
             this.currentView = EntryViewType.WordEditor;
-            this.info.initialize(languageId, EntityType.LANGUAGE, info.title);
+            this.info.load(languageId, EntityType.LANGUAGE, info.title);
             this.onOpen.produce({
                 id: languageId,
                 viewKey: this.currentView,
