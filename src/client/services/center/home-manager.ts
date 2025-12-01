@@ -1,12 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
+import { CentralViewType } from "@/client/constants";
+import { ICentralPanelContentManager } from "@/client/interface";
 import { DomainManager } from "@/domain";
-import { IViewManager } from "@/client/interface";
-import { ViewKey } from "@/client/constants";
 
 type PrivateKeys = "_domain";
 
-export class HomeManager implements IViewManager {
+export class HomeManager implements ICentralPanelContentManager {
     _projectName = "";
 
     private _domain: DomainManager;
@@ -17,7 +17,15 @@ export class HomeManager implements IViewManager {
     }
 
     get key() {
-        return ViewKey.Home;
+        return this.type;
+    }
+
+    get type() {
+        return CentralViewType.Home;
+    }
+
+    get details() {
+        return { type: this.type };
     }
 
     get projectName() {
@@ -29,7 +37,15 @@ export class HomeManager implements IViewManager {
         if (name) this._domain.session.updateProject(name);
     }
 
-    initialize(name: string) {
+    load(name: string) {
         this._projectName = name;
+    }
+
+    activate() {
+        return;
+    }
+
+    cleanUp() {
+        return;
     }
 }

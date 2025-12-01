@@ -16,8 +16,6 @@ import {
     SyncEntryResponse,
 } from "../interface";
 
-export type SyncArguments = PollEvent;
-
 export class Synchronizer {
     readonly DEFAULT_SYNC_DELAY_TIME = 5000;
 
@@ -85,7 +83,7 @@ export class Synchronizer {
         syncProperties = false,
         syncText = false,
         syncLexicon = false,
-    }: SyncArguments): Promise<boolean>[] {
+    }: PollEvent): Promise<boolean>[] {
         // this method has to run synchronously;
         // we need to guarantee that the sync request is submitted before the method exits
 

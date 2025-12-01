@@ -3,27 +3,18 @@ import { ask, open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import { PollEvent, SyncEntryEvent } from "@/client/interface";
-import { EntryViewKey, ViewKey } from "@/client/constants";
-import { EntityType, WordType, DomainManager } from "@/domain";
+import { CentralViewType, ViewAction } from "@/client/constants";
+import { EntityType, DomainManager, ProjectResponse } from "@/domain";
 import { Id } from "@/interface";
 
+import { CentralPanelManager } from "./center";
 import { ContextMenuManager } from "./context-menu";
-import { DOMReferenceManager } from "./dom-reference-manager";
-import { EntryEditor } from "./entry-editor";
 import { FooterManager } from "./footer-manager";
 import { HeaderManager } from "./header-manager";
-import { HomeManager } from "./home-manager";
 import { ModalManager } from "./modal";
 import { NavigationService } from "./navigation";
-import { SettingsEditor } from "./settings-editor";
 import { StyleManager } from "./style-manager";
 import { Synchronizer } from "./synchronizer";
-
-interface OpenEntryEditorArguments {
-    id: Id;
-    viewKey: EntryViewKey;
-    wordType?: WordType;
-}
 
 export class ClientManager {
     // CONSTANTS
@@ -32,22 +23,16 @@ export class ClientManager {
     readonly DEFAULT_SPACE_HEIGHT = 20;
     readonly SHARED_PORTAL_ID = "shared-portal";
 
-    // STATE VARIABLES
-    _viewKey: ViewKey = ViewKey.Home;
-
     // SERVICES
     domain: DomainManager;
     synchronizer: Synchronizer;
-    home: HomeManager;
-    entryEditor: EntryEditor;
-    settingsEditor: SettingsEditor;
+    central: CentralPanelManager;
     header: HeaderManager;
     navigation: NavigationService;
     footer: FooterManager;
     modal: ModalManager;
     contextMenu: ContextMenuManager;
     style: StyleManager;
-    domReferences: DOMReferenceManager;
 
     // CONSTRUCTION
 
@@ -58,28 +43,17 @@ export class ClientManager {
 
         // miscellaneous
         this.style = new StyleManager();
-        this.domReferences = new DOMReferenceManager();
 
         // central panel
-        this.home = new HomeManager(this.domain);
-        this.settingsEditor = new SettingsEditor();
-
-        this.entryEditor = new EntryEditor({
+        this.central = new CentralPanelManager({
             domain: this.domain,
-            synchronizer: this.synchronizer,
-            wordEditor: {
-                editableCellRef: this.domReferences.wordTableEditableCell,
-            },
         });
 
         // peripheral panels
         this.header = new HeaderManager(this.domain);
-        this.footer = new FooterManager();
+        this.footer = new FooterManager(this.domain);
         this.navigation = new NavigationService({
             domain: this.domain,
-            files: {
-                editableTextRef: this.domReferences.fileNavEditableText,
-            },
         });
 
         // overlays
@@ -89,7 +63,6 @@ export class ClientManager {
         const overrides = {
             domain: false,
             style: false,
-            domReferences: false,
             home: false,
             settingsEditor: false,
             entryEditor: false,
@@ -118,23 +91,6 @@ export class ClientManager {
         return `#${this.sharedPortalId}`;
     }
 
-    get currentView() {
-        return this._viewKey;
-    }
-
-    set currentView(key: ViewKey) {
-        this._viewKey = key;
-    }
-
-    get isEntryEditorOpen() {
-        return this.currentView == ViewKey.EntryEditor;
-    }
-
-    get entityType() {
-        if (this.isEntryEditorOpen) return this.entryEditor.info.entityType;
-        return null;
-    }
-
     get viewSize() {
         const window = getCurrentWindow();
         return window.innerSize();
@@ -143,8 +99,26 @@ export class ClientManager {
     // STARTUP
 
     private _createSubscriptions() {
-        this.entryEditor.onOpen.subscribe((id) =>
-            this.navigation.files.openEntityNode(id),
+        this.central.onChangePanel.subscribe(({ action, details }) => {
+            if (details.type === CentralViewType.EntryEditor) {
+                if (details.entry === undefined) return;
+
+                if (action === ViewAction.Show)
+                    this.navigation.files.openEntityNode(details.entry.id);
+                if (action === ViewAction.Hide) {
+                    this.navigation.files.openedNode = null;
+                    this.navigation.files.selectedNode = null;
+                }
+            }
+        });
+        this.central.onChangeData.subscribe(() =>
+            this.synchronizer.requestFullSynchronization(),
+        );
+        this.central.onPartialChangeData.subscribe(({ poll }) =>
+            this.synchronizer.requestSynchronization(poll ?? {}),
+        );
+        this.central.onChangeDataDelayed.subscribe(() =>
+            this.synchronizer.requestDelayedSynchronization(),
         );
 
         this.header.onCreateProject.subscribe(() =>
@@ -155,7 +129,7 @@ export class ClientManager {
         this.header.onCreateEntry.subscribe(() =>
             this.modal.openEntryCreator({}),
         );
-        this.header.onOpenSettings.subscribe(() => this.openSettings());
+        this.header.onOpenSettings.subscribe(() => this.central.openSettings());
 
         const fileNav = this.navigation.files;
         fileNav.onCreateEntry.subscribe((args) =>
@@ -200,56 +174,50 @@ export class ClientManager {
 
     async load() {
         const project = await this._fetchProjectInfo();
-        if (project) this._populateNavigator();
+        if (project) this._loadClientForProject(project);
     }
 
     private async _fetchProjectInfo() {
         return this.domain.session.getSession().then((session) => {
             // TODO: trigger UI error state if the project info is unavailable
-            this.home.initialize(session?.project?.name ?? "Error");
             return session?.project ?? null;
         });
     }
 
-    private async _populateNavigator() {
+    private async _loadClientForProject(project: ProjectResponse) {
+        return Promise.allSettled([
+            this._loadNavigator(),
+            this._loadHome(project),
+        ]);
+    }
+
+    private async _loadHome(project: ProjectResponse) {
+        if (this.central.panelCount === 0) {
+            this.central.openHome();
+            return;
+        }
+
+        const panel = this.central.getHomePanel();
+        if (!panel) return;
+
+        panel.load(project.name);
+    }
+
+    private async _loadNavigator() {
         // for now, the navigator is populated with ALL entries;
         // TODO: once entry pinning is supported, fetch the pinned entries from the backend
         const entries = await this.domain.entries.getAll();
         const folders = await this.domain.folders.getAll();
 
-        if (entries && folders) this.navigation.initialize(entries, folders);
-    }
-
-    // VIEWS
-
-    openHome() {
-        this.cleanUp(ViewKey.Home);
-        this.currentView = ViewKey.Home;
-    }
-
-    openSettings() {
-        this.cleanUp(ViewKey.Settings);
-        this.currentView = ViewKey.Settings;
-    }
-
-    async openEntryEditor({ id, viewKey, wordType }: OpenEntryEditorArguments) {
-        this.cleanUp(ViewKey.EntryEditor);
-        this.currentView = ViewKey.EntryEditor;
-
-        if (viewKey == EntryViewKey.ArticleEditor)
-            return this.entryEditor.openArticleEditor({ id });
-        else if (viewKey == EntryViewKey.PropertyEditor)
-            return this.entryEditor.openPropertyEditor(id);
-        else if (viewKey == EntryViewKey.WordEditor)
-            return this.entryEditor.openWordEditor(id, wordType);
-        throw `Unable to open view with key ${viewKey}.`;
+        if (entries !== null && folders !== null)
+            this.navigation.load(entries, folders);
     }
 
     // PROJECT HANDLING
 
     async createProject(name: string, dbFilePath: string) {
         // save any unsynced data before loading a new project
-        this.cleanUp(this.currentView);
+        this.central.clear();
 
         const response = await this.domain.session.createProject(
             name,
@@ -257,9 +225,8 @@ export class ClientManager {
         );
 
         if (response) {
-            this._populateNavigator();
-            this.home.initialize(response.name);
-            this.openHome();
+            this._loadClientForProject(response);
+            this.central.openHome();
         }
 
         return response;
@@ -269,26 +236,24 @@ export class ClientManager {
         const path = await open();
         if (!path) return null;
         // save any unsynced data before loading another project
-        this.cleanUp(this.currentView);
+        this.central.clear();
 
         const response = await this.domain.session.loadProject(path);
         if (response) {
-            this._populateNavigator();
-            this.home.initialize(response.name);
-            this.openHome();
+            this._loadClientForProject(response);
+            this.central.openHome();
         }
         return response;
     }
 
     async closeProject() {
         // save any unsynced data before closing the project
-        this.cleanUp(this.currentView);
+        this.central.clear();
 
         const success = await this.domain.session.closeProject();
         if (success) {
             this.navigation.reset();
-            this.home.initialize("");
-            this.openHome();
+            this.central.openHome();
         }
         return success;
     }
@@ -318,13 +283,20 @@ export class ClientManager {
 
         this.navigation.files.deleteManyNodes(fileIds.entries, fileIds.folders);
 
-        if (
-            this.currentView == ViewKey.EntryEditor &&
-            fileIds.entries.includes(this.entryEditor.info.id)
-        ) {
-            // currently-open entry has been deleted
-            this.openHome();
+        let panelIndex = 0;
+        for (const panel of this.central.iterateOpenPanels()) {
+            if (panel.type !== CentralViewType.EntryEditor) continue;
+
+            const entryId = panel.details.entry?.id;
+            if (entryId === undefined) continue;
+
+            if (fileIds.entries.includes(entryId))
+                this.central.closePanel(panelIndex);
+
+            panelIndex++;
         }
+
+        if (this.central.panelCount == 0) this.central.openHome();
 
         return fileIds;
     }
@@ -340,12 +312,7 @@ export class ClientManager {
 
         if (entry) {
             this.navigation.files.addNodeForCreatedEntry(entry);
-            this.entryEditor.openArticleEditor({
-                id: entry.id,
-                entityType,
-                title: entry.title,
-                text: "",
-            });
+            this.central.openEntryEditor({ id: entry.id });
         }
 
         return entry;
@@ -375,15 +342,21 @@ export class ClientManager {
             // failed to delete the entry; aborting
             return false;
 
-        if (
-            this.currentView == ViewKey.EntryEditor &&
-            this.entryEditor.info.id == id
-        ) {
-            // deleted entry is currently open
-            this.openHome();
+        this.navigation.files.deleteEntityNode(id);
+
+        let panelIndex = 0;
+        for (const panel of this.central.iterateOpenPanels()) {
+            if (panel.type !== CentralViewType.EntryEditor) continue;
+
+            const entryId = panel.details.entry?.id;
+            if (entryId === undefined) continue;
+
+            if (entryId == id) this.central.closePanel(panelIndex);
+
+            panelIndex++;
         }
 
-        this.navigation.files.deleteEntityNode(id);
+        if (this.central.panelCount == 0) this.central.openHome();
 
         return true;
     }
@@ -391,11 +364,11 @@ export class ClientManager {
     // SYNCHRONIZATION
 
     private _fetchChanges(event: PollEvent) {
-        return { entries: this.entryEditor.fetchChanges(event) };
+        return { entries: this.central.fetchChanges(event) };
     }
 
     private _handleEntrySynchronization(event: SyncEntryEvent) {
-        this.entryEditor.handleSynchronization(event);
+        this.central.handleEntrySynchronization(event);
 
         if (
             event.request.title &&
@@ -412,26 +385,14 @@ export class ClientManager {
 
     hook() {
         this.contextMenu.hook();
-
         this.navigation.files.hook();
-
-        const wordSpreadsheet = this.entryEditor.lexicon.spreadsheet;
-        wordSpreadsheet.hook();
+        this.central.hook();
     }
 
     // CLEAN UP
 
-    cleanUp(newViewKey: ViewKey | null = null) {
+    cleanUp() {
         this.modal.close();
-
-        if (this.currentView == ViewKey.EntryEditor) this.entryEditor.cleanUp();
-
-        if (
-            this.isEntryEditorOpen &&
-            (!newViewKey || newViewKey != ViewKey.EntryEditor)
-        ) {
-            this.navigation.files.openedNode = null;
-            this.navigation.files.selectedNode = null;
-        }
+        this.central.clear();
     }
 }

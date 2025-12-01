@@ -1,7 +1,6 @@
 import { makeAutoObservable } from "mobx";
-import { createRef, MouseEvent, RefObject, useEffect } from "react";
+import { MouseEvent } from "react";
 
-import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { isFullyContained } from "@/utils/math-utils";
 
 import {
@@ -15,49 +14,35 @@ import {
     SpreadsheetDataServiceArguments,
 } from "./spreadsheet-data.service";
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";
-
-type PrivateKeys = "_sheetRef";
+import { SpreadsheetReferenceService } from "./spreadsheet-reference.service";
 
 export interface SpreadsheetServiceArguments<K extends string, M> {
-    data: SpreadsheetDataServiceArguments<K, M>;
+    reference: SpreadsheetReferenceService<K, M>;
+    data: Omit<SpreadsheetDataServiceArguments<K, M>, "reference">;
 }
 
 export class SpreadsheetService<K extends string, M> {
-    /** Reference to the parent of the the table element; set at render-time by the outside-event handler. */
-    private _sheetRef: RefObject<HTMLDivElement>;
-
-    outsideEvent: OutsideEventHandlerService;
     data: SpreadsheetDataService<K, M>;
     selection: SpreadsheetSelectionService<K, M>;
+    reference: SpreadsheetReferenceService<K, M>;
 
-    constructor({ data }: SpreadsheetServiceArguments<K, M>) {
-        this._sheetRef = createRef();
-
-        this.outsideEvent = new OutsideEventHandlerService({
-            enabled: true,
-            ref: this._sheetRef,
-            onOutsideEvent: () => this.selection.clear(),
-        });
-        this.data = new SpreadsheetDataService(data);
+    constructor({ data, reference }: SpreadsheetServiceArguments<K, M>) {
+        this.data = new SpreadsheetDataService({ reference, ...data });
         this.selection = new SpreadsheetSelectionService(this.data);
+        this.reference = reference;
 
-        makeAutoObservable<SpreadsheetService<K, M>, PrivateKeys>(this, {
-            // NOTE: making the sheet reference observable prevents
-            // it from getting set by outside-event handler
-            _sheetRef: false,
-            outsideEvent: false,
+        makeAutoObservable(this, {
             data: false,
             selection: false,
+            reference: false,
         });
     }
 
-    get sheetRef() {
-        return this._sheetRef;
-    }
+    // PROPERTIES
 
-    // STATE MANAGEMENT
+    // LOADING
 
-    initialize(
+    load(
         rowData: SpreadsheetRowData<K, M>[],
         columnData: SpreadsheetColumnData<K>[],
     ) {
@@ -68,9 +53,9 @@ export class SpreadsheetService<K extends string, M> {
     // CELLS
 
     private _getCellDomElement(rowIndex: number, colIndex: number) {
-        if (!this.sheetRef.current) return null;
+        if (!this.reference.sheetRef.current) return null;
 
-        const table = this.sheetRef.current.children[0];
+        const table = this.reference.sheetRef.current.children[0];
         const body = table.children[2];
         const row = body.children[rowIndex];
         return row.children[colIndex];
@@ -91,17 +76,18 @@ export class SpreadsheetService<K extends string, M> {
     // FOCUS
 
     private _focus() {
-        if (!this.sheetRef.current) return;
-        this.sheetRef.current.focus();
+        if (!this.reference.sheetRef.current) return;
+        this.reference.sheetRef.current.focus();
     }
 
     // SCROLLING
 
     private _scrollCellIntoView(rowIndex: number, colIndex: number) {
         const cell = this._getCellDomElement(rowIndex, colIndex);
-        if (cell && this.sheetRef.current) {
+        if (cell && this.reference.sheetRef.current) {
             const cellRect = cell.getBoundingClientRect();
-            const sheetRect = this.sheetRef.current.getBoundingClientRect();
+            const sheetRect =
+                this.reference.sheetRef.current.getBoundingClientRect();
 
             if (!isFullyContained(cellRect, sheetRect)) {
                 cell.scrollIntoView({
@@ -114,7 +100,8 @@ export class SpreadsheetService<K extends string, M> {
     }
 
     private _scrollToTop() {
-        if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0;
+        if (this.reference.sheetRef.current)
+            this.reference.sheetRef.current.scrollTop = 0;
     }
 
     // MOUSE
@@ -277,24 +264,23 @@ export class SpreadsheetService<K extends string, M> {
 
     // HOOKS
 
-    hook() {
-        const ref = this.data.editableCellRef;
-        useEffect(() => {
-            if (ref?.current) {
-                if (document.activeElement === ref.current) return;
+    /**
+     * Hooks the spreadsheet service to the spreadsheet reference.
+     */
+    hookToReference() {
+        // NOTE: the spreadsheet service doesn't get hooked to the DOM here,
+        // but to a reference service that is itself hooked to the DOM.
+        // This method may not necessarily be called within a react component,
+        // so we need to avoid creating hooks here.
 
-                // focus the cell field once it has been added to the DOM
-                // so that the user can immediately start editing it
-                ref.current.focus();
+        this.reference.getEditableColumn.clear();
+        this.reference.getEditableColumn.subscribe(
+            () => this.data.editableColumn,
+        );
 
-                if (
-                    this.data.editableCellFieldType ===
-                    SpreadsheetFieldType.SELECT
-                )
-                    ref.current.click(); // expand the dropdown
-            }
-        }, [ref]);
-
-        this.outsideEvent.hook();
+        this.reference.outsideEvent.onTrigger.clear();
+        this.reference.outsideEvent.onTrigger.subscribe(() =>
+            this.selection.clear(),
+        );
     }
 }

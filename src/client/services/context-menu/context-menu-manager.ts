@@ -35,9 +35,9 @@ export class ContextMenuManager {
         this._position = this.DEFAULT_POSITION;
 
         this.outsideEvent = new OutsideEventHandlerService({
-            onOutsideEvent: () => this.close(),
             enabled: false,
         });
+        this.outsideEvent.onTrigger.subscribe(() => this.close());
 
         this.onEditFolderName = new EventProducer();
         this.onDeleteFolder = new EventProducer();

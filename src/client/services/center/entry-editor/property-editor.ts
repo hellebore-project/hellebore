@@ -10,13 +10,13 @@ import {
     PropertyFieldType,
     PropertyFieldData,
     TextPropertyFieldData,
+    ChangeEntryEvent,
 } from "@/client";
-import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
 import { EntryInfoEditor } from "./info-editor";
 
-type PrivateKeys = "_changed" | "_info";
+type PrivateKeys = "_changed";
 
 type FieldDataCollection = Record<number, PropertyFieldData[]>;
 
@@ -29,21 +29,21 @@ export class PropertyEditor {
     fields: FieldDataCollection;
     private _changed = false;
 
-    private _info: EntryInfoEditor;
+    info: EntryInfoEditor;
 
-    onChange: EventProducer<Id, void>;
+    onChange: EventProducer<ChangeEntryEvent, unknown>;
 
     constructor({ info }: PropertyEditorSettings) {
         this.fields = this._generateFieldData();
 
-        this._info = info;
+        this.info = info;
 
         this.onChange = new EventProducer();
 
         makeAutoObservable<PropertyEditor, PrivateKeys>(this, {
             fields: false,
             _changed: false,
-            _info: false,
+            info: false,
             onChange: false,
         });
     }
@@ -64,14 +64,18 @@ export class PropertyEditor {
         this._changed = changed;
     }
 
+    get fieldData(): PropertyFieldData[] {
+        return this.fields[this.info.entityType as EntityType] ?? [];
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     set(key: string, value: any) {
         try {
-            if (this._info.entityType == EntityType.PERSON)
+            if (this.info.entityType == EntityType.PERSON)
                 this._setPersonProperty(key, value);
             else {
                 console.error(
-                    `Unable to set property ${key} for an entity of type ${this._info.entityType}.`,
+                    `Unable to set property ${key} for an entity of type ${this.info.entityType}.`,
                 );
                 return;
             }
@@ -80,7 +84,7 @@ export class PropertyEditor {
             return;
         }
         this._changed = true;
-        this.onChange.produce(this._info.id);
+        this.onChange.produce({ id: this.info.id });
     }
 
     initialize<E extends BaseEntity>(entity: E) {

@@ -82,7 +82,7 @@ function renderSpreadsheetCell<K extends string, M>({
         if (colData.type === SpreadsheetFieldType.TEXT) {
             field = (
                 <TextField
-                    ref={service.data.editableCellRef}
+                    ref={service.reference.editableCellRef}
                     value={data.value}
                     onChange={(e) =>
                         service.data.editCell(
@@ -104,7 +104,7 @@ function renderSpreadsheetCell<K extends string, M>({
         } else if (colData.type === SpreadsheetFieldType.SELECT) {
             field = (
                 <SelectField
-                    ref={service.data.editableCellRef}
+                    ref={service.reference.editableCellRef}
                     placeholder=""
                     clearable={false}
                     allowDeselect={false}
@@ -211,7 +211,7 @@ function renderSpreadsheet<K extends string, M>({
     return (
         <OutsideEventHandler
             className="spreadsheet"
-            service={service.outsideEvent}
+            service={service.reference.outsideEvent}
             tabIndex={0}
             onKeyDown={(e) => service.handleKeyDown(e)}
             {...rest}

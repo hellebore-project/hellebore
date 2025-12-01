@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
+import { ChangeEntryEvent } from "@/client/interface";
 import { ENTITY_TYPE_LABELS, EntityType } from "@/domain";
-import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
 const ENTRY_ID_SENTINEL = -1;
@@ -15,7 +15,7 @@ export class EntryInfoEditor {
     private _isTitleUnique = true;
     private _titleChanged = false;
 
-    onChangeTitle: EventProducer<Id, void>;
+    onChangeTitle: EventProducer<ChangeEntryEvent, unknown>;
 
     constructor() {
         this.onChangeTitle = new EventProducer();
@@ -55,7 +55,10 @@ export class EntryInfoEditor {
 
         this._title = title;
         this._titleChanged = true;
-        this.onChangeTitle.produce(this.id);
+
+        // the sync will be happen immediately so that the title can validated in real-time;
+        // to speed things up, we only sycn the title
+        this.onChangeTitle.produce({ id: this._id, poll: { syncTitle: true } });
     }
 
     get isTitleUnique() {

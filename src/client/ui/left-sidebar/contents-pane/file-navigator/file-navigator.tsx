@@ -14,7 +14,7 @@ import { DndProvider } from "react-dnd";
 
 import { BaseGroupSettings } from "@/interface";
 import {
-    EntryViewKey,
+    EntryViewType,
     FileNodeData,
     FileNodeModel,
     getService,
@@ -57,8 +57,8 @@ function renderFileNavItem({
         // in case of an entry node, open the corresponding entry in the editor
         if (!fileNav.isFolderNode(node)) {
             const id = fileNav.convertNodeIdToEntryId(node.id);
-            service
-                .openEntryEditor({ id, viewKey: EntryViewKey.ArticleEditor })
+            service.central
+                .openEntryEditor({ id, viewKey: EntryViewType.ArticleEditor })
                 .then(() => fileNav.openNode(node));
         }
     };

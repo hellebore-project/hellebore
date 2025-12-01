@@ -1,7 +1,5 @@
 import { makeAutoObservable } from "mobx";
-
-import {} from "@/interface";
-import { ObservableReference } from "@/shared/observable-reference";
+import { createRef } from "react";
 
 import {
     AddRowHandler,
@@ -12,17 +10,18 @@ import {
     SpreadsheetColumnData,
     SpreadsheetFieldType,
 } from "./spreadsheet.interface";
+import { SpreadsheetReferenceService } from "./spreadsheet-reference.service";
 
 type PrivateKeys =
     | "_rowCache"
     | "_selectedCellCount"
-    | "_editableCellRef"
+    | "_reference"
     | "_onAddRow"
     | "_onDeleteRow"
     | "_onEditCell";
 
 export interface SpreadsheetDataServiceArguments<K extends string, M> {
-    editableCellRef: ObservableReference<HTMLInputElement>;
+    reference: SpreadsheetReferenceService<K, M>;
     onAddRow?: AddRowHandler;
     onDeleteRow?: DeleteRowHandler<K, M>;
     onEditCell?: EditCellHandler<K, M>;
@@ -36,14 +35,15 @@ export class SpreadsheetDataService<K extends string, M> {
     private _selectedCellCount = 0;
 
     private _editableCell: SpreadsheetCellData | null = null;
-    private _editableCellRef: ObservableReference<HTMLInputElement>;
+
+    private _reference: SpreadsheetReferenceService<K, M>;
 
     private _onAddRow?: AddRowHandler;
     private _onDeleteRow?: DeleteRowHandler<K, M>;
     private _onEditCell?: EditCellHandler<K, M>;
 
     constructor({
-        editableCellRef,
+        reference,
         onAddRow,
         onDeleteRow,
         onEditCell,
@@ -52,7 +52,7 @@ export class SpreadsheetDataService<K extends string, M> {
         this._rowCache = new Map();
         this._columns = [];
 
-        this._editableCellRef = editableCellRef;
+        this._reference = reference;
 
         this._onAddRow = onAddRow;
         this._onDeleteRow = onDeleteRow;
@@ -61,7 +61,7 @@ export class SpreadsheetDataService<K extends string, M> {
         makeAutoObservable<SpreadsheetDataService<K, M>, PrivateKeys>(this, {
             _rowCache: false,
             _selectedCellCount: false,
-            _editableCellRef: false,
+            _reference: false,
             _onAddRow: false,
             _onDeleteRow: false,
             _onEditCell: false,
@@ -88,19 +88,13 @@ export class SpreadsheetDataService<K extends string, M> {
         return this._selectedCellCount;
     }
 
-    get editableCellRef() {
-        return this._editableCellRef.reference;
-    }
-
     get editableCell() {
         return this._editableCell;
     }
 
-    get editableCellFieldType() {
+    get editableColumn() {
         if (!this._editableCell || !this._editableCell.position) return null;
-
-        const col = this._columns[this._editableCell.position.col];
-        return col.type;
+        return this._columns[this._editableCell.position.col];
     }
 
     initialize(
@@ -268,13 +262,13 @@ export class SpreadsheetDataService<K extends string, M> {
 
         if (!cell.editable && editable) {
             this._editableCell = cell;
-            this._editableCellRef.create();
+            this._reference.editableCellRef = createRef();
             cell.oldValue = row.cells[col.key].value;
             cell.position = { row: rowIndex, col: colIndex };
             cell.editable = true;
         } else if (cell.editable && !editable) {
             this._editableCell = null;
-            this._editableCellRef.clear();
+            this._reference.editableCellRef = null;
             delete cell.oldValue;
             cell.editable = false;
         }

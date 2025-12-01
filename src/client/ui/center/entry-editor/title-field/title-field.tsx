@@ -4,16 +4,21 @@ import { Divider, Group, Popover, Text } from "@mantine/core";
 import { IconExclamationCircle } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "@/client";
+import { EntryInfoEditor, getService } from "@/client";
 import { TextField } from "@/shared/text-field";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 
-function renderTitleField() {
-    const service = getService();
+interface TitleFieldSettings {
+    service: EntryInfoEditor;
+}
+
+function renderTitleField({ service }: TitleFieldSettings) {
+    const client = getService();
+
     let error: string | null = null;
-    if (service.entryEditor.info.title == "") error = "Empty title";
-    if (!service.entryEditor.info.isTitleUnique) error = "Duplicate title";
+    if (service.title == "") error = "Empty title";
+    if (!service.isTitleUnique) error = "Duplicate title";
 
     let className = "title-field";
     if (error) className += " error";
@@ -24,7 +29,7 @@ function renderTitleField() {
                 opened={Boolean(error)}
                 position="right"
                 withArrow
-                portalProps={{ target: service.sharedPortalSelector }}
+                portalProps={{ target: client.sharedPortalSelector }}
             >
                 <Popover.Target>
                     <TextField
@@ -32,10 +37,9 @@ function renderTitleField() {
                         variant="unstyled"
                         styles={TITLE_FIELD_STYLES}
                         placeholder="Title"
-                        getValue={() => service.entryEditor.info.title}
+                        getValue={() => service.title}
                         onChange={(event) => {
-                            service.entryEditor.info.title =
-                                event.currentTarget.value;
+                            service.title = event.currentTarget.value;
                         }}
                     />
                 </Popover.Target>

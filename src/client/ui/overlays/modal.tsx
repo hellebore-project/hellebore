@@ -1,7 +1,7 @@
 import { Modal as MantineModal } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { ModalKey } from "@/client/constants";
+import { ModalType } from "@/client/constants";
 import { getService } from "@/client/services";
 
 import { ProjectCreator } from "./project-creator";
@@ -11,10 +11,11 @@ function renderModalContent() {
     const modalManager = getService().modal;
     if (!modalManager.modalKey) return null;
 
-    if (modalManager.modalKey == ModalKey.ProjectCreator)
+    if (modalManager.modalKey == ModalType.ProjectCreator)
         return <ProjectCreator />;
 
-    if (modalManager.modalKey == ModalKey.EntryCreator) return <EntryCreator />;
+    if (modalManager.modalKey == ModalType.EntryCreator)
+        return <EntryCreator />;
 
     throw `Modal key ${modalManager.modalKey} not recognized.`;
 }
