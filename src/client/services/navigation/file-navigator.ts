@@ -21,22 +21,16 @@ import {
     BulkFileData,
     DomainManager,
 } from "@/domain";
-import { ObservableReference } from "@/shared/observable-reference";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { Counter } from "@/utils/counter";
 import { EventProducer } from "@/utils/event";
 
 import { NavigatorErrorManager } from "./navigator-error-manager";
 
-type PrivateKeys =
-    | "_nodePositionCache"
-    | "_tree"
-    | "_editableTextRef"
-    | "_domain";
+type PrivateKeys = "_nodePositionCache" | "_tree" | "_domain";
 
 export interface FileNavigatorArguments {
     domain: DomainManager;
-    editableTextRef: ObservableReference<HTMLInputElement>;
 }
 
 export class FileNavigator {
@@ -51,6 +45,7 @@ export class FileNavigator {
     private _focused = false;
     private _hover = false;
     private _selectedNode: FileNodeModel | null = null;
+    /** Node associated with the currently open file. */
     private _openedNode: FileNodeModel | null = null;
 
     // REFERENCES
@@ -59,7 +54,11 @@ export class FileNavigator {
      * Its handlers must be called inside a component function to ensure that the DOM is updated.
      */
     private _tree: RefObject<TreeMethods>;
-    private _editableTextRef: ObservableReference<HTMLInputElement>;
+    /**
+     * Reference to the text field of the editable node, if it exists.
+     * Must be observable so that the useEffect hook works.
+     */
+    editableTextRef: RefObject<HTMLInputElement> | null = null;
 
     // SERVICES
     _placeholderIdGenerator: Counter;
@@ -76,20 +75,19 @@ export class FileNavigator {
     onOpenFolderContext: EventProducer<OpenFileContextMenuEvent, unknown>;
     onOpenEntryContext: EventProducer<OpenFileContextMenuEvent, unknown>;
 
-    constructor({ domain, editableTextRef }: FileNavigatorArguments) {
+    constructor({ domain }: FileNavigatorArguments) {
         this._nodes = [];
         this._nodePositionCache = {};
 
         this._tree = createRef();
-        this._editableTextRef = editableTextRef;
 
         this._placeholderIdGenerator = new Counter();
         this.outsideEvent = new OutsideEventHandlerService({
             enabled: true,
-            onOutsideEvent: () => {
-                this.focused = false;
-                this.selectedNode = null;
-            },
+        });
+        this.outsideEvent.onTrigger.subscribe(() => {
+            this.focused = false;
+            this.selectedNode = null;
         });
         this.errorManager = new NavigatorErrorManager();
         this._domain = domain;
@@ -103,7 +101,6 @@ export class FileNavigator {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
             _tree: false,
-            _editableTextRef: false,
             outsideEvent: false,
             errorManager: false,
             _domain: false,
@@ -124,10 +121,6 @@ export class FileNavigator {
 
     set tree(ref: RefObject<TreeMethods>) {
         this._tree = ref;
-    }
-
-    get editableTextRef() {
-        return this._editableTextRef.reference;
     }
 
     get nodes() {
@@ -372,7 +365,7 @@ export class FileNavigator {
     ) {
         this._addNodeData(node, { isEditable: true, editableText: text });
 
-        this._editableTextRef.create();
+        this.editableTextRef = createRef();
 
         if (index === null) {
             index = this._nodes.length;
@@ -514,7 +507,7 @@ export class FileNavigator {
 
     private _endNodeTextEdit(node: FileNodeModel) {
         this.clearNodeError(node);
-        if (this._editableTextRef.exists) this._editableTextRef.clear();
+        if (this.editableTextRef) this.editableTextRef = null;
     }
 
     // NODE ERROR
@@ -522,12 +515,12 @@ export class FileNavigator {
     setNodeError(node: FileNodeModel, error: string) {
         this._addNodeData(node, { error });
 
-        if (!this._editableTextRef) {
+        if (!this.editableTextRef) {
             console.error(`Cannot edit node ${node.id} while it's read-only.`);
             return;
         }
 
-        const element = this._editableTextRef.current;
+        const element = this.editableTextRef.current;
 
         const elementPos = element?.getBoundingClientRect();
         if (!elementPos) {
@@ -544,7 +537,7 @@ export class FileNavigator {
             right: elementPos.right + 1,
         };
 
-        if (!this._editableTextRef.exists) this._editableTextRef.create();
+        if (!this.editableTextRef) this.editableTextRef = createRef();
         this.errorManager.open(error, errorPos);
     }
 
@@ -788,7 +781,7 @@ export class FileNavigator {
     // HOOKS
 
     hook() {
-        const ref = this._editableTextRef.reference;
+        const ref = this.editableTextRef;
         useEffect(() => {
             if (ref?.current) {
                 // focus the text field once it has been added to the DOM

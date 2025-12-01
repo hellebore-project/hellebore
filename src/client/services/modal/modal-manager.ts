@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { ModalKey } from "@/client/constants";
+import { ModalType } from "@/client/constants";
 import {
     CreateEntryEvent,
     CreateProjectEvent,
@@ -14,7 +14,7 @@ import { EntryCreator } from "./entry-creator";
 import { ProjectCreator } from "./project-creator";
 
 export class ModalManager {
-    private _modalKey: ModalKey | null = null;
+    private _modalKey: ModalType | null = null;
     content: IModalContentManager | null = null;
 
     // EVENTS
@@ -59,7 +59,7 @@ export class ModalManager {
     private _open(modal: IModalContentManager) {
         modal.onClose.subscribe(() => this.close());
         this.content = modal;
-        this._modalKey = modal.key as ModalKey;
+        this._modalKey = modal.key as ModalType;
     }
 
     close() {

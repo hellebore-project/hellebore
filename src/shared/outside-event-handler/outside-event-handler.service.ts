@@ -2,22 +2,19 @@ import { addEventListener } from "consolidated-events";
 import { makeAutoObservable } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
+import { EventProducer } from "@/utils/event";
+
 // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent
 const MOUSE_DOWN_EVENT = "mousedown";
 const MOUSE_UP_EVENT = "mouseup";
 
-type PrivateKeys =
-    | "_ref"
-    | "_onOutsideEvent"
-    | "_removeMouseDown"
-    | "_removeMouseUp";
+type PrivateKeys = "_ref" | "_removeMouseDown" | "_removeMouseUp";
 
 type RemoveEventListener = () => void;
 
 interface OutsideEventHandlerServiceArguments {
     enabled?: boolean;
     ref?: RefObject<HTMLDivElement>;
-    onOutsideEvent: (e: Event) => void;
 }
 
 export class OutsideEventHandlerService {
@@ -25,26 +22,22 @@ export class OutsideEventHandlerService {
     /** Set by the handler itself, so passing a null reference is acceptable. */
     private _ref: RefObject<HTMLDivElement>;
 
-    private _onOutsideEvent: (e: Event) => void;
+    onTrigger: EventProducer<Event, void>;
     private _removeMouseDown: RemoveEventListener | null = null;
     private _removeMouseUp: RemoveEventListener | null = null;
 
-    constructor({
-        onOutsideEvent,
-        ref,
-        enabled = true,
-    }: OutsideEventHandlerServiceArguments) {
+    constructor({ ref, enabled = true }: OutsideEventHandlerServiceArguments) {
         this._enabled = enabled;
 
         this._ref = ref ?? createRef();
 
-        this._onOutsideEvent = onOutsideEvent;
+        this.onTrigger = new EventProducer();
         this._onMouseDown = this._onMouseDown.bind(this);
         this._onMouseUp = this._onMouseUp.bind(this);
 
         makeAutoObservable<OutsideEventHandlerService, PrivateKeys>(this, {
             _ref: false,
-            _onOutsideEvent: false,
+            onTrigger: false,
             _removeMouseDown: false,
             _removeMouseUp: false,
         });
@@ -95,7 +88,7 @@ export class OutsideEventHandlerService {
         if (!this.ref.current) return;
         if (this.ref.current.contains(e.target as Node)) return;
 
-        this._onOutsideEvent(e);
+        this.onTrigger.produce(e);
     }
 
     private _addMouseDownEventListener() {

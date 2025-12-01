@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { CreateProjectEvent, IModalContentManager } from "@/client/interface";
-import { ModalKey } from "@/client/constants";
+import { ModalType } from "@/client/constants";
 import { EventProducer } from "@/utils/event";
 
 export class ProjectCreator implements IModalContentManager {
@@ -20,7 +20,7 @@ export class ProjectCreator implements IModalContentManager {
     }
 
     get key() {
-        return ModalKey.ProjectCreator;
+        return ModalType.ProjectCreator;
     }
 
     get name() {

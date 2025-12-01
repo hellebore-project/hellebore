@@ -8,7 +8,7 @@ function renderFooter() {
     return (
         <Group pl={8} h={25}>
             <Text size="xs" lineClamp={1}>
-                {service.domain.projectName ?? ""}
+                {service.footer.text}
             </Text>
         </Group>
     );

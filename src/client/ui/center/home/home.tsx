@@ -4,25 +4,30 @@ import { observer } from "mobx-react-lite";
 import { getService } from "@/client";
 import { DIVIDER, SPACE } from "@/shared/common";
 import { TextField } from "@/shared/text-field";
+import { HomeManager } from "@/client/services";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 
-function renderHome() {
-    const service = getService();
-    if (!service.domain.hasProject) return null;
+interface HomeSettings {
+    service: HomeManager;
+}
+
+function renderHome({ service }: HomeSettings) {
+    const clientManager = getService();
+    if (!clientManager.domain.hasProject) return null;
     return (
         <Box className="home">
             <TextField
                 variant="unstyled"
                 mx="12"
                 placeholder="Wiki"
-                getValue={() => service.home.projectName}
+                getValue={() => service.projectName}
                 getError={() => {
-                    if (service.home.projectName == "") return "Empty title";
+                    if (service.projectName == "") return "Empty title";
                     return null;
                 }}
                 onChange={(event) =>
-                    (service.home.projectName = event.currentTarget.value)
+                    (service.projectName = event.currentTarget.value)
                 }
                 styles={TITLE_FIELD_STYLES}
             />

@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 import { FormEvent } from "react";
 
 import { EntryInfoResponse, EntityType, ROOT_FOLDER_ID } from "@/domain";
-import { ModalKey } from "@/client/constants";
+import { ModalType } from "@/client/constants";
 import { CreateEntryEvent, IModalContentManager } from "@/client/interface";
 import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
@@ -31,7 +31,7 @@ export class EntryCreator implements IModalContentManager {
     }
 
     get key() {
-        return ModalKey.EntryCreator;
+        return ModalType.EntryCreator;
     }
 
     get entryTitle() {

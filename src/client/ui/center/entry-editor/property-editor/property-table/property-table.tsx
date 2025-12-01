@@ -4,7 +4,11 @@ import { Card, CardProps, Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { PropsWithChildren, ReactNode } from "react";
 
-import { getService, PropertyFieldType, TextPropertyFieldData } from "@/client";
+import {
+    PropertyEditor,
+    PropertyFieldType,
+    TextPropertyFieldData,
+} from "@/client";
 import { TextField } from "@/shared/text-field";
 
 interface PropertyRowSettings extends PropsWithChildren {
@@ -12,6 +16,7 @@ interface PropertyRowSettings extends PropsWithChildren {
 }
 
 interface PropertyTableSettings extends CardProps {
+    service: PropertyEditor;
     stackSettings?: StackProps;
 }
 
@@ -44,11 +49,15 @@ function renderPropertyFieldRow({ label, children }: PropertyRowSettings) {
 const PropertyFieldRow = observer(renderPropertyFieldRow);
 
 function renderPropertyTable({
+    service,
     stackSettings,
     ...rest
 }: PropertyTableSettings) {
-    const data = getService().entryEditor.fieldData;
+    // TODO: delay accessing the field data;
+    // the field data should be accessed by the individual PropertyFieldRows
+    const data = service.fieldData;
     if (data.length == 0) return null;
+
     const rows = data.map((fieldData) => {
         let field: ReactNode = null;
         if (fieldData.type == PropertyFieldType.TEXT)

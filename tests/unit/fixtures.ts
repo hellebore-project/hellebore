@@ -17,7 +17,7 @@ import {
     mockGetSession,
 } from "@tests/utils/mocks";
 
-export interface BaseUnitFixtures {
+export interface BaseUnitTestFixtures {
     dbFilePath: string;
     project: ProjectResponse;
     entities: EntryInfoResponse[];
@@ -31,7 +31,7 @@ export interface BaseUnitFixtures {
 // NOTE: the first argument inside a fixture must use the object destructuring pattern;
 // don't get rid of the empty objects in the arrow functions below
 
-export const test = baseTest.extend<BaseUnitFixtures>({
+export const test = baseTest.extend<BaseUnitTestFixtures>({
     // data
     dbFilePath: ["mocked/db/file/path", { injected: true }],
     project: [{ id: 1, name: "mocked-project" }, { injected: true }],
@@ -67,7 +67,7 @@ export const test = baseTest.extend<BaseUnitFixtures>({
         { auto: true },
     ],
 
-    // service
+    // services
     service: [
         async (
             { mockedInvoker, dbFilePath, project, entities, folders },

@@ -2,11 +2,10 @@ import { makeAutoObservable } from "mobx";
 
 import { DomainManager, EntryInfoResponse, FolderResponse } from "@/domain";
 
-import { FileNavigator, FileNavigatorArguments } from "./file-navigator";
+import { FileNavigator } from "./file-navigator";
 
 export interface NavigationServiceArguments {
     domain: DomainManager;
-    files: Omit<FileNavigatorArguments, "domain">;
 }
 
 export class NavigationService {
@@ -16,8 +15,8 @@ export class NavigationService {
 
     files: FileNavigator;
 
-    constructor({ domain, files }: NavigationServiceArguments) {
-        this.files = new FileNavigator({ domain, ...files });
+    constructor({ domain }: NavigationServiceArguments) {
+        this.files = new FileNavigator({ domain });
         makeAutoObservable(this, { files: false });
     }
 
@@ -33,7 +32,7 @@ export class NavigationService {
         this._mobileOpen = open;
     }
 
-    initialize(entities: EntryInfoResponse[], folders: FolderResponse[]) {
+    load(entities: EntryInfoResponse[], folders: FolderResponse[]) {
         this.files.initialize(entities, folders);
     }
 

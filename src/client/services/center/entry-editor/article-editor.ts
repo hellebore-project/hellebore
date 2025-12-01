@@ -4,6 +4,7 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
+import { ChangeEntryEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
 import { Id } from "@/interface";
 import {
@@ -14,7 +15,7 @@ import { EventProducer } from "@/utils/event";
 
 import { EntryInfoEditor } from "./info-editor";
 
-type PrivateKeys = "_changed" | "_domain" | "_info";
+type PrivateKeys = "_changed" | "_domain";
 
 interface ArticleEditorSettings {
     domain: DomainManager;
@@ -27,14 +28,14 @@ export class ArticleEditor {
     private _selectedRefIndex: number | null = null;
 
     private _domain: DomainManager;
-    private _info: EntryInfoEditor;
+    info: EntryInfoEditor;
 
-    onChange: EventProducer<Id, void>;
+    onChange: EventProducer<ChangeEntryEvent, unknown>;
     onSelectReference: EventProducer<Id, void>;
 
     constructor({ domain, info }: ArticleEditorSettings) {
         this._domain = domain;
-        this._info = info;
+        this.info = info;
 
         this.onChange = new EventProducer();
         this.onSelectReference = new EventProducer();
@@ -44,7 +45,7 @@ export class ArticleEditor {
         makeAutoObservable<ArticleEditor, PrivateKeys>(this, {
             _changed: false,
             _domain: false,
-            _info: false,
+            info: false,
             onChange: false,
             onSelectReference: false,
         });
@@ -113,14 +114,14 @@ export class ArticleEditor {
     _updateEditor(editor: Editor) {
         this.editor = editor;
         this._changed = true;
-        this.onChange.produce(this._info.id);
+        this.onChange.produce({ id: this.info.id });
     }
 
     _queryByTitle(titleFragment: string): SuggestionData[] {
         this.selectedRefIndex = 0;
         return this._domain.entries
             .queryByTitle(titleFragment)
-            .filter((info) => info.id != this._info.id)
+            .filter((info) => info.id != this.info.id)
             .map((info) => ({ label: info.title, value: info.id }));
     }
 

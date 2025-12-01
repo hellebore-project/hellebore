@@ -4,11 +4,14 @@ import {
     EntryTextUpdateResponse,
     EntryTitleUpdateResponse,
     EntryUpdateResponse,
+    WordType,
     WordUpsertResponse,
 } from "@/domain";
 import { Id, Point } from "@/interface";
 
 import { Word } from "./word";
+import { EntryViewType, ViewAction } from "../constants";
+import { CentralPanelInfo } from "./central-panel";
 
 // PROJECT EVENTS
 
@@ -35,6 +38,11 @@ export interface CreateEntryEvent {
     entityType: EntityType;
     title: string;
     folderId: Id;
+}
+
+export interface ChangeEntryEvent {
+    id: Id;
+    poll?: PollEvent;
 }
 
 export interface DeleteEntryEvent {
@@ -87,11 +95,22 @@ export interface SyncEntryEvent {
     response: SyncEntryResponse;
 }
 
-// OPEN VIEW EVENTS
+// VIEW EVENTS
 
 export interface OpenEntryCreatorEvent {
     entityType?: EntityType;
     folderId?: Id;
+}
+
+export interface OpenEntryEditorEvent {
+    id: Id;
+    viewKey?: EntryViewType;
+    wordType?: WordType;
+}
+
+export interface ChangeCentralPanelEvent {
+    action: ViewAction;
+    details: CentralPanelInfo;
 }
 
 // CONTEXT MENU EVENTS

@@ -3,46 +3,64 @@ import "./word-editor.css";
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService, WordViewKey } from "@/client";
+import {
+    WordColumnKeys,
+    WordEditor as WordEditorService,
+    WordMetaData,
+    WordViewType,
+} from "@/client";
 import { SPACE } from "@/shared/common";
+import { Spreadsheet, SpreadsheetService } from "@/shared/spreadsheet";
 import { TabData, Tabs } from "@/shared/tabs";
 
-import { WordTable } from "./word-table";
 import { TitleField } from "../title-field";
 
 const TAB_DATA: TabData[] = [
-    { label: "Root Words", value: WordViewKey.RootWords },
-    { label: "Determiners", value: WordViewKey.Determiners },
-    { label: "Prepositions", value: WordViewKey.Prepositions },
-    { label: "Conjunctions", value: WordViewKey.Conjunctions },
-    { label: "Pronouns", value: WordViewKey.Pronouns },
-    { label: "Nouns", value: WordViewKey.Nouns },
-    { label: "Adjectives", value: WordViewKey.Adjectives },
-    { label: "Adverbs", value: WordViewKey.Adverbs },
-    { label: "Verbs", value: WordViewKey.Verbs },
+    { label: "Root Words", value: WordViewType.RootWords },
+    { label: "Determiners", value: WordViewType.Determiners },
+    { label: "Prepositions", value: WordViewType.Prepositions },
+    { label: "Conjunctions", value: WordViewType.Conjunctions },
+    { label: "Pronouns", value: WordViewType.Pronouns },
+    { label: "Nouns", value: WordViewType.Nouns },
+    { label: "Adjectives", value: WordViewType.Adjectives },
+    { label: "Adverbs", value: WordViewType.Adverbs },
+    { label: "Verbs", value: WordViewType.Verbs },
 ];
 
-function renderWordEditor() {
-    const wordEditor = getService().entryEditor.lexicon;
+interface WordTableSettings {
+    service: SpreadsheetService<WordColumnKeys, WordMetaData>;
+}
+
+interface WordEditorSettings {
+    service: WordEditorService;
+}
+
+function renderWordTable({ service }: WordTableSettings) {
+    return <Spreadsheet service={service} />;
+}
+
+export const WordTable = observer(renderWordTable);
+
+function renderWordEditor({ service }: WordEditorSettings) {
     return (
         <Container className="word-editor">
             <Stack className="word-editor-stack" justify="flex-start" gap={0}>
-                <TitleField />
+                <TitleField service={service.info} />
                 {SPACE}
 
                 <Tabs
                     data={TAB_DATA}
-                    selectedValue={wordEditor.viewKey}
+                    selectedValue={service.viewKey}
                     className="word-editor-tabs"
                     tabSettings={{
                         onClick: (e) =>
-                            wordEditor.changeView(
-                                e.currentTarget.value as WordViewKey,
+                            service.changeView(
+                                e.currentTarget.value as WordViewType,
                             ),
                     }}
                 />
 
-                <WordTable />
+                <Spreadsheet service={service.spreadsheet} />
             </Stack>
         </Container>
     );

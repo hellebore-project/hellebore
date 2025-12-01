@@ -3,7 +3,7 @@ import "./entry-editor.css";
 import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntryViewKey, getService } from "@/client";
+import { EntryEditor as EntryEditorService, EntryViewType } from "@/client";
 import { EntityType } from "@/domain";
 import {
     TableOfContents,
@@ -15,82 +15,56 @@ import { WordEditor } from "./word-editor/word-editor";
 import { DeleteEntryButton } from "./delete-entry-button";
 import { ArticleEditor } from "./article-editor";
 
-const ARTICLE_TAB_DATA: TableOfContentsItemData = {
-    label: "Article",
-    value: EntryViewKey.ArticleEditor,
-    rank: 1,
-    onClick: () => {
-        const service = getService();
-        service.openEntryEditor({
-            id: service.entryEditor.info.id,
-            viewKey: EntryViewKey.ArticleEditor,
-        });
-    },
-};
+interface EntryEditorSettings {
+    service: EntryEditorService;
+}
 
-const PROPERTY_TAB_DATA: TableOfContentsItemData = {
-    label: "Properties",
-    value: EntryViewKey.PropertyEditor,
-    rank: 1,
-    onClick: () => {
-        const service = getService();
-        service.openEntryEditor({
-            id: service.entryEditor.info.id,
-            viewKey: EntryViewKey.PropertyEditor,
-        });
-    },
-};
-
-const LEXICON_TAB_DATA: TableOfContentsItemData = {
-    label: "Lexicon",
-    value: EntryViewKey.WordEditor,
-    rank: 1,
-    onClick: () => {
-        const service = getService();
-        service.openEntryEditor({
-            id: service.entryEditor.info.id,
-            viewKey: EntryViewKey.WordEditor,
-        });
-    },
-};
-
-function renderEntryEditorHeader() {
-    const service = getService();
+function renderEntryEditorHeader({ service }: EntryEditorSettings) {
     return (
         <Group className="entry-editor-header">
             <Badge variant="outline" color="blue">
-                {service.entryEditor.info.entityTypeLabel}
+                {service.info.entityTypeLabel}
             </Badge>
             <div className="grow" />
-            <DeleteEntryButton />
+            <DeleteEntryButton service={service} />
         </Group>
     );
 }
 
 const EntryEditorHeader = observer(renderEntryEditorHeader);
 
-function renderEntryEditorContent() {
-    const service = getService();
-    const viewKey = service.entryEditor.currentView;
-    if (viewKey === EntryViewKey.ArticleEditor) return <ArticleEditor />;
-    if (viewKey === EntryViewKey.PropertyEditor) return <PropertyEditor />;
-    if (viewKey === EntryViewKey.WordEditor) return <WordEditor />;
+function renderEntryEditorContent({ service }: EntryEditorSettings) {
+    const viewKey = service.currentView;
+    if (viewKey === EntryViewType.ArticleEditor)
+        return <ArticleEditor service={service.article} />;
+    if (viewKey === EntryViewType.PropertyEditor)
+        return <PropertyEditor service={service.properties} />;
+    if (viewKey === EntryViewType.WordEditor)
+        return <WordEditor service={service.lexicon} />;
     return null;
 }
 
 const EntryEditorContent = observer(renderEntryEditorContent);
 
-function renderEntryEditorTabs() {
-    const service = getService();
-    const entityType = service.entityType;
+function renderEntryEditorTabs({ service }: EntryEditorSettings) {
+    const entryType = service.entryType;
 
     const tabData: TableOfContentsItemData[] = [
-        ARTICLE_TAB_DATA,
-        PROPERTY_TAB_DATA,
+        service.tabData.get(
+            EntryViewType.ArticleEditor,
+        ) as TableOfContentsItemData,
+        service.tabData.get(
+            EntryViewType.PropertyEditor,
+        ) as TableOfContentsItemData,
     ];
-    if (entityType === EntityType.LANGUAGE) tabData.push(LEXICON_TAB_DATA);
+    if (entryType === EntityType.LANGUAGE)
+        tabData.push(
+            service.tabData.get(
+                EntryViewType.WordEditor,
+            ) as TableOfContentsItemData,
+        );
 
-    const activeTabKey = service.entryEditor.currentView;
+    const activeTabKey = service.currentView;
 
     return (
         <TableOfContents
@@ -107,18 +81,18 @@ function renderEntryEditorTabs() {
 
 export const EntryEditorTabs = observer(renderEntryEditorTabs);
 
-function renderEntryEditor() {
+function renderEntryEditor(props: EntryEditorSettings) {
     return (
         <Stack className="entry-editor" gap={0}>
-            <EntryEditorHeader />
+            <EntryEditorHeader {...props} />
             <Space className="entry-editor-space-below-header" />
             <Stack className="entry-editor-stack">
                 <Grid className="entry-editor-grid">
                     <Grid.Col span={1}>
-                        <EntryEditorTabs />
+                        <EntryEditorTabs {...props} />
                     </Grid.Col>
                     <Grid.Col span={10}>
-                        <EntryEditorContent />
+                        <EntryEditorContent {...props} />
                     </Grid.Col>
                 </Grid>
             </Stack>

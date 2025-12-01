@@ -1,6 +1,6 @@
 import { EventProducer } from "@/utils/event";
 
-import { IViewManager } from "./view-manager";
+import { IViewManager } from "./view";
 
 export interface IModalContentManager extends IViewManager {
     TITLE: string;

@@ -3,7 +3,7 @@ import { describe, expect } from "vitest";
 
 import { Modal } from "@/client/ui/overlays";
 import { Center, Header } from "@/client";
-import { test } from "@tests/unit/base";
+import { test } from "@tests/unit/fixtures";
 import { render } from "@tests/utils/render";
 import { mockCloseProject } from "@tests/utils/mocks/backend/session";
 
@@ -12,7 +12,7 @@ test("clicking the Home button opens the home view", async ({
     user,
     project,
 }) => {
-    service.openSettings();
+    service.central.openSettings();
 
     render(
         <>

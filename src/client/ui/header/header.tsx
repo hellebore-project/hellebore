@@ -25,7 +25,10 @@ function renderHeader() {
                 size="sm"
                 pr="8"
             />
-            <MenuButton label="Home" onClick={() => service.openHome()} />
+            <MenuButton
+                label="Home"
+                onClick={() => service.central.openHome()}
+            />
             <MenuDropdown
                 label="File"
                 data={service.header.getFileMenuData()}

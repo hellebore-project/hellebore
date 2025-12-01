@@ -1,22 +1,27 @@
 import { makeAutoObservable } from "mobx";
 
-import { WordViewKey } from "@/client/constants";
-import { WordKey, Word, WordMetaData } from "@/client/interface";
+import { WordViewType } from "@/client/constants";
+import {
+    WordKey,
+    Word,
+    WordMetaData,
+    ChangeEntryEvent,
+} from "@/client/interface";
 import { DomainManager, WordResponse, WordType } from "@/domain";
 import { Id } from "@/interface";
-import { ObservableReference } from "@/shared/observable-reference";
 import {
     SpreadsheetRowData,
     SpreadsheetColumnData,
     SpreadsheetService,
     SpreadsheetFieldType,
+    SpreadsheetServiceArguments,
 } from "@/shared/spreadsheet";
 import { Counter } from "@/utils/counter";
 import { EventProducer } from "@/utils/event";
 
 import { EntryInfoEditor } from "./info-editor";
 
-type WordColumnKeys = "spelling" | "definition" | "translations";
+export type WordColumnKeys = "spelling" | "definition" | "translations";
 
 enum WordTableColumnKey {
     Spelling = "spelling",
@@ -24,18 +29,18 @@ enum WordTableColumnKey {
     Translations = "translations",
 }
 
-const TYPE_TO_VIEW_MAPPING = new Map<WordType, WordViewKey>([
-    [WordType.RootWord, WordViewKey.RootWords],
-    [WordType.Determiner, WordViewKey.Determiners],
-    [WordType.Preposition, WordViewKey.Prepositions],
-    [WordType.Conjunction, WordViewKey.Conjunctions],
-    [WordType.Pronoun, WordViewKey.Pronouns],
-    [WordType.Noun, WordViewKey.Nouns],
-    [WordType.Adjective, WordViewKey.Adjectives],
-    [WordType.Adverb, WordViewKey.Adverbs],
-    [WordType.Verb, WordViewKey.Verbs],
+const TYPE_TO_VIEW_MAPPING = new Map<WordType, WordViewType>([
+    [WordType.RootWord, WordViewType.RootWords],
+    [WordType.Determiner, WordViewType.Determiners],
+    [WordType.Preposition, WordViewType.Prepositions],
+    [WordType.Conjunction, WordViewType.Conjunctions],
+    [WordType.Pronoun, WordViewType.Pronouns],
+    [WordType.Noun, WordViewType.Nouns],
+    [WordType.Adjective, WordViewType.Adjectives],
+    [WordType.Adverb, WordViewType.Adverbs],
+    [WordType.Verb, WordViewType.Verbs],
 ]);
-const VIEW_TO_TYPE_MAPPING = new Map<WordViewKey, WordType>(
+const VIEW_TO_TYPE_MAPPING = new Map<WordViewType, WordType>(
     Array.from(TYPE_TO_VIEW_MAPPING, (entry) => [entry[1], entry[0]]),
 );
 
@@ -66,13 +71,15 @@ type PrivateKeys =
     | "_columnData"
     | "_modifiedWordKeys"
     | "_wordKeyGenerator"
-    | "_domain"
-    | "_info";
+    | "_domain";
 
-interface WordEditorArguments {
+export interface WordEditorArguments {
     domain: DomainManager;
     info: EntryInfoEditor;
-    editableCellRef: ObservableReference<HTMLInputElement>;
+    spreadsheet: Omit<
+        SpreadsheetServiceArguments<WordColumnKeys, WordMetaData>,
+        "data"
+    >;
 }
 
 interface ChangeWordTypeEvent {
@@ -88,18 +95,18 @@ export class WordEditor {
 
     // SERVICES
     private _domain: DomainManager;
-    private _info: EntryInfoEditor;
+    info: EntryInfoEditor;
     spreadsheet: SpreadsheetService<WordColumnKeys, WordMetaData>;
 
     // UTILITIES
     private _wordKeyGenerator: Counter;
 
     // EVENTS
-    onChange: EventProducer<Id, void>;
+    onChange: EventProducer<ChangeEntryEvent, unknown>;
     onChangeWordType: EventProducer<ChangeWordTypeEvent, void>;
 
     // CONSTRUCTION
-    constructor({ domain, info, editableCellRef }: WordEditorArguments) {
+    constructor({ domain, info, spreadsheet }: WordEditorArguments) {
         this._modifiedWordKeys = new Set();
         this._wordKeyGenerator = new Counter();
 
@@ -107,13 +114,13 @@ export class WordEditor {
         this.onChangeWordType = new EventProducer();
 
         this._domain = domain;
-        this._info = info;
+        this.info = info;
         this.spreadsheet = new SpreadsheetService({
             data: {
-                editableCellRef,
                 onEditCell: (r) => this.editWord(r),
                 onDeleteRow: (r) => this.deleteWord(r),
             },
+            ...spreadsheet,
         });
 
         makeAutoObservable<WordEditor, PrivateKeys>(this, {
@@ -121,7 +128,7 @@ export class WordEditor {
             _columnData: false,
             _wordKeyGenerator: false,
             _domain: false,
-            _info: false,
+            info: false,
             spreadsheet: false,
             onChange: false,
             onChangeWordType: false,
@@ -131,16 +138,16 @@ export class WordEditor {
     // PROPERTIES
 
     get languageId() {
-        return this._info.id;
+        return this.info.id;
     }
 
     get wordType() {
         return this._wordType;
     }
 
-    get viewKey(): WordViewKey {
-        if (this._wordType == WordType.None) return WordViewKey.RootWords;
-        return TYPE_TO_VIEW_MAPPING.get(this._wordType) as WordViewKey;
+    get viewKey(): WordViewType {
+        if (this._wordType == WordType.None) return WordViewType.RootWords;
+        return TYPE_TO_VIEW_MAPPING.get(this._wordType) as WordViewType;
     }
 
     get newKey() {
@@ -178,7 +185,7 @@ export class WordEditor {
     private _initializeSpreadsheet(words: Word[]) {
         const rowData = words.map((w) => this._convertWordToRow(w));
         const colData = this._getColumnData();
-        this.spreadsheet.initialize(rowData, colData);
+        this.spreadsheet.load(rowData, colData);
         this._addNewWordRow();
     }
 
@@ -186,7 +193,7 @@ export class WordEditor {
         // placeholder in case we need to add clean-up logic
     }
 
-    changeView(viewKey: WordViewKey) {
+    changeView(viewKey: WordViewType) {
         const wordType = VIEW_TO_TYPE_MAPPING.get(viewKey) as WordType;
         this.onChangeWordType.produce({
             languageId: this.languageId,
@@ -259,7 +266,7 @@ export class WordEditor {
         if (key == this.newKey) this._addNewWordRow();
         this._modifiedWordKeys.add(key);
         this._changed = true;
-        this.onChange.produce(this._info.id);
+        this.onChange.produce({ id: this.info.id });
     }
 
     // WORD CREATION
