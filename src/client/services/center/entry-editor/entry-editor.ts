@@ -157,10 +157,7 @@ export class EntryEditor implements ICentralPanelContentManager {
             value: EntryViewType.ArticleEditor,
             rank: 1,
             onClick: () => {
-                this.load({
-                    id: this.info.id,
-                    viewKey: EntryViewType.ArticleEditor,
-                });
+                this.changeView(EntryViewType.ArticleEditor);
             },
         });
 
@@ -169,10 +166,7 @@ export class EntryEditor implements ICentralPanelContentManager {
             value: EntryViewType.PropertyEditor,
             rank: 1,
             onClick: () => {
-                this.load({
-                    id: this.info.id,
-                    viewKey: EntryViewType.PropertyEditor,
-                });
+                this.changeView(EntryViewType.PropertyEditor);
             },
         });
 
@@ -181,10 +175,7 @@ export class EntryEditor implements ICentralPanelContentManager {
             value: EntryViewType.WordEditor,
             rank: 1,
             onClick: () => {
-                this.load({
-                    id: this.info.id,
-                    viewKey: EntryViewType.WordEditor,
-                });
+                this.changeView(EntryViewType.WordEditor);
             },
         });
     }
@@ -194,9 +185,12 @@ export class EntryEditor implements ICentralPanelContentManager {
             this.loadArticle({ id }),
         );
 
-        this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) =>
-            this.loadLexicon(languageId, wordType),
-        );
+        this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) => {
+            // the word-editor is switching to a different view,
+            // so any pending edits need to be pushed to the BE
+            this.onChange.produce({ id: languageId });
+            this.loadLexicon(languageId, wordType);
+        });
 
         this.info.onChangeTitle.broker = this.onPartialChange;
         this.article.onChange.broker = this.onChangeDelayed;
@@ -286,6 +280,16 @@ export class EntryEditor implements ICentralPanelContentManager {
             // FIXME: should we be awaiting on this?
             this.lexicon.initialize(languageId, wordType);
         }
+    }
+
+    changeView(viewType: EntryViewType) {
+        // the entry-editor is switching to a different view,
+        // so any pending edits need to be pushed to the BE
+        this.onChange.produce({ id: this.info.id });
+        this.load({
+            id: this.info.id,
+            viewKey: viewType,
+        });
     }
 
     // VISIBILITY
