@@ -1,17 +1,18 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { WordTable } from "@/client/ui/center/entry-editor/word-editor/word-table";
-import { test } from "@tests/unit/base";
+import { WordTable } from "@/client/ui/center/entry-editor/word-editor";
+import { test } from "@tests/unit/panels/center/entry-editor/word-editor/fixtures";
 import { mockGetWords } from "@tests/utils/mocks/backend/word";
 import { render } from "@tests/utils/render";
 import { createWordData } from "@tests/utils/word";
 
 describe("cell selection", () => {
     test("arrow keys move selection", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = {
             ...createWordData(),
@@ -19,9 +20,9 @@ describe("cell selection", () => {
             definition: "cell2",
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell1 = screen.getByText("cell1");
         const cell2 = screen.getByText("cell2");
@@ -48,9 +49,10 @@ describe("cell selection", () => {
     });
 
     test("arrow keys reduce the selection to a single cell before moving", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = {
             ...createWordData(),
@@ -58,9 +60,9 @@ describe("cell selection", () => {
             definition: "cell2",
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell1 = screen.getByText("cell1");
         const cell2 = screen.getByText("cell2");
@@ -90,9 +92,10 @@ describe("cell selection", () => {
 
 describe("cell editing", () => {
     test("enter toggles edit mode of text cell", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = {
             ...createWordData(),
@@ -100,9 +103,9 @@ describe("cell editing", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell1 = screen.getByText("cell1");
 
@@ -123,9 +126,10 @@ describe("cell editing", () => {
     });
 
     test("escape cancels edit and restores value of text cell", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = {
             ...createWordData(),
@@ -133,9 +137,9 @@ describe("cell editing", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell1 = screen.getByText("cell1");
 
@@ -154,9 +158,10 @@ describe("cell editing", () => {
     });
 
     test("enter reduces the selection to a single cell before toggling it to edit mode", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = {
             ...createWordData(),
@@ -164,9 +169,9 @@ describe("cell editing", () => {
             translations: ["cell2"],
         };
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell1 = screen.getByText("cell1");
         const cell2 = screen.getByText("cell2");

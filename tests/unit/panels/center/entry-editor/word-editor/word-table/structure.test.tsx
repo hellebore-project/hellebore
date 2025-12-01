@@ -1,9 +1,9 @@
 import { screen } from "@testing-library/react";
 import { describe } from "vitest";
 
-import { WordType } from "@/domain/constants";
-import { WordTable } from "@/client/ui/center/entry-editor/word-editor/word-table";
-import { test } from "@tests/unit/base";
+import { WordType } from "@/domain";
+import { WordTable } from "@/client/ui/center/entry-editor/word-editor";
+import { test } from "@tests/unit/panels/center/entry-editor/word-editor/fixtures";
 import { mockGetWords } from "@tests/utils/mocks/backend/word";
 import { render } from "@tests/utils/render";
 import { createWordData } from "@tests/utils/word";
@@ -58,15 +58,15 @@ describe("headers", () => {
     ]) {
         test(`renders ${case_} table with correct columns`, async ({
             mockedInvoker,
-            service,
+            wordEditorService,
+            entryId,
         }) => {
             const word = createWordData(wordType);
             mockGetWords(mockedInvoker, [word]);
 
-            const wordEditor = service.entryEditor.lexicon;
-            await wordEditor.initialize(1, word.word_type);
+            await wordEditorService.initialize(entryId, word.word_type);
 
-            render(<WordTable />);
+            render(<WordTable service={wordEditorService.spreadsheet} />);
 
             // Check column headers
             for (const header of headers) screen.getByText(header);
@@ -74,14 +74,17 @@ describe("headers", () => {
     }
 });
 
-test("renders table with correct rows", async ({ mockedInvoker, service }) => {
+test("renders table with correct rows", async ({
+    mockedInvoker,
+    wordEditorService,
+    entryId,
+}) => {
     const word = createWordData();
     mockGetWords(mockedInvoker, [word]);
 
-    const wordEditor = service.entryEditor.lexicon;
-    await wordEditor.initialize(1, word.word_type);
+    await wordEditorService.initialize(entryId, word.word_type);
 
-    render(<WordTable />);
+    render(<WordTable service={wordEditorService.spreadsheet} />);
 
     // Check row content
     screen.getByText(word.spelling);

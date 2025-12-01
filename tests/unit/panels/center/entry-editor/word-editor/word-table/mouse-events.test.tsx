@@ -1,8 +1,8 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { WordTable } from "@/client/ui/center/entry-editor/word-editor/word-table";
-import { test } from "@tests/unit/base";
+import { WordTable } from "@/client/ui/center/entry-editor/word-editor";
+import { test } from "@tests/unit/panels/center/entry-editor/word-editor/fixtures";
 import {
     mockDeleteWord,
     mockGetWords,
@@ -13,15 +13,16 @@ import { createWordData } from "@tests/utils/word";
 
 describe("cell selection", () => {
     test("clicking a cell selects only that cell", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell1 = screen.getByText(word.spelling);
         const cell2 = screen.getByText(word.translations[0]);
@@ -38,15 +39,16 @@ describe("cell selection", () => {
     });
 
     test("ctrl+click adds to selection and makes it active", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell1 = screen.getByText(word.spelling);
         const cell2 = screen.getByText(word.translations[0]);
@@ -63,15 +65,16 @@ describe("cell selection", () => {
     });
 
     test("shift+click selects a range", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell1 = screen.getByText(word.spelling);
         const cell2 = screen.getByText(word.translations[0]);
@@ -88,15 +91,16 @@ describe("cell selection", () => {
     });
 
     test("dragging from one cell to another selects a rectangle", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell1 = screen.getByText(word.spelling);
         const cell2 = screen.getByText(word.translations[0]);
@@ -111,17 +115,18 @@ describe("cell selection", () => {
     });
 
     test("clicking outside deselects all cells", async ({
-        mockedInvoker,
-        service,
         user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
     }) => {
         const word = createWordData();
         mockGetWords(mockedInvoker, [word]);
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
         render(
             <>
-                <WordTable />
+                <WordTable service={wordEditorService.spreadsheet} />
                 <div
                     data-testid="outside"
                     style={{ width: 100, height: 100 }}
@@ -142,15 +147,20 @@ describe("cell selection", () => {
 });
 
 describe("cell editing", () => {
-    test("can edit a text cell", async ({ mockedInvoker, service, user }) => {
+    test("can edit a text cell", async ({
+        user,
+        mockedInvoker,
+        wordEditorService,
+        entryId,
+    }) => {
         const word = createWordData();
 
         mockUpsertWords(mockedInvoker);
         mockGetWords(mockedInvoker, [word]);
 
-        await service.entryEditor.lexicon.initialize(1, word.word_type);
+        await wordEditorService.initialize(entryId, word.word_type);
 
-        render(<WordTable />);
+        render(<WordTable service={wordEditorService.spreadsheet} />);
 
         const cell = screen.getByText(word.spelling);
 
@@ -169,8 +179,9 @@ describe("cell editing", () => {
         const otherCell = screen.getByText(word.translations[0]);
         await user.click(otherCell);
 
-        const rowData =
-            service.entryEditor.lexicon.spreadsheet.data.findRow("1");
+        const rowData = wordEditorService.spreadsheet.data.findRow(
+            entryId.toString(),
+        );
         if (!rowData) throw "Row data not found";
 
         expect(rowData.cells["spelling"].value).toBe("edited");
@@ -178,22 +189,28 @@ describe("cell editing", () => {
     });
 });
 
-test("can delete a row", async ({ mockedInvoker, service, user }) => {
+test("can delete a row", async ({
+    user,
+    mockedInvoker,
+    wordEditorService,
+    entryId,
+}) => {
     const word = createWordData();
 
     mockGetWords(mockedInvoker, [word]);
     mockDeleteWord(mockedInvoker);
 
-    const wordEditor = service.entryEditor.lexicon;
-    await wordEditor.initialize(1, word.word_type);
+    await wordEditorService.initialize(entryId, word.word_type);
 
-    const row = wordEditor.spreadsheet.data.rowData[0];
+    const row = wordEditorService.spreadsheet.data.rowData[0];
     row.highlighted = true;
 
-    render(<WordTable />);
+    render(<WordTable service={wordEditorService.spreadsheet} />);
 
     const deleteBtn = screen.getByRole("button", { name: "Delete row" });
     await user.click(deleteBtn);
 
-    expect(wordEditor.spreadsheet.data.findRow("1")).toBeNull();
+    expect(
+        wordEditorService.spreadsheet.data.findRow(entryId.toString()),
+    ).toBeNull();
 });
