@@ -171,13 +171,30 @@ export class CentralPanelManager {
 
     // PANEL VISIBILITY
 
-    private _showPanel(index: number) {
+    private _showPanel(
+        index: number,
+        panel: ICentralPanelContentManager | null = null,
+    ) {
+        if (!panel)
+            panel = this.getPanelByIndex(index) as ICentralPanelContentManager;
+
         this._activePanelIndex = index;
-        const panel = this.getPanelByIndex(
-            index,
-        ) as ICentralPanelContentManager;
         panel.activate();
+
         this._produceChangePanelEvent(panel, ViewAction.Show);
+    }
+
+    private _hidePanel(
+        index: number,
+        panel: ICentralPanelContentManager | null = null,
+    ) {
+        if (!panel)
+            panel = this.getPanelByIndex(index) as ICentralPanelContentManager;
+
+        if (index > 0) this._activePanelIndex = index - 1;
+        else this._activePanelIndex = null;
+
+        this._produceChangePanelEvent(panel, ViewAction.Hide);
     }
 
     // ACCESSING PANELS
@@ -212,25 +229,29 @@ export class CentralPanelManager {
         const panel = this.getPanelByIndex(index);
         if (!panel) return;
 
-        panel.cleanUp();
-        this._produceChangePanelEvent(panel, ViewAction.Close);
-
-        if (index > 0) this._activePanelIndex = index - 1;
-        else this._activePanelIndex = null;
+        this._closePanel(index, panel);
 
         this._panelKeys.splice(index, 1);
         this._panels.delete(panel.key);
     }
 
+    private _closePanel(index: number, panel: ICentralPanelContentManager) {
+        if (index == this._activePanelIndex) this._hidePanel(index, panel);
+
+        panel.cleanUp();
+        this._produceChangePanelEvent(panel, ViewAction.Close);
+    }
+
     clear() {
-        for (const panel of this._panels.values()) {
-            panel.cleanUp();
-            this._produceChangePanelEvent(panel, ViewAction.Close);
+        for (let index = 0; index < this._panelKeys.length; index++) {
+            const panel = this.getPanelByIndex(
+                index,
+            ) as ICentralPanelContentManager;
+            this._closePanel(index, panel);
         }
 
         this._panelKeys = [];
         this._panels.clear();
-        this._activePanelIndex = 0;
     }
 
     private _clearAndAddPanel(panel: ICentralPanelContentManager, show = true) {
