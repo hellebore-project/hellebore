@@ -6,8 +6,8 @@ import { observer } from "mobx-react-lite";
 import { getService, PortalContainer } from "@/client";
 
 function renderTestApp({ children }: PropsWithChildren) {
-    const service = getService();
-    service.hook();
+    const client = getService();
+    client.hook();
     return (
         <MantineProvider theme={DEFAULT_THEME} env="test">
             {children}

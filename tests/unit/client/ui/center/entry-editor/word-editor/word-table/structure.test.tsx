@@ -2,14 +2,13 @@ import { screen } from "@testing-library/react";
 import { describe } from "vitest";
 
 import { WordType } from "@/domain";
-import { WordTable } from "@/client/ui/center/entry-editor/word-editor";
-import { test } from "@tests/unit/panels/center/entry-editor/word-editor/fixtures";
-import { mockGetWords } from "@tests/utils/mocks/backend/word";
+import { WordTable } from "@/client";
 import { render } from "@tests/utils/render";
-import { createWordData } from "@tests/utils/word";
+
+import { test } from "../fixtures";
 
 describe("headers", () => {
-    for (const { case_, wordType, headers } of [
+    for (const { case_, headers } of [
         {
             case_: "root word",
             wordType: WordType.RootWord,
@@ -57,14 +56,11 @@ describe("headers", () => {
         },
     ]) {
         test(`renders ${case_} table with correct columns`, async ({
-            mockedInvoker,
             wordEditorService,
             entryId,
+            word,
         }) => {
-            const word = createWordData(wordType);
-            mockGetWords(mockedInvoker, [word]);
-
-            await wordEditorService.initialize(entryId, word.word_type);
+            await wordEditorService.load(entryId, word.word_type);
 
             render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -75,14 +71,11 @@ describe("headers", () => {
 });
 
 test("renders table with correct rows", async ({
-    mockedInvoker,
     wordEditorService,
     entryId,
+    word,
 }) => {
-    const word = createWordData();
-    mockGetWords(mockedInvoker, [word]);
-
-    await wordEditorService.initialize(entryId, word.word_type);
+    await wordEditorService.load(entryId, word.word_type);
 
     render(<WordTable service={wordEditorService.spreadsheet} />);
 
