@@ -1,18 +1,17 @@
 import { screen } from "@testing-library/react";
 import { describe, expect } from "vitest";
 
-import { Modal } from "@/client/ui/overlays";
-import { Center, Header } from "@/client";
+import { Center, Header, Modal } from "@/client";
 import { test } from "@tests/unit/fixtures";
+import { mockCloseProject } from "@tests/utils/mocks";
 import { render } from "@tests/utils/render";
-import { mockCloseProject } from "@tests/utils/mocks/backend/session";
 
 test("clicking the Home button opens the home view", async ({
-    service,
     user,
+    clientManager,
     project,
 }) => {
-    service.central.openSettings();
+    clientManager.central.openSettings();
 
     render(
         <>
@@ -52,7 +51,7 @@ test("clicking the Open Project button loads another project", async () => {
 });
 
 describe("clicking the Close Project button", () => {
-    test("hides the Close Project button", async ({ mockedInvoker, user }) => {
+    test("hides the Close Project button", async ({ user, mockedInvoker }) => {
         mockCloseProject(mockedInvoker);
 
         render(<Header />);

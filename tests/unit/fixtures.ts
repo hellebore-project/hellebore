@@ -23,7 +23,7 @@ export interface BaseUnitTestFixtures {
     entities: EntryInfoResponse[];
     folders: FolderResponse[];
     mockedInvoker: MockedInvoker;
-    service: ClientManager;
+    clientManager: ClientManager;
     user: UserEvent;
     setup: null;
 }
@@ -68,7 +68,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     ],
 
     // services
-    service: [
+    clientManager: [
         async (
             { mockedInvoker, dbFilePath, project, entities, folders },
             use,
@@ -89,9 +89,9 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
 
     // setup and teardown
     setup: [
-        // @ts-expect-error: the user and service fixtures need to be set up first
+        // @ts-expect-error: the user and clientManager fixtures need to be set up first
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        async ({ mockedInvoker, user, service }, use) => {
+        async ({ mockedInvoker, user, clientManager }, use) => {
             await use(null);
 
             mockedInvoker.clear();

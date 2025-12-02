@@ -274,7 +274,7 @@ export class EntryEditor implements ICentralPanelContentManager {
                 wordType,
             });
             // FIXME: should we be awaiting on this?
-            this.lexicon.initialize(languageId, wordType);
+            this.lexicon.load(languageId, wordType);
         }
     }
 

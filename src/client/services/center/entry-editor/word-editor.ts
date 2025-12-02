@@ -160,10 +160,7 @@ export class WordEditor {
 
     // STATE MANAGEMENT
 
-    async initialize(
-        languageId: number,
-        wordType: WordType = WordType.RootWord,
-    ) {
+    async load(languageId: number, wordType: WordType = WordType.RootWord) {
         if (wordType !== undefined) this._wordType = wordType;
         return this._domain.words
             .getAllForLanguage(languageId, wordType)

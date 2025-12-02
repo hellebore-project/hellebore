@@ -12,6 +12,5 @@ export interface WordMetaData {
 }
 
 export interface Word extends BaseWordData, WordMetaData {
-    id: Id | null;
     key: WordKey;
 }

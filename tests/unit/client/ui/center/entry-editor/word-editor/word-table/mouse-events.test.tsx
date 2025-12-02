@@ -1,26 +1,20 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { WordTable } from "@/client/ui/center/entry-editor/word-editor";
-import { test } from "@tests/unit/panels/center/entry-editor/word-editor/fixtures";
-import {
-    mockDeleteWord,
-    mockGetWords,
-    mockUpsertWords,
-} from "@tests/utils/mocks/backend/word";
+import { WordTable } from "@/client";
+import { mockDeleteWord, mockUpsertWords } from "@tests/utils/mocks";
 import { render } from "@tests/utils/render";
-import { createWordData } from "@tests/utils/word";
+
+import { test } from "../fixtures";
 
 describe("cell selection", () => {
     test("clicking a cell selects only that cell", async ({
         user,
-        mockedInvoker,
         wordEditorService,
         entryId,
+        word,
     }) => {
-        const word = createWordData();
-        mockGetWords(mockedInvoker, [word]);
-        await wordEditorService.initialize(entryId, word.word_type);
+        await wordEditorService.load(entryId, word.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -40,13 +34,11 @@ describe("cell selection", () => {
 
     test("ctrl+click adds to selection and makes it active", async ({
         user,
-        mockedInvoker,
         wordEditorService,
         entryId,
+        word,
     }) => {
-        const word = createWordData();
-        mockGetWords(mockedInvoker, [word]);
-        await wordEditorService.initialize(entryId, word.word_type);
+        await wordEditorService.load(entryId, word.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -66,13 +58,11 @@ describe("cell selection", () => {
 
     test("shift+click selects a range", async ({
         user,
-        mockedInvoker,
         wordEditorService,
         entryId,
+        word,
     }) => {
-        const word = createWordData();
-        mockGetWords(mockedInvoker, [word]);
-        await wordEditorService.initialize(entryId, word.word_type);
+        await wordEditorService.load(entryId, word.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -92,13 +82,11 @@ describe("cell selection", () => {
 
     test("dragging from one cell to another selects a rectangle", async ({
         user,
-        mockedInvoker,
         wordEditorService,
         entryId,
+        word,
     }) => {
-        const word = createWordData();
-        mockGetWords(mockedInvoker, [word]);
-        await wordEditorService.initialize(entryId, word.word_type);
+        await wordEditorService.load(entryId, word.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -116,13 +104,11 @@ describe("cell selection", () => {
 
     test("clicking outside deselects all cells", async ({
         user,
-        mockedInvoker,
         wordEditorService,
         entryId,
+        word,
     }) => {
-        const word = createWordData();
-        mockGetWords(mockedInvoker, [word]);
-        await wordEditorService.initialize(entryId, word.word_type);
+        await wordEditorService.load(entryId, word.word_type);
 
         render(
             <>
@@ -152,13 +138,11 @@ describe("cell editing", () => {
         mockedInvoker,
         wordEditorService,
         entryId,
+        word,
     }) => {
-        const word = createWordData();
-
         mockUpsertWords(mockedInvoker);
-        mockGetWords(mockedInvoker, [word]);
 
-        await wordEditorService.initialize(entryId, word.word_type);
+        await wordEditorService.load(entryId, word.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -194,13 +178,11 @@ test("can delete a row", async ({
     mockedInvoker,
     wordEditorService,
     entryId,
+    word,
 }) => {
-    const word = createWordData();
-
-    mockGetWords(mockedInvoker, [word]);
     mockDeleteWord(mockedInvoker);
 
-    await wordEditorService.initialize(entryId, word.word_type);
+    await wordEditorService.load(entryId, word.word_type);
 
     const row = wordEditorService.spreadsheet.data.rowData[0];
     row.highlighted = true;
