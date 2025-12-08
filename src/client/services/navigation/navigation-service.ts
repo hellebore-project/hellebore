@@ -2,9 +2,9 @@ import { makeAutoObservable } from "mobx";
 
 import { DomainManager, EntryInfoResponse, FolderResponse } from "@/domain";
 
-import { FileNavigator } from "./file-navigator";
+import { FileNavigatorService } from "./file-navigator";
 
-export interface NavigationServiceArguments {
+export interface NavigationServiceArgs {
     domain: DomainManager;
 }
 
@@ -13,10 +13,10 @@ export class NavigationService {
 
     private _mobileOpen = true;
 
-    files: FileNavigator;
+    files: FileNavigatorService;
 
-    constructor({ domain }: NavigationServiceArguments) {
-        this.files = new FileNavigator({ domain });
+    constructor({ domain }: NavigationServiceArgs) {
+        this.files = new FileNavigatorService({ domain });
         makeAutoObservable(this, { files: false });
     }
 

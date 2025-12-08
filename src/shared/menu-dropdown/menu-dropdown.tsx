@@ -1,7 +1,7 @@
 import { Menu, MenuProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { BaseButtonSettings } from "@/interface";
+import { BaseButtonProps } from "@/interface";
 import { getService } from "@/client";
 import { MenuButton } from "@/shared/menu-button";
 
@@ -10,17 +10,17 @@ import {
     MenuDropdownElementData,
 } from "./menu-dropdown.interface";
 
-interface MenuElementSettings {
+interface MenuElementProps {
     data: MenuDropdownElementData;
 }
 
-interface MenuDropdownSettings extends MenuProps {
+interface MenuDropdownProps extends MenuProps {
     label: string;
     data: MenuDropdownElementData[];
-    buttonSettings?: BaseButtonSettings;
+    buttonProps?: BaseButtonProps;
 }
 
-function renderMenuDropdownElement({ data }: MenuElementSettings) {
+function renderMenuDropdownElement({ data }: MenuElementProps) {
     if (data === DIVIDER_DATA) return <Menu.Divider />;
     else if (typeof data === "string") return <Menu.Label>{data}</Menu.Label>;
 
@@ -38,11 +38,11 @@ export const MenuDropdownElement = observer(renderMenuDropdownElement);
 function renderMenuDropdown({
     label,
     data,
-    buttonSettings,
+    buttonProps,
     ...rest
-}: MenuDropdownSettings) {
+}: MenuDropdownProps) {
     const service = getService();
-    if (!buttonSettings) buttonSettings = {};
+    if (!buttonProps) buttonProps = {};
     return (
         <Menu
             trigger="click"
@@ -60,7 +60,7 @@ function renderMenuDropdown({
                     // HACK: need to include the class name because for some reason
                     // mantine is ignoring the class of the underlying component
                     className="menu-button"
-                    {...buttonSettings}
+                    {...buttonProps}
                 />
             </Menu.Target>
             <Menu.Dropdown>

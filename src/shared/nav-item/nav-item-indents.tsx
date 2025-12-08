@@ -1,12 +1,12 @@
 import { observer } from "mobx-react-lite";
 import { ReactNode } from "react";
 
-interface NavItemIndentSettings {
+interface NavItemIndentProps {
     itemKey: string;
     rank: number;
 }
 
-function renderNavItemIndents({ itemKey, rank }: NavItemIndentSettings) {
+function renderNavItemIndents({ itemKey, rank }: NavItemIndentProps) {
     if (rank <= 0) return null;
 
     const indents: ReactNode[] = [

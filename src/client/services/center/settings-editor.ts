@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 import { ICentralPanelContentManager } from "@/client/interface";
 import { CentralViewType } from "@/client/constants";
 
-export class SettingsEditor implements ICentralPanelContentManager {
+export class SettingsEditorService implements ICentralPanelContentManager {
     constructor() {
         makeAutoObservable(this);
     }

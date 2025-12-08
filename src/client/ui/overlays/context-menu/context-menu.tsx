@@ -33,7 +33,7 @@ function renderContextMenu() {
                 top={`${service.position.y}px`}
                 withBorder={true}
                 data={itemData}
-                itemSettings={{
+                itemProps={{
                     className: "context-menu-item",
                     variant: "transparent",
                     size: "compact-md",

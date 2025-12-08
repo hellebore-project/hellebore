@@ -15,26 +15,26 @@ import { DomainManager, EntityType, WordType } from "@/domain";
 import { TableOfContentsItemData } from "@/shared/table-of-contents";
 import { EventProducer } from "@/utils/event";
 
-import { WordEditor, WordEditorArguments } from "./word-editor";
-import { EntryInfoEditor } from "./info-editor";
-import { ArticleEditor } from "./article-editor";
-import { PropertyEditor } from "./property-editor";
+import { WordEditorService, WordEditorServiceArgs } from "./word-editor";
+import { EntryInfoService } from "./info-editor";
+import { ArticleEditorService } from "./article-editor";
+import { PropertyEditorService } from "./property-editor";
 
 type PrivateKeys = "_domain";
 
-export interface EntryEditorArguments {
+export interface EntryEditorServiceArgs {
     domain: DomainManager;
-    wordEditor: Omit<WordEditorArguments, "domain" | "info">;
+    wordEditor: Omit<WordEditorServiceArgs, "domain" | "info">;
 }
 
-interface OpenArticleEditorArguments {
+interface OpenArticleEditorArgs {
     id: Id;
     entityType?: EntityType;
     title?: string;
     text?: string;
 }
 
-export class EntryEditor implements ICentralPanelContentManager {
+export class EntryEditorService implements ICentralPanelContentManager {
     // CONSTANTS
     ENTRY_HEADER_SPACE_HEIGHT = 25;
     DEFAULT_BELOW_HEADER_SPACE_HEIGHT = 40;
@@ -46,10 +46,10 @@ export class EntryEditor implements ICentralPanelContentManager {
 
     // SERVICES
     private _domain: DomainManager;
-    info: EntryInfoEditor;
-    properties: PropertyEditor;
-    article: ArticleEditor;
-    lexicon: WordEditor;
+    info: EntryInfoService;
+    properties: PropertyEditorService;
+    article: ArticleEditorService;
+    lexicon: WordEditorService;
 
     // EVENTS
     onOpen: EventProducer<OpenEntryEditorEvent, void>;
@@ -58,20 +58,20 @@ export class EntryEditor implements ICentralPanelContentManager {
     onPartialChange: EventProducer<ChangeEntryEvent, unknown>;
     onChangeDelayed: EventProducer<ChangeEntryEvent, unknown>;
 
-    constructor({ domain, wordEditor }: EntryEditorArguments) {
+    constructor({ domain, wordEditor }: EntryEditorServiceArgs) {
         this.tabData = new Map();
 
         this._domain = domain;
 
-        this.info = new EntryInfoEditor();
-        this.article = new ArticleEditor({
+        this.info = new EntryInfoService();
+        this.article = new ArticleEditorService({
             domain,
             info: this.info,
         });
-        this.properties = new PropertyEditor({
+        this.properties = new PropertyEditorService({
             info: this.info,
         });
-        this.lexicon = new WordEditor({
+        this.lexicon = new WordEditorService({
             domain,
             info: this.info,
             ...wordEditor,
@@ -83,7 +83,7 @@ export class EntryEditor implements ICentralPanelContentManager {
         this.onPartialChange = new EventProducer();
         this.onChangeDelayed = new EventProducer();
 
-        makeAutoObservable<EntryEditor, PrivateKeys>(this, {
+        makeAutoObservable<EntryEditorService, PrivateKeys>(this, {
             _domain: false,
             info: false,
             properties: false,
@@ -101,7 +101,7 @@ export class EntryEditor implements ICentralPanelContentManager {
     }
 
     get key() {
-        return EntryEditor.generateKey(this.type, this.info.id);
+        return EntryEditorService.generateKey(this.type, this.info.id);
     }
 
     get type() {
@@ -214,12 +214,7 @@ export class EntryEditor implements ICentralPanelContentManager {
         throw `Unable to load view with key ${viewKey}.`;
     }
 
-    async loadArticle({
-        id,
-        entityType,
-        title,
-        text,
-    }: OpenArticleEditorArguments) {
+    async loadArticle({ id, entityType, title, text }: OpenArticleEditorArgs) {
         if (this.isArticleEditorOpen && this.info.id == id) return; // the article is already open
 
         if (!entityType || title === undefined || text === undefined) {

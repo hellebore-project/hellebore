@@ -14,19 +14,19 @@ import {
 import { ButtonHTMLAttributes, HTMLAttributes } from "react";
 
 // divs
-export type BaseBoxSettings = BoxProps;
-export type BasePaperSettings = PaperProps & HTMLAttributes<HTMLDivElement>;
-export type BaseContainerSettings = ContainerProps;
-export type BaseGridSettings = GridProps;
-export type BaseGridColSettings = GridColProps;
-export type BaseGroupSettings = GroupProps;
-export type BaseTableSettings = TableProps;
+export type BaseBoxProps = BoxProps;
+export type BasePaperProps = PaperProps & HTMLAttributes<HTMLDivElement>;
+export type BaseContainerProps = ContainerProps;
+export type BaseGridProps = GridProps;
+export type BaseGridColProps = GridColProps;
+export type BaseGroupProps = GroupProps;
+export type BaseTableProps = TableProps;
 
 // paragraphs
-export type BaseTextSettings = TextProps & HTMLAttributes<HTMLParagraphElement>;
+export type BaseTextProps = TextProps & HTMLAttributes<HTMLParagraphElement>;
 
 // inputs
-export type BaseButtonSettings = ButtonProps &
+export type BaseButtonProps = ButtonProps &
     ButtonHTMLAttributes<HTMLButtonElement>;
-export type BaseTextInputSettings = TextInputProps;
+export type BaseTextInputProps = TextInputProps;
 export type OptionData = ComboboxItem;

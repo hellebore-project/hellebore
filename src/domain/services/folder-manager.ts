@@ -10,7 +10,7 @@ import {
 
 import { FileStructure } from "./file-structure";
 
-export interface FolderUpdateArguments {
+export interface FolderUpdateArgs {
     id: number;
     name?: string | null;
     parentId?: number | null;
@@ -61,7 +61,7 @@ export class FolderManager {
         name = null,
         parentId = null,
         oldParentId = null,
-    }: FolderUpdateArguments) {
+    }: FolderUpdateArgs) {
         const folderNode = this._structure.folders[id];
 
         const nameChanged = name !== null;

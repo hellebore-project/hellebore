@@ -3,9 +3,9 @@ import { observer } from "mobx-react-lite";
 
 import { getService } from "@/client";
 
-export type ToolTipSettings = TooltipProps;
+export type ToolTipProps = TooltipProps;
 
-function renderToolTip({ children, ...rest }: ToolTipSettings) {
+function renderToolTip({ children, ...rest }: ToolTipProps) {
     const service = getService();
     return (
         <Tooltip

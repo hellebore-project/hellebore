@@ -12,7 +12,7 @@ type PrivateKeys = "_ref" | "_removeMouseDown" | "_removeMouseUp";
 
 type RemoveEventListener = () => void;
 
-interface OutsideEventHandlerServiceArguments {
+interface OutsideEventHandlerServiceArgs {
     enabled?: boolean;
     ref?: RefObject<HTMLDivElement>;
 }
@@ -26,7 +26,7 @@ export class OutsideEventHandlerService {
     private _removeMouseDown: RemoveEventListener | null = null;
     private _removeMouseUp: RemoveEventListener | null = null;
 
-    constructor({ ref, enabled = true }: OutsideEventHandlerServiceArguments) {
+    constructor({ ref, enabled = true }: OutsideEventHandlerServiceArgs) {
         this._enabled = enabled;
 
         this._ref = ref ?? createRef();

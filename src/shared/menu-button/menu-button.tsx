@@ -4,13 +4,13 @@ import { Button } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { forwardRef } from "react";
 
-import { BaseButtonSettings } from "@/interface";
+import { BaseButtonProps } from "@/interface";
 
-export interface MenuButtonSettings extends BaseButtonSettings {
+export interface MenuButtonProps extends BaseButtonProps {
     label?: string;
 }
 
-const renderMenuButton = forwardRef<HTMLButtonElement, MenuButtonSettings>(
+const renderMenuButton = forwardRef<HTMLButtonElement, MenuButtonProps>(
     ({ label, ...rest }, ref) => {
         return (
             <Button

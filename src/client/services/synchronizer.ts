@@ -16,7 +16,7 @@ import {
     SyncEntryResponse,
 } from "../interface";
 
-export class Synchronizer {
+export class SynchronizationService {
     readonly DEFAULT_SYNC_DELAY_TIME = 5000;
 
     private _waitingForSync = false;

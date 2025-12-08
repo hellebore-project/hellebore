@@ -6,7 +6,7 @@ export const EXPAND_BUTTON_PLACEHOLDER = (
     <div className="nav-item-expand-button-placeholder" />
 );
 
-export interface ExpandButtonSettings {
+export interface ExpandButtonProps {
     expandable?: boolean;
     expanded?: boolean;
     isExpanded?: () => boolean;
@@ -15,7 +15,7 @@ export interface ExpandButtonSettings {
 function renderExpandButton({
     expanded = false,
     isExpanded,
-}: ExpandButtonSettings) {
+}: ExpandButtonProps) {
     expanded = isExpanded?.() ?? expanded;
     return (
         <Center>

@@ -5,7 +5,7 @@ import { HTMLAttributes, PropsWithChildren } from "react";
 
 import { OutsideEventHandlerService } from "./outside-event-handler.service";
 
-interface OutsideEventHandlerSettings extends HTMLAttributes<HTMLDivElement> {
+interface OutsideEventHandlerProps extends HTMLAttributes<HTMLDivElement> {
     service: OutsideEventHandlerService;
 }
 
@@ -15,7 +15,7 @@ function renderOutsideEventHandler({
     className = "",
     style,
     ...rest
-}: PropsWithChildren<OutsideEventHandlerSettings>) {
+}: PropsWithChildren<OutsideEventHandlerProps>) {
     if (style && style.display == "block") delete style.display;
 
     return (

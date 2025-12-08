@@ -2,25 +2,22 @@ import { Text } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { forwardRef, RefObject } from "react";
 
-import { BaseTextInputSettings, BaseTextSettings } from "@/interface";
+import { BaseTextInputProps, BaseTextProps } from "@/interface";
 
 import { TextField } from "../text-field";
 
-export interface NavItemTextSettings {
+export interface NavItemTextProps {
     editable?: boolean;
     text?: string;
     getText?: () => string;
     error?: string;
-    textSettings?: BaseTextSettings;
-    textInputSettings?: Omit<BaseTextInputSettings, "value" | "error">;
+    textProps?: BaseTextProps;
+    textInputProps?: Omit<BaseTextInputProps, "value" | "error">;
     ref_?: RefObject<HTMLInputElement>;
 }
 
-const renderNavItemText = forwardRef<HTMLInputElement, NavItemTextSettings>(
-    (
-        { editable, text, getText, error, textSettings, textInputSettings },
-        ref,
-    ) => {
+const renderNavItemText = forwardRef<HTMLInputElement, NavItemTextProps>(
+    ({ editable, text, getText, error, textProps, textInputProps }, ref) => {
         if (text === undefined) {
             if (getText) text = getText();
             else text = "";
@@ -35,13 +32,13 @@ const renderNavItemText = forwardRef<HTMLInputElement, NavItemTextSettings>(
                     className={className}
                     value={text as string}
                     ref={ref}
-                    {...textInputSettings}
+                    {...textInputProps}
                 />
             );
         }
 
         return (
-            <Text className="nav-item-text" {...textSettings}>
+            <Text className="nav-item-text" {...textProps}>
                 {text}
             </Text>
         );

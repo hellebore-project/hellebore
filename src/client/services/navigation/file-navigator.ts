@@ -14,7 +14,7 @@ import {
     ROOT_FOLDER_NODE_ID,
 } from "@/client/interface";
 import {
-    FolderUpdateArguments,
+    FolderUpdateArgs,
     ROOT_FOLDER_ID,
     EntryInfoResponse,
     FolderResponse,
@@ -29,11 +29,11 @@ import { NavigatorErrorManager } from "./navigator-error-manager";
 
 type PrivateKeys = "_nodePositionCache" | "_tree" | "_domain";
 
-export interface FileNavigatorArguments {
+export interface FileNavigatorServiceArgs {
     domain: DomainManager;
 }
 
-export class FileNavigator {
+export class FileNavigatorService {
     // CONSTANTS
     NODE_DOM_ID_PREFIX = "file-nav-node-";
     NODE_TEXT_DOM_ID_PREFIX = "file-nav-node-text-";
@@ -75,7 +75,7 @@ export class FileNavigator {
     onOpenFolderContext: EventProducer<OpenFileContextMenuEvent, unknown>;
     onOpenEntryContext: EventProducer<OpenFileContextMenuEvent, unknown>;
 
-    constructor({ domain }: FileNavigatorArguments) {
+    constructor({ domain }: FileNavigatorServiceArgs) {
         this._nodes = [];
         this._nodePositionCache = {};
 
@@ -97,7 +97,7 @@ export class FileNavigator {
         this.onOpenFolderContext = new EventProducer();
         this.onOpenEntryContext = new EventProducer();
 
-        makeAutoObservable<FileNavigator, PrivateKeys>(this, {
+        makeAutoObservable<FileNavigatorService, PrivateKeys>(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
             _tree: false,
@@ -667,7 +667,7 @@ export class FileNavigator {
         const sourceParentId = this.convertNodeIdToEntryId(sourceFolderNodeId);
         const destParentId = this.convertNodeIdToEntryId(destFolderNodeId);
 
-        let response: boolean | FolderUpdateArguments | null;
+        let response: boolean | FolderUpdateArgs | null;
         if (this.isFolderNode(node)) {
             // folder
             const validateResponse = this._domain.folders.validate(

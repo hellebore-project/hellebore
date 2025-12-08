@@ -3,13 +3,13 @@ import { CommandNames } from "@/domain/constants";
 
 import { MockedInvoker } from "./invoker";
 
-export interface MockGetEntriesArguments {
+export interface MockGetEntriesArgs {
     entities: EntryInfoResponse[];
 }
 
 export function mockGetEntries(
     mockedInvoker: MockedInvoker,
-    { entities }: MockGetEntriesArguments,
+    { entities }: MockGetEntriesArgs,
 ) {
     mockedInvoker.mockCommand(CommandNames.Entry.GetAll, async () => entities);
 }

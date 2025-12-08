@@ -10,10 +10,10 @@ import { Point } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { EventProducer } from "@/utils/event";
 
-import { BaseContextMenu } from "./base-context-menu.model";
+import { BaseContextMenuService } from "./base-context-menu.model";
 import {
-    EntryFileContextMenu,
-    FolderContextMenu,
+    EntryFileContextMenuService,
+    FolderContextMenuService,
 } from "./file-context-menu.model";
 
 export class ContextMenuManager {
@@ -23,7 +23,7 @@ export class ContextMenuManager {
     private _position: Point;
     private _selectedIndex: number | null = null;
 
-    menu: BaseContextMenu | null = null;
+    menu: BaseContextMenuService | null = null;
 
     outsideEvent: OutsideEventHandlerService;
 
@@ -77,19 +77,19 @@ export class ContextMenuManager {
     }
 
     openForNavBarFolderNode({ id, text, position }: OpenFileContextMenuEvent) {
-        const menu = new FolderContextMenu(id, text);
+        const menu = new FolderContextMenuService(id, text);
         menu.onRename.subscriptions = this.onEditFolderName.subscriptions;
         menu.onDelete.subscriptions = this.onDeleteFolder.subscriptions;
         this._open(menu, position);
     }
 
     openForNavBarEntryNode({ id, text, position }: OpenFileContextMenuEvent) {
-        const menu = new EntryFileContextMenu(id, text);
+        const menu = new EntryFileContextMenuService(id, text);
         menu.onDelete.subscriptions = this.onDeleteEntry.subscriptions;
         this._open(menu, position);
     }
 
-    private _open(menu: BaseContextMenu, position: Point) {
+    private _open(menu: BaseContextMenuService, position: Point) {
         this._visible = true;
         this._position = position;
         this._selectedIndex = null;

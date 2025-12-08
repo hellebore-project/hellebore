@@ -15,8 +15,8 @@ import { SpreadsheetReferenceService } from "@/shared/spreadsheet";
 import { EventProducer } from "@/utils/event";
 
 import { HomeManager } from "./home-manager";
-import { SettingsEditor } from "./settings-editor";
-import { EntryEditor, EntryEditorArguments } from "./entry-editor";
+import { SettingsEditorService } from "./settings-editor";
+import { EntryEditorService, EntryEditorServiceArgs } from "./entry-editor";
 import { WordColumnKeys } from "./entry-editor/word-editor";
 
 type PrivateKeys =
@@ -25,7 +25,7 @@ type PrivateKeys =
     | "_domain"
     | "_spreadsheetReference";
 
-export interface CentralPanelManagerArguments {
+export interface CentralPanelManagerArgs {
     domain: DomainManager;
 }
 
@@ -34,7 +34,7 @@ export class CentralPanelManager {
     private _activePanelIndex: number | null = null;
     private _panelKeys: string[];
     private _panels: Map<string, ICentralPanelContentManager>;
-    private _entryEditorArgs: EntryEditorArguments;
+    private _entryEditorArgs: EntryEditorServiceArgs;
 
     // SERVICES
     private _domain: DomainManager;
@@ -52,7 +52,7 @@ export class CentralPanelManager {
     onPartialChangeData: EventProducer<ChangeEntryEvent, unknown>;
     onChangeDataDelayed: EventProducer<ChangeEntryEvent, unknown>;
 
-    constructor({ domain }: CentralPanelManagerArguments) {
+    constructor({ domain }: CentralPanelManagerArgs) {
         this._panelKeys = [];
         this._panels = new Map();
 
@@ -119,10 +119,10 @@ export class CentralPanelManager {
         const currentIndex = this.findPanelIndex(CentralViewType.Settings);
         if (currentIndex !== null) {
             this._showPanel(currentIndex);
-            return this.getPanelByIndex(currentIndex) as SettingsEditor;
+            return this.getPanelByIndex(currentIndex) as SettingsEditorService;
         }
 
-        const panel = new SettingsEditor();
+        const panel = new SettingsEditorService();
 
         // only one panel can be open at a time
         this._clearAndAddPanel(panel, true);
@@ -131,7 +131,7 @@ export class CentralPanelManager {
     }
 
     async openEntryEditor(args: OpenEntryEditorEvent) {
-        const key = EntryEditor.generateKey(
+        const key = EntryEditorService.generateKey(
             CentralViewType.EntryEditor,
             args.id,
         );
@@ -139,10 +139,10 @@ export class CentralPanelManager {
         const currentIndex = this.findPanelIndex(key);
         if (currentIndex !== null) {
             this._showPanel(currentIndex);
-            return this.getPanelByIndex(currentIndex) as EntryEditor;
+            return this.getPanelByIndex(currentIndex) as EntryEditorService;
         }
 
-        const panel = new EntryEditor(this._entryEditorArgs);
+        const panel = new EntryEditorService(this._entryEditorArgs);
 
         panel.onChange.broker = this.onChangeData;
         panel.onPartialChange.broker = this.onPartialChangeData;
@@ -274,7 +274,7 @@ export class CentralPanelManager {
         for (const panel of this._panels.values()) {
             if (panel.type !== CentralViewType.EntryEditor) continue;
 
-            const entryEditor = panel as EntryEditor;
+            const entryEditor = panel as EntryEditorService;
             const result = entryEditor.fetchChanges(event);
             if (result === null) continue;
 
@@ -288,7 +288,7 @@ export class CentralPanelManager {
         for (const panel of this._panels.values()) {
             if (panel.type !== CentralViewType.EntryEditor) continue;
 
-            const entryEditor = panel as EntryEditor;
+            const entryEditor = panel as EntryEditorService;
             entryEditor.handleSynchronization(event);
         }
     }

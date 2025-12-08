@@ -10,8 +10,8 @@ import {
 import { EntryInfoResponse, ROOT_FOLDER_ID } from "@/domain";
 import { EventProducer } from "@/utils/event";
 
-import { EntryCreator } from "./entry-creator";
-import { ProjectCreator } from "./project-creator";
+import { EntryCreatorService } from "./entry-creator";
+import { ProjectCreatorService } from "./project-creator";
 
 export class ModalManager {
     private _modalKey: ModalType | null = null;
@@ -42,7 +42,7 @@ export class ModalManager {
     }
 
     openProjectCreator() {
-        const modal = new ProjectCreator();
+        const modal = new ProjectCreatorService();
         modal.onCreateProject.subscriptions =
             this.onCreateProject.subscriptions;
         modal.initialize();
@@ -50,7 +50,7 @@ export class ModalManager {
     }
 
     openEntryCreator({ entityType, folderId }: OpenEntryCreatorEvent) {
-        const modal = new EntryCreator();
+        const modal = new EntryCreatorService();
         modal.onCreateEntry.subscriptions = this.onCreateEntry.subscriptions;
         modal.initialize(entityType, folderId ?? ROOT_FOLDER_ID);
         this._open(modal);

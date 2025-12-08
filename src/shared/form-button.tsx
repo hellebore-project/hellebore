@@ -1,13 +1,13 @@
 import { Button } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { BaseButtonSettings } from "@/interface";
+import { BaseButtonProps } from "@/interface";
 
-export interface FormButtonSettings extends BaseButtonSettings {
+export interface FormButtonProps extends BaseButtonProps {
     label?: string;
 }
 
-function renderFormButton({ label, ...rest }: FormButtonSettings) {
+function renderFormButton({ label, ...rest }: FormButtonProps) {
     return (
         <Button variant="filled" {...rest}>
             {label ?? ""}

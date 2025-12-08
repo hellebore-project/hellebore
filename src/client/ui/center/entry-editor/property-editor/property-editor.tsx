@@ -1,17 +1,17 @@
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { PropertyEditor as PropertyEditorService } from "@/client/services";
+import { PropertyEditorService } from "@/client/services";
 import { SPACE } from "@/shared/common";
 
 import { PropertyTable } from "./property-table";
 import { TitleField } from "../title-field";
 
-interface PropertyEditorSettings {
+interface PropertyEditorProps {
     service: PropertyEditorService;
 }
 
-function renderPropertyEditor({ service }: PropertyEditorSettings) {
+function renderPropertyEditor({ service }: PropertyEditorProps) {
     return (
         <Container className="property-editor">
             <Stack

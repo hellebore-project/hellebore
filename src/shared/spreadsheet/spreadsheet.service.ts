@@ -11,14 +11,14 @@ import {
 } from "./spreadsheet.interface";
 import {
     SpreadsheetDataService,
-    SpreadsheetDataServiceArguments,
+    SpreadsheetDataServiceArgs,
 } from "./spreadsheet-data.service";
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";
 import { SpreadsheetReferenceService } from "./spreadsheet-reference.service";
 
-export interface SpreadsheetServiceArguments<K extends string, M> {
+export interface SpreadsheetServiceArgs<K extends string, M> {
     reference: SpreadsheetReferenceService<K, M>;
-    data: Omit<SpreadsheetDataServiceArguments<K, M>, "reference">;
+    data: Omit<SpreadsheetDataServiceArgs<K, M>, "reference">;
 }
 
 export class SpreadsheetService<K extends string, M> {
@@ -26,7 +26,7 @@ export class SpreadsheetService<K extends string, M> {
     selection: SpreadsheetSelectionService<K, M>;
     reference: SpreadsheetReferenceService<K, M>;
 
-    constructor({ data, reference }: SpreadsheetServiceArguments<K, M>) {
+    constructor({ data, reference }: SpreadsheetServiceArgs<K, M>) {
         this.data = new SpreadsheetDataService({ reference, ...data });
         this.selection = new SpreadsheetSelectionService(this.data);
         this.reference = reference;

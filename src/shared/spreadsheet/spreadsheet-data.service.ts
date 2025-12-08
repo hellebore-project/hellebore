@@ -20,7 +20,7 @@ type PrivateKeys =
     | "_onDeleteRow"
     | "_onEditCell";
 
-export interface SpreadsheetDataServiceArguments<K extends string, M> {
+export interface SpreadsheetDataServiceArgs<K extends string, M> {
     reference: SpreadsheetReferenceService<K, M>;
     onAddRow?: AddRowHandler;
     onDeleteRow?: DeleteRowHandler<K, M>;
@@ -47,7 +47,7 @@ export class SpreadsheetDataService<K extends string, M> {
         onAddRow,
         onDeleteRow,
         onEditCell,
-    }: SpreadsheetDataServiceArguments<K, M>) {
+    }: SpreadsheetDataServiceArgs<K, M>) {
         this._rows = [];
         this._rowCache = new Map();
         this._columns = [];

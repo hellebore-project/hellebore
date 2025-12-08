@@ -2,9 +2,9 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import { observer } from "mobx-react-lite";
 import { CSSProperties } from "react";
 
-import { TextField, TextFieldSettings } from "./text-field";
+import { TextField, TextFieldProps } from "./text-field";
 
-export interface FileFieldSettings extends TextFieldSettings {
+export interface FileFieldProps extends TextFieldProps {
     mode: "save" | "open";
     onChangeFile?: (path: string) => void;
 }
@@ -14,7 +14,7 @@ function renderFileField({
     onChangeFile,
     styles,
     ...rest
-}: FileFieldSettings) {
+}: FileFieldProps) {
     let getFilePath: () => Promise<string | null>;
     switch (mode) {
         case "open":

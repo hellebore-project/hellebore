@@ -6,7 +6,7 @@ import { EventProducer } from "@/utils/event";
 
 type PrivateKeys = "_titleChanged";
 
-export class EntryInfoEditor {
+export class EntryInfoService {
     private _id: number = ENTRY_ID_SENTINEL;
     private _entityType: EntityType | null = null;
     private _title = "";
@@ -19,7 +19,7 @@ export class EntryInfoEditor {
     constructor() {
         this.onChangeTitle = new EventProducer();
 
-        makeAutoObservable<EntryInfoEditor, PrivateKeys>(this, {
+        makeAutoObservable<EntryInfoService, PrivateKeys>(this, {
             onChangeTitle: false,
             _titleChanged: false,
         });

@@ -13,7 +13,7 @@ import { ToolTipWrapper } from "@/shared/tool-tip";
 import { SpreadsheetFieldType } from "./spreadsheet.interface";
 import { SpreadsheetService } from "./spreadsheet.service";
 
-interface SpreadsheetCellSettings<K extends string, M> {
+interface SpreadsheetCellProps<K extends string, M> {
     rowIndex: number;
     colIndex: number;
     service: SpreadsheetService<K, M>;
@@ -25,12 +25,12 @@ interface DeleteSpreadsheetRowButton {
     onClick: (rowKey: string) => void;
 }
 
-interface SpreadsheetRowSettings<K extends string, M> {
+interface SpreadsheetRowProps<K extends string, M> {
     index: number;
     service: SpreadsheetService<K, M>;
 }
 
-interface SpreadsheetSettings<K extends string, M>
+interface SpreadsheetProps<K extends string, M>
     extends HTMLAttributes<HTMLDivElement> {
     service: SpreadsheetService<K, M>;
 }
@@ -64,7 +64,7 @@ function renderSpreadsheetCell<K extends string, M>({
     rowIndex,
     colIndex,
     service,
-}: SpreadsheetCellSettings<K, M>) {
+}: SpreadsheetCellProps<K, M>) {
     const data = service.data.getCell(rowIndex, colIndex);
     const colData = service.data.getColumnData(colIndex);
 
@@ -140,7 +140,7 @@ const SpreadsheetCell = observer(renderSpreadsheetCell);
 function renderSpreadsheetRow<K extends string, M>({
     index,
     service,
-}: SpreadsheetRowSettings<K, M>) {
+}: SpreadsheetRowProps<K, M>) {
     const row = service.data.rowData[index];
     const cells: ReactNode[] = service.data.columnData.map((col, j) => {
         return (
@@ -176,7 +176,7 @@ const SpreadsheetRow = observer(renderSpreadsheetRow);
 function renderSpreadsheet<K extends string, M>({
     service,
     ...rest
-}: SpreadsheetSettings<K, M>) {
+}: SpreadsheetProps<K, M>) {
     const headers: ReactNode[] = [];
 
     for (const colData of service.data.columnData) {

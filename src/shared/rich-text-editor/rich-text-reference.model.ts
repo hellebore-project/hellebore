@@ -10,7 +10,7 @@ import tippy, { Instance } from "tippy.js";
 import {
     VerticalSelection,
     VerticalSelectionData,
-    VerticalSelectionSettings,
+    VerticalSelectionProps,
 } from "@/shared/vertical-selection";
 
 export type ReferenceId = number | string;
@@ -41,7 +41,7 @@ export interface ReferenceExtensionSettings {
 class ReferenceSuggestionRenderer {
     _component: ReactRenderer<
         typeof VerticalSelection,
-        VerticalSelectionSettings
+        VerticalSelectionProps
     > | null = null;
     _popup: Instance[];
     _data: VerticalSelectionData[];
@@ -62,18 +62,18 @@ class ReferenceSuggestionRenderer {
 
     get component(): ReactRenderer<
         typeof VerticalSelection,
-        VerticalSelectionSettings
+        VerticalSelectionProps
     > {
         return this._component as ReactRenderer<
             typeof VerticalSelection,
-            VerticalSelectionSettings
+            VerticalSelectionProps
         >;
     }
 
     set component(
         component: ReactRenderer<
             typeof VerticalSelection,
-            VerticalSelectionSettings
+            VerticalSelectionProps
         >,
     ) {
         this._component = component;
@@ -87,14 +87,14 @@ class ReferenceSuggestionRenderer {
         this._data = this.convertQueryResult(props.items);
         this._confirm = props.command;
 
-        const dropdownSettings: VerticalSelectionSettings = {
+        const dropdownProps: VerticalSelectionProps = {
             data: this._data,
             getSelectedIndex: this.getSelectedIndex,
             onConfirm: (_, item) => this.onConfirm(item),
             placeholder: "No results",
             withBorder: true,
             radius: 0,
-            itemSettings: {
+            itemProps: {
                 onMouseOver: (e) =>
                     this.setSelectedIndex(
                         Number(e.currentTarget.getAttribute("data-index")),
@@ -104,9 +104,9 @@ class ReferenceSuggestionRenderer {
 
         this.component = new ReactRenderer<
             typeof VerticalSelection,
-            VerticalSelectionSettings
+            VerticalSelectionProps
         >(VerticalSelection, {
-            props: dropdownSettings,
+            props: dropdownProps,
             editor: props.editor,
         });
 

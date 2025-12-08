@@ -14,12 +14,12 @@ import {
     SpreadsheetColumnData,
     SpreadsheetService,
     SpreadsheetFieldType,
-    SpreadsheetServiceArguments,
+    SpreadsheetServiceArgs,
 } from "@/shared/spreadsheet";
 import { Counter } from "@/utils/counter";
 import { EventProducer } from "@/utils/event";
 
-import { EntryInfoEditor } from "./info-editor";
+import { EntryInfoService } from "./info-editor";
 
 export type WordColumnKeys = "spelling" | "definition" | "translations";
 
@@ -73,11 +73,11 @@ type PrivateKeys =
     | "_wordKeyGenerator"
     | "_domain";
 
-export interface WordEditorArguments {
+export interface WordEditorServiceArgs {
     domain: DomainManager;
-    info: EntryInfoEditor;
+    info: EntryInfoService;
     spreadsheet: Omit<
-        SpreadsheetServiceArguments<WordColumnKeys, WordMetaData>,
+        SpreadsheetServiceArgs<WordColumnKeys, WordMetaData>,
         "data"
     >;
 }
@@ -87,7 +87,7 @@ interface ChangeWordTypeEvent {
     wordType: WordType;
 }
 
-export class WordEditor {
+export class WordEditorService {
     // STATE VARIABLES
     private _wordType: WordType = WordType.RootWord;
     private _modifiedWordKeys: Set<WordKey>;
@@ -95,7 +95,7 @@ export class WordEditor {
 
     // SERVICES
     private _domain: DomainManager;
-    info: EntryInfoEditor;
+    info: EntryInfoService;
     spreadsheet: SpreadsheetService<WordColumnKeys, WordMetaData>;
 
     // UTILITIES
@@ -106,7 +106,7 @@ export class WordEditor {
     onChangeWordType: EventProducer<ChangeWordTypeEvent, void>;
 
     // CONSTRUCTION
-    constructor({ domain, info, spreadsheet }: WordEditorArguments) {
+    constructor({ domain, info, spreadsheet }: WordEditorServiceArgs) {
         this._modifiedWordKeys = new Set();
         this._wordKeyGenerator = new Counter();
 
@@ -123,7 +123,7 @@ export class WordEditor {
             ...spreadsheet,
         });
 
-        makeAutoObservable<WordEditor, PrivateKeys>(this, {
+        makeAutoObservable<WordEditorService, PrivateKeys>(this, {
             _modifiedWordKeys: false,
             _columnData: false,
             _wordKeyGenerator: false,
