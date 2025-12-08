@@ -1,4 +1,4 @@
-import { EntryViewType, WordEditor } from "@/client";
+import { EntryViewType, WordEditorService } from "@/client";
 import { WordResponse, WordType } from "@/domain";
 import { Id } from "@/interface";
 import { mockGetWords } from "@tests/utils/mocks";
@@ -12,7 +12,7 @@ export interface BaseWordEditorFixtures {
     wordDefinition: string;
     wordTranslations: string[];
     word: WordResponse;
-    wordEditorService: WordEditor;
+    wordEditorService: WordEditorService;
 }
 
 export const test = baseTest.extend<BaseWordEditorFixtures>({

@@ -1,5 +1,5 @@
 import {
-    RichTextEditorProps,
+    RichTextEditorProps as TiptapEditorProps,
     RichTextEditor as TiptapEditor,
 } from "@mantine/tiptap";
 import { Editor } from "@tiptap/react";
@@ -7,11 +7,11 @@ import { observer } from "mobx-react-lite";
 
 import "./rich-text-editor.css";
 
-interface RichTextEditorSettings extends Partial<RichTextEditorProps> {
+interface RichTextEditorProps extends Partial<TiptapEditorProps> {
     getEditor: () => Editor;
 }
 
-function renderRichTextEditor({ getEditor, ...rest }: RichTextEditorSettings) {
+function renderRichTextEditor({ getEditor, ...rest }: RichTextEditorProps) {
     return (
         <TiptapEditor editor={getEditor()} {...rest}>
             <TiptapEditor.Content />

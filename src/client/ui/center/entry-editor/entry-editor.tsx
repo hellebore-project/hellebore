@@ -3,7 +3,7 @@ import "./entry-editor.css";
 import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntryEditor as EntryEditorService, EntryViewType } from "@/client";
+import { EntryEditorService, EntryViewType } from "@/client";
 import { EntityType } from "@/domain";
 import {
     TableOfContents,
@@ -15,11 +15,11 @@ import { WordEditor } from "./word-editor/word-editor";
 import { DeleteEntryButton } from "./delete-entry-button";
 import { ArticleEditor } from "./article-editor";
 
-interface EntryEditorSettings {
+interface EntryEditorProps {
     service: EntryEditorService;
 }
 
-function renderEntryEditorHeader({ service }: EntryEditorSettings) {
+function renderEntryEditorHeader({ service }: EntryEditorProps) {
     return (
         <Group className="entry-editor-header">
             <Badge variant="outline" color="blue">
@@ -33,7 +33,7 @@ function renderEntryEditorHeader({ service }: EntryEditorSettings) {
 
 const EntryEditorHeader = observer(renderEntryEditorHeader);
 
-function renderEntryEditorContent({ service }: EntryEditorSettings) {
+function renderEntryEditorContent({ service }: EntryEditorProps) {
     const viewKey = service.currentView;
     if (viewKey === EntryViewType.ArticleEditor)
         return <ArticleEditor service={service.article} />;
@@ -46,7 +46,7 @@ function renderEntryEditorContent({ service }: EntryEditorSettings) {
 
 const EntryEditorContent = observer(renderEntryEditorContent);
 
-function renderEntryEditorTabs({ service }: EntryEditorSettings) {
+function renderEntryEditorTabs({ service }: EntryEditorProps) {
     const entryType = service.entryType;
 
     const tabData: TableOfContentsItemData[] = [
@@ -71,7 +71,7 @@ function renderEntryEditorTabs({ service }: EntryEditorSettings) {
             className="entry-editor-toc"
             data={tabData}
             activeValue={activeTabKey}
-            itemSettings={{
+            itemProps={{
                 className: "entry-editor-toc-item",
                 justify: "space-between",
             }}
@@ -81,7 +81,7 @@ function renderEntryEditorTabs({ service }: EntryEditorSettings) {
 
 export const EntryEditorTabs = observer(renderEntryEditorTabs);
 
-function renderEntryEditor(props: EntryEditorSettings) {
+function renderEntryEditor(props: EntryEditorProps) {
     return (
         <Stack className="entry-editor" gap={0}>
             <EntryEditorHeader {...props} />

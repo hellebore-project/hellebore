@@ -16,16 +16,16 @@ function renderContentsPaneHeader() {
     const fileNav = getService().navigation.files;
     return (
         <NavItem
-            groupSettings={{
+            groupProps={{
                 onClick: () => fileNav.toggleExpanded(),
             }}
-            expandButtonSettings={{
+            expandButtonProps={{
                 expandable: true,
                 isExpanded: () => fileNav.expanded,
             }}
-            textSettings={{
+            textProps={{
                 text: "CONTENTS",
-                textSettings: { fw: 500 },
+                textProps: { fw: 500 },
             }}
         >
             {fileNav.canAddEntity && <AddEntryButton />}

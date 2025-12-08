@@ -5,8 +5,8 @@ import { observer } from "mobx-react-lite";
 import { ReactElement, SyntheticEvent } from "react";
 
 import {
-    VerticalMenuSelectionSettings,
-    VerticalSelectionSettings,
+    VerticalMenuSelectionProps,
+    VerticalSelectionProps,
 } from "./vertical-selection.interface";
 
 function renderVerticalSelectionItem({
@@ -15,7 +15,7 @@ function renderVerticalSelectionItem({
     className = "",
     style: sharedStyle,
     ...sharedAttrs
-}: VerticalMenuSelectionSettings) {
+}: VerticalMenuSelectionProps) {
     const {
         className: uniqueClassName,
         index,
@@ -54,10 +54,10 @@ const renderVerticalSelection = ({
     placeholder,
     getSelectedIndex,
     onConfirm,
-    stackSettings,
-    itemSettings,
+    stackProps,
+    itemProps,
     ...rest
-}: VerticalSelectionSettings) => {
+}: VerticalSelectionProps) => {
     let options: ReactElement[];
     if (data.length) {
         const selectedIndex = getSelectedIndex() ?? null;
@@ -70,7 +70,7 @@ const renderVerticalSelection = ({
                     if (onConfirm) onConfirm(e, itemData);
                     else if (itemData.onConfirm) itemData.onConfirm(e);
                 }}
-                {...itemSettings}
+                {...itemProps}
             />
         ));
     } else {
@@ -84,7 +84,7 @@ const renderVerticalSelection = ({
         else options = [];
     }
 
-    const { className = "", ...stackRest } = stackSettings ?? {};
+    const { className = "", ...stackRest } = stackProps ?? {};
 
     return (
         <Paper {...rest}>

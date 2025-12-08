@@ -13,27 +13,27 @@ import {
 } from "@/shared/rich-text-editor";
 import { EventProducer } from "@/utils/event";
 
-import { EntryInfoEditor } from "./info-editor";
+import { EntryInfoService } from "./info-editor";
 
 type PrivateKeys = "_changed" | "_domain";
 
-interface ArticleEditorSettings {
+interface ArticleEditorServiceArgs {
     domain: DomainManager;
-    info: EntryInfoEditor;
+    info: EntryInfoService;
 }
 
-export class ArticleEditor {
+export class ArticleEditorService {
     editor: Editor;
     private _changed = false;
     private _selectedRefIndex: number | null = null;
 
     private _domain: DomainManager;
-    info: EntryInfoEditor;
+    info: EntryInfoService;
 
     onChange: EventProducer<ChangeEntryEvent, unknown>;
     onSelectReference: EventProducer<Id, void>;
 
-    constructor({ domain, info }: ArticleEditorSettings) {
+    constructor({ domain, info }: ArticleEditorServiceArgs) {
         this._domain = domain;
         this.info = info;
 
@@ -42,7 +42,7 @@ export class ArticleEditor {
 
         this.editor = this._buildEditor();
 
-        makeAutoObservable<ArticleEditor, PrivateKeys>(this, {
+        makeAutoObservable<ArticleEditorService, PrivateKeys>(this, {
             _changed: false,
             _domain: false,
             info: false,

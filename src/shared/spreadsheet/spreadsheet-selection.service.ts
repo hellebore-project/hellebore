@@ -19,7 +19,7 @@ export interface TranslateSelectionResult {
     overflowTop: boolean;
 }
 
-export interface UpdateSelectionArguments {
+export interface UpdateSelectionArgs {
     start: SpreadsheetCellPosition;
     end: SpreadsheetCellPosition;
     positive?: boolean;
@@ -163,7 +163,7 @@ export class SpreadsheetSelectionService<K extends string, M> {
         start,
         end,
         positive = true,
-    }: UpdateSelectionArguments) {
+    }: UpdateSelectionArgs) {
         const oldSelection = this._activeSelection;
         if (oldSelection) {
             const oldKeys = oldSelection.positionKeys;

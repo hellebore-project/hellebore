@@ -4,7 +4,7 @@ import { CreateProjectEvent, IModalContentManager } from "@/client/interface";
 import { ModalType } from "@/client/constants";
 import { EventProducer } from "@/utils/event";
 
-export class ProjectCreator implements IModalContentManager {
+export class ProjectCreatorService implements IModalContentManager {
     readonly TITLE = "Create a new project";
 
     private _name = "";

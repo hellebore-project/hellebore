@@ -12,16 +12,16 @@ import { observer } from "mobx-react-lite";
 import { MouseEvent } from "react";
 import { DndProvider } from "react-dnd";
 
-import { BaseGroupSettings } from "@/interface";
+import { BaseGroupProps } from "@/interface";
 import {
     FileNodeData,
     FileNodeModel,
     getService,
     ROOT_FOLDER_NODE_ID,
 } from "@/client";
-import { NavItem, NavItemTextSettings } from "@/shared/nav-item";
+import { NavItem, NavItemTextProps } from "@/shared/nav-item";
 
-interface FileNavItemSettings extends BaseGroupSettings {
+interface FileNavItemProps extends BaseGroupProps {
     node: FileNodeModel;
     depth: number;
     expanded: boolean;
@@ -34,7 +34,7 @@ function renderFileNavItem({
     expanded,
     toggle,
     ...rest
-}: FileNavItemSettings) {
+}: FileNavItemProps) {
     const service = getService();
     const fileNav = service.navigation.files;
 
@@ -63,7 +63,7 @@ function renderFileNavItem({
         }
     };
 
-    const textSettings: NavItemTextSettings = {
+    const textProps: NavItemTextProps = {
         editable,
         text: editable ? (node?.data?.editableText ?? node.text) : node.text,
         error: node?.data?.error,
@@ -72,7 +72,7 @@ function renderFileNavItem({
     const textElementId = fileNav.convertNodeIdToDOMTextId(node.id);
 
     if (selected && editable) {
-        textSettings.textInputSettings = {
+        textProps.textInputProps = {
             id: textElementId,
             onChange: (event) =>
                 fileNav.setEditableNodeText(node.id, event.target.value),
@@ -81,9 +81,9 @@ function renderFileNavItem({
             size: "xs",
             styles: { input: { fontSize: 16 } },
         };
-        textSettings.ref_ = fileNav.editableTextRef ?? undefined;
+        textProps.ref_ = fileNav.editableTextRef ?? undefined;
     } else
-        textSettings.textSettings = {
+        textProps.textProps = {
             id: textElementId,
         };
 
@@ -93,14 +93,14 @@ function renderFileNavItem({
             selected={selected}
             focused={fileNav.focused}
             rank={depth + 1}
-            groupSettings={{
+            groupProps={{
                 id: fileNav.convertNodeIdToDOMId(node.id),
                 onClick: onActivate,
                 onContextMenu: (e) => fileNav.openContextMenu(e),
                 ...rest,
             }}
-            textSettings={textSettings}
-            expandButtonSettings={{
+            textProps={textProps}
+            expandButtonProps={{
                 expandable: node.droppable,
                 expanded: expanded,
             }}

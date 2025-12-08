@@ -14,7 +14,7 @@ import { HeaderManager } from "./header-manager";
 import { ModalManager } from "./modal";
 import { NavigationService } from "./navigation";
 import { StyleManager } from "./style-manager";
-import { Synchronizer } from "./synchronizer";
+import { SynchronizationService } from "./synchronizer";
 
 export class ClientManager {
     // CONSTANTS
@@ -25,7 +25,7 @@ export class ClientManager {
 
     // SERVICES
     domain: DomainManager;
-    synchronizer: Synchronizer;
+    synchronizer: SynchronizationService;
     central: CentralPanelManager;
     header: HeaderManager;
     navigation: NavigationService;
@@ -39,7 +39,7 @@ export class ClientManager {
     constructor() {
         this.domain = new DomainManager();
 
-        this.synchronizer = new Synchronizer(this.domain);
+        this.synchronizer = new SynchronizationService(this.domain);
 
         // miscellaneous
         this.style = new StyleManager();

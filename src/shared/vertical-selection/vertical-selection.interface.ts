@@ -1,20 +1,20 @@
 import { StackProps } from "@mantine/core";
 import { SyntheticEvent } from "react";
 
-import { BaseButtonSettings, BasePaperSettings } from "@/interface";
+import { BaseButtonProps, BasePaperProps } from "@/interface";
 
-export interface VerticalSelectionData extends BaseButtonSettings {
+export interface VerticalSelectionData extends BaseButtonProps {
     index: number;
     label: string;
     onConfirm?: (e: SyntheticEvent<HTMLButtonElement>) => Promise<unknown>;
 }
 
-export interface VerticalMenuSelectionSettings extends BaseButtonSettings {
+export interface VerticalMenuSelectionProps extends BaseButtonProps {
     data: VerticalSelectionData;
     selected?: boolean;
 }
 
-export interface VerticalSelectionSettings extends BasePaperSettings {
+export interface VerticalSelectionProps extends BasePaperProps {
     data: VerticalSelectionData[];
     placeholder?: string;
     getSelectedIndex: () => number | null;
@@ -22,6 +22,6 @@ export interface VerticalSelectionSettings extends BasePaperSettings {
         e: SyntheticEvent<HTMLButtonElement>,
         item: VerticalSelectionData,
     ) => Promise<void>;
-    stackSettings?: StackProps;
-    itemSettings?: BaseButtonSettings;
+    stackProps?: StackProps;
+    itemProps?: BaseButtonProps;
 }

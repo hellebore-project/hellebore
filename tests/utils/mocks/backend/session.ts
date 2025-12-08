@@ -3,18 +3,18 @@ import { CommandNames } from "@/domain/constants";
 
 import { MockedInvoker } from "./invoker";
 
-export interface MockGetSessionArguments {
+export interface MockGetSessionArgs {
     project: ProjectResponse;
     dbFilePath: string;
 }
 
-export interface MockUpdateProjectArguments {
+export interface MockUpdateProjectArgs {
     id: number;
 }
 
 export function mockGetSession(
     mockedInvoker: MockedInvoker,
-    { project, dbFilePath }: MockGetSessionArguments,
+    { project, dbFilePath }: MockGetSessionArgs,
 ) {
     const response: SessionResponse = {
         project,
@@ -25,7 +25,7 @@ export function mockGetSession(
 
 export function mockUpdateProject(
     mockedInvoker: MockedInvoker,
-    { id }: MockUpdateProjectArguments,
+    { id }: MockUpdateProjectArgs,
 ) {
     mockedInvoker.mockCommand(CommandNames.Project.Update, async (name) => ({
         id,

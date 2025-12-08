@@ -5,7 +5,7 @@ import { observer } from "mobx-react-lite";
 
 import {
     WordColumnKeys,
-    WordEditor as WordEditorService,
+    WordEditorService,
     WordMetaData,
     WordViewType,
 } from "@/client";
@@ -27,21 +27,21 @@ const TAB_DATA: TabData[] = [
     { label: "Verbs", value: WordViewType.Verbs },
 ];
 
-interface WordTableSettings {
+interface WordTableProps {
     service: SpreadsheetService<WordColumnKeys, WordMetaData>;
 }
 
-interface WordEditorSettings {
+interface WordEditorProps {
     service: WordEditorService;
 }
 
-function renderWordTable({ service }: WordTableSettings) {
+function renderWordTable({ service }: WordTableProps) {
     return <Spreadsheet service={service} />;
 }
 
 export const WordTable = observer(renderWordTable);
 
-function renderWordEditor({ service }: WordEditorSettings) {
+function renderWordEditor({ service }: WordEditorProps) {
     return (
         <Container className="word-editor">
             <Stack className="word-editor-stack" justify="flex-start" gap={0}>
@@ -52,7 +52,7 @@ function renderWordEditor({ service }: WordEditorSettings) {
                     data={TAB_DATA}
                     selectedValue={service.viewKey}
                     className="word-editor-tabs"
-                    tabSettings={{
+                    tabProps={{
                         onClick: (e) =>
                             service.changeView(
                                 e.currentTarget.value as WordViewType,

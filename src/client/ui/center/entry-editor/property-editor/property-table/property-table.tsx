@@ -5,19 +5,19 @@ import { observer } from "mobx-react-lite";
 import { PropsWithChildren, ReactNode } from "react";
 
 import {
-    PropertyEditor,
+    PropertyEditorService,
     PropertyFieldType,
     TextPropertyFieldData,
 } from "@/client";
 import { TextField } from "@/shared/text-field";
 
-interface PropertyRowSettings extends PropsWithChildren {
+interface PropertyRowProps extends PropsWithChildren {
     label: string;
 }
 
-interface PropertyTableSettings extends CardProps {
-    service: PropertyEditor;
-    stackSettings?: StackProps;
+interface PropertyTableProps extends CardProps {
+    service: PropertyEditorService;
+    stackProps?: StackProps;
 }
 
 function renderTextPropertyField({
@@ -37,7 +37,7 @@ function renderTextPropertyField({
 
 const TextPropertyField = observer(renderTextPropertyField);
 
-function renderPropertyFieldRow({ label, children }: PropertyRowSettings) {
+function renderPropertyFieldRow({ label, children }: PropertyRowProps) {
     return (
         <Grid justify="flex-start" align="center">
             <Grid.Col span={3}>{label}</Grid.Col>
@@ -50,9 +50,9 @@ const PropertyFieldRow = observer(renderPropertyFieldRow);
 
 function renderPropertyTable({
     service,
-    stackSettings,
+    stackProps,
     ...rest
-}: PropertyTableSettings) {
+}: PropertyTableProps) {
     // TODO: delay accessing the field data;
     // the field data should be accessed by the individual PropertyFieldRows
     const data = service.fieldData;
@@ -81,7 +81,7 @@ function renderPropertyTable({
                 className="property-table-stack"
                 align="stretch"
                 gap="xs"
-                {...stackSettings}
+                {...stackProps}
             >
                 {rows}
             </Stack>

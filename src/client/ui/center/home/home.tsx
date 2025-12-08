@@ -8,11 +8,11 @@ import { HomeManager } from "@/client/services";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 
-interface HomeSettings {
+interface HomeProps {
     service: HomeManager;
 }
 
-function renderHome({ service }: HomeSettings) {
+function renderHome({ service }: HomeProps) {
     const clientManager = getService();
     if (!clientManager.domain.hasProject) return null;
     return (

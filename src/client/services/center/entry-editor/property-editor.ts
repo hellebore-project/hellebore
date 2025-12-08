@@ -14,33 +14,33 @@ import {
 } from "@/client";
 import { EventProducer } from "@/utils/event";
 
-import { EntryInfoEditor } from "./info-editor";
+import { EntryInfoService } from "./info-editor";
 
 type PrivateKeys = "_changed";
 
 type FieldDataCollection = Record<number, PropertyFieldData[]>;
 
-interface PropertyEditorSettings {
-    info: EntryInfoEditor;
+interface PropertyEditorServiceArgs {
+    info: EntryInfoService;
 }
 
-export class PropertyEditor {
+export class PropertyEditorService {
     private _entity: BaseEntity | null = null;
     fields: FieldDataCollection;
     private _changed = false;
 
-    info: EntryInfoEditor;
+    info: EntryInfoService;
 
     onChange: EventProducer<ChangeEntryEvent, unknown>;
 
-    constructor({ info }: PropertyEditorSettings) {
+    constructor({ info }: PropertyEditorServiceArgs) {
         this.fields = this._generateFieldData();
 
         this.info = info;
 
         this.onChange = new EventProducer();
 
-        makeAutoObservable<PropertyEditor, PrivateKeys>(this, {
+        makeAutoObservable<PropertyEditorService, PrivateKeys>(this, {
             fields: false,
             _changed: false,
             info: false,

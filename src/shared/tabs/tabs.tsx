@@ -4,21 +4,21 @@ import { forwardRef } from "react";
 import { Button, Group } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { BaseButtonSettings, BaseGroupSettings } from "@/interface";
+import { BaseButtonProps, BaseGroupProps } from "@/interface";
 
-export interface TabData extends BaseButtonSettings {
+export interface TabData extends BaseButtonProps {
     label: string;
 }
 
-export interface TabSettings extends BaseButtonSettings {
+export interface TabProps extends BaseButtonProps {
     data: TabData;
     selected: boolean;
 }
 
-export interface TabsSettings extends BaseGroupSettings {
+export interface TabsProps extends BaseGroupProps {
     data: TabData[];
     selectedValue: number | string;
-    tabSettings?: BaseButtonSettings;
+    tabProps?: BaseButtonProps;
 }
 
 function renderTab({
@@ -27,7 +27,7 @@ function renderTab({
     className: sharedClassName = "",
     style: sharedStyle,
     ...rest
-}: TabSettings) {
+}: TabProps) {
     const {
         label,
         className: uniqueClassName,
@@ -54,8 +54,8 @@ function renderTab({
 
 const Tab = observer(renderTab);
 
-const renderTabs = forwardRef<HTMLDivElement, TabsSettings>(
-    ({ data, selectedValue, className = "", tabSettings, ...rest }, ref) => {
+const renderTabs = forwardRef<HTMLDivElement, TabsProps>(
+    ({ data, selectedValue, className = "", tabProps, ...rest }, ref) => {
         return (
             <Group ref={ref} className={`tabs ${className}`} gap={0} {...rest}>
                 {data.map((d) => (
@@ -63,7 +63,7 @@ const renderTabs = forwardRef<HTMLDivElement, TabsSettings>(
                         key={`tab-${d.value}`}
                         data={d}
                         selected={d.value === selectedValue}
-                        {...tabSettings}
+                        {...tabProps}
                     />
                 ))}
             </Group>

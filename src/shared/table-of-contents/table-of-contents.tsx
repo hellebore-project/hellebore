@@ -3,23 +3,23 @@ import "./table-of-contents.css";
 import { Box, Button } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { BaseBoxSettings, BaseButtonSettings } from "@/interface";
+import { BaseBoxProps, BaseButtonProps } from "@/interface";
 
-export interface TableOfContentsItemData extends BaseButtonSettings {
+export interface TableOfContentsItemData extends BaseButtonProps {
     label?: string;
     value: number | string;
     rank: number;
 }
 
-export interface TableOfContentsItemSettings extends BaseButtonSettings {
+export interface TableOfContentsItemProps extends BaseButtonProps {
     data: TableOfContentsItemData;
     active: boolean;
 }
 
-export interface TableOfContentsSettings extends BaseBoxSettings {
+export interface TableOfContentsProps extends BaseBoxProps {
     data: TableOfContentsItemData[];
     activeValue: number | string;
-    itemSettings?: BaseButtonSettings;
+    itemProps?: BaseButtonProps;
 }
 
 function renderTableOfContentsItem({
@@ -28,7 +28,7 @@ function renderTableOfContentsItem({
     className,
     style: sharedStyle,
     ...sharedRest
-}: TableOfContentsItemSettings) {
+}: TableOfContentsItemProps) {
     const {
         label,
         value,
@@ -64,9 +64,9 @@ const TableOfContentsItem = observer(renderTableOfContentsItem);
 function renderTableOfContents({
     data,
     activeValue,
-    itemSettings,
+    itemProps,
     ...rest
-}: TableOfContentsSettings) {
+}: TableOfContentsProps) {
     return (
         <Box {...rest}>
             {data.map((_data) => (
@@ -74,7 +74,7 @@ function renderTableOfContents({
                     key={`vertical-nav-item-${_data.value}`}
                     data={_data}
                     active={_data.value == activeValue}
-                    {...itemSettings}
+                    {...itemProps}
                 />
             ))}
         </Box>

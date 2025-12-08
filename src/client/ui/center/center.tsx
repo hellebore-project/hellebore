@@ -4,7 +4,7 @@ import {
     getService,
     CentralViewType,
     HomeManager,
-    EntryEditor as EntryEditorService,
+    EntryEditorService,
 } from "@/client";
 
 import { EntryEditor } from "./entry-editor";

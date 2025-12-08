@@ -4,11 +4,11 @@ import { forwardRef } from "react";
 
 import { getService } from "@/client";
 
-interface SelectFieldSettings extends SelectProps {
+interface SelectFieldProps extends SelectProps {
     getValue?: () => string | null;
 }
 
-const renderSelectField = forwardRef<HTMLInputElement, SelectFieldSettings>(
+const renderSelectField = forwardRef<HTMLInputElement, SelectFieldProps>(
     (
         {
             value,

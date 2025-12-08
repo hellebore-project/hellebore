@@ -1,6 +1,6 @@
 import { VerticalSelectionData } from "@/shared/vertical-selection";
 
-export abstract class BaseContextMenu {
+export abstract class BaseContextMenuService {
     itemData: VerticalSelectionData[];
 
     constructor() {

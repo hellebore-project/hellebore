@@ -1,13 +1,13 @@
 import { makeAutoObservable } from "mobx";
 import { FormEvent } from "react";
 
-import { EntryInfoResponse, EntityType, ROOT_FOLDER_ID } from "@/domain";
 import { ModalType } from "@/client/constants";
 import { CreateEntryEvent, IModalContentManager } from "@/client/interface";
+import { EntryInfoResponse, EntityType, ROOT_FOLDER_ID } from "@/domain";
 import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
-export class EntryCreator implements IModalContentManager {
+export class EntryCreatorService implements IModalContentManager {
     // CONSTANTS
     readonly TITLE = "Create a new entry";
 

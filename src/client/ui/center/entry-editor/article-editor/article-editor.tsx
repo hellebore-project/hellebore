@@ -3,7 +3,7 @@ import "./article-editor.css";
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { ArticleEditor as ArticleEditorService } from "@/client/services";
+import { ArticleEditorService } from "@/client/services";
 import { SPACE } from "@/shared/common";
 import { RichTextEditor } from "@/shared/rich-text-editor";
 
@@ -14,11 +14,11 @@ const RICH_TEXT_EDITOR_STYLES = {
     content: { backgroundColor: "var(--default-bg-color)" },
 };
 
-interface ArticleEditorSettings {
+interface ArticleEditorProps {
     service: ArticleEditorService;
 }
 
-function renderArticleEditor({ service }: ArticleEditorSettings) {
+function renderArticleEditor({ service }: ArticleEditorProps) {
     return (
         <Container className="article-editor">
             <Stack

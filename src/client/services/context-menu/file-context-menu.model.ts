@@ -6,9 +6,9 @@ import {
 import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
-import { BaseContextMenu } from "./base-context-menu.model";
+import { BaseContextMenuService } from "./base-context-menu.model";
 
-abstract class BaseFileContextMenu extends BaseContextMenu {
+abstract class BaseFileContextMenuService extends BaseContextMenuService {
     id: Id;
     text: string;
 
@@ -19,7 +19,7 @@ abstract class BaseFileContextMenu extends BaseContextMenu {
     }
 }
 
-export class FolderContextMenu extends BaseFileContextMenu {
+export class FolderContextMenuService extends BaseFileContextMenuService {
     onRename: EventProducer<EditFolderNameEvent, unknown>;
     onDelete: EventProducer<DeleteFolderEvent, unknown>;
 
@@ -44,7 +44,7 @@ export class FolderContextMenu extends BaseFileContextMenu {
     }
 }
 
-export class EntryFileContextMenu extends BaseFileContextMenu {
+export class EntryFileContextMenuService extends BaseFileContextMenuService {
     onDelete: EventProducer<DeleteEntryEvent, unknown>;
 
     constructor(id: Id, text: string) {

@@ -2,14 +2,14 @@ import { ActionIcon } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { EntryEditor, getService } from "@/client";
+import { EntryEditorService, getService } from "@/client";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
-interface DeleteEntryButtonSettings {
-    service: EntryEditor;
+interface DeleteEntryButtonProps {
+    service: EntryEditorService;
 }
 
-function renderDeleteEntryButton({ service }: DeleteEntryButtonSettings) {
+function renderDeleteEntryButton({ service }: DeleteEntryButtonProps) {
     const client = getService();
     const info = service.info;
     const onClick = () => {
