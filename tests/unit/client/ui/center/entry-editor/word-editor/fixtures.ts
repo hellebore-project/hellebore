@@ -1,5 +1,5 @@
 import { EntryViewType, WordEditorService } from "@/client";
-import { WordResponse, WordType } from "@/domain";
+import { EntityType, WordResponse, WordType } from "@/domain";
 import { Id } from "@/interface";
 import { mockGetWords } from "@tests/utils/mocks";
 
@@ -25,7 +25,7 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
     word: async (
         {
             mockedInvoker,
-            entryId,
+            entry,
             wordId,
             wordType,
             wordSpelling,
@@ -36,7 +36,7 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
     ) => {
         const word = {
             id: wordId,
-            language_id: entryId,
+            language_id: entry.id,
             word_type: wordType,
             spelling: wordSpelling,
             definition: wordDefinition,
@@ -61,3 +61,5 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
         { auto: true },
     ],
 });
+
+test.scoped({ entryType: EntityType.LANGUAGE });

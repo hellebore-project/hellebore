@@ -43,8 +43,10 @@ function renderFileField({
         <TextField
             onClick={async () => {
                 const path = await getFilePath();
-                onChangeFile?.(path ?? "");
+                // if the path is empty, we can assume that the user cancelled the dialog
+                if (path) onChangeFile?.(path);
             }}
+            readOnly
             styles={styles}
             {...rest}
         />

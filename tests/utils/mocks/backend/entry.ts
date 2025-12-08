@@ -1,10 +1,16 @@
-import { EntryInfoResponse } from "@/domain/schema";
-import { CommandNames } from "@/domain/constants";
+import { CommandNames, EntryInfoResponse } from "@/domain";
 
 import { MockedInvoker } from "./invoker";
 
 export interface MockGetEntriesArgs {
     entities: EntryInfoResponse[];
+}
+
+export function mockGetEntryInfo(
+    mockedInvoker: MockedInvoker,
+    entry: EntryInfoResponse,
+) {
+    mockedInvoker.mockCommand(CommandNames.Entry.GetInfo, async () => entry);
 }
 
 export function mockGetEntries(
