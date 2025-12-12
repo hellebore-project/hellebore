@@ -50,7 +50,6 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
 
     // mocking
     mockedInvoker: [
-        // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
             const invoker = new MockedInvoker();
             invoker.inject();
@@ -60,7 +59,6 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     ],
 
     user: [
-        // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
             await use(userEvent.setup());
         },
@@ -89,8 +87,6 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
 
     // setup and teardown
     setup: [
-        // @ts-expect-error: the user and clientManager fixtures need to be set up first
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         async ({ mockedInvoker, user, clientManager }, use) => {
             await use(null);
 
