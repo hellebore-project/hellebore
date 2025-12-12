@@ -13,16 +13,16 @@ import { SettingsEditor } from "./settings-editor";
 
 function renderCenter() {
     const service = getService();
-    const panel = service.central.activePanel;
-    if (panel === null) return null;
+    const panelService = service.central.activePanel;
+    if (panelService === null) return null;
 
-    switch (panel.type) {
+    switch (panelService.type) {
         case CentralViewType.Home:
-            return <Home service={panel as HomeManager} />;
+            return <Home service={panelService as HomeManager} />;
         case CentralViewType.Settings:
             return <SettingsEditor />;
         case CentralViewType.EntryEditor:
-            return <EntryEditor service={panel as EntryEditorService} />;
+            return <EntryEditor service={panelService as EntryEditorService} />;
     }
 }
 

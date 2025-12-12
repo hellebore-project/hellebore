@@ -5,7 +5,7 @@ import {
     ChangeCentralPanelEvent,
     ChangeEntryEvent,
     DeleteEntryEvent,
-    ICentralPanelContentManager,
+    ICentralPanelContentService,
     OpenEntryEditorEvent,
     PollEvent,
     SyncEntryEvent,
@@ -21,7 +21,7 @@ import { EntryEditorService, EntryEditorServiceArgs } from "./entry-editor";
 import { WordColumnKeys } from "./entry-editor/word-editor";
 
 type PrivateKeys =
-    | "_panels"
+    | "_panelServices"
     | "_entryEditorArgs"
     | "_domain"
     | "_spreadsheetReference";
@@ -30,11 +30,16 @@ export interface CentralPanelManagerArgs {
     domain: DomainManager;
 }
 
+export interface LoadEntryEditorResult {
+    service: EntryEditorService;
+    loading: Promise<void> | null;
+}
+
 export class CentralPanelManager {
     // STATE VARIABLES
     private _activePanelIndex: number | null = null;
     private _panelKeys: string[];
-    private _panels: Map<string, ICentralPanelContentManager>;
+    private _panelServices: Map<string, ICentralPanelContentService>;
     private _entryEditorArgs: EntryEditorServiceArgs;
 
     // SERVICES
@@ -56,7 +61,7 @@ export class CentralPanelManager {
 
     constructor({ domain }: CentralPanelManagerArgs) {
         this._panelKeys = [];
-        this._panels = new Map();
+        this._panelServices = new Map();
 
         this._spreadsheetReference = new SpreadsheetReferenceService();
         this._entryEditorArgs = {
@@ -77,7 +82,7 @@ export class CentralPanelManager {
         this.onDeleteEntry = new EventProducer();
 
         makeAutoObservable<CentralPanelManager, PrivateKeys>(this, {
-            _panels: false,
+            _panelServices: false,
             _entryEditorArgs: false,
             _domain: false,
             _spreadsheetReference: false,
@@ -109,14 +114,14 @@ export class CentralPanelManager {
             return this.getPanelByIndex(currentIndex) as HomeManager;
         }
 
-        const panel = new HomeManager(this._domain);
+        const service = new HomeManager(this._domain);
 
-        panel.load(this._domain.projectName ?? "");
+        service.load(this._domain.projectName ?? "");
 
         // only one panel can be open at a time
-        this._clearAndAddPanel(panel, true);
+        this._clearAndAddPanel(service, true);
 
-        return panel;
+        return service;
     }
 
     openSettings() {
@@ -126,15 +131,18 @@ export class CentralPanelManager {
             return this.getPanelByIndex(currentIndex) as SettingsEditorService;
         }
 
-        const panel = new SettingsEditorService();
+        const service = new SettingsEditorService();
 
         // only one panel can be open at a time
-        this._clearAndAddPanel(panel, true);
+        this._clearAndAddPanel(service, true);
 
-        return panel;
+        return service;
     }
 
-    async openEntryEditor(args: OpenEntryEditorEvent) {
+    openEntryEditor(args: OpenEntryEditorEvent): LoadEntryEditorResult {
+        let service: EntryEditorService;
+        let loadPromise: Promise<void> | null = null;
+
         const key = EntryEditorService.generateKey(
             CentralViewType.EntryEditor,
             args.id,
@@ -143,29 +151,29 @@ export class CentralPanelManager {
         const currentIndex = this.findPanelIndex(key);
         if (currentIndex !== null) {
             this._showPanel(currentIndex);
-            return this.getPanelByIndex(currentIndex) as EntryEditorService;
+            service = this.getPanelByIndex(currentIndex) as EntryEditorService;
+        } else {
+            service = new EntryEditorService(this._entryEditorArgs);
+
+            service.onChange.broker = this.onChangeData;
+            service.onPartialChange.broker = this.onPartialChangeData;
+            service.onChangeDelayed.broker = this.onChangeDataDelayed;
+            service.onDelete.broker = this.onDeleteEntry;
+
+            loadPromise = service.load(args);
+
+            // only one panel can be open at a time
+            this._clearAndAddPanel(service, true);
         }
 
-        const panel = new EntryEditorService(this._entryEditorArgs);
-
-        panel.onChange.broker = this.onChangeData;
-        panel.onPartialChange.broker = this.onPartialChangeData;
-        panel.onChangeDelayed.broker = this.onChangeDataDelayed;
-        panel.onDelete.broker = this.onDeleteEntry;
-
-        panel.load(args);
-
-        // only one panel can be open at a time
-        this._clearAndAddPanel(panel, true);
-
-        return panel;
+        return { service, loading: loadPromise };
     }
 
-    private _addPanel(panel: ICentralPanelContentManager, show = true) {
-        this._panels.set(panel.key, panel);
-        const length = this._panelKeys.push(panel.key);
+    private _addPanel(service: ICentralPanelContentService, show = true) {
+        this._panelServices.set(service.key, service);
+        const length = this._panelKeys.push(service.key);
 
-        this._produceChangePanelEvent(panel, ViewAction.Create);
+        this._produceChangePanelEvent(service, ViewAction.Create);
 
         const index = length - 1;
 
@@ -178,42 +186,46 @@ export class CentralPanelManager {
 
     private _showPanel(
         index: number,
-        panel: ICentralPanelContentManager | null = null,
+        service: ICentralPanelContentService | null = null,
     ) {
-        if (!panel)
-            panel = this.getPanelByIndex(index) as ICentralPanelContentManager;
+        if (!service)
+            service = this.getPanelByIndex(
+                index,
+            ) as ICentralPanelContentService;
 
         this._activePanelIndex = index;
-        panel.activate();
+        service.activate();
 
-        this._produceChangePanelEvent(panel, ViewAction.Show);
+        this._produceChangePanelEvent(service, ViewAction.Show);
     }
 
     private _hidePanel(
         index: number,
-        panel: ICentralPanelContentManager | null = null,
+        service: ICentralPanelContentService | null = null,
     ) {
-        if (!panel)
-            panel = this.getPanelByIndex(index) as ICentralPanelContentManager;
+        if (!service)
+            service = this.getPanelByIndex(
+                index,
+            ) as ICentralPanelContentService;
 
         if (index > 0) this._activePanelIndex = index - 1;
         else this._activePanelIndex = null;
 
-        this._produceChangePanelEvent(panel, ViewAction.Hide);
+        this._produceChangePanelEvent(service, ViewAction.Hide);
     }
 
     // ACCESSING PANELS
 
     getPanelByIndex(index: number) {
         const key = this._panelKeys[index];
-        return this._panels.get(key) ?? null;
+        return this._panelServices.get(key) ?? null;
     }
 
     getHomePanel() {
         // assume that there can be at most one home panel
-        const panel = this._panels.get(CentralViewType.Home) ?? null;
-        if (!panel) return panel;
-        return panel as HomeManager;
+        const service = this._panelServices.get(CentralViewType.Home) ?? null;
+        if (!service) return service;
+        return service as HomeManager;
     }
 
     findPanelIndex(key: string) {
@@ -225,50 +237,53 @@ export class CentralPanelManager {
 
     *iterateOpenPanels() {
         for (const key of this._panelKeys)
-            yield this._panels.get(key) as ICentralPanelContentManager;
+            yield this._panelServices.get(key) as ICentralPanelContentService;
     }
 
     // CLOSING PANELS
 
     closePanel(index: number) {
-        const panel = this.getPanelByIndex(index);
-        if (!panel) return;
+        const service = this.getPanelByIndex(index);
+        if (!service) return;
 
-        this._closePanel(index, panel);
+        this._closePanel(index, service);
 
         this._panelKeys.splice(index, 1);
-        this._panels.delete(panel.key);
+        this._panelServices.delete(service.key);
     }
 
-    private _closePanel(index: number, panel: ICentralPanelContentManager) {
-        if (index == this._activePanelIndex) this._hidePanel(index, panel);
+    private _closePanel(index: number, service: ICentralPanelContentService) {
+        if (index == this._activePanelIndex) this._hidePanel(index, service);
 
-        panel.cleanUp();
-        this._produceChangePanelEvent(panel, ViewAction.Close);
+        service.cleanUp();
+        this._produceChangePanelEvent(service, ViewAction.Close);
     }
 
     clear() {
         for (let index = 0; index < this._panelKeys.length; index++) {
-            const panel = this.getPanelByIndex(
+            const service = this.getPanelByIndex(
                 index,
-            ) as ICentralPanelContentManager;
-            this._closePanel(index, panel);
+            ) as ICentralPanelContentService;
+            this._closePanel(index, service);
         }
 
         this._panelKeys = [];
-        this._panels.clear();
+        this._panelServices.clear();
     }
 
-    private _clearAndAddPanel(panel: ICentralPanelContentManager, show = true) {
+    private _clearAndAddPanel(
+        service: ICentralPanelContentService,
+        show = true,
+    ) {
         this.clear();
-        this._addPanel(panel, show);
+        this._addPanel(service, show);
     }
 
     private _produceChangePanelEvent(
-        panel: ICentralPanelContentManager,
+        service: ICentralPanelContentService,
         action: ViewAction,
     ) {
-        this.onChangePanel.produce({ action, details: panel.details });
+        this.onChangePanel.produce({ action, details: service.details });
     }
 
     // SYNC
@@ -276,10 +291,10 @@ export class CentralPanelManager {
     fetchChanges(event: PollEvent) {
         const results = [];
 
-        for (const panel of this._panels.values()) {
-            if (panel.type !== CentralViewType.EntryEditor) continue;
+        for (const service of this._panelServices.values()) {
+            if (service.type !== CentralViewType.EntryEditor) continue;
 
-            const entryEditor = panel as EntryEditorService;
+            const entryEditor = service as EntryEditorService;
             const result = entryEditor.fetchChanges(event);
             if (result === null) continue;
 
@@ -290,10 +305,10 @@ export class CentralPanelManager {
     }
 
     handleEntrySynchronization(event: SyncEntryEvent) {
-        for (const panel of this._panels.values()) {
-            if (panel.type !== CentralViewType.EntryEditor) continue;
+        for (const service of this._panelServices.values()) {
+            if (service.type !== CentralViewType.EntryEditor) continue;
 
-            const entryEditor = panel as EntryEditorService;
+            const entryEditor = service as EntryEditorService;
             entryEditor.handleSynchronization(event);
         }
     }

@@ -53,8 +53,6 @@ function renderPropertyTable({
     stackProps,
     ...rest
 }: PropertyTableProps) {
-    // TODO: delay accessing the field data;
-    // the field data should be accessed by the individual PropertyFieldRows
     const data = service.fieldData;
     if (data.length == 0) return null;
 
@@ -63,6 +61,11 @@ function renderPropertyTable({
         if (fieldData.type == PropertyFieldType.TEXT)
             field = (
                 <TextPropertyField {...(fieldData as TextPropertyFieldData)} />
+            );
+        else
+            console.error(
+                `Unable to render field ${fieldData.label} in the property table; ` +
+                    `field type ${fieldData.type} not recognized.`,
             );
 
         return (

@@ -45,12 +45,22 @@ const importConfig = {
     },
 }
 
+const testConfig = {
+    files: ["tests/**"],
+    rules: {
+        "no-empty-pattern": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+    },
+}
+
 export default defineConfig([
     ignores,
     eslint.configs.recommended,
     tseslint.configs.recommended,
     tseslint.configs.stylistic,
     importConfig,
+    testConfig,
     // the prettier config has to be applied last because
     // it turns off any rules that conflict with prettier
     prettier,

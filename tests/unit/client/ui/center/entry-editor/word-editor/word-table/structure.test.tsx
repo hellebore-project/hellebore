@@ -58,9 +58,9 @@ describe("headers", () => {
         test(`renders ${case_} table with correct columns`, async ({
             wordEditorService,
             entryId,
-            word,
+            mockedWord,
         }) => {
-            await wordEditorService.load(entryId, word.word_type);
+            await wordEditorService.load(entryId, mockedWord.word_type);
 
             render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -73,13 +73,13 @@ describe("headers", () => {
 test("renders table with correct rows", async ({
     wordEditorService,
     entryId,
-    word,
+    mockedWord,
 }) => {
-    await wordEditorService.load(entryId, word.word_type);
+    await wordEditorService.load(entryId, mockedWord.word_type);
 
     render(<WordTable service={wordEditorService.spreadsheet} />);
 
     // Check row content
-    screen.getByText(word.spelling);
-    screen.getByText(word.translations[0]);
+    screen.getByText(mockedWord.spelling);
+    screen.getByText(mockedWord.translations[0]);
 });

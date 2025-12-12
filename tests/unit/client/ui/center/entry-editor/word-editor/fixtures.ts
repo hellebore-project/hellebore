@@ -12,6 +12,7 @@ export interface BaseWordEditorFixtures {
     wordDefinition: string;
     wordTranslations: string[];
     word: WordResponse;
+    mockedWord: WordResponse;
     wordEditorService: WordEditorService;
 }
 
@@ -24,8 +25,7 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
     wordTranslations: ["translation1"],
     word: async (
         {
-            mockedInvoker,
-            entry,
+            entryId,
             wordId,
             wordType,
             wordSpelling,
@@ -36,12 +36,15 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
     ) => {
         const word = {
             id: wordId,
-            language_id: entry.id,
+            language_id: entryId,
             word_type: wordType,
             spelling: wordSpelling,
             definition: wordDefinition,
             translations: wordTranslations,
         };
+        use(word);
+    },
+    mockedWord: async ({ mockedInvoker, mockedEntryInfo, word }, use) => {
         mockGetWords(mockedInvoker, [word]);
         use(word);
     },
@@ -49,14 +52,14 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
     // services
     wordEditorService: [
         async ({ clientManager, entryId, wordType }, use) => {
-            const entryEditorService =
-                await clientManager.central.openEntryEditor({
-                    id: entryId,
-                    viewKey: EntryViewType.WordEditor,
-                    wordType,
-                });
+            const { service, loading } = clientManager.central.openEntryEditor({
+                id: entryId,
+                viewKey: EntryViewType.WordEditor,
+                wordType,
+            });
+            await loading;
 
-            await use(entryEditorService.lexicon);
+            await use(service.lexicon);
         },
         { auto: true },
     ],

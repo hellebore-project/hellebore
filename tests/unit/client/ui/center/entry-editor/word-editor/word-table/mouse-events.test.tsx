@@ -12,14 +12,14 @@ describe("cell selection", () => {
         user,
         wordEditorService,
         entryId,
-        word,
+        mockedWord,
     }) => {
-        await wordEditorService.load(entryId, word.word_type);
+        await wordEditorService.load(entryId, mockedWord.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
-        const cell1 = screen.getByText(word.spelling);
-        const cell2 = screen.getByText(word.translations[0]);
+        const cell1 = screen.getByText(mockedWord.spelling);
+        const cell2 = screen.getByText(mockedWord.translations[0]);
 
         // Click cell1
         await user.click(cell1);
@@ -36,14 +36,14 @@ describe("cell selection", () => {
         user,
         wordEditorService,
         entryId,
-        word,
+        mockedWord,
     }) => {
-        await wordEditorService.load(entryId, word.word_type);
+        await wordEditorService.load(entryId, mockedWord.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
-        const cell1 = screen.getByText(word.spelling);
-        const cell2 = screen.getByText(word.translations[0]);
+        const cell1 = screen.getByText(mockedWord.spelling);
+        const cell2 = screen.getByText(mockedWord.translations[0]);
 
         // Click cell1
         await user.click(cell1);
@@ -60,14 +60,14 @@ describe("cell selection", () => {
         user,
         wordEditorService,
         entryId,
-        word,
+        mockedWord,
     }) => {
-        await wordEditorService.load(entryId, word.word_type);
+        await wordEditorService.load(entryId, mockedWord.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
-        const cell1 = screen.getByText(word.spelling);
-        const cell2 = screen.getByText(word.translations[0]);
+        const cell1 = screen.getByText(mockedWord.spelling);
+        const cell2 = screen.getByText(mockedWord.translations[0]);
 
         // Click cell1
         await user.click(cell1);
@@ -84,14 +84,14 @@ describe("cell selection", () => {
         user,
         wordEditorService,
         entryId,
-        word,
+        mockedWord,
     }) => {
-        await wordEditorService.load(entryId, word.word_type);
+        await wordEditorService.load(entryId, mockedWord.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
-        const cell1 = screen.getByText(word.spelling);
-        const cell2 = screen.getByText(word.translations[0]);
+        const cell1 = screen.getByText(mockedWord.spelling);
+        const cell2 = screen.getByText(mockedWord.translations[0]);
 
         // Mouse down on cell1, drag to cell2, mouse up
         await user.pointer({ target: cell1, keys: "[MouseLeft>]" });
@@ -106,9 +106,9 @@ describe("cell selection", () => {
         user,
         wordEditorService,
         entryId,
-        word,
+        mockedWord,
     }) => {
-        await wordEditorService.load(entryId, word.word_type);
+        await wordEditorService.load(entryId, mockedWord.word_type);
 
         render(
             <>
@@ -120,7 +120,7 @@ describe("cell selection", () => {
             </>,
         );
 
-        const cell1 = screen.getByText(word.spelling);
+        const cell1 = screen.getByText(mockedWord.spelling);
 
         // Click cell1
         await user.click(cell1);
@@ -138,15 +138,15 @@ describe("cell editing", () => {
         mockedInvoker,
         wordEditorService,
         entryId,
-        word,
+        mockedWord,
     }) => {
         mockUpsertWords(mockedInvoker);
 
-        await wordEditorService.load(entryId, word.word_type);
+        await wordEditorService.load(entryId, mockedWord.word_type);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
-        const cell = screen.getByText(word.spelling);
+        const cell = screen.getByText(mockedWord.spelling);
 
         // click the cell to select it
         await user.click(cell);
@@ -160,7 +160,7 @@ describe("cell editing", () => {
         await user.keyboard("edited");
 
         // select another cell to deselect the first cell
-        const otherCell = screen.getByText(word.translations[0]);
+        const otherCell = screen.getByText(mockedWord.translations[0]);
         await user.click(otherCell);
 
         const rowData = wordEditorService.spreadsheet.data.findRow(
@@ -178,11 +178,11 @@ test("can delete a row", async ({
     mockedInvoker,
     wordEditorService,
     entryId,
-    word,
+    mockedWord,
 }) => {
     mockDeleteWord(mockedInvoker);
 
-    await wordEditorService.load(entryId, word.word_type);
+    await wordEditorService.load(entryId, mockedWord.word_type);
 
     const row = wordEditorService.spreadsheet.data.rowData[0];
     row.highlighted = true;

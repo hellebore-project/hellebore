@@ -8,7 +8,8 @@ interface EntryEditorFixtures {
     entryId: Id;
     entryType: EntityType;
     entryTitle: string;
-    entry: EntryInfoResponse;
+    entryInfo: EntryInfoResponse;
+    mockedEntryInfo: EntryInfoResponse;
 }
 
 export const test = baseTest.extend<EntryEditorFixtures>({
@@ -17,17 +18,17 @@ export const test = baseTest.extend<EntryEditorFixtures>({
     entryId: 1,
     entryType: EntityType.ENTRY,
     entryTitle: "mocked-title",
-    entry: async (
-        { mockedInvoker, entryId, entryType, folderId, entryTitle },
-        use,
-    ) => {
+    entryInfo: async ({ entryId, entryType, folderId, entryTitle }, use) => {
         const entry: EntryInfoResponse = {
             id: entryId,
             entity_type: entryType,
             folder_id: folderId,
             title: entryTitle,
         };
-        mockGetEntryInfo(mockedInvoker, entry);
         use(entry);
+    },
+    mockedEntryInfo: async ({ mockedInvoker, entryInfo }, use) => {
+        mockGetEntryInfo(mockedInvoker, entryInfo);
+        use(entryInfo);
     },
 });
