@@ -2,7 +2,7 @@ import { ActionIcon } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { EntryEditorService, getService } from "@/client";
+import { EntryEditorService } from "@/client";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
 interface DeleteEntryButtonProps {
@@ -10,13 +10,6 @@ interface DeleteEntryButtonProps {
 }
 
 function renderDeleteEntryButton({ service }: DeleteEntryButtonProps) {
-    const client = getService();
-    const info = service.info;
-    const onClick = () => {
-        // TODO: move this logic to the entry-editor service
-        client.deleteEntry(info.id, info.title);
-    };
-
     return (
         <ToolTipWrapper className="compact" label="Delete Entity">
             <ActionIcon
@@ -24,7 +17,7 @@ function renderDeleteEntryButton({ service }: DeleteEntryButtonProps) {
                 variant="subtle"
                 color="red"
                 size="sm"
-                onClick={onClick}
+                onClick={() => service.deleteEntry()}
             >
                 <IconTrash size={18} />
             </ActionIcon>

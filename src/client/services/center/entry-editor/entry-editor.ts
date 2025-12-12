@@ -4,6 +4,7 @@ import { Id } from "@/interface";
 import { EntryViewType, CentralViewType } from "@/client/constants";
 import {
     ChangeEntryEvent,
+    DeleteEntryEvent,
     ICentralPanelContentManager,
     OpenEntryEditorEvent,
     PollEvent,
@@ -57,6 +58,7 @@ export class EntryEditorService implements ICentralPanelContentManager {
     onChange: EventProducer<ChangeEntryEvent, unknown>;
     onPartialChange: EventProducer<ChangeEntryEvent, unknown>;
     onChangeDelayed: EventProducer<ChangeEntryEvent, unknown>;
+    onDelete: EventProducer<DeleteEntryEvent, unknown>;
 
     constructor({ domain, wordEditor }: EntryEditorServiceArgs) {
         this.tabData = new Map();
@@ -82,6 +84,7 @@ export class EntryEditorService implements ICentralPanelContentManager {
         this.onChange = new EventProducer();
         this.onPartialChange = new EventProducer();
         this.onChangeDelayed = new EventProducer();
+        this.onDelete = new EventProducer();
 
         makeAutoObservable<EntryEditorService, PrivateKeys>(this, {
             _domain: false,
@@ -94,6 +97,7 @@ export class EntryEditorService implements ICentralPanelContentManager {
             onChange: false,
             onPartialChange: false,
             onChangeDelayed: false,
+            onDelete: false,
         });
 
         this._buildTabData();
@@ -305,6 +309,7 @@ export class EntryEditorService implements ICentralPanelContentManager {
         this.onChange.broker = null;
         this.onPartialChange.broker = null;
         this.onChangeDelayed.broker = null;
+        this.onDelete.broker = null;
     }
 
     // SYNC
@@ -370,6 +375,12 @@ export class EntryEditorService implements ICentralPanelContentManager {
 
             this.lexicon.afterSync(words);
         }
+    }
+
+    // DELETION
+
+    deleteEntry() {
+        this.onDelete.produce({ id: this.info.id, title: this.info.title });
     }
 
     // UTILITY

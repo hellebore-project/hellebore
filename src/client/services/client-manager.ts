@@ -120,6 +120,9 @@ export class ClientManager {
         this.central.onChangeDataDelayed.subscribe(() =>
             this.synchronizer.requestDelayedSynchronization(),
         );
+        this.central.onDeleteEntry.subscribe(({ id, title }) =>
+            this.deleteEntry(id, title),
+        );
 
         this.header.onCreateProject.subscribe(() =>
             this.modal.openProjectCreator(),

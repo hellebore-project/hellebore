@@ -4,6 +4,7 @@ import { CentralViewType, ViewAction } from "@/client/constants";
 import {
     ChangeCentralPanelEvent,
     ChangeEntryEvent,
+    DeleteEntryEvent,
     ICentralPanelContentManager,
     OpenEntryEditorEvent,
     PollEvent,
@@ -51,6 +52,7 @@ export class CentralPanelManager {
     onChangeData: EventProducer<ChangeEntryEvent, unknown>;
     onPartialChangeData: EventProducer<ChangeEntryEvent, unknown>;
     onChangeDataDelayed: EventProducer<ChangeEntryEvent, unknown>;
+    onDeleteEntry: EventProducer<DeleteEntryEvent, unknown>;
 
     constructor({ domain }: CentralPanelManagerArgs) {
         this._panelKeys = [];
@@ -72,6 +74,7 @@ export class CentralPanelManager {
         this.onChangeData = new EventProducer();
         this.onPartialChangeData = new EventProducer();
         this.onChangeDataDelayed = new EventProducer();
+        this.onDeleteEntry = new EventProducer();
 
         makeAutoObservable<CentralPanelManager, PrivateKeys>(this, {
             _panels: false,
@@ -82,6 +85,7 @@ export class CentralPanelManager {
             onChangeData: false,
             onPartialChangeData: false,
             onChangeDataDelayed: false,
+            onDeleteEntry: false,
         });
     }
 
@@ -147,6 +151,7 @@ export class CentralPanelManager {
         panel.onChange.broker = this.onChangeData;
         panel.onPartialChange.broker = this.onPartialChangeData;
         panel.onChangeDelayed.broker = this.onChangeDataDelayed;
+        panel.onDelete.broker = this.onDeleteEntry;
 
         panel.load(args);
 
