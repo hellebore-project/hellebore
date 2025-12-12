@@ -45,7 +45,7 @@ const importConfig = {
     },
 }
 
-testConfig = {
+const testConfig = {
     files: ["tests/**"],
     rules: {
         "no-empty-pattern": "off",

@@ -5,7 +5,7 @@ import { EntryViewType, CentralViewType } from "@/client/constants";
 import {
     ChangeEntryEvent,
     DeleteEntryEvent,
-    ICentralPanelContentManager,
+    ICentralPanelContentService,
     OpenEntryEditorEvent,
     PollEvent,
     PollResultEntryData,
@@ -35,7 +35,7 @@ interface OpenArticleEditorArgs {
     text?: string;
 }
 
-export class EntryEditorService implements ICentralPanelContentManager {
+export class EntryEditorService implements ICentralPanelContentService {
     // CONSTANTS
     ENTRY_HEADER_SPACE_HEIGHT = 25;
     DEFAULT_BELOW_HEADER_SPACE_HEIGHT = 40;
@@ -246,7 +246,7 @@ export class EntryEditorService implements ICentralPanelContentManager {
         if (response !== null) {
             this.currentView = EntryViewType.PropertyEditor;
             this.info.load(id, response.info.entity_type, response.info.title);
-            this.properties.initialize(response.properties);
+            this.properties.load(response.properties);
             this.onOpen.produce({ id, viewKey: this.currentView });
         }
     }

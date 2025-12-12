@@ -24,7 +24,7 @@ export enum EntryType {
     Person = "Person",
 }
 
-export type EntryPropertyMapping = Record<EntryType, BaseEntity>;
+export type EntryPropertyMapping = Partial<Record<EntryType, BaseEntity>>;
 
 export interface RawEntryPropertyResponse {
     info: EntryInfoResponse;
@@ -191,6 +191,10 @@ export class EntryManager {
 
         const key = keys[0];
         const properties = response.properties[key];
+        if (properties === undefined) {
+            console.error(`Entry properties not returned in the response.`);
+            return null;
+        }
 
         return {
             info: response.info,

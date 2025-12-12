@@ -205,10 +205,10 @@ export class ClientManager {
             return;
         }
 
-        const panel = this.central.getHomePanel();
-        if (!panel) return;
+        const service = this.central.getHomePanel();
+        if (!service) return;
 
-        panel.load(project.name);
+        service.load(project.name);
     }
 
     private async _loadNavigator() {
@@ -292,10 +292,10 @@ export class ClientManager {
         this.navigation.files.deleteManyNodes(fileIds.entries, fileIds.folders);
 
         let panelIndex = 0;
-        for (const panel of this.central.iterateOpenPanels()) {
-            if (panel.type !== CentralViewType.EntryEditor) continue;
+        for (const panelService of this.central.iterateOpenPanels()) {
+            if (panelService.type !== CentralViewType.EntryEditor) continue;
 
-            const entryId = panel.details.entry?.id;
+            const entryId = panelService.details.entry?.id;
             if (entryId === undefined) continue;
 
             if (fileIds.entries.includes(entryId))
@@ -353,10 +353,10 @@ export class ClientManager {
         this.navigation.files.deleteEntityNode(id);
 
         let panelIndex = 0;
-        for (const panel of this.central.iterateOpenPanels()) {
-            if (panel.type !== CentralViewType.EntryEditor) continue;
+        for (const panelService of this.central.iterateOpenPanels()) {
+            if (panelService.type !== CentralViewType.EntryEditor) continue;
 
-            const entryId = panel.details.entry?.id;
+            const entryId = panelService.details.entry?.id;
             if (entryId === undefined) continue;
 
             if (entryId == id) this.central.closePanel(panelIndex);

@@ -8,7 +8,7 @@ export interface CentralPanelInfo {
     entry?: { id: Id };
 }
 
-export interface ICentralPanelContentManager extends IViewManager {
+export interface ICentralPanelContentService extends IViewManager {
     type: CentralViewType;
     details: CentralPanelInfo;
     activate(): void;
