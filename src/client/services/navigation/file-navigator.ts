@@ -10,6 +10,7 @@ import {
     FileNodeModel,
     NodeId,
     OpenEntryCreatorEvent,
+    OpenEntryEditorEvent,
     OpenFileContextMenuEvent,
     ROOT_FOLDER_NODE_ID,
 } from "@/client/interface";
@@ -44,9 +45,10 @@ export class FileNavigatorService {
     private _expanded = true;
     private _focused = false;
     private _hover = false;
+    /** Node that this currently active; will be the target of user actions. */
     private _selectedNode: FileNodeModel | null = null;
     /** Node associated with the currently open file. */
-    private _openedNode: FileNodeModel | null = null;
+    private _displayedNode: FileNodeModel | null = null;
 
     // REFERENCES
     /**
@@ -68,6 +70,7 @@ export class FileNavigatorService {
 
     // EVENTS
     onCreateEntry: EventProducer<OpenEntryCreatorEvent, unknown>;
+    onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
     onDeleteFolder: EventProducer<
         DeleteFolderEvent,
         Promise<BulkFileData | null>
@@ -93,6 +96,7 @@ export class FileNavigatorService {
         this._domain = domain;
 
         this.onCreateEntry = new EventProducer();
+        this.onOpenEntry = new EventProducer();
         this.onDeleteFolder = new EventProducer();
         this.onOpenFolderContext = new EventProducer();
         this.onOpenEntryContext = new EventProducer();
@@ -105,6 +109,7 @@ export class FileNavigatorService {
             errorManager: false,
             _domain: false,
             onCreateEntry: false,
+            onOpenEntry: false,
             onDeleteFolder: false,
             onOpenFolderContext: false,
             onOpenEntryContext: false,
@@ -144,20 +149,7 @@ export class FileNavigatorService {
         return null;
     }
 
-    get openedNode() {
-        return this._openedNode;
-    }
-
-    set openedNode(node: FileNodeModel | null) {
-        this._openedNode = node;
-    }
-
-    get openedNodeId() {
-        if (this._openedNode) return this._openedNode.id;
-        return null;
-    }
-
-    get activeFolderId() {
+    get selectedFolderId() {
         if (this.selectedNode) {
             const id = this.isFolderNode(this.selectedNode)
                 ? this.selectedNode.id
@@ -165,6 +157,19 @@ export class FileNavigatorService {
             return this.convertNodeIdToEntryId(id);
         }
         return ROOT_FOLDER_ID;
+    }
+
+    get displayedNode() {
+        return this._displayedNode;
+    }
+
+    set displayedNode(node: FileNodeModel | null) {
+        this._displayedNode = node;
+    }
+
+    get displayedNodeId() {
+        if (this._displayedNode) return this._displayedNode.id;
+        return null;
     }
 
     get expanded() {
@@ -208,7 +213,9 @@ export class FileNavigatorService {
         return this.expanded && this.hover;
     }
 
-    initialize(entries: EntryInfoResponse[], folders: FolderResponse[]) {
+    // LOADING
+
+    load(entries: EntryInfoResponse[], folders: FolderResponse[]) {
         this._nodePositionCache = {};
 
         const nodes: FileNodeModel[] = [];
@@ -231,7 +238,9 @@ export class FileNavigatorService {
         this._nodes = nodes;
     }
 
-    reset() {
+    // CLEAN UP
+
+    cleanUp() {
         this._nodes = [];
         this._nodePositionCache = {};
     }
@@ -264,6 +273,16 @@ export class FileNavigatorService {
 
     toggleExpanded() {
         this.expanded = !this.expanded;
+    }
+
+    // NODE TYPE
+
+    isFolderNode(node: FileNodeModel) {
+        return node.droppable;
+    }
+
+    isPlaceholderNode(node: FileNodeModel) {
+        return node?.data?.isPlaceholder ?? false;
     }
 
     // NODE FETCHING
@@ -320,14 +339,19 @@ export class FileNavigatorService {
         return null;
     }
 
-    // NODE TYPE
+    // NODE SELECTION
 
-    isFolderNode(node: FileNodeModel) {
-        return node.droppable;
-    }
+    selectNode(node: FileNodeModel, toggleNode: () => void) {
+        this.focused = true;
+        this.selectedNode = node;
 
-    isPlaceholderNode(node: FileNodeModel) {
-        return node?.data?.isPlaceholder ?? false;
+        // if the node is editable, then its open status must remain static
+        const editable = node?.data?.isEditable ?? false;
+        if (editable) return;
+
+        toggleNode();
+
+        this.displayNode(node);
     }
 
     // NODE TEXT
@@ -548,15 +572,21 @@ export class FileNavigatorService {
 
     // OPEN NODE
 
-    openEntityNode(id: Id) {
+    markEntryNodeAsDisplayed(id: Id) {
         const nodeId = convertEntryIdToNodeId(id);
-        if (this.openedNode?.id == nodeId) return;
+        if (this.displayedNode?.id == nodeId) return;
         const node = this._findNode(nodeId);
-        if (node) this.openNode(node);
+        if (node) this.markNodeAsDisplayed(node);
     }
 
-    openNode(node: FileNodeModel) {
-        this.openedNode = node;
+    markNodeAsDisplayed(node: FileNodeModel) {
+        this.displayedNode = node;
+    }
+
+    displayNode(node: FileNodeModel) {
+        if (this.isFolderNode(node)) return;
+        const id = this.convertNodeIdToEntryId(node.id);
+        this.onOpenEntry.produce({ id });
     }
 
     // NODE GENERATION
@@ -570,9 +600,14 @@ export class FileNavigatorService {
         const id = this._placeholderIdGenerator.increment();
         const nodeId = `P${id}`;
 
-        const node = this._generateFolderNode(nodeId, this.activeFolderId, "", {
-            isPlaceholder: true,
-        });
+        const node = this._generateFolderNode(
+            nodeId,
+            this.selectedFolderId,
+            "",
+            {
+                isPlaceholder: true,
+            },
+        );
         this._toggleNodeAsEditable(node);
 
         return node;
@@ -738,7 +773,7 @@ export class FileNavigatorService {
 
     onClickAddEntryButton() {
         this.onCreateEntry.produce({
-            folderId: this.activeFolderId,
+            folderId: this.selectedFolderId,
         });
     }
 

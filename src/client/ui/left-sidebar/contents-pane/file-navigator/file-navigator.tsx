@@ -9,7 +9,6 @@ import {
     Tree,
 } from "@minoru/react-dnd-treeview";
 import { observer } from "mobx-react-lite";
-import { MouseEvent } from "react";
 import { DndProvider } from "react-dnd";
 
 import { BaseGroupProps } from "@/interface";
@@ -35,33 +34,12 @@ function renderFileNavItem({
     toggle,
     ...rest
 }: FileNavItemProps) {
-    const service = getService();
-    const fileNav = service.navigation.files;
+    const clientManager = getService();
+    const fileNav = clientManager.navigation.files;
 
     const selected = fileNav.selectedNodeId == node.id;
-    const open = fileNav.openedNodeId == node.id;
+    const displayed = fileNav.displayedNodeId == node.id;
     const editable = node?.data?.isEditable ?? false;
-
-    const onActivate = (event: MouseEvent) => {
-        event.stopPropagation();
-
-        fileNav.focused = true;
-        fileNav.selectedNode = node;
-
-        // if the node is editable, then its open status must remain static
-        if (editable) return;
-
-        toggle();
-
-        // in case of an entry node, open the corresponding entry in the editor
-        if (!fileNav.isFolderNode(node)) {
-            const id = fileNav.convertNodeIdToEntryId(node.id);
-            // TODO: this should be called via an event
-            service.central
-                .openEntryEditor({ id })
-                .then(() => fileNav.openNode(node));
-        }
-    };
 
     const textProps: NavItemTextProps = {
         editable,
@@ -89,13 +67,16 @@ function renderFileNavItem({
 
     return (
         <NavItem
-            active={open}
+            active={displayed}
             selected={selected}
             focused={fileNav.focused}
             rank={depth + 1}
             groupProps={{
                 id: fileNav.convertNodeIdToDOMId(node.id),
-                onClick: onActivate,
+                onClick: (e) => {
+                    e.stopPropagation();
+                    fileNav.selectNode(node, toggle);
+                },
                 onContextMenu: (e) => fileNav.openContextMenu(e),
                 ...rest,
             }}

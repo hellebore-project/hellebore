@@ -104,9 +104,11 @@ export class ClientManager {
                 if (details.entry === undefined) return;
 
                 if (action === ViewAction.Show)
-                    this.navigation.files.openEntityNode(details.entry.id);
+                    this.navigation.files.markEntryNodeAsDisplayed(
+                        details.entry.id,
+                    );
                 if (action === ViewAction.Hide) {
-                    this.navigation.files.openedNode = null;
+                    this.navigation.files.displayedNode = null;
                     this.navigation.files.selectedNode = null;
                 }
             }
@@ -137,6 +139,9 @@ export class ClientManager {
         const fileNav = this.navigation.files;
         fileNav.onCreateEntry.subscribe((args) =>
             this.modal.openEntryCreator(args),
+        );
+        fileNav.onOpenEntry.subscribe((args) =>
+            this.central.openEntryEditor(args),
         );
         fileNav.onDeleteFolder.subscribe(({ id, confirm }) =>
             this.deleteFolder(id, confirm),

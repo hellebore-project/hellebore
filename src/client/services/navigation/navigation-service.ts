@@ -33,11 +33,11 @@ export class NavigationService {
     }
 
     load(entities: EntryInfoResponse[], folders: FolderResponse[]) {
-        this.files.initialize(entities, folders);
+        this.files.load(entities, folders);
     }
 
     reset() {
-        this.files.reset();
+        this.files.cleanUp();
     }
 
     toggleMobileOpen() {
