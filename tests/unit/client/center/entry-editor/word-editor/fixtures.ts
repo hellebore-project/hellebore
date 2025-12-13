@@ -52,13 +52,11 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
     // services
     wordEditorService: [
         async ({ clientManager, entryId, wordType }, use) => {
-            const { service, loading } = clientManager.central.openEntryEditor({
+            const service = await clientManager.central.openEntryEditor({
                 id: entryId,
                 viewKey: EntryViewType.WordEditor,
                 wordType,
             });
-            await loading;
-
             await use(service.lexicon);
         },
         { auto: true },

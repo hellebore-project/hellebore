@@ -1,7 +1,7 @@
 import { expect } from "vitest";
 
 import { CentralViewType } from "@/client";
-import { test } from "@tests/unit/fixtures";
+import { test } from "@tests/unit/client/fixtures";
 
 test("can iterate over open panel services", async ({ clientManager }) => {
     const services = [...clientManager.central.iterateOpenPanels()];

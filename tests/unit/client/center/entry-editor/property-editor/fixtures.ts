@@ -28,12 +28,10 @@ export const test = baseTest.extend<BasePropertyEditorFixtures>({
     // services
     propertyEditorService: [
         async ({ clientManager, entryId, mockedEntryProperties }, use) => {
-            const { service, loading } = clientManager.central.openEntryEditor({
+            const service = await clientManager.central.openEntryEditor({
                 id: entryId,
                 viewKey: EntryViewType.PropertyEditor,
             });
-            await loading;
-
             await use(service.properties);
         },
         { auto: true },

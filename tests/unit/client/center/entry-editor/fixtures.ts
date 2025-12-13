@@ -1,6 +1,6 @@
 import { EntityType, EntryInfoResponse } from "@/domain";
 import { Id } from "@/interface";
-import { test as baseTest } from "@tests/unit/fixtures";
+import { test as baseTest } from "@tests/unit/client/fixtures";
 import { mockGetEntryInfo } from "@tests/utils/mocks";
 
 interface EntryEditorFixtures {
