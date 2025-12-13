@@ -100,8 +100,6 @@ export class ClientManager {
 
     private _createSubscriptions() {
         this.central.onChangePanel.subscribe(({ action, details }) => {
-            console.log(action);
-            console.log(details);
             if (details.type === CentralViewType.EntryEditor) {
                 if (details.entry === undefined) return;
 

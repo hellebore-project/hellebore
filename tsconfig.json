@@ -7,6 +7,7 @@
     "skipLibCheck": true,
 
     "baseUrl": ".",
+    // all paths need to be defined in the main tsconfig file
     "paths": {
       "@/*": ["./src/*"],
       "@tests/*": ["./tests/*"],

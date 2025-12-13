@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react";
 import { describe, expect } from "vitest";
 
 import { Center, Header, Modal } from "@/client";
-import { test } from "@tests/unit/fixtures";
+import { test } from "@tests/unit/client/fixtures";
 import { mockCloseProject } from "@tests/utils/mocks";
 import { render } from "@tests/utils/render";
 
