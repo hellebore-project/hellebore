@@ -21,6 +21,9 @@ pnpm-debug.log*
 lerna-debug.log*
 .eslintcache
 
+### Typescript
+dist-js/
+
 ### Editor directories and files
 .vscode/
 !.vscode/extensions.json

@@ -91,6 +91,8 @@ export class CentralPanelManager {
             onPartialChangeData: false,
             onChangeDataDelayed: false,
             onDeleteEntry: false,
+            // NOTE: mobx's makeAutoObserable infers generator methods as flows
+            iterateOpenPanels: false,
         });
     }
 
@@ -139,10 +141,7 @@ export class CentralPanelManager {
         return service;
     }
 
-    openEntryEditor(args: OpenEntryEditorEvent): LoadEntryEditorResult {
-        let service: EntryEditorService;
-        let loadPromise: Promise<void> | null = null;
-
+    async openEntryEditor(args: OpenEntryEditorEvent) {
         const key = EntryEditorService.generateKey(
             CentralViewType.EntryEditor,
             args.id,
@@ -151,22 +150,25 @@ export class CentralPanelManager {
         const currentIndex = this.findPanelIndex(key);
         if (currentIndex !== null) {
             this._showPanel(currentIndex);
-            service = this.getPanelByIndex(currentIndex) as EntryEditorService;
-        } else {
-            service = new EntryEditorService(this._entryEditorArgs);
-
-            service.onChange.broker = this.onChangeData;
-            service.onPartialChange.broker = this.onPartialChangeData;
-            service.onChangeDelayed.broker = this.onChangeDataDelayed;
-            service.onDelete.broker = this.onDeleteEntry;
-
-            loadPromise = service.load(args);
-
-            // only one panel can be open at a time
-            this._clearAndAddPanel(service, true);
+            return this.getPanelByIndex(currentIndex) as EntryEditorService;
         }
 
-        return { service, loading: loadPromise };
+        const service = new EntryEditorService(this._entryEditorArgs);
+
+        service.onChange.broker = this.onChangeData;
+        service.onPartialChange.broker = this.onPartialChangeData;
+        service.onChangeDelayed.broker = this.onChangeDataDelayed;
+        service.onDelete.broker = this.onDeleteEntry;
+
+        // NOTE: the entry-editor service needs to finish loading before we can proceed with
+        // firing the event producers. The event payloads require the entry ID, which is
+        // fetched during the loading sequence.
+        await service.load(args);
+
+        // only one panel can be open at a time
+        this._clearAndAddPanel(service, true);
+
+        return service;
     }
 
     private _addPanel(service: ICentralPanelContentService, show = true) {

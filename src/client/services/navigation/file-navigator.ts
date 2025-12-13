@@ -163,15 +163,6 @@ export class FileNavigatorService {
         return this._displayedNode;
     }
 
-    set displayedNode(node: FileNodeModel | null) {
-        this._displayedNode = node;
-    }
-
-    get displayedNodeId() {
-        if (this._displayedNode) return this._displayedNode.id;
-        return null;
-    }
-
     get expanded() {
         return this._expanded;
     }
@@ -493,7 +484,7 @@ export class FileNavigatorService {
                 } else {
                     // failed to create a new folder in the backend
                     this.selectedNode = null;
-                    this._deleteNodeAtIndex(index);
+                    this._deleteNode(node, index);
                 }
             } else {
                 // update existing folder
@@ -518,7 +509,7 @@ export class FileNavigatorService {
 
     private _cancelNodeTextEdit(node: FileNodeModel) {
         const index = this.getNodeIndex(node.id, false) as number;
-        if (this.isPlaceholderNode(node)) this._deleteNodeAtIndex(index);
+        if (this.isPlaceholderNode(node)) this._deleteNode(node, index);
         else {
             if (node.data) {
                 delete node.data.editableText;
@@ -572,15 +563,18 @@ export class FileNavigatorService {
 
     // OPEN NODE
 
-    markEntryNodeAsDisplayed(id: Id) {
+    setEntryNodeDisplayedStatus(id: Id, displayed: boolean) {
         const nodeId = convertEntryIdToNodeId(id);
-        if (this.displayedNode?.id == nodeId) return;
+        if (this._displayedNode?.id == nodeId) return;
+
         const node = this._findNode(nodeId);
-        if (node) this.markNodeAsDisplayed(node);
+        if (node) this._setNodeDisplayedStatus(node, displayed);
     }
 
-    markNodeAsDisplayed(node: FileNodeModel) {
-        this.displayedNode = node;
+    private _setNodeDisplayedStatus(node: FileNodeModel, displayed: boolean) {
+        if (displayed) this._displayedNode = node;
+        else if (this._displayedNode && this._displayedNode.id === node.id)
+            this._displayedNode = null;
     }
 
     displayNode(node: FileNodeModel) {
@@ -652,12 +646,12 @@ export class FileNavigatorService {
     // NODE DELETION
 
     deleteEntityNode(id: Id) {
-        this._deleteNode(convertEntryIdToNodeId(id));
+        this._deleteNodeById(convertEntryIdToNodeId(id));
     }
 
     deleteFolderNode(id: Id) {
         // child nodes should be deleted in separate calls
-        this._deleteNode(convertFolderIdToNodeId(id));
+        this._deleteNodeById(convertFolderIdToNodeId(id));
     }
 
     deleteManyNodes(entryIds: Id[], folderIds: Id[]) {
@@ -673,21 +667,28 @@ export class FileNavigatorService {
         for (const nodeId of nodeIds) delete this._nodePositionCache[nodeId];
     }
 
-    _deleteNode(nodeId: NodeId) {
+    _deleteNodeById(nodeId: NodeId) {
         const index = this.getNodeIndex(nodeId, false);
-        if (index !== null) {
-            this._nodes.splice(index, 1);
-            delete this._nodePositionCache[nodeId];
-        }
+        if (index === null) return;
+
+        const node = this._nodes[index];
+        this._deleteNode(node, index);
+
+        return node;
     }
 
-    _deleteNodeAtIndex(index: number): FileNodeModel {
+    _deleteNodeAtIndex(index: number) {
         const node = this._nodes[index];
-        if (node) {
-            this._nodes.splice(index, 1);
-            delete this._nodePositionCache[node.id];
-        }
+        this._deleteNode(node, index);
         return node;
+    }
+
+    _deleteNode(node: FileNodeModel, index: number) {
+        if (this._selectedNode?.id === node.id) this._selectedNode = null;
+        if (this._displayedNode?.id === node.id) this._displayedNode = null;
+
+        this._nodes.splice(index, 1);
+        delete this._nodePositionCache[node.id];
     }
 
     // NODE MOVEMENT
