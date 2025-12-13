@@ -38,7 +38,7 @@ function renderFileNavItem({
     const fileNav = clientManager.navigation.files;
 
     const selected = fileNav.selectedNodeId == node.id;
-    const displayed = fileNav.displayedNodeId == node.id;
+    const displayed = fileNav.displayedNode?.id == node.id;
     const editable = node?.data?.isEditable ?? false;
 
     const textProps: NavItemTextProps = {

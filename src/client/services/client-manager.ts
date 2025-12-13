@@ -100,16 +100,21 @@ export class ClientManager {
 
     private _createSubscriptions() {
         this.central.onChangePanel.subscribe(({ action, details }) => {
+            console.log(action);
+            console.log(details);
             if (details.type === CentralViewType.EntryEditor) {
                 if (details.entry === undefined) return;
 
                 if (action === ViewAction.Show)
-                    this.navigation.files.markEntryNodeAsDisplayed(
+                    this.navigation.files.setEntryNodeDisplayedStatus(
                         details.entry.id,
+                        true,
                     );
                 if (action === ViewAction.Hide) {
-                    this.navigation.files.displayedNode = null;
-                    this.navigation.files.selectedNode = null;
+                    this.navigation.files.setEntryNodeDisplayedStatus(
+                        details.entry.id,
+                        false,
+                    );
                 }
             }
         });
