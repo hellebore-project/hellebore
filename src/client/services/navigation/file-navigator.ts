@@ -223,7 +223,7 @@ export class FileNavigatorService {
             nodes.push(
                 this._generateFolderNode(
                     folder.id,
-                    folder.parent_id,
+                    folder.parentId,
                     folder.name,
                 ),
             );

@@ -42,7 +42,7 @@ export class FolderManager {
     validate(id: number | null, parentId: number, name: string) {
         const response: FolderValidateResponse = {
             id,
-            parent_id: parentId,
+            parentId: parentId,
             name,
         };
         const parentNode = this._structure.folders[parentId];
@@ -73,7 +73,7 @@ export class FolderManager {
 
         let response: FolderResponse | null;
         try {
-            response = await this._update({ id, parent_id: parentId, name });
+            response = await this._update({ id, parentId: parentId, name });
         } catch (error) {
             console.error(error);
             return null;
@@ -135,7 +135,7 @@ export class FolderManager {
 
     async _create(parentId: Id, name: string): Promise<FolderResponse> {
         return invoke<FolderResponse>(CommandNames.Folder.Create, {
-            info: { parent_id: parentId, name },
+            info: { parentId, name },
         });
     }
 

@@ -48,7 +48,7 @@ export class FileStructure {
 
         if (folder.id in this.folders) {
             node = this.folders[folder.id];
-            node.parent_id = folder.parent_id;
+            node.parentId = folder.parentId;
             node.name = folder.name;
         } else {
             node = {
@@ -59,7 +59,7 @@ export class FileStructure {
             this.folders[folder.id] = node;
         }
 
-        const parent = this.addFolderById(folder.parent_id);
+        const parent = this.addFolderById(folder.parentId);
         parent.subFolders[node.id] = node;
 
         return node;
@@ -69,7 +69,7 @@ export class FileStructure {
         if (id in this.folders) return this.folders[id];
         const node: FolderNode = {
             id: id,
-            parent_id: ROOT_FOLDER_ID,
+            parentId: ROOT_FOLDER_ID,
             name: "",
             subFolders: [],
             files: [],
@@ -88,7 +88,7 @@ export class FileStructure {
 
     deleteFolder(id: number) {
         const folderNode = this.folders[id];
-        const parentNode = this.folders[folderNode.parent_id];
+        const parentNode = this.folders[folderNode.parentId];
 
         delete this.folders[id];
         if (parentNode) delete parentNode.subFolders[id];

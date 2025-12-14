@@ -64,7 +64,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     folder: async ({ folderId, parentFolderId, folderName }, use) => {
         const folder: FolderResponse = {
             id: folderId,
-            parent_id: parentFolderId,
+            parentId: parentFolderId,
             name: folderName,
         };
         use(folder);
