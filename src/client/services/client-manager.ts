@@ -2,9 +2,20 @@ import { makeAutoObservable } from "mobx";
 import { ask, open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
-import { PollEvent, SyncEntryEvent } from "@/client/interface";
+import {
+    MoveFolderEvent,
+    MoveFolderResult,
+    PollEvent,
+    SyncEntryEvent,
+} from "@/client/interface";
 import { CentralViewType, ViewAction } from "@/client/constants";
-import { EntityType, DomainManager, ProjectResponse } from "@/domain";
+import {
+    EntityType,
+    DomainManager,
+    ProjectResponse,
+    BulkFileData,
+    FolderUpdateResponse,
+} from "@/domain";
 import { Id } from "@/interface";
 
 import { CentralPanelManager } from "./center";
@@ -146,6 +157,7 @@ export class ClientManager {
         fileNav.onOpenEntry.subscribe((args) =>
             this.central.openEntryEditor(args),
         );
+        fileNav.onMoveFolder.subscribe((args) => this.moveFolder(args));
         fileNav.onDeleteFolder.subscribe(({ id, confirm }) =>
             this.deleteFolder(id, confirm),
         );
@@ -185,7 +197,7 @@ export class ClientManager {
 
     async load() {
         const project = await this._fetchProjectInfo();
-        if (project) this._loadClientForProject(project);
+        if (project) await this._loadClientForProject(project);
     }
 
     private async _fetchProjectInfo() {
@@ -273,6 +285,63 @@ export class ClientManager {
 
     editFolderName(id: number) {
         this.navigation.files.toggleFolderAsEditable(id);
+    }
+
+    async moveFolder({
+        id,
+        title,
+        sourceParentId,
+        destParentId,
+        confirm = true,
+    }: MoveFolderEvent): Promise<MoveFolderResult> {
+        const validateResponse = this.domain.folders.validate(
+            id,
+            destParentId,
+            title,
+        );
+
+        let cancel = false;
+        let deleteResponse: BulkFileData | null = null;
+        if (validateResponse.nameCollision) {
+            if (confirm) {
+                const replace = await ask(
+                    `A folder with the name '${title}' already exists in the destination folder. Do you want to replace it?`,
+                    {
+                        title: "Folder name collision",
+                        kind: "warning",
+                    },
+                );
+                if (!replace) cancel = true;
+            }
+
+            if (!cancel) {
+                deleteResponse = await this.deleteFolder(
+                    validateResponse.nameCollision.collidingFolderId,
+                    confirm,
+                );
+                if (!deleteResponse) {
+                    console.error(
+                        "Failed to delete colliding folder. Aborting move.",
+                    );
+                    cancel = true;
+                }
+            }
+        }
+
+        let updateResponse: FolderUpdateResponse | null = null;
+        if (!cancel)
+            updateResponse = await this.domain.folders.update({
+                id,
+                parentId: destParentId,
+                oldParentId: sourceParentId,
+            });
+
+        return {
+            moved: updateResponse !== null,
+            cancelled: cancel,
+            update: updateResponse,
+            deletion: deleteResponse,
+        };
     }
 
     async deleteFolder(id: number, confirm = true) {

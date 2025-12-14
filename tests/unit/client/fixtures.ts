@@ -9,7 +9,9 @@ import {
     EntryInfoResponse,
     FolderResponse,
     ProjectResponse,
+    SessionResponse,
 } from "@/domain/schema";
+import { Id } from "@/interface";
 import { MockedInvoker } from "@tests/utils/mocks/backend/invoker";
 import {
     mockGetEntries,
@@ -20,9 +22,21 @@ import {
 export interface BaseUnitTestFixtures {
     dbFilePath: string;
     project: ProjectResponse;
-    entities: EntryInfoResponse[];
+    session: SessionResponse;
+    folderId: Id;
+    parentFolderId: Id;
+    folderName: string;
+    folder: FolderResponse;
     folders: FolderResponse[];
+    entryId: Id;
+    entryType: EntityType;
+    entryTitle: string;
+    entryInfo: EntryInfoResponse;
+    entries: EntryInfoResponse[];
     mockedInvoker: MockedInvoker;
+    mockedSession: SessionResponse;
+    mockedFolders: FolderResponse[];
+    mockedEntries: EntryInfoResponse[];
     clientManager: ClientManager;
     user: UserEvent;
     setup: null;
@@ -33,9 +47,44 @@ export interface BaseUnitTestFixtures {
 
 export const test = baseTest.extend<BaseUnitTestFixtures>({
     // data
-    dbFilePath: ["mocked/db/file/path", { injected: true }],
-    project: [{ id: 1, name: "mocked-project" }, { injected: true }],
-    entities: [
+    dbFilePath: "mocked/db/file/path",
+    project: { id: 1, name: "mocked-project" },
+    session: async ({ dbFilePath, project }, use) => {
+        const session: SessionResponse = {
+            db_file_path: dbFilePath,
+            project,
+        };
+        use(session);
+    },
+
+    folderId: 1,
+    parentFolderId: -1,
+    folderName: "mocked-folder",
+    folder: async ({ folderId, parentFolderId, folderName }, use) => {
+        const folder: FolderResponse = {
+            id: folderId,
+            parent_id: parentFolderId,
+            name: folderName,
+        };
+        use(folder);
+    },
+    folders: async ({ folder }, use) => {
+        use([folder]);
+    },
+
+    entryId: 1,
+    entryType: EntityType.ENTRY,
+    entryTitle: "mocked-title",
+    entryInfo: async ({ entryId, entryType, folderId, entryTitle }, use) => {
+        const entry: EntryInfoResponse = {
+            id: entryId,
+            entity_type: entryType,
+            folder_id: folderId,
+            title: entryTitle,
+        };
+        use(entry);
+    },
+    entries: [
         [
             {
                 id: 1,
@@ -46,7 +95,6 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         ],
         { injected: true },
     ],
-    folders: [[], { injected: true }],
 
     // mocking
     mockedInvoker: [
@@ -57,6 +105,21 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         },
         { auto: true },
     ],
+    mockedSession: async ({ mockedInvoker, session }, use) => {
+        mockGetSession(mockedInvoker, {
+            dbFilePath: session.db_file_path,
+            project: session.project,
+        });
+        await use(session);
+    },
+    mockedFolders: async ({ mockedInvoker, folders }, use) => {
+        mockGetFolders(mockedInvoker, folders);
+        await use(folders);
+    },
+    mockedEntries: async ({ mockedInvoker, entries: entities }, use) => {
+        mockGetEntries(mockedInvoker, { entities });
+        await use(entities);
+    },
 
     user: [
         async ({}, use) => {
@@ -68,18 +131,21 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     // services
     clientManager: [
         async (
-            { mockedInvoker, dbFilePath, project, entities, folders },
+            {
+                mockedInvoker,
+                dbFilePath,
+                project,
+                mockedSession,
+                mockedFolders,
+                mockedEntries,
+            },
             use,
         ) => {
-            mockGetSession(mockedInvoker, { dbFilePath, project });
-            mockGetEntries(mockedInvoker, { entities });
-            mockGetFolders(mockedInvoker, { folders });
+            const clientManager = new ClientManager();
+            await clientManager.load();
+            state.manager = clientManager;
 
-            const appManager = new ClientManager();
-            await appManager.load();
-            state.manager = appManager;
-
-            await use(appManager);
+            await use(clientManager);
             state.manager = null;
         },
         { auto: true },

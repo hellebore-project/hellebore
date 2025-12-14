@@ -1,9 +1,11 @@
 import {
     BaseEntity,
+    BulkFileData,
     EntityType,
     EntryTextUpdateResponse,
     EntryTitleUpdateResponse,
     EntryUpdateResponse,
+    FolderUpdateResponse,
     WordType,
     WordUpsertResponse,
 } from "@/domain";
@@ -24,6 +26,21 @@ export interface CreateProjectEvent {
 
 export interface EditFolderNameEvent {
     id: Id;
+}
+
+export interface MoveFolderEvent {
+    id: Id;
+    title: string;
+    sourceParentId: Id;
+    destParentId: Id;
+    confirm?: boolean;
+}
+
+export interface MoveFolderResult {
+    moved: boolean;
+    cancelled: boolean;
+    update: FolderUpdateResponse | null;
+    deletion: BulkFileData | null;
 }
 
 export interface DeleteFolderEvent {

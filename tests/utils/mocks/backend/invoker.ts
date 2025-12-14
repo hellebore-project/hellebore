@@ -10,6 +10,10 @@ interface TauriInternals {
 
 export type MockedCommand = (args: unknown) => unknown;
 
+const DEFAULT_COMMAND: MockedCommand = () => {
+    return;
+};
+
 export class MockedInvoker {
     commands: Map<string, MockedCommand>;
     private _spy: MockInstance<TauriInvoke> | null = null;
@@ -40,7 +44,7 @@ export class MockedInvoker {
         clearMocks();
     }
 
-    mockCommand(name: string, command: MockedCommand) {
+    mockCommand(name: string, command: MockedCommand = DEFAULT_COMMAND) {
         this.commands.set(name, command);
     }
 
