@@ -1,5 +1,4 @@
 import { TreeMethods } from "@minoru/react-dnd-treeview";
-import { ask } from "@tauri-apps/plugin-dialog";
 import { makeAutoObservable, toJS } from "mobx";
 import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
@@ -8,6 +7,8 @@ import {
     DeleteFolderEvent,
     FileNodeData,
     FileNodeModel,
+    MoveFolderEvent,
+    MoveFolderResult,
     NodeId,
     OpenEntryCreatorEvent,
     OpenEntryEditorEvent,
@@ -15,7 +16,6 @@ import {
     ROOT_FOLDER_NODE_ID,
 } from "@/client/interface";
 import {
-    FolderUpdateArgs,
     ROOT_FOLDER_ID,
     EntryInfoResponse,
     FolderResponse,
@@ -71,6 +71,7 @@ export class FileNavigatorService {
     // EVENTS
     onCreateEntry: EventProducer<OpenEntryCreatorEvent, unknown>;
     onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
+    onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
     onDeleteFolder: EventProducer<
         DeleteFolderEvent,
         Promise<BulkFileData | null>
@@ -97,6 +98,7 @@ export class FileNavigatorService {
 
         this.onCreateEntry = new EventProducer();
         this.onOpenEntry = new EventProducer();
+        this.onMoveFolder = new EventProducer();
         this.onDeleteFolder = new EventProducer();
         this.onOpenFolderContext = new EventProducer();
         this.onOpenEntryContext = new EventProducer();
@@ -110,6 +112,7 @@ export class FileNavigatorService {
             _domain: false,
             onCreateEntry: false,
             onOpenEntry: false,
+            onMoveFolder: false,
             onDeleteFolder: false,
             onOpenFolderContext: false,
             onOpenEntryContext: false,
@@ -693,72 +696,46 @@ export class FileNavigatorService {
 
     // NODE MOVEMENT
 
-    async moveNode(node: FileNodeModel, destFolderNodeId: NodeId) {
-        let index = this.getNodeIndex(node.id);
-        if (index === null) return false;
-
+    async moveNode(
+        node: FileNodeModel,
+        destFolderNodeId: NodeId,
+    ): Promise<boolean> {
         const sourceFolderNodeId = node.parent;
 
         const id = this.convertNodeIdToEntryId(node.id);
         const sourceParentId = this.convertNodeIdToEntryId(sourceFolderNodeId);
         const destParentId = this.convertNodeIdToEntryId(destFolderNodeId);
 
-        let response: boolean | FolderUpdateArgs | null;
+        let moved: boolean;
+        let cancelled = false;
         if (this.isFolderNode(node)) {
-            // folder
-            const validateResponse = this._domain.folders.validate(
+            const response = await this.onMoveFolder.produceOne({
                 id,
+                title: node.text,
+                sourceParentId,
                 destParentId,
-                node.text,
-            );
-            if (validateResponse.nameCollision) {
-                const replace = await ask(
-                    `A folder with the name '${node.text}' already exists in the destination folder. Do you want to replace it?`,
-                    {
-                        title: "Folder name collision",
-                        kind: "warning",
-                    },
-                );
-                if (!replace) return false;
-
-                const deleteResponse = await this.onDeleteFolder.produceOne({
-                    id: validateResponse.nameCollision.collidingFolderId,
-                    confirm: false,
-                });
-                if (!deleteResponse) {
-                    console.error(
-                        "Failed to delete colliding folder. Aborting move.",
-                    );
-                    return false;
-                }
-
-                // need to fetch the index of the node again because the original index may be outdated following the delete request
-                index = this.getNodeIndex(node.id) as number;
-            }
-
-            response = await this._domain.folders.update({
-                id,
-                parentId: destParentId,
-                oldParentId: sourceParentId,
             });
-        } else {
-            // entry
-            response = await this._domain.entries.updateFolder(
+            moved = response.moved;
+            cancelled = response.cancelled;
+        } else
+            moved = await this._domain.entries.updateFolder(
                 id,
                 destParentId,
                 sourceParentId,
             );
-        }
 
-        if (!response) {
+        if (!moved && !cancelled)
             console.error(
                 `Unable to move node ${node.id} to folder ${destFolderNodeId}.`,
             );
-            return false;
-        }
+        if (!moved) return false;
 
         node.parent = destFolderNodeId;
+
         // setting the node at its current index forces a refresh of the tree component
+        // TODO: there has to be a way to avoid this
+        const index = this.getNodeIndex(node.id);
+        if (index === null) return false;
         this.setNode(node, index);
 
         return true;

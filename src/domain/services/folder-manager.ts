@@ -5,6 +5,7 @@ import { Id } from "@/interface";
 import {
     FolderResponse,
     FolderUpdate,
+    FolderUpdateResponse,
     FolderValidateResponse,
 } from "@/domain/schema";
 
@@ -61,7 +62,7 @@ export class FolderManager {
         name = null,
         parentId = null,
         oldParentId = null,
-    }: FolderUpdateArgs) {
+    }: FolderUpdateArgs): Promise<FolderUpdateResponse | null> {
         const folderNode = this._structure.folders[id];
 
         const nameChanged = name !== null;
@@ -139,7 +140,7 @@ export class FolderManager {
         return invoke<FolderResponse[]>(CommandNames.Folder.GetAll);
     }
 
-    async _delete(id: Id): Promise<FolderResponse> {
-        return invoke<FolderResponse>(CommandNames.Folder.Delete, { id });
+    async _delete(id: Id) {
+        return invoke<void>(CommandNames.Folder.Delete, { id });
     }
 }
