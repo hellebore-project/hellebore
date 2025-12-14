@@ -223,10 +223,10 @@ export class CentralPanelManager {
         return this._panelServices.get(key) ?? null;
     }
 
-    getHomePanel() {
+    getHomePanel(): HomeManager | null {
         // assume that there can be at most one home panel
         const service = this._panelServices.get(CentralViewType.Home) ?? null;
-        if (!service) return service;
+        if (!service) return null;
         return service as HomeManager;
     }
 

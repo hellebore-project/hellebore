@@ -90,8 +90,17 @@ export class FolderManager {
         };
     }
 
-    getInfo(id: number) {
-        return this._structure.folders[id];
+    async get(id: Id): Promise<FolderResponse | null> {
+        let response: FolderResponse | null;
+        try {
+            response = await this._get(id);
+        } catch (error) {
+            console.error(error);
+            console.error(`Failed to fetch folder ${id} from the backend.`);
+            return null;
+        }
+
+        return response;
     }
 
     async getAll(): Promise<FolderResponse[] | null> {
@@ -134,6 +143,10 @@ export class FolderManager {
         return invoke<FolderResponse>(CommandNames.Folder.Update, {
             folder: update,
         });
+    }
+
+    async _get(id: Id) {
+        return invoke<FolderResponse>(CommandNames.Folder.Get, { id });
     }
 
     async _getAll() {

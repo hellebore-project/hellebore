@@ -1,4 +1,6 @@
 export * from "./center";
+export * from "./client-manager";
+
 import { ClientManager } from "./client-manager";
 import { AppState } from "./state";
 

@@ -1,7 +1,9 @@
-import { describe, expect } from "vitest";
+import { describe, expect, vi } from "vitest";
 
 import { test } from "@tests/unit/client/fixtures";
 import { mockDeleteFolder, mockUpdateFolder } from "@tests/utils/mocks";
+
+vi.mock("@tauri-apps/plugin-dialog");
 
 describe("moving folders", () => {
     test.scoped({
@@ -88,5 +90,63 @@ describe("moving folders", () => {
             parentChanged: true,
         });
         expect(deletion).toStrictEqual({ entries: [], folders: [3] });
+    });
+
+    test("user confirms move on name collision", async ({
+        mockedInvoker,
+        clientManager,
+        mockedFolder,
+    }) => {
+        const plugin = await import("@tauri-apps/plugin-dialog");
+        plugin.ask = vi.fn().mockResolvedValue(true);
+
+        const updatedFolder = { ...mockedFolder, parent_id: 2 };
+        mockUpdateFolder(mockedInvoker, updatedFolder);
+        mockDeleteFolder(mockedInvoker);
+
+        const { moved, cancelled, update, deletion } =
+            await clientManager.moveFolder({
+                id: mockedFolder.id,
+                title: mockedFolder.name,
+                sourceParentId: mockedFolder.parent_id,
+                destParentId: 2,
+                confirm: true,
+            });
+
+        expect(moved).toBe(true);
+        expect(cancelled).toBe(false);
+        expect(update).toStrictEqual({
+            ...updatedFolder,
+            nameChanged: false,
+            parentChanged: true,
+        });
+        expect(deletion).toStrictEqual({ entries: [], folders: [3] });
+    });
+
+    test("user cancels move on name collision", async ({
+        mockedInvoker,
+        clientManager,
+        mockedFolder,
+    }) => {
+        const plugin = await import("@tauri-apps/plugin-dialog");
+        plugin.ask = vi.fn().mockResolvedValue(false);
+
+        const updatedFolder = { ...mockedFolder, parent_id: 2 };
+        mockUpdateFolder(mockedInvoker, updatedFolder);
+        mockDeleteFolder(mockedInvoker);
+
+        const { moved, cancelled, update, deletion } =
+            await clientManager.moveFolder({
+                id: mockedFolder.id,
+                title: mockedFolder.name,
+                sourceParentId: mockedFolder.parent_id,
+                destParentId: 2,
+                confirm: true,
+            });
+
+        expect(moved).toBe(false);
+        expect(cancelled).toBe(true);
+        expect(update).toBe(null);
+        expect(deletion).toBe(null);
     });
 });
