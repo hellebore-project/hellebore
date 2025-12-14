@@ -17,6 +17,22 @@ pub struct FolderUpdateSchema {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct FolderNameCollisionSchema {
+    pub is_unique: bool,
+    pub colliding_folder: FolderResponseSchema,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FolderValidationSchema {
+    pub id: Option<i32>,
+    pub parent_id: i32,
+    pub name: String,
+    pub name_collision: Option<FolderNameCollisionSchema>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FolderResponseSchema {
     pub id: i32,
     pub parent_id: i32,

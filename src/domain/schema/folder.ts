@@ -20,10 +20,11 @@ export interface FolderUpdateResponse extends FolderUpdate {
 export type FolderResponse = IdentifiedObject & FolderProperties;
 
 export interface FolderNameCollisionResponse {
-    collidingFolderId: number;
+    isUnique: boolean;
+    collidingFolder: FolderResponse;
 }
 
 export interface FolderValidateResponse extends FolderProperties {
     id: number | null;
-    nameCollision?: FolderNameCollisionResponse | null;
+    nameCollision: FolderNameCollisionResponse | null;
 }

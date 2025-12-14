@@ -1,21 +1,72 @@
 import { describe, expect, vi } from "vitest";
 
-import { test } from "@tests/unit/client/fixtures";
-import { mockDeleteFolder, mockUpdateFolder } from "@tests/utils/mocks";
+import { FolderResponse, FolderValidateResponse } from "@/domain";
+import { test as baseTest } from "@tests/unit/client/fixtures";
+import {
+    mockDeleteFolder,
+    mockUpdateFolder,
+    mockValidateFolder,
+} from "@tests/utils/mocks";
 
 vi.mock("@tauri-apps/plugin-dialog");
 
 describe("moving folders", () => {
+    interface MoveFolderFixtures {
+        isUnique: boolean;
+        parentFolder: FolderResponse;
+        collidingFolder: FolderResponse | null;
+        mockFolderValidation: FolderValidateResponse;
+        mockFolderDeletion: null;
+    }
+
+    const test = baseTest.extend<MoveFolderFixtures>({
+        // data
+        isUnique: true,
+        parentFolder: async ({}, use) => {
+            use({
+                id: 2,
+                parentId: -1,
+                name: "mocked-folder-2",
+            });
+        },
+        collidingFolder: async ({}, use) => {
+            use(null);
+        },
+
+        // mocking
+        mockFolderValidation: [
+            async (
+                { mockedInvoker, folder, collidingFolder, isUnique },
+                use,
+            ) => {
+                const response: FolderValidateResponse = {
+                    ...folder,
+                    nameCollision: null,
+                };
+
+                if (!isUnique)
+                    response.nameCollision = {
+                        isUnique: false,
+                        collidingFolder,
+                    };
+
+                mockValidateFolder(mockedInvoker, response);
+                use(response);
+            },
+            { auto: true },
+        ],
+        mockFolderDeletion: [
+            async ({ mockedInvoker }, use) => {
+                mockDeleteFolder(mockedInvoker);
+                use(null);
+            },
+            { auto: true },
+        ],
+    });
+
     test.scoped({
-        folders: async ({ folder }, use) => {
-            use([
-                folder,
-                {
-                    id: 2,
-                    parentId: -1,
-                    name: "mocked-folder-2",
-                },
-            ]);
+        folders: async ({ folder, parentFolder }, use) => {
+            use([folder, parentFolder]);
         },
     });
 
@@ -47,20 +98,16 @@ describe("moving folders", () => {
     });
 
     test.scoped({
-        folders: async ({ folder }, use) => {
-            use([
-                folder,
-                {
-                    id: 2,
-                    parentId: -1,
-                    name: "mocked-folder-2",
-                },
-                {
-                    id: 3,
-                    parentId: 2,
-                    name: "mocked-folder",
-                },
-            ]);
+        isUnique: false,
+        collidingFolder: async ({}, use) => {
+            use({
+                id: 3,
+                parentId: 2,
+                name: "mocked-folder",
+            });
+        },
+        folders: async ({ folder, parentFolder, collidingFolder }, use) => {
+            use([folder, parentFolder, collidingFolder]);
         },
     });
 
@@ -71,7 +118,6 @@ describe("moving folders", () => {
     }) => {
         const updatedFolder = { ...folder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
-        mockDeleteFolder(mockedInvoker);
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
@@ -102,7 +148,6 @@ describe("moving folders", () => {
 
         const updatedFolder = { ...mockedFolder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
-        mockDeleteFolder(mockedInvoker);
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
@@ -133,7 +178,6 @@ describe("moving folders", () => {
 
         const updatedFolder = { ...mockedFolder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
-        mockDeleteFolder(mockedInvoker);
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({

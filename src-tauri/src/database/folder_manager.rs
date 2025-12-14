@@ -82,6 +82,19 @@ where
     FolderModel::find_by_id(id).one(con).await
 }
 
+pub fn query(parent_id: Option<i32>, name: Option<String>) -> Select<FolderModel> {
+    let mut query = FolderModel::find();
+
+    if let Some(_parent_id) = parent_id {
+        query = query.filter(folder::Column::ParentId.eq(_parent_id));
+    }
+    if let Some(_name) = name {
+        query = query.filter(folder::Column::Name.eq(_name));
+    }
+
+    query
+}
+
 pub async fn get_all<C>(con: &C) -> Result<Vec<folder::Model>, DbErr>
 where
     C: ConnectionTrait,

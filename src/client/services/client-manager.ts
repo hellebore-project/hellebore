@@ -294,7 +294,7 @@ export class ClientManager {
         destParentId,
         confirm = true,
     }: MoveFolderEvent): Promise<MoveFolderResult> {
-        const validateResponse = this.domain.folders.validate(
+        const validateResponse = await this.domain.folders.validate(
             id,
             destParentId,
             title,
@@ -302,7 +302,7 @@ export class ClientManager {
 
         let cancel = false;
         let deleteResponse: BulkFileData | null = null;
-        if (validateResponse.nameCollision) {
+        if (!validateResponse.nameCollision) {
             if (confirm) {
                 const replace = await ask(
                     `A folder with the name '${title}' already exists in the destination folder. Do you want to replace it?`,
@@ -316,7 +316,7 @@ export class ClientManager {
 
             if (!cancel) {
                 deleteResponse = await this.deleteFolder(
-                    validateResponse.nameCollision.collidingFolderId,
+                    validateResponse.nameCollision.collidingFolder.id,
                     confirm,
                 );
                 if (!deleteResponse) {
