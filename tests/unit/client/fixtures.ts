@@ -2,19 +2,19 @@ import { cleanup } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { test as baseTest } from "vitest";
 
-import { EntityType } from "@/domain/constants";
-import { state } from "@/client/services";
-import { ClientManager } from "@/client/services/client-manager";
+import { ClientManager, state } from "@/client";
 import {
+    EntityType,
     EntryInfoResponse,
     FolderResponse,
     ProjectResponse,
     SessionResponse,
-} from "@/domain/schema";
+} from "@/domain";
 import { Id } from "@/interface";
-import { MockedInvoker } from "@tests/utils/mocks/backend/invoker";
 import {
+    MockedInvoker,
     mockGetEntries,
+    mockGetFolder,
     mockGetFolders,
     mockGetSession,
 } from "@tests/utils/mocks";
@@ -35,6 +35,7 @@ export interface BaseUnitTestFixtures {
     entries: EntryInfoResponse[];
     mockedInvoker: MockedInvoker;
     mockedSession: SessionResponse;
+    mockedFolder: FolderResponse;
     mockedFolders: FolderResponse[];
     mockedEntries: EntryInfoResponse[];
     clientManager: ClientManager;
@@ -111,6 +112,10 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
             project: session.project,
         });
         await use(session);
+    },
+    mockedFolder: async ({ mockedInvoker, folder }, use) => {
+        mockGetFolder(mockedInvoker, folder);
+        await use(folder);
     },
     mockedFolders: async ({ mockedInvoker, folders }, use) => {
         mockGetFolders(mockedInvoker, folders);

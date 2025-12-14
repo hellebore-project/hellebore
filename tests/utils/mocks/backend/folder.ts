@@ -10,6 +10,13 @@ export function mockUpdateFolder(
     mockedInvoker.mockCommand(CommandNames.Folder.Update, async () => folder);
 }
 
+export function mockGetFolder(
+    mockedInvoker: MockedInvoker,
+    folder: FolderResponse,
+) {
+    mockedInvoker.mockCommand(CommandNames.Folder.Get, async () => folder);
+}
+
 export function mockGetFolders(
     mockedInvoker: MockedInvoker,
     folders: FolderResponse[],
