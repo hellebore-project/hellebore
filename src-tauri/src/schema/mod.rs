@@ -1,10 +1,10 @@
 pub mod config;
 pub mod data;
+pub mod diagnostic;
 pub mod entry;
 pub mod folder;
 pub mod language;
 pub mod person;
 pub mod project;
-pub mod response;
 pub mod session;
 pub mod word;

@@ -1,8 +1,8 @@
 use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
+    diagnostic::ResponseDiagnosticsSchema,
     folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
-    response::ResponseDiagnosticsSchema,
 };
 use crate::services::folder_service;
 use crate::state::State;
