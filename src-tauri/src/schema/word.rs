@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{types::grammar::WordType, utils::value_or_default};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+#[serde(rename_all = "camelCase")]
 pub struct WordUpdateSchema {
     pub id: Option<i32>,
     pub language_id: Option<i32>,
@@ -27,7 +27,7 @@ impl WordUpdateSchema {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+#[serde(rename_all = "camelCase")]
 pub struct WordResponseSchema {
     pub id: i32,
     pub language_id: i32,
