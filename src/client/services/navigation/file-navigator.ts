@@ -216,7 +216,7 @@ export class FileNavigatorService {
 
         for (const entry of entries) {
             nodes.push(
-                this._generateEntryNode(entry.id, entry.folder_id, entry.title),
+                this._generateEntryNode(entry.id, entry.folderId, entry.title),
             );
         }
         for (const folder of folders) {
@@ -588,8 +588,8 @@ export class FileNavigatorService {
 
     // NODE GENERATION
 
-    addNodeForCreatedEntry({ id, folder_id, title }: EntryInfoResponse) {
-        const node = this._generateEntryNode(id, folder_id, title);
+    addNodeForCreatedEntry({ id, folderId, title }: EntryInfoResponse) {
+        const node = this._generateEntryNode(id, folderId, title);
         this._nodes.push(node);
     }
 
@@ -612,13 +612,13 @@ export class FileNavigatorService {
 
     _generateEntryNode(
         id: Id,
-        folder_id: Id,
+        folderId: Id,
         title: string,
         data: FileNodeData | undefined = undefined,
     ): FileNodeModel {
         const node = {
             id: convertEntryIdToNodeId(id),
-            parent: convertFolderIdToNodeId(folder_id),
+            parent: convertFolderIdToNodeId(folderId),
             text: title,
         };
         if (data) this._addNodeData(node, data);

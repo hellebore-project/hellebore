@@ -6,6 +6,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
 pub struct EntryCreateSchema<E> {
     pub folder_id: i32,
     pub title: String,
@@ -13,12 +14,14 @@ pub struct EntryCreateSchema<E> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
 pub struct EntryUpdateSchema<E> {
     pub id: i32,
     pub properties: E,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
 pub struct EntryInfoResponseSchema {
     pub id: i32,
     pub folder_id: i32,
@@ -27,18 +30,21 @@ pub struct EntryInfoResponseSchema {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all_fields(serialize = "camelCase", deserialize = "snake_case"))]
 pub enum EntryProperties {
     Language(LanguageSchema),
     Person(PersonSchema),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
 pub struct EntryPropertyResponseSchema {
     pub info: EntryInfoResponseSchema,
     pub properties: EntryProperties,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
 pub struct EntryArticleResponseSchema {
     pub info: EntryInfoResponseSchema,
     pub text: String,

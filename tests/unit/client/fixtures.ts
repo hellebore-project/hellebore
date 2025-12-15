@@ -79,8 +79,8 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     entryInfo: async ({ entryId, entryType, folderId, entryTitle }, use) => {
         const entry: EntryInfoResponse = {
             id: entryId,
-            entity_type: entryType,
-            folder_id: folderId,
+            entityType: entryType,
+            folderId,
             title: entryTitle,
         };
         use(entry);
@@ -89,8 +89,8 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         [
             {
                 id: 1,
-                folder_id: -1,
-                entity_type: EntityType.PERSON,
+                folderId: -1,
+                entityType: EntityType.PERSON,
                 title: "mocked-entity",
             },
         ],

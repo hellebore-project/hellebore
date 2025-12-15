@@ -95,7 +95,7 @@ export class FileStructure {
     }
 
     addFile(file: EntryInfoResponse) {
-        const folder = this.addFolderById(file.folder_id);
+        const folder = this.addFolderById(file.folderId);
         folder.files[file.id] = file;
         this.files[file.id] = file;
     }
@@ -110,7 +110,7 @@ export class FileStructure {
 
     deleteFile(id: number) {
         const articleNode = this.files[id];
-        const folderNode = this.folders[articleNode.folder_id];
+        const folderNode = this.folders[articleNode.folderId];
 
         delete this.files[id];
         if (folderNode) delete folderNode.files[id];
