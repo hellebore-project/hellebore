@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::entity::EntityType;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all_fields(serialize = "camelCase", deserialize = "snake_case"))]
 pub enum ApiError {
     DatabaseConnectionFailed {
         msg: String,

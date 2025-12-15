@@ -28,7 +28,7 @@ export function is_field_unique(
 ): boolean {
     if (error.type !== DomainErrorType.FIELD_NOT_UNIQUE) return true;
     const _error = error as FieldNotUniqueError;
-    if (_error.entity_type == entityType && _error.key == fieldName)
+    if (_error.entityType == entityType && _error.key == fieldName)
         return false;
     return true;
 }
