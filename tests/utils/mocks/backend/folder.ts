@@ -1,4 +1,4 @@
-import { FolderResponse } from "@/domain/schema";
+import { FolderResponse, FolderValidateResponse } from "@/domain/schema";
 import { CommandNames } from "@/domain/constants";
 
 import { MockedInvoker } from "./invoker";
@@ -8,6 +8,15 @@ export function mockUpdateFolder(
     folder: FolderResponse,
 ) {
     mockedInvoker.mockCommand(CommandNames.Folder.Update, async () => folder);
+}
+
+export function mockValidateFolder(
+    mockedInvoker: MockedInvoker,
+    response: FolderValidateResponse,
+) {
+    mockedInvoker.mockCommand(CommandNames.Folder.Validate, async () => ({
+        data: response,
+    }));
 }
 
 export function mockGetFolder(

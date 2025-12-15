@@ -16,6 +16,7 @@ impl MigrationTrait for Migration {
                     .table(Folder::Table)
                     .if_not_exists()
                     .col(pk_auto(Folder::Id).not_null())
+                    // a NULL parent ID signifies that the folder is inside the root folder
                     .col(integer_null(Folder::ParentId))
                     .col(string(Folder::ParentIdNotNull).generated(
                         Func::coalesce([

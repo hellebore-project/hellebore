@@ -4,6 +4,7 @@ use ::entity::folder::Model as Folder;
 
 use crate::database::folder_manager::{self, convert_null_folder_id_to_root};
 use crate::errors::ApiError;
+use crate::schema::folder::{FolderNameCollisionSchema, FolderValidationSchema};
 use crate::schema::{
     diagnostic::ResponseDiagnosticsSchema,
     folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
@@ -35,12 +36,40 @@ pub async fn validate_name(
     id: Option<i32>,
     parent_id: i32,
     name: &str,
-) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
+) -> Result<ResponseDiagnosticsSchema<FolderValidationSchema>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
+
     let is_unique = folder_manager::is_name_unique_at_location(database, parent_id, name)
         .await
         .map_err(|e| ApiError::query_failed(e, FOLDER))?;
+
+    let mut response = FolderValidationSchema {
+        id,
+        parent_id,
+        name: name.to_owned(),
+        name_collision: None,
+    };
+
     if !is_unique {
+        let colliding_folder: Option<Folder> =
+            folder_manager::query(Some(parent_id), Some(name.to_owned()))
+                .one(database)
+                .await
+                .map_err(|e| ApiError::query_failed(e, FOLDER))?;
+
+        response.name_collision = match colliding_folder {
+            Some(_colliding_folder) => Some(FolderNameCollisionSchema {
+                is_unique,
+                colliding_folder: generate_response(&_colliding_folder),
+            }),
+            None => {
+                return Err(ApiError::query_failed(
+                    "Failed to query colliding folder.",
+                    FOLDER,
+                ));
+            }
+        };
+
         errors.push(ApiError::field_not_unique(
             FOLDER,
             id,
@@ -48,8 +77,9 @@ pub async fn validate_name(
             name,
         ));
     }
+
     return Ok(ResponseDiagnosticsSchema {
-        data: is_unique,
+        data: response,
         errors,
     });
 }

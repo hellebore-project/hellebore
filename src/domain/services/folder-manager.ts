@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { CommandNames, ROOT_FOLDER_ID } from "@/domain/constants";
 import { Id } from "@/interface";
 import {
+    DiagnosticResponse,
     FolderResponse,
     FolderUpdate,
     FolderUpdateResponse,
@@ -39,22 +40,20 @@ export class FolderManager {
         return response;
     }
 
-    validate(id: number | null, parentId: number, name: string) {
-        const response: FolderValidateResponse = {
-            id,
-            parentId: parentId,
-            name,
-        };
-        const parentNode = this._structure.folders[parentId];
-        for (const subFolderNode of Object.values(parentNode.subFolders)) {
-            if (subFolderNode.id != id && subFolderNode.name == name) {
-                response.nameCollision = {
-                    collidingFolderId: subFolderNode.id,
-                };
-                break;
-            }
+    async validate(
+        id: number | null,
+        parentId: number,
+        name: string,
+    ): Promise<FolderValidateResponse | null> {
+        let response: DiagnosticResponse<FolderValidateResponse> | null;
+        try {
+            response = await this._validate_name(id, parentId, name);
+        } catch (error) {
+            console.error(error);
+            return null;
         }
-        return response;
+
+        return response.data;
     }
 
     async update({
@@ -73,7 +72,7 @@ export class FolderManager {
 
         let response: FolderResponse | null;
         try {
-            response = await this._update({ id, parentId: parentId, name });
+            response = await this._update({ id, parentId, name });
         } catch (error) {
             console.error(error);
             return null;
@@ -143,6 +142,17 @@ export class FolderManager {
         return invoke<FolderResponse>(CommandNames.Folder.Update, {
             folder: update,
         });
+    }
+
+    async _validate_name(
+        id: Id | null,
+        parentId: Id,
+        name: string,
+    ): Promise<DiagnosticResponse<FolderValidateResponse>> {
+        return invoke<DiagnosticResponse<FolderValidateResponse>>(
+            CommandNames.Folder.Validate,
+            { id, parentId, name },
+        );
     }
 
     async _get(id: Id) {

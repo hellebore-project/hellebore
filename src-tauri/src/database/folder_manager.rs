@@ -55,12 +55,18 @@ pub async fn is_name_unique_at_location<C>(
 where
     C: ConnectionTrait,
 {
+    let mut query = FolderModel::find().filter(folder::Column::Name.eq(name));
+
     let parent_id = convert_negative_folder_id_to_null(parent_id);
-    let colliding_siblings = FolderModel::find()
-        .filter(folder::Column::ParentId.eq(parent_id))
-        .filter(folder::Column::Name.eq(name))
-        .all(con)
-        .await?;
+    if parent_id.is_none() {
+        // in sqlite3, comparisons involving NULL always resolve to false,
+        // so we need to explicitly check whether the value is NULL
+        query = query.filter(folder::Column::ParentId.is_null());
+    } else {
+        query = query.filter(folder::Column::ParentId.eq(parent_id));
+    }
+
+    let colliding_siblings = query.all(con).await?;
 
     if colliding_siblings.len() == 0 {
         return Ok(true);
@@ -80,6 +86,24 @@ where
     C: ConnectionTrait,
 {
     FolderModel::find_by_id(id).one(con).await
+}
+
+pub fn query(parent_id: Option<i32>, name: Option<String>) -> Select<FolderModel> {
+    let mut query = FolderModel::find();
+
+    if let Some(parent_id_value) = parent_id {
+        let nullable_parent_id = convert_negative_folder_id_to_null(parent_id_value);
+        if nullable_parent_id.is_none() {
+            query = query.filter(folder::Column::ParentId.is_null());
+        } else {
+            query = query.filter(folder::Column::ParentId.eq(parent_id_value));
+        }
+    }
+    if let Some(name_value) = name {
+        query = query.filter(folder::Column::Name.eq(name_value));
+    }
+
+    query
 }
 
 pub async fn get_all<C>(con: &C) -> Result<Vec<folder::Model>, DbErr>
@@ -107,6 +131,8 @@ where
 }
 
 /// Cleans negative folder IDs to null.
+/// Negative folder IDs are collectively treated as a sentinel value that corresponds to
+/// the root folder. In the DB, the root folder is denoted by a NULL ID.
 pub fn convert_negative_folder_id_to_null(id: i32) -> Option<i32> {
     if id > ROOT_FOLDER_ID {
         Some(id) // ID of existing folder

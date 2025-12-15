@@ -1,5 +1,6 @@
 use crate::api::utils;
 use crate::errors::ApiError;
+use crate::schema::folder::FolderValidationSchema;
 use crate::schema::{
     diagnostic::ResponseDiagnosticsSchema,
     folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
@@ -31,7 +32,7 @@ pub async fn validate_folder_name(
     id: Option<i32>,
     parent_id: i32,
     name: &str,
-) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
+) -> Result<ResponseDiagnosticsSchema<FolderValidationSchema>, ApiError> {
     let state = state.lock().await;
     folder_service::validate_name(utils::get_database(&state)?, id, parent_id, name).await
 }
