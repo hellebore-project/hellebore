@@ -421,6 +421,7 @@ export class FileNavigatorService {
 
     private async _validateEditedNodeText(node: FileNodeModel) {
         const newText = node.data?.editableText ?? "";
+
         if (!newText) this.setNodeError(node, "A name must be provided.");
         else if (newText != node.text) {
             const id = this.isPlaceholderNode(node)
@@ -429,14 +430,19 @@ export class FileNavigatorService {
 
             // validate the new text
             if (this.isFolderNode(node)) {
-                // folder
                 const parentId = this.convertNodeIdToEntryId(node.parent);
-                const validationResponse = this._domain.folders.validate(
+                const validationResponse = await this._domain.folders.validate(
                     id,
                     parentId,
                     newText,
                 );
-                if (validationResponse.nameCollision)
+
+                if (!validationResponse)
+                    this.setNodeError(
+                        node,
+                        `Failed to validate new location of folder ${id}.`,
+                    );
+                else if (validationResponse.nameCollision)
                     this.setNodeError(
                         node,
                         `A folder named ${newText} already exists at this location.`,

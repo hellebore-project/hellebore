@@ -294,47 +294,51 @@ export class ClientManager {
         destParentId,
         confirm = true,
     }: MoveFolderEvent): Promise<MoveFolderResult> {
+        let cancel = false;
+        let deleteResponse: BulkFileData | null = null;
+        let updateResponse: FolderUpdateResponse | null = null;
+
         const validateResponse = await this.domain.folders.validate(
             id,
             destParentId,
             title,
         );
+        console.log(validateResponse);
 
-        let cancel = false;
-        let deleteResponse: BulkFileData | null = null;
-        if (!validateResponse.nameCollision) {
-            if (confirm) {
-                const replace = await ask(
-                    `A folder with the name '${title}' already exists in the destination folder. Do you want to replace it?`,
-                    {
-                        title: "Folder name collision",
-                        kind: "warning",
-                    },
-                );
-                if (!replace) cancel = true;
-            }
-
-            if (!cancel) {
-                deleteResponse = await this.deleteFolder(
-                    validateResponse.nameCollision.collidingFolder.id,
-                    confirm,
-                );
-                if (!deleteResponse) {
-                    console.error(
-                        "Failed to delete colliding folder. Aborting move.",
+        if (validateResponse) {
+            if (validateResponse.nameCollision) {
+                if (confirm) {
+                    const replace = await ask(
+                        `A folder with the name '${title}' already exists in the destination folder. Do you want to replace it?`,
+                        {
+                            title: "Folder name collision",
+                            kind: "warning",
+                        },
                     );
-                    cancel = true;
+                    if (!replace) cancel = true;
+                }
+
+                if (!cancel) {
+                    deleteResponse = await this.deleteFolder(
+                        validateResponse.nameCollision.collidingFolder.id,
+                        confirm,
+                    );
+                    if (!deleteResponse) {
+                        console.error(
+                            "Failed to delete colliding folder. Aborting move.",
+                        );
+                        cancel = true;
+                    }
                 }
             }
-        }
 
-        let updateResponse: FolderUpdateResponse | null = null;
-        if (!cancel)
-            updateResponse = await this.domain.folders.update({
-                id,
-                parentId: destParentId,
-                oldParentId: sourceParentId,
-            });
+            if (!cancel)
+                updateResponse = await this.domain.folders.update({
+                    id,
+                    parentId: destParentId,
+                    oldParentId: sourceParentId,
+                });
+        }
 
         return {
             moved: updateResponse !== null,
