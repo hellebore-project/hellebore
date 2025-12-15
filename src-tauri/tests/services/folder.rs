@@ -225,6 +225,84 @@ async fn test_error_on_updating_folder_with_same_name_as_sibling(
 
 #[rstest]
 #[tokio::test]
+async fn test_validate_folder_name_is_unique(
+    settings: &Settings,
+    folder_create_payload: FolderCreateSchema,
+) {
+    let database = database(settings).await;
+    let folder = folder_service::create(&database, folder_create_payload)
+        .await
+        .unwrap();
+
+    let validation =
+        folder_service::validate_name(&database, Some(folder.id), folder.parent_id, "unique_name")
+            .await;
+
+    assert!(validation.is_ok());
+    let validation = validation.unwrap();
+    assert!(validation.data.name_collision.is_none());
+    assert!(validation.errors.is_empty());
+    assert_eq!(validation.data.name, "unique_name");
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_validate_folder_name_collision_in_subfolder(
+    settings: &Settings,
+    folder_create_payload: FolderCreateSchema,
+) {
+    let database = database(settings).await;
+    let parent_folder = folder_service::create(&database, folder_create_payload.clone())
+        .await
+        .unwrap();
+
+    let child_1_payload = FolderCreateSchema {
+        parent_id: parent_folder.id,
+        name: "child".to_owned(),
+    };
+    let child_folder = folder_service::create(&database, child_1_payload)
+        .await
+        .unwrap();
+
+    let validation =
+        folder_service::validate_name(&database, None, parent_folder.id, &child_folder.name).await;
+
+    assert!(validation.is_ok());
+    let validation = validation.unwrap();
+    assert!(validation.data.name_collision.is_some());
+    assert!(!validation.errors.is_empty());
+
+    let collision = validation.data.name_collision.unwrap();
+    assert!(!collision.is_unique);
+    assert_eq!(collision.colliding_folder.id, child_folder.id);
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_validate_folder_name_collision_in_root_folder(
+    settings: &Settings,
+    folder_create_payload: FolderCreateSchema,
+) {
+    let database = database(settings).await;
+    let folder = folder_service::create(&database, folder_create_payload.clone())
+        .await
+        .unwrap();
+
+    let validation =
+        folder_service::validate_name(&database, None, folder.parent_id, &folder.name).await;
+
+    assert!(validation.is_ok());
+    let validation = validation.unwrap();
+    assert!(validation.data.name_collision.is_some());
+    assert!(!validation.errors.is_empty());
+
+    let collision = validation.data.name_collision.unwrap();
+    assert!(!collision.is_unique);
+    assert_eq!(collision.colliding_folder.id, folder.id);
+}
+
+#[rstest]
+#[tokio::test]
 async fn test_get_folder(settings: &Settings, folder_create_payload: FolderCreateSchema) {
     let database = database(settings).await;
     let folder = folder_service::create(&database, folder_create_payload)
