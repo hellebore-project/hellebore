@@ -37,7 +37,7 @@ export class SessionManager {
             return null;
         }
         this.project = response.project;
-        this.dbFilePath = response.db_file_path;
+        this.dbFilePath = response.dbFilePath;
         return response;
     }
 

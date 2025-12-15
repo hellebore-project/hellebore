@@ -52,7 +52,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     project: { id: 1, name: "mocked-project" },
     session: async ({ dbFilePath, project }, use) => {
         const session: SessionResponse = {
-            db_file_path: dbFilePath,
+            dbFilePath,
             project,
         };
         use(session);
@@ -108,7 +108,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     ],
     mockedSession: async ({ mockedInvoker, session }, use) => {
         mockGetSession(mockedInvoker, {
-            dbFilePath: session.db_file_path,
+            dbFilePath: session.dbFilePath,
             project: session.project,
         });
         await use(session);
