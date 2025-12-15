@@ -34,10 +34,10 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
         },
         use,
     ) => {
-        const word = {
+        const word: WordResponse = {
             id: wordId,
-            language_id: entryId,
-            word_type: wordType,
+            languageId: entryId,
+            wordType: wordType,
             spelling: wordSpelling,
             definition: wordDefinition,
             translations: wordTranslations,

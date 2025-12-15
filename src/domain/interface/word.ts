@@ -2,8 +2,8 @@ import { WordType } from "@/domain";
 import { IdentifiedObject } from "@/interface";
 
 export interface WordInfo {
-    language_id: number;
-    word_type: WordType;
+    languageId: number;
+    wordType: WordType;
 }
 
 export interface WordProperties {

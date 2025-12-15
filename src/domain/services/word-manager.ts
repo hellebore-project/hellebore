@@ -21,8 +21,8 @@ export class WordManager {
             responses = await this._bulkUpsertWords(
                 words.map((word) => ({
                     id: word.id,
-                    language_id: word.language_id,
-                    word_type: word.word_type,
+                    languageId: word.languageId,
+                    wordType: word.wordType,
                     spelling: word.spelling,
                     definition: word.definition,
                     translations: word.translations,

@@ -18,7 +18,7 @@ describe("cell selection", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -52,7 +52,7 @@ describe("cell selection", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -94,7 +94,7 @@ describe("cell editing", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -122,7 +122,7 @@ describe("cell editing", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -148,7 +148,7 @@ describe("cell editing", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 

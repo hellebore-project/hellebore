@@ -60,7 +60,7 @@ describe("headers", () => {
             entryId,
             mockedWord,
         }) => {
-            await wordEditorService.load(entryId, mockedWord.word_type);
+            await wordEditorService.load(entryId, mockedWord.wordType);
 
             render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -75,7 +75,7 @@ test("renders table with correct rows", async ({
     entryId,
     mockedWord,
 }) => {
-    await wordEditorService.load(entryId, mockedWord.word_type);
+    await wordEditorService.load(entryId, mockedWord.wordType);
 
     render(<WordTable service={wordEditorService.spreadsheet} />);
 
