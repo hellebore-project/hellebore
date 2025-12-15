@@ -1,14 +1,14 @@
 import { IdentifiedObject } from "@/interface";
 
 interface FolderProperties {
-    parent_id: number;
+    parentId: number;
     name: string;
 }
 
 export type FolderCreate = FolderProperties;
 
 export interface FolderUpdate extends IdentifiedObject {
-    parent_id: number | null;
+    parentId: number | null;
     name: string | null;
 }
 

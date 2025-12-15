@@ -12,7 +12,7 @@ describe("moving folders", () => {
                 folder,
                 {
                     id: 2,
-                    parent_id: -1,
+                    parentId: -1,
                     name: "mocked-folder-2",
                 },
             ]);
@@ -24,14 +24,14 @@ describe("moving folders", () => {
         clientManager,
         folder,
     }) => {
-        const updatedFolder = { ...folder, parent_id: 2 };
+        const updatedFolder = { ...folder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
                 id: folder.id,
                 title: folder.name,
-                sourceParentId: folder.parent_id,
+                sourceParentId: folder.parentId,
                 destParentId: 2,
                 confirm: false,
             });
@@ -52,12 +52,12 @@ describe("moving folders", () => {
                 folder,
                 {
                     id: 2,
-                    parent_id: -1,
+                    parentId: -1,
                     name: "mocked-folder-2",
                 },
                 {
                     id: 3,
-                    parent_id: 2,
+                    parentId: 2,
                     name: "mocked-folder",
                 },
             ]);
@@ -69,7 +69,7 @@ describe("moving folders", () => {
         clientManager,
         folder,
     }) => {
-        const updatedFolder = { ...folder, parent_id: 2 };
+        const updatedFolder = { ...folder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
         mockDeleteFolder(mockedInvoker);
 
@@ -77,7 +77,7 @@ describe("moving folders", () => {
             await clientManager.moveFolder({
                 id: folder.id,
                 title: folder.name,
-                sourceParentId: folder.parent_id,
+                sourceParentId: folder.parentId,
                 destParentId: 2,
                 confirm: false,
             });
@@ -100,7 +100,7 @@ describe("moving folders", () => {
         const plugin = await import("@tauri-apps/plugin-dialog");
         plugin.ask = vi.fn().mockResolvedValue(true);
 
-        const updatedFolder = { ...mockedFolder, parent_id: 2 };
+        const updatedFolder = { ...mockedFolder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
         mockDeleteFolder(mockedInvoker);
 
@@ -108,7 +108,7 @@ describe("moving folders", () => {
             await clientManager.moveFolder({
                 id: mockedFolder.id,
                 title: mockedFolder.name,
-                sourceParentId: mockedFolder.parent_id,
+                sourceParentId: mockedFolder.parentId,
                 destParentId: 2,
                 confirm: true,
             });
@@ -131,7 +131,7 @@ describe("moving folders", () => {
         const plugin = await import("@tauri-apps/plugin-dialog");
         plugin.ask = vi.fn().mockResolvedValue(false);
 
-        const updatedFolder = { ...mockedFolder, parent_id: 2 };
+        const updatedFolder = { ...mockedFolder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
         mockDeleteFolder(mockedInvoker);
 
@@ -139,7 +139,7 @@ describe("moving folders", () => {
             await clientManager.moveFolder({
                 id: mockedFolder.id,
                 title: mockedFolder.name,
-                sourceParentId: mockedFolder.parent_id,
+                sourceParentId: mockedFolder.parentId,
                 destParentId: 2,
                 confirm: true,
             });

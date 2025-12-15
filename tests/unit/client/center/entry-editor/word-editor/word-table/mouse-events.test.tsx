@@ -14,7 +14,7 @@ describe("cell selection", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -38,7 +38,7 @@ describe("cell selection", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -62,7 +62,7 @@ describe("cell selection", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -86,7 +86,7 @@ describe("cell selection", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -108,7 +108,7 @@ describe("cell selection", () => {
         entryId,
         mockedWord,
     }) => {
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(
             <>
@@ -142,7 +142,7 @@ describe("cell editing", () => {
     }) => {
         mockUpsertWords(mockedInvoker);
 
-        await wordEditorService.load(entryId, mockedWord.word_type);
+        await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);
 
@@ -182,7 +182,7 @@ test("can delete a row", async ({
 }) => {
     mockDeleteWord(mockedInvoker);
 
-    await wordEditorService.load(entryId, mockedWord.word_type);
+    await wordEditorService.load(entryId, mockedWord.wordType);
 
     const row = wordEditorService.spreadsheet.data.rowData[0];
     row.highlighted = true;

@@ -347,8 +347,10 @@ export class ClientManager {
     async deleteFolder(id: number, confirm = true) {
         if (confirm) {
             const folder = await this.domain.folders.get(id);
+            const folderName = folder?.name ?? "UNKNOWN";
+
             const canDelete = await ask(
-                `Are you sure you want to delete folder '${folder.name}' and its contents? This action is irreversible.`,
+                `Are you sure you want to delete folder '${folderName}' and its contents? This action is irreversible.`,
                 {
                     title: "Delete folder",
                     kind: "warning",

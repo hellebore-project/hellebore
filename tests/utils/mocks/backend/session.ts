@@ -18,7 +18,7 @@ export function mockGetSession(
 ) {
     const response: SessionResponse = {
         project,
-        db_file_path: dbFilePath,
+        dbFilePath,
     };
     mockedInvoker.mockCommand(CommandNames.Session.Get, async () => response);
 }

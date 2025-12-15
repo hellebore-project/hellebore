@@ -38,8 +38,8 @@ export function mockGetWords(
     }) => {
         return words.map((w) => ({
             ...w,
-            language_id: languageId,
-            word_type: wordType ?? WordType.RootWord,
+            languageId: languageId,
+            wordType: wordType ?? WordType.RootWord,
         }));
     };
     mockedInvoker.mockCommand(

@@ -52,7 +52,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     project: { id: 1, name: "mocked-project" },
     session: async ({ dbFilePath, project }, use) => {
         const session: SessionResponse = {
-            db_file_path: dbFilePath,
+            dbFilePath,
             project,
         };
         use(session);
@@ -64,7 +64,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     folder: async ({ folderId, parentFolderId, folderName }, use) => {
         const folder: FolderResponse = {
             id: folderId,
-            parent_id: parentFolderId,
+            parentId: parentFolderId,
             name: folderName,
         };
         use(folder);
@@ -79,8 +79,8 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     entryInfo: async ({ entryId, entryType, folderId, entryTitle }, use) => {
         const entry: EntryInfoResponse = {
             id: entryId,
-            entity_type: entryType,
-            folder_id: folderId,
+            entityType: entryType,
+            folderId,
             title: entryTitle,
         };
         use(entry);
@@ -89,8 +89,8 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         [
             {
                 id: 1,
-                folder_id: -1,
-                entity_type: EntityType.PERSON,
+                folderId: -1,
+                entityType: EntityType.PERSON,
                 title: "mocked-entity",
             },
         ],
@@ -108,7 +108,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     ],
     mockedSession: async ({ mockedInvoker, session }, use) => {
         mockGetSession(mockedInvoker, {
-            dbFilePath: session.db_file_path,
+            dbFilePath: session.dbFilePath,
             project: session.project,
         });
         await use(session);

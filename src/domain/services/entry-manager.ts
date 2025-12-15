@@ -54,15 +54,15 @@ export class EntryManager {
     async create(
         entityType: EntityType,
         title: string,
-        folder_id: number = ROOT_FOLDER_ID,
+        folderId: number = ROOT_FOLDER_ID,
     ): Promise<EntryInfoResponse | null> {
         let response: EntryInfoResponse | null;
 
         try {
             if (entityType === EntityType.LANGUAGE)
-                response = await this._createLanguage(title, folder_id);
+                response = await this._createLanguage(title, folderId);
             else if (entityType === EntityType.PERSON)
-                response = await this._createPerson(title, folder_id);
+                response = await this._createPerson(title, folderId);
             else {
                 console.error(
                     `Unable to create new entry of type ${entityType}.`,
@@ -114,7 +114,7 @@ export class EntryManager {
         }
 
         if (updated) {
-            this._structure.getEntry(id).folder_id = folderId;
+            this._structure.getEntry(id).folderId = folderId;
             this._structure.moveFile(id, oldFolderId, folderId);
         }
 
@@ -252,10 +252,10 @@ export class EntryManager {
 
     async _createLanguage(
         name: string,
-        folder_id: number,
+        folderId: number,
     ): Promise<EntryInfoResponse> {
         const entry: EntryCreate<LanguageProperties> = {
-            folder_id,
+            folderId,
             title: name,
             properties: {},
         };
@@ -264,10 +264,10 @@ export class EntryManager {
 
     async _createPerson(
         name: string,
-        folder_id: number,
+        folderId: number,
     ): Promise<EntryInfoResponse> {
         const entry: EntryCreate<PersonProperties> = {
-            folder_id,
+            folderId: folderId,
             title: name,
             properties: { name },
         };

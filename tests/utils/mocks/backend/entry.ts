@@ -22,7 +22,7 @@ export function mockGetEntryProperties(
     mockedInvoker: MockedInvoker,
     entry: EntryPropertyResponse,
 ) {
-    const entryType = entry.info.entity_type;
+    const entryType = entry.info.entityType;
     const rawResponse: RawEntryPropertyResponse = {
         info: entry.info,
         properties: {

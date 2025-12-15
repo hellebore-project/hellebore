@@ -1,8 +1,8 @@
 use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
+    diagnostic::ResponseDiagnosticsSchema,
     folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
-    response::ResponseDiagnosticsSchema,
 };
 use crate::services::folder_service;
 use crate::state::State;
@@ -25,7 +25,7 @@ pub async fn update_folder(
     folder_service::update(utils::get_database(&state)?, folder).await
 }
 
-#[tauri::command(rename_all = "snake_case")]
+#[tauri::command]
 pub async fn validate_folder_name(
     state: tauri::State<'_, State>,
     id: Option<i32>,

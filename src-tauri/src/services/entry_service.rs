@@ -8,7 +8,7 @@ use crate::errors::ApiError;
 use crate::schema::entry::{
     EntryArticleResponseSchema, EntryProperties, EntryPropertyResponseSchema,
 };
-use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
+use crate::schema::{diagnostic::ResponseDiagnosticsSchema, entry::EntryInfoResponseSchema};
 use crate::services::{language_service, person_service};
 use crate::types::entity::{ENTRY, EntityType};
 

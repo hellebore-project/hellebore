@@ -26,47 +26,47 @@ export interface DomainMessageError extends BaseDomainError {
 }
 
 export interface DatabaseConnectionFailedError extends DomainMessageError {
-    connection_string: string;
+    connectionString: string;
 }
 
 export interface DatabaseMigrationFailedError extends DomainMessageError {
-    connection_string: string;
+    connectionString: string;
 }
 
 export interface NotInsertedError extends DomainMessageError {
-    entity_type: EntityType;
+    entityType: EntityType;
 }
 
 export interface NotUpdatedError extends DomainMessageError {
-    entity_type: EntityType;
+    entityType: EntityType;
 }
 
 export interface NotFoundError extends DomainMessageError {
-    entity_type: EntityType;
+    entityType: EntityType;
 }
 
 export interface NotDeletedError extends DomainMessageError {
-    entity_type: EntityType;
+    entityType: EntityType;
 }
 
 export interface QueryFailedError extends DomainMessageError {
-    entity_type: EntityType;
+    entityType: EntityType;
 }
 
 export interface FieldNotUpdatedError extends DomainMessageError {
-    entity_type: EntityType;
+    entityType: EntityType;
     key: string;
 }
 
 export interface FieldNotUniqueError extends BaseDomainError {
-    entity_type: EntityType;
+    entityType: EntityType;
     id?: number;
     key: string;
     value: string;
 }
 
 export interface FieldInvalidError extends DomainMessageError {
-    entity_type: EntityType;
+    entityType: EntityType;
     id?: number;
     key: string;
     value: string;

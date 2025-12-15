@@ -6,7 +6,7 @@ use serde_json;
 use crate::database::{transaction_manager, word_manager};
 use crate::errors::ApiError;
 use crate::schema::word::WordUpdateSchema;
-use crate::schema::{response::ResponseDiagnosticsSchema, word::WordResponseSchema};
+use crate::schema::{diagnostic::ResponseDiagnosticsSchema, word::WordResponseSchema};
 use crate::types::entity::WORD;
 use crate::types::grammar::WordType;
 

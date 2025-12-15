@@ -1,7 +1,7 @@
 use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::entry::{EntryArticleResponseSchema, EntryPropertyResponseSchema};
-use crate::schema::{entry::EntryInfoResponseSchema, response::ResponseDiagnosticsSchema};
+use crate::schema::{diagnostic::ResponseDiagnosticsSchema, entry::EntryInfoResponseSchema};
 use crate::services::entry_service;
 use crate::state::State;
 

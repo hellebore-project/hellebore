@@ -272,8 +272,8 @@ export class WordEditorService {
         const newWord: Word = {
             key: this.convertIndexToWordKey(this._wordKeyGenerator.increment()),
             id: null,
-            language_id: this.languageId,
-            word_type: this.wordType as WordType,
+            languageId: this.languageId,
+            wordType: this.wordType as WordType,
             spelling: "",
             definition: "",
             translations: [],
@@ -365,8 +365,8 @@ export class WordEditorService {
         return {
             key: row.key,
             id: row.metaData.id,
-            language_id: this.languageId,
-            word_type: this.wordType,
+            languageId: this.languageId,
+            wordType: this.wordType,
             spelling,
             definition,
             translations,

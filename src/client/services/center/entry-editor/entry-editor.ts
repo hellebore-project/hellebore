@@ -224,7 +224,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (!entityType || title === undefined || text === undefined) {
             const response = await this._domain.entries.getArticle(id);
             if (response) {
-                entityType = response.info.entity_type;
+                entityType = response.info.entityType;
                 title = response.info.title;
                 text = response.text;
             }
@@ -245,7 +245,7 @@ export class EntryEditorService implements ICentralPanelContentService {
 
         if (response !== null) {
             this.currentView = EntryViewType.PropertyEditor;
-            this.info.load(id, response.info.entity_type, response.info.title);
+            this.info.load(id, response.info.entityType, response.info.title);
             this.properties.load(response.properties);
             this.onOpen.produce({ id, viewKey: this.currentView });
         }

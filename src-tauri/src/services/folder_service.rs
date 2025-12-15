@@ -5,8 +5,8 @@ use ::entity::folder::Model as Folder;
 use crate::database::folder_manager::{self, convert_null_folder_id_to_root};
 use crate::errors::ApiError;
 use crate::schema::{
+    diagnostic::ResponseDiagnosticsSchema,
     folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
-    response::ResponseDiagnosticsSchema,
 };
 use crate::types::entity::FOLDER;
 

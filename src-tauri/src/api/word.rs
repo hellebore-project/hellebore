@@ -1,7 +1,7 @@
 use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
-    response::ResponseDiagnosticsSchema,
+    diagnostic::ResponseDiagnosticsSchema,
     word::{WordResponseSchema, WordUpdateSchema},
 };
 use crate::services::word_service;
