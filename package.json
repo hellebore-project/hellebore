@@ -8,6 +8,7 @@
     "db:fresh": "sqlite3 src-tauri/data/db.sqlite \"VACUUM;\" && pnpm run db:migrate",
     "build:entities": "pnpm run db:fresh && sea-orm-cli generate entity -l --with-serde both -o src-tauri/entity/src",
     "build:fe": "tsc && vite build",
+    "build": "tauri build",
     "test:be": "cargo test --manifest-path ./src-tauri/Cargo.toml",
     "test:fe": "vitest",
     "test": "pnpm run test:be && pnpm run test:fe",
