@@ -9,7 +9,6 @@ pub struct ProjectResponseSchema {
 }
 
 #[derive(Clone, Debug)]
-#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
 pub struct ProjectLoadResponseSchema {
     pub info: ProjectResponseSchema,
     pub db: DatabaseConnection,
