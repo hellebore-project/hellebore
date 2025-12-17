@@ -4,9 +4,8 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { ChangeEntryEvent } from "@/client/interface";
+import { ChangeEntryEvent, OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
-import { Id } from "@/interface";
 import {
     SuggestionData,
     useReferenceExtension,
@@ -31,7 +30,7 @@ export class ArticleEditorService {
     info: EntryInfoService;
 
     onChange: EventProducer<ChangeEntryEvent, unknown>;
-    onSelectReference: EventProducer<Id, void>;
+    onSelectReference: EventProducer<OpenEntryEditorEvent, unknown>;
 
     constructor({ domain, info }: ArticleEditorServiceArgs) {
         this._domain = domain;
@@ -131,7 +130,7 @@ export class ArticleEditorService {
     _onClickEditor(node: PMNode) {
         if (node.type.name == "mention") {
             const id: number | null = node.attrs["id"] ?? null;
-            if (id !== null) this.onSelectReference.produce(id);
+            if (id !== null) this.onSelectReference.produce({ id });
         }
     }
 }
