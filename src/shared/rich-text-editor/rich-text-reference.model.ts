@@ -33,7 +33,9 @@ export interface QuerySettings {
 }
 
 export interface ReferenceExtensionSettings {
-    queryItems: (settings: QuerySettings) => SuggestionData[];
+    queryItems: (
+        settings: QuerySettings,
+    ) => SuggestionData[] | Promise<SuggestionData[]>;
     getSelectedIndex: () => number | null;
     setSelectedIndex: (value: number | string) => void;
 }
@@ -184,7 +186,9 @@ class ReferenceSuggestionRenderer {
 }
 
 function generateSuggestionOptions(
-    queryItems: (settings: QuerySettings) => SuggestionData[],
+    queryItems: (
+        settings: QuerySettings,
+    ) => SuggestionData[] | Promise<SuggestionData[]>,
     getSelectedIndex: () => number | null,
     setSelectedIndex: (value: number | string) => void,
 ): Partial<SuggestionOptions> {

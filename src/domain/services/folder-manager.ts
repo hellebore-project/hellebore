@@ -11,8 +11,6 @@ import {
     FolderValidateResponse,
 } from "@/domain/schema";
 
-import { FileStructure } from "./file-structure";
-
 export interface FolderUpdateArgs {
     id: number;
     name?: string | null;
@@ -21,12 +19,6 @@ export interface FolderUpdateArgs {
 }
 
 export class FolderManager {
-    _structure: FileStructure;
-
-    constructor(structure: FileStructure) {
-        this._structure = structure;
-    }
-
     async create(name: string, parentId: number = ROOT_FOLDER_ID) {
         let response: FolderResponse | null;
         try {
@@ -35,8 +27,6 @@ export class FolderManager {
             console.error(error);
             return null;
         }
-
-        if (response) this._structure.addFolder(response);
 
         return response;
     }
@@ -63,8 +53,6 @@ export class FolderManager {
         parentId = null,
         oldParentId = null,
     }: FolderUpdateArgs): Promise<FolderUpdateResponse | null> {
-        const folderNode = this._structure.folders[id];
-
         const nameChanged = name !== null;
         const parentChanged =
             parentId !== null &&
@@ -78,10 +66,6 @@ export class FolderManager {
             console.error(error);
             return null;
         }
-
-        if (parentChanged)
-            this._structure.moveFolder(id, oldParentId, parentId);
-        if (nameChanged) folderNode.name = name as string;
 
         return {
             ...response,
@@ -113,9 +97,6 @@ export class FolderManager {
             return null;
         }
 
-        this._structure.resetFolders();
-        for (const folder of response) this._structure.addFolder(folder);
-
         return response;
     }
 
@@ -128,8 +109,6 @@ export class FolderManager {
             console.error(`Failed to delete folder ${id} and/or its contents.`);
             return null;
         }
-
-        this._structure.bulkDelete(response);
 
         return response;
     }

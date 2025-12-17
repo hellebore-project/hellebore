@@ -157,6 +157,7 @@ pub async fn search<C>(con: &C, keyword: &str) -> Result<Vec<EntityInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
+    // TODO: add pagination and max result count
     EntryModel::find()
         .filter(entry::Column::Title.like(format!("%{}%", keyword)))
         .order_by_asc(entry::Column::Title)

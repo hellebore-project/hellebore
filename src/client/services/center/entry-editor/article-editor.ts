@@ -90,7 +90,7 @@ export class ArticleEditorService {
 
     _buildEditor() {
         const Reference = useReferenceExtension({
-            queryItems: ({ query }) => this._queryByTitle(query),
+            queryItems: async ({ query }) => this._queryByTitle(query),
             getSelectedIndex: () => this.selectedRefIndex,
             setSelectedIndex: (index) =>
                 (this.selectedRefIndex = index as number),
@@ -117,10 +117,13 @@ export class ArticleEditorService {
         this.onChange.produce({ id: this.info.id });
     }
 
-    _queryByTitle(titleFragment: string): SuggestionData[] {
+    async _queryByTitle(titleFragment: string): Promise<SuggestionData[]> {
         this.selectedRefIndex = 0;
-        return this._domain.entries
-            .queryByTitle(titleFragment)
+
+        const results = await this._domain.entries.search(titleFragment);
+        if (!results) return [];
+
+        return results
             .filter((info) => info.id != this.info.id)
             .map((info) => ({ label: info.title, value: info.id }));
     }

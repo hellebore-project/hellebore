@@ -33,6 +33,7 @@ export const CommandNames = {
         GetProperties: "get_entry_properties",
         GetArticle: "get_entry_text",
         GetAll: "get_entries",
+        Search: "search_entries",
         Delete: "delete_entry",
     },
     Word: {
