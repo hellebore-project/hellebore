@@ -81,6 +81,15 @@ pub async fn get_entries(
 }
 
 #[tauri::command]
+pub async fn search_entries(
+    state: tauri::State<'_, State>,
+    keyword: &str,
+) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
+    let state = state.lock().await;
+    entry_service::search(utils::get_database(&state)?, keyword).await
+}
+
+#[tauri::command]
 pub async fn delete_entry(state: tauri::State<'_, State>, id: i32) -> Result<(), ApiError> {
     let state = state.lock().await;
     entry_service::delete(utils::get_database(&state)?, id).await

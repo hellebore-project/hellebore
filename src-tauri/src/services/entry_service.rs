@@ -158,7 +158,7 @@ pub async fn get_text(
 ) -> Result<EntryArticleResponseSchema, ApiError> {
     let entry = entry_manager::get(database, id)
         .await
-        .map_err(|e| ApiError::not_found(e, ENTRY))?;
+        .map_err(|e| ApiError::query_failed(e, ENTRY))?;
     return match entry {
         Some(entry) => Ok(generate_article_response(&entry)),
         None => return Err(ApiError::not_found("Entry not found.", ENTRY)),
@@ -170,7 +170,18 @@ pub async fn get_all(
 ) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
     let entries = entry_manager::get_all(database)
         .await
-        .map_err(|e| ApiError::not_found(e, ENTRY))?;
+        .map_err(|e| ApiError::query_failed(e, ENTRY))?;
+    let entries = entries.iter().map(generate_info_response).collect();
+    return Ok(entries);
+}
+
+pub async fn search(
+    database: &DatabaseConnection,
+    keyword: &str,
+) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
+    let entries = entry_manager::search(database, keyword)
+        .await
+        .map_err(|e| ApiError::query_failed(e, ENTRY))?;
     let entries = entries.iter().map(generate_info_response).collect();
     return Ok(entries);
 }
