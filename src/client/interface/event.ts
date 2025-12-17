@@ -1,6 +1,6 @@
 import {
     BaseEntity,
-    BulkFileData,
+    BulkFileResponse,
     EntityType,
     EntryTextUpdateResponse,
     EntryTitleUpdateResponse,
@@ -40,7 +40,7 @@ export interface MoveFolderResult {
     moved: boolean;
     cancelled: boolean;
     update: FolderUpdateResponse | null;
-    deletion: BulkFileData | null;
+    deletion: BulkFileResponse | null;
 }
 
 export interface DeleteFolderEvent {

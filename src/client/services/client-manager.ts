@@ -13,7 +13,7 @@ import {
     EntityType,
     DomainManager,
     ProjectResponse,
-    BulkFileData,
+    BulkFileResponse,
     FolderUpdateResponse,
 } from "@/domain";
 import { Id } from "@/interface";
@@ -295,7 +295,7 @@ export class ClientManager {
         confirm = true,
     }: MoveFolderEvent): Promise<MoveFolderResult> {
         let cancel = false;
-        let deleteResponse: BulkFileData | null = null;
+        let deleteResponse: BulkFileResponse | null = null;
         let updateResponse: FolderUpdateResponse | null = null;
 
         const validateResponse = await this.domain.folders.validate(
@@ -366,6 +366,7 @@ export class ClientManager {
         }
 
         const fileIds = await this.domain.folders.delete(id);
+        if (!fileIds) return null;
 
         this.navigation.files.deleteManyNodes(fileIds.entries, fileIds.folders);
 
