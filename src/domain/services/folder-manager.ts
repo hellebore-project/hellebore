@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { CommandNames, ROOT_FOLDER_ID } from "@/domain/constants";
 import { Id } from "@/interface";
 import {
+    BulkFileResponse,
     DiagnosticResponse,
     FolderResponse,
     FolderUpdate,
@@ -118,18 +119,19 @@ export class FolderManager {
         return response;
     }
 
-    async delete(id: Id) {
+    async delete(id: Id): Promise<BulkFileResponse | null> {
+        let response: BulkFileResponse;
         try {
-            await this._delete(id);
+            response = await this._delete(id);
         } catch (error) {
             console.error(error);
             console.error(`Failed to delete folder ${id} and/or its contents.`);
+            return null;
         }
 
-        const subtree = this._structure.subtree(id);
-        this._structure.bulkDelete(subtree);
+        this._structure.bulkDelete(response);
 
-        return subtree;
+        return response;
     }
 
     async _create(parentId: Id, name: string): Promise<FolderResponse> {
@@ -163,7 +165,7 @@ export class FolderManager {
         return invoke<FolderResponse[]>(CommandNames.Folder.GetAll);
     }
 
-    async _delete(id: Id) {
-        return invoke<void>(CommandNames.Folder.Delete, { id });
+    async _delete(id: Id): Promise<BulkFileResponse> {
+        return invoke<BulkFileResponse>(CommandNames.Folder.Delete, { id });
     }
 }

@@ -19,7 +19,7 @@ import {
     ROOT_FOLDER_ID,
     EntryInfoResponse,
     FolderResponse,
-    BulkFileData,
+    BulkFileResponse,
     DomainManager,
 } from "@/domain";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
@@ -74,7 +74,7 @@ export class FileNavigatorService {
     onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
     onDeleteFolder: EventProducer<
         DeleteFolderEvent,
-        Promise<BulkFileData | null>
+        Promise<BulkFileResponse | null>
     >;
     onOpenFolderContext: EventProducer<OpenFileContextMenuEvent, unknown>;
     onOpenEntryContext: EventProducer<OpenFileContextMenuEvent, unknown>;

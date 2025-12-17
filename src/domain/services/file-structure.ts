@@ -1,7 +1,7 @@
 import { ROOT_FOLDER_ID } from "@/domain/constants";
 import { Id } from "@/interface";
 import {
-    BulkFileData,
+    BulkFileResponse,
     EntryInfoResponse,
     FolderResponse,
 } from "@/domain/schema";
@@ -27,20 +27,6 @@ export class FileStructure {
 
     getEntry(id: Id): EntryInfoResponse {
         return this.files[id];
-    }
-
-    subtree(rootId: number = ROOT_FOLDER_ID) {
-        const rootFolder = this.addFolderById(rootId);
-        return this._subtree(rootFolder, { entries: [], folders: [] });
-    }
-
-    _subtree(folder: FolderNode, data: BulkFileData) {
-        data.folders.push(folder.id);
-        for (const subFolder of Object.values(folder.subFolders))
-            this._subtree(subFolder, data);
-        for (const entryId of Object.keys(folder.files))
-            data.entries.push(Number(entryId));
-        return data;
     }
 
     addFolder(folder: FolderResponse) {
@@ -116,7 +102,7 @@ export class FileStructure {
         if (folderNode) delete folderNode.files[id];
     }
 
-    bulkDelete(data: BulkFileData) {
+    bulkDelete(data: BulkFileResponse) {
         for (const entryId of data.entries) this.deleteFile(entryId);
         for (const folderId of data.folders) {
             if (folderId === ROOT_FOLDER_ID) continue;

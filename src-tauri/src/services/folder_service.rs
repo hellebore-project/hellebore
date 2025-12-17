@@ -2,13 +2,17 @@ use sea_orm::DatabaseConnection;
 
 use ::entity::folder::Model as Folder;
 
-use crate::database::folder_manager::{self, convert_null_folder_id_to_root};
+use crate::database::{file_manager, folder_manager};
 use crate::errors::ApiError;
-use crate::schema::folder::{FolderNameCollisionSchema, FolderValidationSchema};
 use crate::schema::{
     diagnostic::ResponseDiagnosticsSchema,
-    folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
+    file::BulkFileResponseSchema,
+    folder::{
+        FolderCreateSchema, FolderNameCollisionSchema, FolderResponseSchema, FolderUpdateSchema,
+        FolderValidationSchema,
+    },
 };
+use crate::services::file_service;
 use crate::types::entity::FOLDER;
 
 pub async fn create(
@@ -102,11 +106,17 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponse
     return Ok(folders);
 }
 
-pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
+pub async fn delete(
+    database: &DatabaseConnection,
+    id: i32,
+) -> Result<BulkFileResponseSchema, ApiError> {
+    let contents = file_service::get_folder_contents(database, id).await?;
+
     let _ = folder_manager::delete(database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, FOLDER))?;
-    return Ok(());
+
+    return Ok(contents);
 }
 
 pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result<(), ApiError> {
@@ -119,7 +129,7 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
 fn generate_response(folder: &Folder) -> FolderResponseSchema {
     return FolderResponseSchema {
         id: folder.id,
-        parent_id: convert_null_folder_id_to_root(folder.parent_id),
+        parent_id: file_manager::convert_null_folder_id_to_root(folder.parent_id),
         name: folder.name.to_string(),
     };
 }

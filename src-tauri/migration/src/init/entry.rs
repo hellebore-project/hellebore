@@ -3,6 +3,7 @@ use sea_orm_migration::{prelude::*, schema::*};
 use crate::init::folder::Folder;
 
 const ENTRY_TITLE_INDEX_NAME: &str = "index_entry_title";
+const ENTRY_FOLDER_ID_INDEX_NAME: &str = "index_entry_folder_id";
 const ENTRY_FOLDER_ID_FK_NAME: &str = "fk_entry_folder_id";
 
 #[derive(DeriveMigrationName)]
@@ -45,12 +46,26 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
+        // Speeds up querying by folder ID when building the subtree CTE.
+        manager
+            .create_index(
+                Index::create()
+                    .name(ENTRY_FOLDER_ID_INDEX_NAME)
+                    .table(Entry::Table)
+                    .col(Entry::FolderId)
+                    .to_owned(),
+            )
+            .await?;
+
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .drop_index(Index::drop().name(ENTRY_TITLE_INDEX_NAME).to_owned())
+            .await?;
+        manager
+            .drop_index(Index::drop().name(ENTRY_FOLDER_ID_INDEX_NAME).to_owned())
             .await?;
         manager
             .drop_foreign_key(ForeignKey::drop().name(ENTRY_FOLDER_ID_FK_NAME).to_owned())

@@ -1,10 +1,7 @@
 use ::entity::{entry, entry::Entity as EntryModel};
 use sea_orm::*;
 
-use crate::{
-    database::folder_manager::convert_negative_folder_id_to_null, types::entity::EntityType,
-    utils::CodedEnum,
-};
+use crate::{database::file_manager, types::entity::EntityType, utils::CodedEnum};
 
 #[derive(DerivePartialModel, FromQueryResult)]
 #[sea_orm(entity = "EntryModel")]
@@ -27,7 +24,7 @@ where
 {
     let new_entity = entry::ActiveModel {
         id: NotSet,
-        folder_id: Set(convert_negative_folder_id_to_null(folder_id)),
+        folder_id: Set(file_manager::convert_negative_folder_id_to_null(folder_id)),
         title: Set(title),
         entity_type: Set(entity_type.code()),
         text: Set(text),
@@ -64,7 +61,7 @@ where
     };
     let folder = entry::ActiveModel {
         id: Unchanged(folder.id),
-        folder_id: Set(convert_negative_folder_id_to_null(folder_id)),
+        folder_id: Set(file_manager::convert_negative_folder_id_to_null(folder_id)),
         entity_type: NotSet,
         title: NotSet,
         text: NotSet,

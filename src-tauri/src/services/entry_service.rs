@@ -2,8 +2,7 @@ use sea_orm::DatabaseConnection;
 
 use ::entity::entry::Model as EntryModel;
 
-use crate::database::folder_manager::convert_null_folder_id_to_root;
-use crate::database::{entry_manager, transaction_manager};
+use crate::database::{entry_manager, file_manager, transaction_manager};
 use crate::errors::ApiError;
 use crate::schema::entry::{
     EntryArticleResponseSchema, EntryProperties, EntryPropertyResponseSchema,
@@ -193,7 +192,7 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
 pub fn generate_insert_response(info: &EntryModel) -> EntryInfoResponseSchema {
     EntryInfoResponseSchema {
         id: info.id,
-        folder_id: convert_null_folder_id_to_root(info.folder_id),
+        folder_id: file_manager::convert_null_folder_id_to_root(info.folder_id),
         title: info.title.to_string(),
         entity_type: EntityType::from(info.entity_type),
     }
@@ -202,7 +201,7 @@ pub fn generate_insert_response(info: &EntryModel) -> EntryInfoResponseSchema {
 pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoResponseSchema {
     EntryInfoResponseSchema {
         id: info.id,
-        folder_id: convert_null_folder_id_to_root(info.folder_id),
+        folder_id: file_manager::convert_null_folder_id_to_root(info.folder_id),
         title: info.title.to_owned(),
         entity_type: EntityType::from(info.entity_type),
     }
@@ -222,7 +221,7 @@ pub fn generate_article_response(entry: &entity::entry::Model) -> EntryArticleRe
     EntryArticleResponseSchema {
         info: EntryInfoResponseSchema {
             id: entry.id,
-            folder_id: convert_null_folder_id_to_root(entry.folder_id),
+            folder_id: file_manager::convert_null_folder_id_to_root(entry.folder_id),
             title: entry.title.to_owned(),
             entity_type: EntityType::from(entry.entity_type),
         },

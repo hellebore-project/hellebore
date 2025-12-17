@@ -8,7 +8,7 @@ use crate::{
 };
 
 use hellebore::{
-    database::folder_manager::ROOT_FOLDER_ID,
+    database::file_manager::ROOT_FOLDER_ID,
     schema::folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
@@ -374,7 +374,173 @@ async fn test_get_all_folders(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_folder_and_contents(settings: &Settings) {
+async fn test_delete_folder_in_root(settings: &Settings) {
+    let database = database(settings).await;
+
+    let folder = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: ROOT_FOLDER_ID,
+            name: "folder".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let response = folder_service::delete(&database, folder.id).await;
+    assert!(response.is_ok());
+
+    let contents = response.unwrap();
+    assert_eq!(contents.folders, vec![folder.id]);
+    assert!(contents.entries.is_empty());
+
+    assert!(folder_service::get(&database, folder.id).await.is_err());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_delete_subfolder(settings: &Settings) {
+    let database = database(settings).await;
+
+    let folder = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: ROOT_FOLDER_ID,
+            name: "folder".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let subfolder = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: folder.id,
+            name: "subfolder".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let response = folder_service::delete(&database, subfolder.id).await;
+    assert!(response.is_ok());
+
+    let contents = response.unwrap();
+    assert_eq!(contents.folders, vec![subfolder.id]);
+    assert!(contents.entries.is_empty());
+
+    assert!(folder_service::get(&database, folder.id).await.is_ok());
+    assert!(folder_service::get(&database, subfolder.id).await.is_err());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_delete_folder_with_subfolders(settings: &Settings) {
+    let database = database(settings).await;
+
+    let folder = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: ROOT_FOLDER_ID,
+            name: "folder".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let subfolder_1 = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: folder.id,
+            name: "subfolder_1".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let subfolder_2 = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: folder.id,
+            name: "subfolder_2".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let response = folder_service::delete(&database, folder.id).await;
+    assert!(response.is_ok());
+
+    let contents = response.unwrap();
+    assert_eq!(
+        contents.folders,
+        vec![folder.id, subfolder_1.id, subfolder_2.id]
+    );
+    assert!(contents.entries.is_empty());
+
+    assert!(folder_service::get(&database, folder.id).await.is_err());
+    assert!(
+        folder_service::get(&database, subfolder_1.id)
+            .await
+            .is_err()
+    );
+    assert!(
+        folder_service::get(&database, subfolder_2.id)
+            .await
+            .is_err()
+    );
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_delete_folder_with_entries(settings: &Settings) {
+    let database = database(settings).await;
+
+    let folder = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: ROOT_FOLDER_ID,
+            name: "folder".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let entry_1 = entry_service::create(
+        &database,
+        ENTRY,
+        folder.id,
+        "entry_1".to_owned(),
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
+
+    let entry_2 = entry_service::create(
+        &database,
+        ENTRY,
+        folder.id,
+        "entry_2".to_owned(),
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
+
+    let response = folder_service::delete(&database, folder.id).await;
+    assert!(response.is_ok());
+
+    let contents = response.unwrap();
+    assert_eq!(contents.folders, vec![folder.id]);
+    assert_eq!(contents.entries, vec![entry_1.id, entry_2.id]);
+
+    assert!(folder_service::get(&database, folder.id).await.is_err());
+    assert!(get_entry(&database, entry_1.id).await.is_none());
+    assert!(get_entry(&database, entry_2.id).await.is_none());
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_delete_folder_and_subfolder_with_entries(settings: &Settings) {
     let database = database(settings).await;
 
     let parent_folder = folder_service::create(
@@ -420,6 +586,10 @@ async fn test_delete_folder_and_contents(settings: &Settings) {
     let response = folder_service::delete(&database, parent_folder.id).await;
     assert!(response.is_ok());
 
+    let contents = response.unwrap();
+    assert_eq!(contents.folders, vec![parent_folder.id, sub_folder.id]);
+    assert_eq!(contents.entries, vec![entry_in_parent.id, entry_in_sub.id]);
+
     assert!(
         folder_service::get(&database, parent_folder.id)
             .await
@@ -432,8 +602,152 @@ async fn test_delete_folder_and_contents(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
+async fn test_delete_deep_file_tree(settings: &Settings) {
+    let database = database(settings).await;
+
+    let folder_1 = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: ROOT_FOLDER_ID,
+            name: "folder_1".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let folder_2 = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: folder_1.id,
+            name: "folder_2".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let folder_3 = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: folder_2.id,
+            name: "folder_3".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let folder_4 = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: folder_3.id,
+            name: "folder_4".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let folder_5 = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: ROOT_FOLDER_ID,
+            name: "folder_5".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let entry_1 = entry_service::create(
+        &database,
+        ENTRY,
+        folder_1.id,
+        "entry_1".to_owned(),
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
+
+    let entry_2 = entry_service::create(
+        &database,
+        ENTRY,
+        folder_2.id,
+        "entry_2".to_owned(),
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
+
+    let entry_3 = entry_service::create(
+        &database,
+        ENTRY,
+        folder_3.id,
+        "entry_3".to_owned(),
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
+
+    let entry_4 = entry_service::create(
+        &database,
+        ENTRY,
+        folder_4.id,
+        "entry_4".to_owned(),
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
+
+    let entry_5 = entry_service::create(
+        &database,
+        ENTRY,
+        folder_5.id,
+        "entry_5".to_owned(),
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
+
+    let response = folder_service::delete(&database, folder_2.id).await;
+    assert!(response.is_ok());
+
+    let mut contents = response.unwrap();
+
+    // Normalize order for comparison
+    contents.folders.sort();
+    contents.entries.sort();
+
+    let mut expected_folders = vec![folder_2.id, folder_3.id, folder_4.id];
+    expected_folders.sort();
+    let mut expected_entries = vec![entry_2.id, entry_3.id, entry_4.id];
+    expected_entries.sort();
+
+    assert_eq!(contents.folders, expected_folders);
+    assert_eq!(contents.entries, expected_entries);
+
+    // Ensure deleted folders are gone
+    assert!(folder_service::get(&database, folder_2.id).await.is_err());
+    assert!(folder_service::get(&database, folder_3.id).await.is_err());
+    assert!(folder_service::get(&database, folder_4.id).await.is_err());
+
+    // Ensure deleted entries are gone
+    assert!(get_entry(&database, entry_2.id).await.is_none());
+    assert!(get_entry(&database, entry_3.id).await.is_none());
+    assert!(get_entry(&database, entry_4.id).await.is_none());
+
+    // Ensure unrelated folder and entries still exist
+    assert!(folder_service::get(&database, folder_1.id).await.is_ok());
+    assert!(get_entry(&database, entry_1.id).await.is_some());
+    assert!(folder_service::get(&database, folder_5.id).await.is_ok());
+    assert!(get_entry(&database, entry_5.id).await.is_some());
+}
+
+#[rstest]
+#[tokio::test]
 async fn test_noop_on_deleting_nonexistent_folder(settings: &Settings) {
     let database = database(settings).await;
+
     let response = folder_service::delete(&database, 0).await;
     assert!(response.is_ok());
+
+    let contents = response.unwrap();
+    assert!(contents.folders.is_empty());
+    assert!(contents.entries.is_empty());
 }

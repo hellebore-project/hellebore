@@ -1,9 +1,11 @@
 use crate::api::utils;
 use crate::errors::ApiError;
-use crate::schema::folder::FolderValidationSchema;
 use crate::schema::{
     diagnostic::ResponseDiagnosticsSchema,
-    folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
+    file::BulkFileResponseSchema,
+    folder::{
+        FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema, FolderValidationSchema,
+    },
 };
 use crate::services::folder_service;
 use crate::state::State;
@@ -55,7 +57,10 @@ pub async fn get_folders(
 }
 
 #[tauri::command]
-pub async fn delete_folder(state: tauri::State<'_, State>, id: i32) -> Result<(), ApiError> {
+pub async fn delete_folder(
+    state: tauri::State<'_, State>,
+    id: i32,
+) -> Result<BulkFileResponseSchema, ApiError> {
     let state = state.lock().await;
     folder_service::delete(utils::get_database(&state)?, id).await
 }
