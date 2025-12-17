@@ -1,6 +1,6 @@
 use ::entity::entry::Model as EntryModel;
 use hellebore::{
-    database::folder_manager::convert_null_folder_id_to_root,
+    database::file_manager,
     schema::{entry::EntryInfoResponseSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
@@ -22,7 +22,10 @@ fn validate_model(entry: &EntryModel, id: Option<i32>, folder_id: i32, title: &s
     if id.is_some() {
         assert_eq!(id.unwrap(), entry.id);
     }
-    assert_eq!(folder_id, convert_null_folder_id_to_root(entry.folder_id));
+    assert_eq!(
+        folder_id,
+        file_manager::convert_null_folder_id_to_root(entry.folder_id)
+    );
     assert_eq!(title, entry.title);
     assert_eq!(text, entry.text);
 }

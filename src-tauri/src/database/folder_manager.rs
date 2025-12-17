@@ -1,9 +1,7 @@
 use ::entity::{folder, folder::Entity as FolderModel};
 use sea_orm::*;
 
-use crate::database::utils;
-
-pub const ROOT_FOLDER_ID: i32 = -1;
+use crate::database::{file_manager, utils};
 
 pub async fn insert<C>(con: &C, parent_id: i32, name: &str) -> Result<folder::Model, DbErr>
 where
@@ -11,7 +9,7 @@ where
 {
     let new_entity = folder::ActiveModel {
         id: NotSet,
-        parent_id: Set(convert_negative_folder_id_to_null(parent_id)),
+        parent_id: Set(file_manager::convert_negative_folder_id_to_null(parent_id)),
         name: Set(name.to_string()),
     };
     match new_entity.insert(con).await {
@@ -34,7 +32,7 @@ where
     };
     let updated_entity = folder::ActiveModel {
         id: Unchanged(existing_entity.id),
-        parent_id: convert_optional_folder_id_to_active_value(parent_id),
+        parent_id: file_manager::convert_optional_folder_id_to_active_value(parent_id),
         name: utils::set_value_or_null(name),
     };
     updated_entity.update(con).await
@@ -57,7 +55,7 @@ where
 {
     let mut query = FolderModel::find().filter(folder::Column::Name.eq(name));
 
-    let parent_id = convert_negative_folder_id_to_null(parent_id);
+    let parent_id = file_manager::convert_negative_folder_id_to_null(parent_id);
     if parent_id.is_none() {
         // in sqlite3, comparisons involving NULL always resolve to false,
         // so we need to explicitly check whether the value is NULL
@@ -92,7 +90,7 @@ pub fn query(parent_id: Option<i32>, name: Option<String>) -> Select<FolderModel
     let mut query = FolderModel::find();
 
     if let Some(parent_id_value) = parent_id {
-        let nullable_parent_id = convert_negative_folder_id_to_null(parent_id_value);
+        let nullable_parent_id = file_manager::convert_negative_folder_id_to_null(parent_id_value);
         if nullable_parent_id.is_none() {
             query = query.filter(folder::Column::ParentId.is_null());
         } else {
@@ -128,34 +126,4 @@ where
         .filter(folder::Column::Id.is_in(ids))
         .exec(con)
         .await
-}
-
-/// Cleans negative folder IDs to null.
-/// Negative folder IDs are collectively treated as a sentinel value that corresponds to
-/// the root folder. In the DB, the root folder is denoted by a NULL ID.
-pub fn convert_negative_folder_id_to_null(id: i32) -> Option<i32> {
-    if id > ROOT_FOLDER_ID {
-        Some(id) // ID of existing folder
-    } else {
-        None // root folder ID
-    }
-}
-
-/// Cleans null folder IDs to the root folder ID.
-pub fn convert_null_folder_id_to_root(id: Option<i32>) -> i32 {
-    if id.is_none() {
-        return ROOT_FOLDER_ID;
-    }
-    id.unwrap()
-}
-
-/// Convert an optional folder ID API argument into a stateful database value.
-/// If `id` is a positive integer, then it is set in the database as is.
-/// If `id` is a negative integer, then `None` is set in the database.
-/// If `id` is `None`, then the value is not set in the database.
-pub fn convert_optional_folder_id_to_active_value(id: Option<i32>) -> ActiveValue<Option<i32>> {
-    match id {
-        Some(id) => ActiveValue::Set(convert_negative_folder_id_to_null(id)), // value is set in the DB
-        None => ActiveValue::NotSet, // no value is set in the DB
-    }
 }
