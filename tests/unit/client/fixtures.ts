@@ -27,12 +27,14 @@ export interface BaseUnitTestFixtures {
     parentFolderId: Id;
     folderName: string;
     folder: FolderResponse;
-    folders: FolderResponse[];
+    otherFolders: FolderResponse[];
+    allFolders: FolderResponse[];
     entryId: Id;
     entryType: EntityType;
     entryTitle: string;
     entryInfo: EntryInfoResponse;
-    entries: EntryInfoResponse[];
+    otherEntries: EntryInfoResponse[];
+    allEntries: EntryInfoResponse[];
     mockedInvoker: MockedInvoker;
     mockedSession: SessionResponse;
     mockedFolder: FolderResponse;
@@ -69,8 +71,9 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         };
         use(folder);
     },
-    folders: async ({ folder }, use) => {
-        use([folder]);
+    otherFolders: async ({}, use) => use([]),
+    allFolders: async ({ folder, otherFolders }, use) => {
+        use([folder, ...otherFolders]);
     },
 
     entryId: 1,
@@ -85,17 +88,10 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         };
         use(entry);
     },
-    entries: [
-        [
-            {
-                id: 1,
-                folderId: -1,
-                entityType: EntityType.PERSON,
-                title: "mocked-entity",
-            },
-        ],
-        { injected: true },
-    ],
+    otherEntries: async ({}, use) => use([]),
+    allEntries: async ({ entryInfo, otherEntries }, use) => {
+        use([entryInfo, ...otherEntries]);
+    },
 
     // mocking
     mockedInvoker: [
@@ -117,13 +113,13 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         mockGetFolder(mockedInvoker, folder);
         await use(folder);
     },
-    mockedFolders: async ({ mockedInvoker, folders }, use) => {
-        mockGetFolders(mockedInvoker, folders);
-        await use(folders);
+    mockedFolders: async ({ mockedInvoker, allFolders }, use) => {
+        mockGetFolders(mockedInvoker, allFolders);
+        await use(allFolders);
     },
-    mockedEntries: async ({ mockedInvoker, entries: entities }, use) => {
-        mockGetEntries(mockedInvoker, { entities });
-        await use(entities);
+    mockedEntries: async ({ mockedInvoker, allEntries }, use) => {
+        mockGetEntries(mockedInvoker, allEntries);
+        await use(allEntries);
     },
 
     user: [
@@ -158,7 +154,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
 
     // setup and teardown
     setup: [
-        async ({ mockedInvoker, user, clientManager }, use) => {
+        async ({ user, mockedInvoker, clientManager }, use) => {
             await use(null);
 
             mockedInvoker.clear();

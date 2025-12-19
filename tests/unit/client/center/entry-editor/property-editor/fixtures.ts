@@ -13,6 +13,8 @@ export interface BasePropertyEditorFixtures {
 export const test = baseTest.extend<BasePropertyEditorFixtures>({
     // data
     entryProperties: async ({}, use) => use({}),
+
+    // mocking
     mockedEntryProperties: async (
         { mockedInvoker, mockedEntryInfo, entryProperties },
         use,

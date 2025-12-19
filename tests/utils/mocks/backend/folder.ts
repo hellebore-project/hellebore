@@ -1,5 +1,10 @@
-import { FolderResponse, FolderValidateResponse } from "@/domain/schema";
-import { CommandNames } from "@/domain/constants";
+import {
+    BulkFileResponse,
+    CommandNames,
+    FolderResponse,
+    FolderValidateResponse,
+} from "@/domain";
+import { Id } from "@/interface";
 
 import { MockedInvoker } from "./invoker";
 
@@ -33,6 +38,14 @@ export function mockGetFolders(
     mockedInvoker.mockCommand(CommandNames.Folder.GetAll, async () => folders);
 }
 
-export function mockDeleteFolder(mockedInvoker: MockedInvoker) {
-    mockedInvoker.mockCommand(CommandNames.Folder.Delete);
+export function mockDeleteFolder(
+    mockedInvoker: MockedInvoker,
+    folderIds: Id[],
+    entryIds: Id[],
+) {
+    const response: BulkFileResponse = {
+        entries: entryIds,
+        folders: folderIds,
+    };
+    mockedInvoker.mockCommand(CommandNames.Folder.Delete, async () => response);
 }

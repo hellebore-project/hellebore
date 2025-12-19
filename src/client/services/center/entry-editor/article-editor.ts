@@ -4,6 +4,7 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
+import { ARTICLE_REFERENCE_PREFIX } from "@/client/constants";
 import { ChangeEntryEvent, OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
 import {
@@ -89,6 +90,9 @@ export class ArticleEditorService {
 
     _buildEditor() {
         const Reference = useReferenceExtension({
+            // TODO: need to decide what character to use;
+            // currently the default is '@', but '[[' might also work
+            prefix: ARTICLE_REFERENCE_PREFIX,
             queryItems: async ({ query }) => this._queryByTitle(query),
             getSelectedIndex: () => this.selectedRefIndex,
             setSelectedIndex: (index) =>
