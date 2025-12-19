@@ -1,6 +1,7 @@
 import { describe, expect, vi } from "vitest";
 
 import { FolderResponse, FolderValidateResponse } from "@/domain";
+import { Id } from "@/interface";
 import { test as baseTest } from "@tests/unit/client/fixtures";
 import {
     mockDeleteFolder,
@@ -14,7 +15,8 @@ describe("moving folders", () => {
     interface MoveFolderFixtures {
         isUnique: boolean;
         parentFolder: FolderResponse;
-        collidingFolder: FolderResponse | null;
+        collidingFolder: FolderResponse;
+        deletedFolderIds: Id[];
         mockFolderValidation: FolderValidateResponse;
         mockFolderDeletion: null;
     }
@@ -22,16 +24,9 @@ describe("moving folders", () => {
     const test = baseTest.extend<MoveFolderFixtures>({
         // data
         isUnique: true,
-        parentFolder: async ({}, use) => {
-            use({
-                id: 2,
-                parentId: -1,
-                name: "mocked-folder-2",
-            });
-        },
-        collidingFolder: async ({}, use) => {
-            use(null);
-        },
+        parentFolder: null,
+        collidingFolder: null,
+        deletedFolderIds: async ({}, use) => use([]),
 
         // mocking
         mockFolderValidation: [
@@ -56,8 +51,8 @@ describe("moving folders", () => {
             { auto: true },
         ],
         mockFolderDeletion: [
-            async ({ mockedInvoker }, use) => {
-                mockDeleteFolder(mockedInvoker);
+            async ({ mockedInvoker, deletedFolderIds }, use) => {
+                mockDeleteFolder(mockedInvoker, deletedFolderIds, []);
                 use(null);
             },
             { auto: true },
@@ -65,8 +60,15 @@ describe("moving folders", () => {
     });
 
     test.scoped({
-        folders: async ({ folder, parentFolder }, use) => {
-            use([folder, parentFolder]);
+        parentFolder: async ({}, use) => {
+            use({
+                id: 2,
+                parentId: -1,
+                name: "mocked-folder-2",
+            });
+        },
+        otherFolders: async ({ parentFolder }, use) => {
+            use([parentFolder]);
         },
     });
 
@@ -99,6 +101,13 @@ describe("moving folders", () => {
 
     test.scoped({
         isUnique: false,
+        parentFolder: async ({}, use) => {
+            use({
+                id: 2,
+                parentId: -1,
+                name: "mocked-folder-2",
+            });
+        },
         collidingFolder: async ({}, use) => {
             use({
                 id: 3,
@@ -106,9 +115,10 @@ describe("moving folders", () => {
                 name: "mocked-folder",
             });
         },
-        folders: async ({ folder, parentFolder, collidingFolder }, use) => {
-            use([folder, parentFolder, collidingFolder]);
+        otherFolders: async ({ parentFolder, collidingFolder }, use) => {
+            use([parentFolder, collidingFolder]);
         },
+        deletedFolderIds: async ({}, use) => use([3]),
     });
 
     test("can delete folder on name collision", async ({

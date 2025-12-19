@@ -155,6 +155,9 @@ export class CentralPanelManager {
 
         const service = new EntryEditorService(this._entryEditorArgs);
 
+        service.onOpenReferencedEntry.subscribe((args) =>
+            this.openEntryEditor(args),
+        );
         service.onChange.broker = this.onChangeData;
         service.onPartialChange.broker = this.onPartialChangeData;
         service.onChangeDelayed.broker = this.onChangeDataDelayed;

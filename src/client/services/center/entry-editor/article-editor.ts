@@ -4,9 +4,9 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { ChangeEntryEvent } from "@/client/interface";
+import { ARTICLE_REFERENCE_PREFIX } from "@/client/constants";
+import { ChangeEntryEvent, OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
-import { Id } from "@/interface";
 import {
     SuggestionData,
     useReferenceExtension,
@@ -31,7 +31,7 @@ export class ArticleEditorService {
     info: EntryInfoService;
 
     onChange: EventProducer<ChangeEntryEvent, unknown>;
-    onSelectReference: EventProducer<Id, void>;
+    onSelectReference: EventProducer<OpenEntryEditorEvent, unknown>;
 
     constructor({ domain, info }: ArticleEditorServiceArgs) {
         this._domain = domain;
@@ -90,7 +90,10 @@ export class ArticleEditorService {
 
     _buildEditor() {
         const Reference = useReferenceExtension({
-            queryItems: ({ query }) => this._queryByTitle(query),
+            // TODO: need to decide what character to use;
+            // currently the default is '@', but '[[' might also work
+            prefix: ARTICLE_REFERENCE_PREFIX,
+            queryItems: async ({ query }) => this._queryByTitle(query),
             getSelectedIndex: () => this.selectedRefIndex,
             setSelectedIndex: (index) =>
                 (this.selectedRefIndex = index as number),
@@ -117,10 +120,13 @@ export class ArticleEditorService {
         this.onChange.produce({ id: this.info.id });
     }
 
-    _queryByTitle(titleFragment: string): SuggestionData[] {
+    async _queryByTitle(titleFragment: string): Promise<SuggestionData[]> {
         this.selectedRefIndex = 0;
-        return this._domain.entries
-            .queryByTitle(titleFragment)
+
+        const results = await this._domain.entries.search(titleFragment);
+        if (!results) return [];
+
+        return results
             .filter((info) => info.id != this.info.id)
             .map((info) => ({ label: info.title, value: info.id }));
     }
@@ -128,7 +134,7 @@ export class ArticleEditorService {
     _onClickEditor(node: PMNode) {
         if (node.type.name == "mention") {
             const id: number | null = node.attrs["id"] ?? null;
-            if (id !== null) this.onSelectReference.produce(id);
+            if (id !== null) this.onSelectReference.produce({ id });
         }
     }
 }

@@ -33,7 +33,10 @@ export interface QuerySettings {
 }
 
 export interface ReferenceExtensionSettings {
-    queryItems: (settings: QuerySettings) => SuggestionData[];
+    prefix: string;
+    queryItems: (
+        settings: QuerySettings,
+    ) => SuggestionData[] | Promise<SuggestionData[]>;
     getSelectedIndex: () => number | null;
     setSelectedIndex: (value: number | string) => void;
 }
@@ -184,7 +187,10 @@ class ReferenceSuggestionRenderer {
 }
 
 function generateSuggestionOptions(
-    queryItems: (settings: QuerySettings) => SuggestionData[],
+    prefix: string,
+    queryItems: (
+        settings: QuerySettings,
+    ) => SuggestionData[] | Promise<SuggestionData[]>,
     getSelectedIndex: () => number | null,
     setSelectedIndex: (value: number | string) => void,
 ): Partial<SuggestionOptions> {
@@ -193,8 +199,7 @@ function generateSuggestionOptions(
         setSelectedIndex,
     );
     return {
-        // TODO: need to decide what character to use; currently the default is '@'
-        //char: "[[",
+        char: prefix,
         items: queryItems,
         render: () => ({
             // wrap the callbacks in arrow functions to ensure that they are bound to the renderer
@@ -208,12 +213,14 @@ function generateSuggestionOptions(
 }
 
 export function useReferenceExtension({
+    prefix,
     queryItems,
     getSelectedIndex,
     setSelectedIndex,
 }: ReferenceExtensionSettings) {
     const settings: Partial<MentionOptions<QueryResult>> = {
         suggestion: generateSuggestionOptions(
+            prefix,
             queryItems,
             getSelectedIndex,
             setSelectedIndex,

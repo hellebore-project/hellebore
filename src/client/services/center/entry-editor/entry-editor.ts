@@ -53,8 +53,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     lexicon: WordEditorService;
 
     // EVENTS
-    onOpen: EventProducer<OpenEntryEditorEvent, void>;
-    onCleanUp: EventProducer<EntryViewType, void>;
+    onOpenReferencedEntry: EventProducer<OpenEntryEditorEvent, unknown>;
     onChange: EventProducer<ChangeEntryEvent, unknown>;
     onPartialChange: EventProducer<ChangeEntryEvent, unknown>;
     onChangeDelayed: EventProducer<ChangeEntryEvent, unknown>;
@@ -79,8 +78,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             ...wordEditor,
         });
 
-        this.onOpen = new EventProducer();
-        this.onCleanUp = new EventProducer();
+        this.onOpenReferencedEntry = new EventProducer();
         this.onChange = new EventProducer();
         this.onPartialChange = new EventProducer();
         this.onChangeDelayed = new EventProducer();
@@ -92,8 +90,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             properties: false,
             article: false,
             lexicon: false,
-            onOpen: false,
-            onCleanUp: false,
+            onOpenReferencedEntry: false,
             onChange: false,
             onPartialChange: false,
             onChangeDelayed: false,
@@ -185,9 +182,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     }
 
     private _linkSubscribables() {
-        this.article.onSelectReference.subscribe((id) =>
-            this.loadArticle({ id }),
-        );
+        this.article.onSelectReference.broker = this.onOpenReferencedEntry;
 
         this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) => {
             // the word-editor is switching to a different view,
@@ -234,7 +229,6 @@ export class EntryEditorService implements ICentralPanelContentService {
             this.currentView = EntryViewType.ArticleEditor;
             this.info.load(id, entityType, title);
             this.article.initialize(text);
-            this.onOpen.produce({ id, viewKey: this.currentView });
         }
     }
 
@@ -247,7 +241,6 @@ export class EntryEditorService implements ICentralPanelContentService {
             this.currentView = EntryViewType.PropertyEditor;
             this.info.load(id, response.info.entityType, response.info.title);
             this.properties.load(response.properties);
-            this.onOpen.produce({ id, viewKey: this.currentView });
         }
     }
 
@@ -267,11 +260,6 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (info !== null) {
             this.currentView = EntryViewType.WordEditor;
             this.info.load(languageId, EntityType.LANGUAGE, info.title);
-            this.onOpen.produce({
-                id: languageId,
-                viewKey: this.currentView,
-                wordType,
-            });
             // FIXME: should we be awaiting on this?
             this.lexicon.load(languageId, wordType);
         }
@@ -301,11 +289,9 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     cleanUp() {
         this.onChange.produce({ id: this.info.id });
-        this.onCleanUp.produce(this.currentView);
         this.lexicon.cleanUp();
 
-        this.onOpen.broker = null;
-        this.onCleanUp.broker = null;
+        this.onOpenReferencedEntry.broker = null;
         this.onChange.broker = null;
         this.onPartialChange.broker = null;
         this.onChangeDelayed.broker = null;

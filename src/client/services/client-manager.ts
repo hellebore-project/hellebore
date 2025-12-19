@@ -303,7 +303,6 @@ export class ClientManager {
             destParentId,
             title,
         );
-        console.log(validateResponse);
 
         if (validateResponse) {
             if (validateResponse.nameCollision) {

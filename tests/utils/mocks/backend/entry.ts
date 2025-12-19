@@ -1,15 +1,13 @@
 import {
     CommandNames,
+    EntryArticleResponse,
     EntryInfoResponse,
     EntryPropertyResponse,
     RawEntryPropertyResponse,
 } from "@/domain";
+import { compareStrings } from "@/utils/string";
 
 import { MockedInvoker } from "./invoker";
-
-export interface MockGetEntriesArgs {
-    entities: EntryInfoResponse[];
-}
 
 export function mockGetEntryInfo(
     mockedInvoker: MockedInvoker,
@@ -35,9 +33,28 @@ export function mockGetEntryProperties(
     );
 }
 
+export function mockGetEntryArticle(
+    mockedInvoker: MockedInvoker,
+    entry: EntryArticleResponse,
+) {
+    mockedInvoker.mockCommand(CommandNames.Entry.GetArticle, async () => entry);
+}
+
 export function mockGetEntries(
     mockedInvoker: MockedInvoker,
-    { entities }: MockGetEntriesArgs,
+    entries: EntryInfoResponse[],
 ) {
-    mockedInvoker.mockCommand(CommandNames.Entry.GetAll, async () => entities);
+    mockedInvoker.mockCommand(CommandNames.Entry.GetAll, async () => entries);
+}
+
+export function mockSearchEntries(
+    mockedInvoker: MockedInvoker,
+    entries: EntryInfoResponse[],
+) {
+    const search = async ({ keyword }: { keyword: string }) => {
+        return entries
+            .filter((e) => e.title.includes(keyword))
+            .sort((a, b) => compareStrings(a.title, b.title));
+    };
+    mockedInvoker.mockCommand(CommandNames.Entry.Search, search);
 }

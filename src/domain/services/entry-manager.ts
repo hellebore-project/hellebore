@@ -17,7 +17,6 @@ import {
 import { Id } from "@/interface";
 
 import { is_field_unique, process_api_error } from "./error-handler";
-import { FileStructure } from "./file-structure";
 
 export enum EntryType {
     Language = "Language",
@@ -45,12 +44,6 @@ export interface EntryTextUpdateResponse {
 }
 
 export class EntryManager {
-    private _structure: FileStructure;
-
-    constructor(structure: FileStructure) {
-        this._structure = structure;
-    }
-
     async create(
         entityType: EntityType,
         title: string,
@@ -73,8 +66,6 @@ export class EntryManager {
             console.error(error);
             return null;
         }
-
-        this._structure.addFile(response);
 
         return response;
     }
@@ -99,11 +90,7 @@ export class EntryManager {
         return { updated: true };
     }
 
-    async updateFolder(
-        id: Id,
-        folderId: Id,
-        oldFolderId: Id,
-    ): Promise<boolean> {
+    async updateFolder(id: Id, folderId: Id): Promise<boolean> {
         let updated = true;
 
         try {
@@ -111,11 +98,6 @@ export class EntryManager {
         } catch (error) {
             updated = false;
             console.error(error);
-        }
-
-        if (updated) {
-            this._structure.getEntry(id).folderId = folderId;
-            this._structure.moveFile(id, oldFolderId, folderId);
         }
 
         return updated;
@@ -140,9 +122,6 @@ export class EntryManager {
             if (!is_field_unique(_error, EntityType.ENTRY, "title"))
                 response.isUnique = false;
         }
-
-        if (title && response.updated)
-            this._structure.getEntry(id).title = title;
 
         return response;
     }
@@ -213,6 +192,7 @@ export class EntryManager {
 
     async getAll(): Promise<EntryInfoResponse[] | null> {
         let response: EntryInfoResponse[] | null;
+
         try {
             response = await this._getAll();
         } catch (error) {
@@ -221,19 +201,23 @@ export class EntryManager {
             return null;
         }
 
-        for (const info of response) {
-            this._structure.addFile(info);
-        }
-
         return response;
     }
 
-    queryByTitle(titleFragment: string, maxResults = 5): EntryInfoResponse[] {
-        const arg = titleFragment.toLowerCase();
-        // TODO: query the backend instead of checking the cache
-        return Object.values(this._structure.files)
-            .filter((info) => info.title.toLowerCase().startsWith(arg))
-            .slice(0, maxResults);
+    async search(
+        titleFragment: string,
+        maxResults = 5,
+    ): Promise<EntryInfoResponse[] | null> {
+        let response: EntryInfoResponse[];
+        try {
+            response = await this._search(titleFragment);
+        } catch (error) {
+            console.error("Failed to search for entries.");
+            console.error(error);
+            return null;
+        }
+
+        return response.slice(0, maxResults);
     }
 
     async delete(id: number): Promise<boolean> {
@@ -244,8 +228,6 @@ export class EntryManager {
             console.error(`Failed to delete entry ${id}.`);
             return false;
         }
-
-        this._structure.deleteFile(id);
 
         return true;
     }
@@ -324,6 +306,12 @@ export class EntryManager {
 
     async _getAll() {
         return invoke<EntryInfoResponse[]>(CommandNames.Entry.GetAll);
+    }
+
+    async _search(keyword: string) {
+        return invoke<EntryInfoResponse[]>(CommandNames.Entry.Search, {
+            keyword,
+        });
     }
 
     async _delete(id: Id): Promise<void> {
