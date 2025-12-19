@@ -5,6 +5,7 @@ import {
     EntryPropertyResponse,
     RawEntryPropertyResponse,
 } from "@/domain";
+import { compareStrings } from "@/utils/string";
 
 import { MockedInvoker } from "./invoker";
 
@@ -51,7 +52,9 @@ export function mockSearchEntries(
     entries: EntryInfoResponse[],
 ) {
     const search = async ({ keyword }: { keyword: string }) => {
-        return entries.filter((e) => e.title.includes(keyword)).sort();
+        return entries
+            .filter((e) => e.title.includes(keyword))
+            .sort((a, b) => compareStrings(a.title, b.title));
     };
     mockedInvoker.mockCommand(CommandNames.Entry.Search, search);
 }
