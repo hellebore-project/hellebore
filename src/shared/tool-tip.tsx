@@ -1,19 +1,13 @@
 import { Tooltip, TooltipProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "@/client";
-
-export type ToolTipProps = TooltipProps;
-
-function renderToolTip({ children, ...rest }: ToolTipProps) {
-    const service = getService();
+function renderToolTip({ children, ...rest }: TooltipProps) {
     return (
         <Tooltip
             color="gray"
             position="bottom"
             withArrow
             openDelay={500}
-            portalProps={{ target: service.sharedPortalSelector }}
             {...rest}
         >
             {children}

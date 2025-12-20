@@ -13,18 +13,28 @@ import { DndProvider } from "react-dnd";
 
 import { BaseGroupProps } from "@/interface";
 import {
+    FileNavigatorErrorManager,
     FileNodeData,
     FileNodeModel,
-    getService,
     ROOT_FOLDER_NODE_ID,
+    SpotlightService,
 } from "@/client";
 import { NavItem, NavItemTextProps } from "@/shared/nav-item";
+
+interface FileNavErrorProps {
+    service: FileNavigatorErrorManager;
+}
 
 interface FileNavItemProps extends BaseGroupProps {
     node: FileNodeModel;
     depth: number;
     expanded: boolean;
     toggle: () => void;
+    service: SpotlightService;
+}
+
+interface FileNavProps {
+    service: SpotlightService;
 }
 
 function renderFileNavItem({
@@ -32,13 +42,11 @@ function renderFileNavItem({
     depth,
     expanded,
     toggle,
+    service,
     ...rest
 }: FileNavItemProps) {
-    const clientManager = getService();
-    const fileNav = clientManager.navigation.files;
-
-    const selected = fileNav.selectedNodeId == node.id;
-    const displayed = fileNav.displayedNode?.id == node.id;
+    const selected = service.selectedNodeId == node.id;
+    const displayed = service.displayedNode?.id == node.id;
     const editable = node?.data?.isEditable ?? false;
 
     const textProps: NavItemTextProps = {
@@ -47,19 +55,19 @@ function renderFileNavItem({
         error: node?.data?.error,
     };
 
-    const textElementId = fileNav.convertNodeIdToDOMTextId(node.id);
+    const textElementId = service.convertNodeIdToDOMTextId(node.id);
 
     if (selected && editable) {
         textProps.textInputProps = {
             id: textElementId,
             onChange: (event) =>
-                fileNav.setEditableNodeText(node.id, event.target.value),
-            onBlur: () => fileNav.confirmNodeTextEdit(node),
+                service.setEditableNodeText(node.id, event.target.value),
+            onBlur: () => service.confirmNodeTextEdit(node),
             variant: "unstyled",
             size: "xs",
             styles: { input: { fontSize: 16 } },
         };
-        textProps.ref_ = fileNav.editableTextRef ?? undefined;
+        textProps.ref_ = service.editableTextRef ?? undefined;
     } else
         textProps.textProps = {
             id: textElementId,
@@ -69,15 +77,15 @@ function renderFileNavItem({
         <NavItem
             active={displayed}
             selected={selected}
-            focused={fileNav.focused}
+            focused={service.focused}
             rank={depth + 1}
             groupProps={{
-                id: fileNav.convertNodeIdToDOMId(node.id),
+                id: service.convertNodeIdToDOMId(node.id),
                 onClick: (e) => {
                     e.stopPropagation();
-                    fileNav.selectNode(node, toggle);
+                    service.selectNode(node, toggle);
                 },
-                onContextMenu: (e) => fileNav.openContextMenu(e),
+                onContextMenu: (e) => service.openContextMenu(e),
                 ...rest,
             }}
             textProps={textProps}
@@ -91,12 +99,9 @@ function renderFileNavItem({
 
 export const FileNavItem = observer(renderFileNavItem);
 
-function renderFileNavErrorPopover() {
-    const service = getService();
-    const errorManager = service.navigation.files.errorManager;
-
-    if (!errorManager.visible || !errorManager.position) return null;
-    const position = errorManager.position;
+function renderFileNavErrorPopover({ service }: FileNavErrorProps) {
+    if (!service.visible || !service.position) return null;
+    const position = service.position;
 
     return (
         <Paper
@@ -105,20 +110,15 @@ function renderFileNavErrorPopover() {
             top={position.top}
             w={position.right - position.left}
         >
-            <Text className="file-navigator-error-text">
-                {errorManager.message}
-            </Text>
+            <Text className="file-navigator-error-text">{service.message}</Text>
         </Paper>
     );
 }
 
 export const FileNavErrorPopover = observer(renderFileNavErrorPopover);
 
-function renderFileNavigator() {
-    const service = getService();
-    const fileNav = service.navigation.files;
-
-    const data = fileNav.nodes;
+function renderFileNavigator({ service }: FileNavProps) {
+    const data = service.nodes;
 
     const dragPreviewRender: DragPreviewRender<FileNodeData> = (
         monitorProps,
@@ -129,10 +129,10 @@ function renderFileNavigator() {
         { dragSource, dropTargetId }: DropOptions<FileNodeData>,
     ) => {
         if (dragSource)
-            fileNav.moveNode(dragSource, dropTargetId).then((moved) => {
+            service.moveNode(dragSource, dropTargetId).then((moved) => {
                 if (moved)
                     // NOTE: the `open` function can't be called inside a service
-                    fileNav.tree?.current?.open(dropTargetId);
+                    service.tree?.current?.open(dropTargetId);
             });
     };
 
@@ -151,7 +151,7 @@ function renderFileNavigator() {
                         listComponent="div"
                         listItemComponent="div"
                         onDrop={onDrop}
-                        ref={fileNav.tree}
+                        ref={service.tree}
                         render={(node, { depth, isOpen, onToggle }) => (
                             <FileNavItem
                                 depth={depth}
@@ -159,6 +159,7 @@ function renderFileNavigator() {
                                 key={node.id}
                                 node={node}
                                 toggle={onToggle}
+                                service={service}
                             />
                         )}
                         rootId={ROOT_FOLDER_NODE_ID}
@@ -166,7 +167,7 @@ function renderFileNavigator() {
                     />
                 </DndProvider>
             </div>
-            <FileNavErrorPopover />
+            <FileNavErrorPopover service={service.errorManager} />
         </>
     );
 }

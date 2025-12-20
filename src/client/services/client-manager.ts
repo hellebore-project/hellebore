@@ -24,6 +24,7 @@ import { FooterManager } from "./footer-manager";
 import { HeaderManager } from "./header-manager";
 import { ModalManager } from "./modal";
 import { NavigationService } from "./navigation";
+import { PortalManager } from "./portal-manager";
 import { StyleManager } from "./style-manager";
 import { SynchronizationService } from "./synchronizer";
 
@@ -37,6 +38,7 @@ export class ClientManager {
     // SERVICES
     domain: DomainManager;
     synchronizer: SynchronizationService;
+    portal: PortalManager;
     central: CentralPanelManager;
     header: HeaderManager;
     navigation: NavigationService;
@@ -54,6 +56,7 @@ export class ClientManager {
 
         // miscellaneous
         this.style = new StyleManager();
+        this.portal = new PortalManager(this.SHARED_PORTAL_ID);
 
         // central panel
         this.central = new CentralPanelManager({
@@ -74,6 +77,7 @@ export class ClientManager {
         const overrides = {
             domain: false,
             style: false,
+            portal: false,
             home: false,
             settingsEditor: false,
             entryEditor: false,
@@ -94,14 +98,6 @@ export class ClientManager {
         return this.DEFAULT_CENTER_PADDING;
     }
 
-    get sharedPortalId() {
-        return this.SHARED_PORTAL_ID;
-    }
-
-    get sharedPortalSelector() {
-        return `#${this.sharedPortalId}`;
-    }
-
     get viewSize() {
         const window = getCurrentWindow();
         return window.innerSize();
@@ -110,17 +106,18 @@ export class ClientManager {
     // STARTUP
 
     private _createSubscriptions() {
+        this.central.fetchPortalSelector.subscribe(() => this.portal.selector);
         this.central.onChangePanel.subscribe(({ action, details }) => {
             if (details.type === CentralViewType.EntryEditor) {
                 if (details.entry === undefined) return;
 
                 if (action === ViewAction.Show)
-                    this.navigation.files.setEntryNodeDisplayedStatus(
+                    this.navigation.spotlight.setEntryNodeDisplayedStatus(
                         details.entry.id,
                         true,
                     );
                 if (action === ViewAction.Hide) {
-                    this.navigation.files.setEntryNodeDisplayedStatus(
+                    this.navigation.spotlight.setEntryNodeDisplayedStatus(
                         details.entry.id,
                         false,
                     );
@@ -140,6 +137,7 @@ export class ClientManager {
             this.deleteEntry(id, title),
         );
 
+        this.header.fetchPortalSelector.subscribe(() => this.portal.selector);
         this.header.onCreateProject.subscribe(() =>
             this.modal.openProjectCreator(),
         );
@@ -148,26 +146,35 @@ export class ClientManager {
         this.header.onCreateEntry.subscribe(() =>
             this.modal.openEntryCreator({}),
         );
+        this.header.onOpenHome.subscribe(() => this.central.openHome());
         this.header.onOpenSettings.subscribe(() => this.central.openSettings());
+        this.header.fetchLeftBarStatus.subscribe(
+            () => this.navigation.mobileOpen,
+        );
+        this.header.onToggleLeftBar.subscribe(() =>
+            this.navigation.toggleMobileOpen(),
+        );
 
-        const fileNav = this.navigation.files;
-        fileNav.onCreateEntry.subscribe((args) =>
+        const spotlight = this.navigation.spotlight;
+        spotlight.fetchPortalSelector.subscribe(() => this.portal.selector);
+        spotlight.onCreateEntry.subscribe((args) =>
             this.modal.openEntryCreator(args),
         );
-        fileNav.onOpenEntry.subscribe((args) =>
+        spotlight.onOpenEntry.subscribe((args) =>
             this.central.openEntryEditor(args),
         );
-        fileNav.onMoveFolder.subscribe((args) => this.moveFolder(args));
-        fileNav.onDeleteFolder.subscribe(({ id, confirm }) =>
+        spotlight.onMoveFolder.subscribe((args) => this.moveFolder(args));
+        spotlight.onDeleteFolder.subscribe(({ id, confirm }) =>
             this.deleteFolder(id, confirm),
         );
-        fileNav.onOpenFolderContext.subscribe((args) =>
+        spotlight.onOpenFolderContext.subscribe((args) =>
             this.contextMenu.openForNavBarFolderNode(args),
         );
-        fileNav.onOpenEntryContext.subscribe((args) =>
+        spotlight.onOpenEntryContext.subscribe((args) =>
             this.contextMenu.openForNavBarEntryNode(args),
         );
 
+        this.modal.fetchPortalSelector.subscribe(() => this.portal.selector);
         this.modal.onCreateProject.subscribe(({ name, dbFilePath }) =>
             this.createProject(name, dbFilePath),
         );
@@ -284,7 +291,7 @@ export class ClientManager {
     // FOLDER HANDLING
 
     editFolderName(id: number) {
-        this.navigation.files.toggleFolderAsEditable(id);
+        this.navigation.spotlight.toggleFolderAsEditable(id);
     }
 
     async moveFolder({
@@ -367,7 +374,10 @@ export class ClientManager {
         const fileIds = await this.domain.folders.delete(id);
         if (!fileIds) return null;
 
-        this.navigation.files.deleteManyNodes(fileIds.entries, fileIds.folders);
+        this.navigation.spotlight.deleteManyNodes(
+            fileIds.entries,
+            fileIds.folders,
+        );
 
         let panelIndex = 0;
         for (const panelService of this.central.iterateOpenPanels()) {
@@ -397,7 +407,7 @@ export class ClientManager {
         );
 
         if (entry) {
-            this.navigation.files.addNodeForCreatedEntry(entry);
+            this.navigation.spotlight.addNodeForCreatedEntry(entry);
             this.central.openEntryEditor({ id: entry.id });
         }
 
@@ -428,7 +438,7 @@ export class ClientManager {
             // failed to delete the entry; aborting
             return false;
 
-        this.navigation.files.deleteEntityNode(id);
+        this.navigation.spotlight.deleteEntityNode(id);
 
         let panelIndex = 0;
         for (const panelService of this.central.iterateOpenPanels()) {
@@ -461,7 +471,7 @@ export class ClientManager {
             event.response.title &&
             event.response.title.isUnique
         )
-            this.navigation.files.updateEntityNodeText(
+            this.navigation.spotlight.updateEntityNodeText(
                 event.request.id,
                 event.request.title,
             );
@@ -471,7 +481,7 @@ export class ClientManager {
 
     hook() {
         this.contextMenu.hook();
-        this.navigation.files.hook();
+        this.navigation.spotlight.hook();
         this.central.hook();
     }
 

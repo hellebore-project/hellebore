@@ -42,7 +42,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     TITLE_FIELD_HEIGHT = 36;
 
     // STATE
-    tabData: Map<EntryViewType, TableOfContentsItemData>;
+    private _tabData: Map<EntryViewType, TableOfContentsItemData>;
     private _viewKey: EntryViewType = EntryViewType.ArticleEditor;
 
     // SERVICES
@@ -53,6 +53,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     lexicon: WordEditorService;
 
     // EVENTS
+    fetchPortalSelector: EventProducer<void, string>;
     onOpenReferencedEntry: EventProducer<OpenEntryEditorEvent, unknown>;
     onChange: EventProducer<ChangeEntryEvent, unknown>;
     onPartialChange: EventProducer<ChangeEntryEvent, unknown>;
@@ -60,7 +61,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     onDelete: EventProducer<DeleteEntryEvent, unknown>;
 
     constructor({ domain, wordEditor }: EntryEditorServiceArgs) {
-        this.tabData = new Map();
+        this._tabData = new Map();
 
         this._domain = domain;
 
@@ -78,6 +79,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             ...wordEditor,
         });
 
+        this.fetchPortalSelector = new EventProducer();
         this.onOpenReferencedEntry = new EventProducer();
         this.onChange = new EventProducer();
         this.onPartialChange = new EventProducer();
@@ -90,6 +92,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             properties: false,
             article: false,
             lexicon: false,
+            fetchPortalSelector: false,
             onOpenReferencedEntry: false,
             onChange: false,
             onPartialChange: false,
@@ -146,14 +149,31 @@ export class EntryEditorService implements ICentralPanelContentService {
         this._viewKey = key;
     }
 
-    get entryType() {
-        return this.info.entityType;
+    get tabData() {
+        const entryType = this.info.entityType;
+
+        const tabData: TableOfContentsItemData[] = [
+            this._tabData.get(
+                EntryViewType.ArticleEditor,
+            ) as TableOfContentsItemData,
+            this._tabData.get(
+                EntryViewType.PropertyEditor,
+            ) as TableOfContentsItemData,
+        ];
+        if (entryType === EntityType.LANGUAGE)
+            tabData.push(
+                this._tabData.get(
+                    EntryViewType.WordEditor,
+                ) as TableOfContentsItemData,
+            );
+
+        return tabData;
     }
 
     // INITIALIZATION
 
     private _buildTabData() {
-        this.tabData.set(EntryViewType.ArticleEditor, {
+        this._tabData.set(EntryViewType.ArticleEditor, {
             label: "Article",
             value: EntryViewType.ArticleEditor,
             rank: 1,
@@ -162,7 +182,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             },
         });
 
-        this.tabData.set(EntryViewType.PropertyEditor, {
+        this._tabData.set(EntryViewType.PropertyEditor, {
             label: "Properties",
             value: EntryViewType.PropertyEditor,
             rank: 1,
@@ -171,7 +191,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             },
         });
 
-        this.tabData.set(EntryViewType.WordEditor, {
+        this._tabData.set(EntryViewType.WordEditor, {
             label: "Lexicon",
             value: EntryViewType.WordEditor,
             rank: 1,
@@ -182,18 +202,21 @@ export class EntryEditorService implements ICentralPanelContentService {
     }
 
     private _linkSubscribables() {
+        this.info.fetchPortalSelector.broker = this.fetchPortalSelector;
+        this.info.onChangeTitle.broker = this.onPartialChange;
+
+        this.article.onChange.broker = this.onChangeDelayed;
         this.article.onSelectReference.broker = this.onOpenReferencedEntry;
 
+        this.properties.onChange.broker = this.onChangeDelayed;
+
+        this.lexicon.fetchPortalSelector.broker = this.fetchPortalSelector;
         this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) => {
             // the word-editor is switching to a different view,
             // so any pending edits need to be pushed to the BE
             this.onChange.produce({ id: languageId });
             this.loadLexicon(languageId, wordType);
         });
-
-        this.info.onChangeTitle.broker = this.onPartialChange;
-        this.article.onChange.broker = this.onChangeDelayed;
-        this.properties.onChange.broker = this.onChangeDelayed;
         this.lexicon.onChange.broker = this.onChangeDelayed;
     }
 

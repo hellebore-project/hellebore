@@ -3,15 +3,18 @@ import "./context-menu.css";
 import { observer } from "mobx-react-lite";
 import { SyntheticEvent } from "react";
 
-import { getService } from "@/client";
+import { ContextMenuManager } from "@/client";
 import { OutsideEventHandler } from "@/shared/outside-event-handler";
 import {
     VerticalSelection,
     VerticalSelectionData,
 } from "@/shared/vertical-selection";
 
-function renderContextMenu() {
-    const service = getService().contextMenu;
+interface ContextMenuProps {
+    service: ContextMenuManager;
+}
+
+function renderContextMenu({ service }: ContextMenuProps) {
     if (!service.visible || !service.menu) return null;
 
     const itemData = service.menu.itemData;

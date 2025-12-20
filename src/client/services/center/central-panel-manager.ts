@@ -53,6 +53,7 @@ export class CentralPanelManager {
     >;
 
     // EVENTS
+    fetchPortalSelector: EventProducer<void, string>;
     onChangePanel: EventProducer<ChangeCentralPanelEvent, unknown>;
     onChangeData: EventProducer<ChangeEntryEvent, unknown>;
     onPartialChangeData: EventProducer<ChangeEntryEvent, unknown>;
@@ -75,6 +76,7 @@ export class CentralPanelManager {
 
         this._domain = domain;
 
+        this.fetchPortalSelector = new EventProducer();
         this.onChangePanel = new EventProducer();
         this.onChangeData = new EventProducer();
         this.onPartialChangeData = new EventProducer();
@@ -86,6 +88,7 @@ export class CentralPanelManager {
             _entryEditorArgs: false,
             _domain: false,
             _spreadsheetReference: false,
+            fetchPortalSelector: false,
             onChangePanel: false,
             onChangeData: false,
             onPartialChangeData: false,
@@ -155,6 +158,7 @@ export class CentralPanelManager {
 
         const service = new EntryEditorService(this._entryEditorArgs);
 
+        service.fetchPortalSelector.broker = this.fetchPortalSelector;
         service.onOpenReferencedEntry.subscribe((args) =>
             this.openEntryEditor(args),
         );

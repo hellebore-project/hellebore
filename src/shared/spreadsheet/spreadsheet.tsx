@@ -1,19 +1,24 @@
 import "./spreadsheet.css";
 
-import { ActionIcon, Table } from "@mantine/core";
+import { ActionIcon, Table, TooltipProps } from "@mantine/core";
 import { IconCircleMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 import { HTMLAttributes, ReactNode } from "react";
 
 import { OutsideEventHandler } from "@/shared/outside-event-handler";
-import { SelectField } from "@/shared/select-field";
+import { SelectField, SelectFieldProps } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
 import { SpreadsheetFieldType } from "./spreadsheet.interface";
 import { SpreadsheetService } from "./spreadsheet.service";
 
-interface SpreadsheetCellProps<K extends string, M> {
+interface SpreadsheetCellCommonProps {
+    selectProps?: SelectFieldProps;
+}
+
+interface SpreadsheetCellProps<K extends string, M>
+    extends SpreadsheetCellCommonProps {
     rowIndex: number;
     colIndex: number;
     service: SpreadsheetService<K, M>;
@@ -23,26 +28,32 @@ interface DeleteSpreadsheetRowButton {
     rowKey: string;
     visible: boolean;
     onClick: (rowKey: string) => void;
+    tooltipProps?: Omit<TooltipProps, "label">;
 }
 
 interface SpreadsheetRowProps<K extends string, M> {
     index: number;
     service: SpreadsheetService<K, M>;
+    cellProps?: SpreadsheetCellCommonProps;
+    tooltipProps?: Omit<TooltipProps, "label">;
 }
 
 interface SpreadsheetProps<K extends string, M>
     extends HTMLAttributes<HTMLDivElement> {
     service: SpreadsheetService<K, M>;
+    cellProps?: SpreadsheetCellCommonProps;
+    tooltipProps?: Omit<TooltipProps, "label">;
 }
 
 function renderDeleteRowButton({
     rowKey,
     visible,
     onClick,
+    tooltipProps,
 }: DeleteSpreadsheetRowButton) {
     const visibility = visible ? "visible" : "hidden";
     return (
-        <ToolTipWrapper label="Delete">
+        <ToolTipWrapper label="Delete" {...tooltipProps}>
             <ActionIcon
                 id={`delete-spreadsheet-row-${rowKey}`}
                 variant="subtle"
@@ -64,6 +75,7 @@ function renderSpreadsheetCell<K extends string, M>({
     rowIndex,
     colIndex,
     service,
+    selectProps,
 }: SpreadsheetCellProps<K, M>) {
     const data = service.data.getCell(rowIndex, colIndex);
     const colData = service.data.getColumnData(colIndex);
@@ -115,6 +127,7 @@ function renderSpreadsheetCell<K extends string, M>({
                         service.data.editCell(rowIndex, colIndex, v)
                     }
                     variant="unstyled"
+                    {...selectProps}
                 />
             );
         }
@@ -140,6 +153,8 @@ const SpreadsheetCell = observer(renderSpreadsheetCell);
 function renderSpreadsheetRow<K extends string, M>({
     index,
     service,
+    cellProps,
+    tooltipProps,
 }: SpreadsheetRowProps<K, M>) {
     const row = service.data.rowData[index];
     const cells: ReactNode[] = service.data.columnData.map((col, j) => {
@@ -149,6 +164,7 @@ function renderSpreadsheetRow<K extends string, M>({
                 rowIndex={index}
                 colIndex={j}
                 service={service}
+                {...cellProps}
             />
         );
     });
@@ -165,6 +181,7 @@ function renderSpreadsheetRow<K extends string, M>({
                     rowKey={row.key}
                     visible={row.highlighted ?? false}
                     onClick={(rowKey) => service.data.deleteRow(rowKey)}
+                    tooltipProps={tooltipProps}
                 />
             </Table.Td>
         </Table.Tr>
@@ -175,6 +192,8 @@ const SpreadsheetRow = observer(renderSpreadsheetRow);
 
 function renderSpreadsheet<K extends string, M>({
     service,
+    cellProps,
+    tooltipProps,
     ...rest
 }: SpreadsheetProps<K, M>) {
     const headers: ReactNode[] = [];
@@ -205,6 +224,8 @@ function renderSpreadsheet<K extends string, M>({
             key={`spreadsheet-row-${row.key}`}
             index={i}
             service={service}
+            cellProps={cellProps}
+            tooltipProps={tooltipProps}
         />
     ));
 

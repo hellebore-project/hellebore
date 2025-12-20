@@ -18,6 +18,7 @@ export class EntryCreatorService implements IModalContentManager {
     private _isTitleUnique = true;
 
     // EVENTS
+    fetchPortalSelector: EventProducer<void, string>;
     onCreateEntry: EventProducer<
         CreateEntryEvent,
         Promise<EntryInfoResponse | null>
@@ -25,9 +26,14 @@ export class EntryCreatorService implements IModalContentManager {
     onClose: EventProducer<void, unknown>;
 
     constructor() {
+        this.fetchPortalSelector = new EventProducer();
         this.onCreateEntry = new EventProducer();
         this.onClose = new EventProducer();
-        makeAutoObservable(this, { onCreateEntry: false, onClose: false });
+        makeAutoObservable(this, {
+            fetchPortalSelector: false,
+            onCreateEntry: false,
+            onClose: false,
+        });
     }
 
     get key() {

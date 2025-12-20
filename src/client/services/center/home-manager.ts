@@ -4,16 +4,14 @@ import { CentralViewType } from "@/client/constants";
 import { ICentralPanelContentService } from "@/client/interface";
 import { DomainManager } from "@/domain";
 
-type PrivateKeys = "_domain";
-
 export class HomeManager implements ICentralPanelContentService {
     _projectName = "";
 
-    private _domain: DomainManager;
+    domain: DomainManager;
 
     constructor(domain: DomainManager) {
-        this._domain = domain;
-        makeAutoObservable<HomeManager, PrivateKeys>(this, { _domain: false });
+        this.domain = domain;
+        makeAutoObservable(this, { domain: false });
     }
 
     get key() {
@@ -34,7 +32,7 @@ export class HomeManager implements ICentralPanelContentService {
 
     set projectName(name: string) {
         this._projectName = name;
-        if (name) this._domain.session.updateProject(name);
+        if (name) this.domain.session.updateProject(name);
     }
 
     load(name: string) {

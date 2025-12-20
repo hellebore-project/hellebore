@@ -15,24 +15,27 @@ test("clicking the Home button opens the home view", async ({
 
     render(
         <>
-            <Header />
-            <Center />
+            <Header service={clientManager.header} />
+            <Center service={clientManager.central.activePanel} />
         </>,
     );
 
     const homeBtn = screen.getByRole("button", { name: "Home" });
     await user.click(homeBtn);
 
+    render(<Center service={clientManager.central.activePanel} />);
+
     screen.getByDisplayValue(project.name);
 });
 
 test("clicking the New Project button opens the project creator", async ({
     user,
+    clientManager,
 }) => {
     render(
         <>
-            <Header />
-            <Modal />
+            <Header service={clientManager.header} />
+            <Modal service={clientManager.modal} />
         </>,
     );
 
@@ -45,16 +48,22 @@ test("clicking the New Project button opens the project creator", async ({
     screen.getByText("Create a new project");
 });
 
-test("clicking the Open Project button loads another project", async () => {
-    render(<Header />);
+test("clicking the Open Project button loads another project", async ({
+    clientManager,
+}) => {
+    render(<Header service={clientManager.header} />);
     // TODO: not clear how to mock the `open` function in the tauri API
 });
 
 describe("clicking the Close Project button", () => {
-    test("hides the Close Project button", async ({ user, mockedInvoker }) => {
+    test("hides the Close Project button", async ({
+        user,
+        mockedInvoker,
+        clientManager,
+    }) => {
         mockCloseProject(mockedInvoker);
 
-        render(<Header />);
+        render(<Header service={clientManager.header} />);
 
         const appBtn = screen.getByRole("button", { name: "File" });
         await user.click(appBtn);
@@ -72,11 +81,12 @@ describe("clicking the Close Project button", () => {
 
 test("clicking the New Entry button opens the entry creator", async ({
     user,
+    clientManager,
 }) => {
     render(
         <>
-            <Header />
-            <Modal />
+            <Header service={clientManager.header} />
+            <Modal service={clientManager.modal} />
         </>,
     );
 
@@ -91,19 +101,22 @@ test("clicking the New Entry button opens the entry creator", async ({
 
 test("clicking the Settings button opens the settings editor", async ({
     user,
+    clientManager,
 }) => {
     render(
         <>
-            <Header />
-            <Center />
+            <Header service={clientManager.header} />
+            <Center service={clientManager.central.activePanel} />
         </>,
     );
 
     const appBtn = screen.getByRole("button", { name: "File" });
     await user.click(appBtn);
 
-    const newProjectBtn = screen.getByRole("menuitem", { name: "Settings" });
-    await user.click(newProjectBtn);
+    const settingsBtn = screen.getByRole("menuitem", { name: "Settings" });
+    await user.click(settingsBtn);
+
+    render(<Center service={clientManager.central.activePanel} />);
 
     screen.getByText("Settings");
 });

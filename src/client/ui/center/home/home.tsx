@@ -1,7 +1,6 @@
 import { Box } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "@/client";
 import { DIVIDER, SPACE } from "@/shared/common";
 import { TextField } from "@/shared/text-field";
 import { HomeManager } from "@/client/services";
@@ -13,8 +12,7 @@ interface HomeProps {
 }
 
 function renderHome({ service }: HomeProps) {
-    const clientManager = getService();
-    if (!clientManager.domain.hasProject) return null;
+    if (!service.domain.hasProject) return null;
     return (
         <Box className="home">
             <TextField

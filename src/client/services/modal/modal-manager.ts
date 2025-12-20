@@ -18,6 +18,7 @@ export class ModalManager {
     content: IModalContentManager | null = null;
 
     // EVENTS
+    fetchPortalSelector: EventProducer<void, string>;
     onCreateProject: EventProducer<CreateProjectEvent, unknown>;
     onCreateEntry: EventProducer<
         CreateEntryEvent,
@@ -27,11 +28,13 @@ export class ModalManager {
     constructor() {
         this._modalKey = null;
 
+        this.fetchPortalSelector = new EventProducer();
         this.onCreateProject = new EventProducer();
         this.onCreateEntry = new EventProducer();
 
         makeAutoObservable(this, {
             content: false,
+            fetchPortalSelector: false,
             onCreateProject: false,
             onCreateEntry: false,
         });
@@ -51,8 +54,12 @@ export class ModalManager {
 
     openEntryCreator({ entityType, folderId }: OpenEntryCreatorEvent) {
         const modal = new EntryCreatorService();
+
+        modal.fetchPortalSelector.broker = this.fetchPortalSelector;
         modal.onCreateEntry.subscriptions = this.onCreateEntry.subscriptions;
+
         modal.initialize(entityType, folderId ?? ROOT_FOLDER_ID);
+
         this._open(modal);
     }
 

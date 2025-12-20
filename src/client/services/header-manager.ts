@@ -25,20 +25,28 @@ export class HeaderManager {
 
     private _domain: DomainManager;
 
+    fetchPortalSelector: EventProducer<void, string>;
     onCreateProject: EventProducer<void, unknown>;
     onLoadProject: EventProducer<void, unknown>;
     onCloseProject: EventProducer<void, unknown>;
     onCreateEntry: EventProducer<void, unknown>;
+    onOpenHome: EventProducer<void, unknown>;
     onOpenSettings: EventProducer<void, unknown>;
+    fetchLeftBarStatus: EventProducer<void, boolean>;
+    onToggleLeftBar: EventProducer<void, unknown>;
 
     constructor(domain: DomainManager) {
         this._domain = domain;
 
+        this.fetchPortalSelector = new EventProducer();
         this.onCreateProject = new EventProducer();
         this.onLoadProject = new EventProducer();
         this.onCloseProject = new EventProducer();
         this.onCreateEntry = new EventProducer();
+        this.onOpenHome = new EventProducer();
         this.onOpenSettings = new EventProducer();
+        this.fetchLeftBarStatus = new EventProducer();
+        this.onToggleLeftBar = new EventProducer();
 
         this._menuItems = {
             project: {
@@ -70,11 +78,15 @@ export class HeaderManager {
         makeAutoObservable<HeaderManager, PrivateKeys>(this, {
             _menuItems: false,
             _domain: false,
+            fetchPortalSelector: false,
             onCreateProject: false,
             onLoadProject: false,
             onCloseProject: false,
             onCreateEntry: false,
+            onOpenHome: false,
             onOpenSettings: false,
+            fetchLeftBarStatus: false,
+            onToggleLeftBar: false,
         });
     }
 
@@ -82,7 +94,7 @@ export class HeaderManager {
         return this.DEFAULT_HEIGHT;
     }
 
-    getFileMenuData() {
+    get fileMenuData() {
         if (this._domain.hasProject)
             return [
                 this._menuItems.project.create,
@@ -93,6 +105,7 @@ export class HeaderManager {
                 DIVIDER_DATA,
                 this._menuItems.settings,
             ];
+
         return [
             this._menuItems.project.create,
             this._menuItems.project.open,

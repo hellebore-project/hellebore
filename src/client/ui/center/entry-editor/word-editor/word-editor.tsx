@@ -42,6 +42,10 @@ function renderWordTable({ service }: WordTableProps) {
 export const WordTable = observer(renderWordTable);
 
 function renderWordEditor({ service }: WordEditorProps) {
+    const portalProps = {
+        target: service.fetchPortalSelector.produceOne(),
+    };
+
     return (
         <Container className="word-editor">
             <Stack className="word-editor-stack" justify="flex-start" gap={0}>
@@ -60,7 +64,15 @@ function renderWordEditor({ service }: WordEditorProps) {
                     }}
                 />
 
-                <Spreadsheet service={service.spreadsheet} />
+                <Spreadsheet
+                    service={service.spreadsheet}
+                    cellProps={{
+                        selectProps: {
+                            comboboxProps: { portalProps },
+                        },
+                    }}
+                    tooltipProps={{ portalProps }}
+                />
             </Stack>
         </Container>
     );
