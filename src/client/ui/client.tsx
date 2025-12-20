@@ -1,20 +1,27 @@
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "@/client/services";
+import { ClientManager, PortalManager } from "@/client/services";
 
 import { Center, ContextMenu, Footer, Header, LeftSideBar, Modal } from ".";
 
-function renderPortalContainer() {
-    const service = getService();
-    return <div id={service.sharedPortalId} />;
+interface PortalContainerProps {
+    service: PortalManager;
+}
+
+interface ClientProps {
+    service: ClientManager;
+}
+
+function renderPortalContainer({ service }: PortalContainerProps) {
+    return <div id={service.id} />;
 }
 
 export const PortalContainer = observer(renderPortalContainer);
 
-function renderClient() {
-    const service = getService();
+function renderClient({ service }: ClientProps) {
     service.hook();
+
     return (
         <MantineProvider
             defaultColorScheme={service.style.colorScheme}
@@ -38,27 +45,27 @@ function renderClient() {
                 padding={service.centerPadding}
             >
                 <AppShell.Header className="header-panel">
-                    <Header />
+                    <Header service={service.header} />
                 </AppShell.Header>
 
                 <AppShell.Navbar className="left-sidebar-panel">
-                    <LeftSideBar />
+                    <LeftSideBar service={service.navigation} />
                 </AppShell.Navbar>
 
                 <AppShell.Main className="main-panel">
-                    <Center />
+                    <Center service={service.central.activePanel} />
                 </AppShell.Main>
 
                 <AppShell.Footer className="footer-panel">
-                    <Footer />
+                    <Footer service={service.footer} />
                 </AppShell.Footer>
             </AppShell>
 
-            <Modal />
+            <Modal service={service.modal} />
 
-            <ContextMenu />
+            <ContextMenu service={service.contextMenu} />
 
-            <PortalContainer />
+            <PortalContainer service={service.portal} />
         </MantineProvider>
     );
 }

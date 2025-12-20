@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 import { DomainManager, EntryInfoResponse, FolderResponse } from "@/domain";
 
-import { FileNavigatorService } from "./file-navigator";
+import { SpotlightService } from "./spotlight";
 
 export interface NavigationServiceArgs {
     domain: DomainManager;
@@ -13,11 +13,11 @@ export class NavigationService {
 
     private _mobileOpen = true;
 
-    files: FileNavigatorService;
+    spotlight: SpotlightService;
 
     constructor({ domain }: NavigationServiceArgs) {
-        this.files = new FileNavigatorService({ domain });
-        makeAutoObservable(this, { files: false });
+        this.spotlight = new SpotlightService({ domain });
+        makeAutoObservable(this, { spotlight: false });
     }
 
     get width() {
@@ -33,11 +33,11 @@ export class NavigationService {
     }
 
     load(entities: EntryInfoResponse[], folders: FolderResponse[]) {
-        this.files.load(entities, folders);
+        this.spotlight.load(entities, folders);
     }
 
     reset() {
-        this.files.cleanUp();
+        this.spotlight.cleanUp();
     }
 
     toggleMobileOpen() {

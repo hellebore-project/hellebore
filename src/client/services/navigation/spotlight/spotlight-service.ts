@@ -26,15 +26,16 @@ import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { Counter } from "@/utils/counter";
 import { EventProducer } from "@/utils/event";
 
-import { NavigatorErrorManager } from "./navigator-error-manager";
+import { FileNavigatorErrorManager } from "./file-navigator-error-manager";
 
 type PrivateKeys = "_nodePositionCache" | "_tree" | "_domain";
 
-export interface FileNavigatorServiceArgs {
+export interface SpotlightServiceArgs {
     domain: DomainManager;
 }
 
-export class FileNavigatorService {
+// TODO: spin off the file tree logic into a separate FileNavigator class
+export class SpotlightService {
     // CONSTANTS
     NODE_DOM_ID_PREFIX = "file-nav-node-";
     NODE_TEXT_DOM_ID_PREFIX = "file-nav-node-text-";
@@ -65,10 +66,11 @@ export class FileNavigatorService {
     // SERVICES
     _placeholderIdGenerator: Counter;
     outsideEvent: OutsideEventHandlerService;
-    errorManager: NavigatorErrorManager;
+    errorManager: FileNavigatorErrorManager;
     private _domain: DomainManager;
 
     // EVENTS
+    fetchPortalSelector: EventProducer<void, string>;
     onCreateEntry: EventProducer<OpenEntryCreatorEvent, unknown>;
     onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
     onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
@@ -79,7 +81,7 @@ export class FileNavigatorService {
     onOpenFolderContext: EventProducer<OpenFileContextMenuEvent, unknown>;
     onOpenEntryContext: EventProducer<OpenFileContextMenuEvent, unknown>;
 
-    constructor({ domain }: FileNavigatorServiceArgs) {
+    constructor({ domain }: SpotlightServiceArgs) {
         this._nodes = [];
         this._nodePositionCache = {};
 
@@ -93,9 +95,10 @@ export class FileNavigatorService {
             this.focused = false;
             this.selectedNode = null;
         });
-        this.errorManager = new NavigatorErrorManager();
+        this.errorManager = new FileNavigatorErrorManager();
         this._domain = domain;
 
+        this.fetchPortalSelector = new EventProducer();
         this.onCreateEntry = new EventProducer();
         this.onOpenEntry = new EventProducer();
         this.onMoveFolder = new EventProducer();
@@ -103,13 +106,14 @@ export class FileNavigatorService {
         this.onOpenFolderContext = new EventProducer();
         this.onOpenEntryContext = new EventProducer();
 
-        makeAutoObservable<FileNavigatorService, PrivateKeys>(this, {
+        makeAutoObservable<SpotlightService, PrivateKeys>(this, {
             _nodePositionCache: false,
             _placeholderIdGenerator: false,
             _tree: false,
             outsideEvent: false,
             errorManager: false,
             _domain: false,
+            fetchPortalSelector: false,
             onCreateEntry: false,
             onOpenEntry: false,
             onMoveFolder: false,
@@ -724,11 +728,7 @@ export class FileNavigatorService {
             moved = response.moved;
             cancelled = response.cancelled;
         } else
-            moved = await this._domain.entries.updateFolder(
-                id,
-                destParentId,
-                sourceParentId,
-            );
+            moved = await this._domain.entries.updateFolder(id, destParentId);
 
         if (!moved && !cancelled)
             console.error(

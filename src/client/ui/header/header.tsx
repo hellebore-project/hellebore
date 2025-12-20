@@ -3,12 +3,15 @@ import "./header.css";
 import { Burger, Flex } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "@/client";
+import { HeaderManager } from "@/client/services";
 import { MenuButton } from "@/shared/menu-button";
 import { MenuDropdown } from "@/shared/menu-dropdown";
 
-function renderHeader() {
-    const service = getService();
+interface HeaderProps {
+    service: HeaderManager;
+}
+
+function renderHeader({ service }: HeaderProps) {
     return (
         <Flex
             className="header"
@@ -19,19 +22,22 @@ function renderHeader() {
             wrap="nowrap"
         >
             <Burger
-                opened={service.navigation.mobileOpen}
-                onClick={() => service.navigation.toggleMobileOpen()}
+                opened={service.fetchLeftBarStatus.produceOne()}
+                onClick={() => service.onToggleLeftBar.produce()}
                 hiddenFrom="sm"
                 size="sm"
                 pr="8"
             />
             <MenuButton
                 label="Home"
-                onClick={() => service.central.openHome()}
+                onClick={() => service.onOpenHome.produce()}
             />
             <MenuDropdown
                 label="File"
-                data={service.header.getFileMenuData()}
+                data={service.fileMenuData}
+                portalProps={{
+                    target: service.fetchPortalSelector.produceOne(),
+                }}
             />
         </Flex>
     );

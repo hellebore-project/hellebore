@@ -4,11 +4,7 @@ import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { EntryEditorService, EntryViewType } from "@/client";
-import { EntityType } from "@/domain";
-import {
-    TableOfContents,
-    TableOfContentsItemData,
-} from "@/shared/table-of-contents";
+import { TableOfContents } from "@/shared/table-of-contents";
 
 import { PropertyEditor } from "./property-editor";
 import { WordEditor } from "./word-editor/word-editor";
@@ -47,30 +43,11 @@ function renderEntryEditorContent({ service }: EntryEditorProps) {
 const EntryEditorContent = observer(renderEntryEditorContent);
 
 function renderEntryEditorTabs({ service }: EntryEditorProps) {
-    const entryType = service.entryType;
-
-    const tabData: TableOfContentsItemData[] = [
-        service.tabData.get(
-            EntryViewType.ArticleEditor,
-        ) as TableOfContentsItemData,
-        service.tabData.get(
-            EntryViewType.PropertyEditor,
-        ) as TableOfContentsItemData,
-    ];
-    if (entryType === EntityType.LANGUAGE)
-        tabData.push(
-            service.tabData.get(
-                EntryViewType.WordEditor,
-            ) as TableOfContentsItemData,
-        );
-
-    const activeTabKey = service.currentView;
-
     return (
         <TableOfContents
             className="entry-editor-toc"
-            data={tabData}
-            activeValue={activeTabKey}
+            data={service.tabData}
+            activeValue={service.currentView}
             itemProps={{
                 className: "entry-editor-toc-item",
                 justify: "space-between",

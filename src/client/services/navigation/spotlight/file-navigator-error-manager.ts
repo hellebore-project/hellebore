@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 import { Rectangle } from "@/interface";
 
-export class NavigatorErrorManager {
+export class FileNavigatorErrorManager {
     private _visible = false;
     private _message = "";
     private _position: Rectangle | null = null;

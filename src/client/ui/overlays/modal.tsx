@@ -2,40 +2,48 @@ import { Modal as MantineModal } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { ModalType } from "@/client/constants";
-import { getService } from "@/client/services";
+import {
+    EntryCreatorService,
+    ModalManager,
+    ProjectCreatorService,
+} from "@/client/services";
 
 import { ProjectCreator } from "./project-creator";
 import { EntryCreator } from "./entry-creator";
 
-function renderModalContent() {
-    const modalManager = getService().modal;
-    if (!modalManager.modalKey) return null;
+interface ModalManagerProps {
+    service: ModalManager;
+}
 
-    if (modalManager.modalKey == ModalType.ProjectCreator)
-        return <ProjectCreator />;
+function renderModalContent({ service }: ModalManagerProps) {
+    if (!service.modalKey) return null;
 
-    if (modalManager.modalKey == ModalType.EntryCreator)
-        return <EntryCreator />;
+    if (service.modalKey == ModalType.ProjectCreator) {
+        const contentService = service.content as ProjectCreatorService;
+        return <ProjectCreator service={contentService} />;
+    }
 
-    throw `Modal key ${modalManager.modalKey} not recognized.`;
+    if (service.modalKey == ModalType.EntryCreator) {
+        const contentService = service.content as EntryCreatorService;
+        return <EntryCreator service={contentService} />;
+    }
+
+    throw `Modal key ${service.modalKey} not recognized.`;
 }
 
 const ModalContent = observer(renderModalContent);
 
-function renderModal() {
-    const clientManager = getService();
-    const modalManager = clientManager.modal;
-
-    if (!modalManager.modalKey || !modalManager.content) return null;
+function renderModal({ service }: ModalManagerProps) {
+    if (!service.modalKey || !service.content) return null;
 
     return (
         <MantineModal
-            title={modalManager.content.TITLE}
-            opened={modalManager.modalKey !== null}
-            onClose={() => modalManager.close()}
-            portalProps={{ target: clientManager.sharedPortalSelector }}
+            title={service.content.TITLE}
+            opened={service.modalKey !== null}
+            onClose={() => service.close()}
+            portalProps={{ target: service.fetchPortalSelector.produceOne() }}
         >
-            <ModalContent />
+            <ModalContent service={service} />
         </MantineModal>
     );
 }

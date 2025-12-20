@@ -7,6 +7,7 @@ import { EventProducer } from "@/utils/event";
 type PrivateKeys = "_titleChanged";
 
 export class EntryInfoService {
+    // STATE
     private _id: number = ENTRY_ID_SENTINEL;
     private _entityType: EntityType | null = null;
     private _title = "";
@@ -14,14 +15,18 @@ export class EntryInfoService {
     private _titleChanged = false;
     private _loaded = false;
 
+    // EVENTS
+    fetchPortalSelector: EventProducer<void, string>;
     onChangeTitle: EventProducer<ChangeEntryEvent, unknown>;
 
     constructor() {
+        this.fetchPortalSelector = new EventProducer();
         this.onChangeTitle = new EventProducer();
 
         makeAutoObservable<EntryInfoService, PrivateKeys>(this, {
-            onChangeTitle: false,
             _titleChanged: false,
+            fetchPortalSelector: false,
+            onChangeTitle: false,
         });
     }
 

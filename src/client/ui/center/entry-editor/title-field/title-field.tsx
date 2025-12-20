@@ -4,7 +4,7 @@ import { Divider, Group, Popover, Text } from "@mantine/core";
 import { IconExclamationCircle } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { EntryInfoService, getService } from "@/client";
+import { EntryInfoService } from "@/client";
 import { TextField } from "@/shared/text-field";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
@@ -14,8 +14,6 @@ interface TitleFieldProps {
 }
 
 function renderTitleField({ service }: TitleFieldProps) {
-    const client = getService();
-
     let error: string | null;
     if (!service.loaded) error = null;
     else if (service.title == "") error = "Empty title";
@@ -31,7 +29,9 @@ function renderTitleField({ service }: TitleFieldProps) {
                 opened={Boolean(error)}
                 position="right"
                 withArrow
-                portalProps={{ target: client.sharedPortalSelector }}
+                portalProps={{
+                    target: service.fetchPortalSelector.produceOne(),
+                }}
             >
                 <Popover.Target>
                     <TextField

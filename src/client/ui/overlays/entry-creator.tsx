@@ -1,8 +1,7 @@
 import { Button, ComboboxItem, Container, Group, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { getService } from "@/client";
-import { EntryCreatorService } from "@/client/services/modal/entry-creator";
+import { EntryCreatorService } from "@/client/services";
 import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "@/domain";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
@@ -15,31 +14,38 @@ const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = FILE_ENTITY_TYPES.map(
     }),
 ).sort((a, b) => compareStrings(a.label, b.label));
 
-function renderEntryCreator() {
-    const entryCreator = getService().modal.content as EntryCreatorService;
+interface EntryCreatorProps {
+    service: EntryCreatorService;
+}
 
+function renderEntryCreator({ service }: EntryCreatorProps) {
     return (
         <Container size="xs">
-            <form onSubmit={(event) => entryCreator.submit(event)}>
+            <form onSubmit={(event) => service.submit(event)}>
                 <SelectField
                     label="Entity"
                     placeholder="Select an entity type"
                     data={ENTITY_TYPE_DROPDOWN_DATA}
-                    getValue={() => entryCreator.entityType?.toString() ?? null}
+                    getValue={() => service.entityType?.toString() ?? null}
                     onChange={(entityType) =>
-                        (entryCreator.entityType = Number(entityType))
+                        (service.entityType = Number(entityType))
                     }
+                    comboboxProps={{
+                        portalProps: {
+                            target: service.fetchPortalSelector.produceOne(),
+                        },
+                    }}
                 />
                 <Space h="xs" />
                 <TextField
                     label={"Title"}
                     placeholder="Enter a unique title"
-                    getValue={() => entryCreator.entryTitle}
+                    getValue={() => service.entryTitle}
                     getError={() =>
-                        entryCreator.isTitleUnique ? null : "Duplicate title"
+                        service.isTitleUnique ? null : "Duplicate title"
                     }
                     onChange={(event) =>
-                        (entryCreator.entryTitle = event.currentTarget.value)
+                        (service.entryTitle = event.currentTarget.value)
                     }
                 />
                 <Group justify="flex-end" mt="md">

@@ -102,6 +102,7 @@ export class WordEditorService {
     private _wordKeyGenerator: Counter;
 
     // EVENTS
+    fetchPortalSelector: EventProducer<void, string>;
     onChange: EventProducer<ChangeEntryEvent, unknown>;
     onChangeWordType: EventProducer<ChangeWordTypeEvent, void>;
 
@@ -110,6 +111,7 @@ export class WordEditorService {
         this._modifiedWordKeys = new Set();
         this._wordKeyGenerator = new Counter();
 
+        this.fetchPortalSelector = new EventProducer();
         this.onChange = new EventProducer();
         this.onChangeWordType = new EventProducer();
 
@@ -130,6 +132,7 @@ export class WordEditorService {
             _domain: false,
             info: false,
             spreadsheet: false,
+            fetchPortalSelector: false,
             onChange: false,
             onChangeWordType: false,
         });
