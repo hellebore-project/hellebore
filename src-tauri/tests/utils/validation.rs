@@ -36,7 +36,7 @@ pub fn validate_language_property_response(
     }
 }
 
-fn _validate_language_properties(language: &LanguageSchema) {
+fn _validate_language_properties(_language: &LanguageSchema) {
     // TODO: add validation logic once the Language entity has properties
 }
 

@@ -12,10 +12,9 @@ use hellebore::{
     database::{language_manager, word_manager},
     schema::{
         entry::EntryCreateSchema,
-        language::LanguageSchema,
         word::{WordResponseSchema, WordUpdateSchema},
     },
-    services::{entry_service, language_service, word_service},
+    services::{entry_service, word_service},
     settings::Settings,
     types::grammar::WordType,
     utils::CodedEnum,
@@ -35,12 +34,12 @@ fn validate_word_response(actual: &WordResponseSchema, expected: &WordResponseSc
 #[tokio::test]
 async fn test_create_word(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpdateSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -68,11 +67,11 @@ async fn test_create_word(
 #[tokio::test]
 async fn test_create_duplicate_word(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpdateSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -101,11 +100,11 @@ async fn test_create_duplicate_word(
 async fn test_update_word(
     settings: &Settings,
     mut create_word_payload: WordUpdateSchema,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -149,10 +148,10 @@ async fn test_update_word(
 #[tokio::test]
 async fn test_error_on_updating_nonexistent_word(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -180,12 +179,12 @@ async fn test_error_on_updating_nonexistent_word(
 #[tokio::test]
 async fn test_get_word(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpdateSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -215,10 +214,10 @@ async fn test_error_on_getting_nonexistent_word(settings: &Settings) {
 #[tokio::test]
 async fn test_get_all_words_for_a_language(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -262,11 +261,11 @@ async fn test_get_all_words_for_a_language(
 #[tokio::test]
 async fn test_delete_word(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpdateSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -289,12 +288,12 @@ async fn test_error_on_deleting_nonexistent_word(settings: &Settings) {
 #[tokio::test]
 async fn test_all_words_deleted_on_delete_language(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpdateSchema,
 ) {
     let db = database(settings).await;
 
-    let entry = language_service::create(&db, create_language_payload)
+    let entry = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
     let id = entry.id;

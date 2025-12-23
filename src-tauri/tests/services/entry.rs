@@ -1,7 +1,10 @@
 use ::entity::entry::Model as EntryModel;
 use hellebore::{
     database::file_manager,
-    schema::{entry::EntryInfoResponseSchema, folder::FolderCreateSchema},
+    schema::{
+        entry::{EntryInfoResponseSchema, EntryUpdateSchema},
+        folder::FolderCreateSchema,
+    },
     services::{entry_service, folder_service},
     settings::Settings,
     types::entity::ENTRY,
@@ -11,7 +14,7 @@ use rstest::*;
 use crate::{
     fixtures::{
         database,
-        entry::entry_text,
+        entry::{entry_text, update_entry_payload},
         folder::{folder_create_payload, folder_id},
         settings,
     },
@@ -53,7 +56,7 @@ fn title() -> String {
 async fn test_create_entry(settings: &Settings, folder_id: i32, title: String, entry_text: String) {
     let database = database(settings).await;
 
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -76,7 +79,7 @@ async fn test_error_on_creating_entry_with_duplicate_name(
     entry_text: String,
 ) {
     let database = database(settings).await;
-    let _ = entry_service::create(
+    let _ = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -84,7 +87,7 @@ async fn test_error_on_creating_entry_with_duplicate_name(
         entry_text.to_owned(),
     )
     .await;
-    let entry = entry_service::create(&database, ENTRY, folder_id, title, entry_text).await;
+    let entry = entry_service::_create(&database, ENTRY, folder_id, title, entry_text).await;
     assert!(entry.is_err());
 }
 
@@ -95,15 +98,18 @@ async fn test_update_entry_title(
     folder_id: i32,
     title: String,
     entry_text: String,
+    mut update_entry_payload: EntryUpdateSchema,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::create(&database, ENTRY, folder_id, title, entry_text.to_owned())
+    let entry = entry_service::_create(&database, ENTRY, folder_id, title, entry_text.to_owned())
         .await
         .unwrap();
 
-    let response = entry_service::update_title(&database, entry.id, "new title".to_owned()).await;
+    update_entry_payload.id = entry.id;
+    update_entry_payload.title = Some("new title".to_owned());
+    let response = entry_service::update(&database, update_entry_payload).await;
 
-    assert!(response.is_ok());
+    assert!(response.errors.is_empty());
 
     let entry = get_entry(&database, entry.id).await.unwrap();
     validate_model(&entry, None, folder_id, "new title", &entry_text);
@@ -117,9 +123,10 @@ async fn test_update_entry_folder(
     folder_create_payload: FolderCreateSchema,
     title: String,
     entry_text: String,
+    mut update_entry_payload: EntryUpdateSchema,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -132,9 +139,11 @@ async fn test_update_entry_folder(
         .await
         .unwrap();
 
-    let response = entry_service::update_folder(&database, entry.id, folder.id).await;
+    update_entry_payload.id = entry.id;
+    update_entry_payload.folder_id = Some(folder.id);
+    let response = entry_service::update(&database, update_entry_payload).await;
 
-    assert!(response.is_ok());
+    assert!(response.errors.is_empty());
 
     let entry = get_entry(&database, entry.id).await.unwrap();
     validate_model(&entry, None, folder.id, &title, &entry_text);
@@ -147,15 +156,18 @@ async fn test_update_entry_text(
     folder_id: i32,
     title: String,
     entry_text: String,
+    mut update_entry_payload: EntryUpdateSchema,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::create(&database, ENTRY, folder_id, title.to_owned(), entry_text)
+    let entry = entry_service::_create(&database, ENTRY, folder_id, title.to_owned(), entry_text)
         .await
         .unwrap();
 
-    let response = entry_service::update_text(&database, entry.id, "updated text".to_owned()).await;
+    update_entry_payload.id = entry.id;
+    update_entry_payload.text = Some("updated text".to_owned());
+    let response = entry_service::update(&database, update_entry_payload).await;
 
-    assert!(response.is_ok());
+    assert!(response.errors.is_empty());
 
     let entry = get_entry(&database, entry.id).await;
     validate_model(&entry.unwrap(), None, folder_id, &title, "updated text");
@@ -163,26 +175,13 @@ async fn test_update_entry_text(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_updating_title_of_nonexistent_entry(settings: &Settings) {
+async fn test_error_on_updating_nonexistent_entry(
+    settings: &Settings,
+    update_entry_payload: EntryUpdateSchema,
+) {
     let database = database(settings).await;
-    let response = entry_service::update_title(&database, 0, "".to_owned()).await;
-    assert!(response.is_err());
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_error_on_updating_folder_of_nonexistent_entry(settings: &Settings) {
-    let database = database(settings).await;
-    let response = entry_service::update_folder(&database, 0, -1).await;
-    assert!(response.is_err());
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_error_on_updating_text_of_nonexistent_entry(settings: &Settings) {
-    let database = database(settings).await;
-    let response = entry_service::update_text(&database, 0, "".to_owned()).await;
-    assert!(response.is_err());
+    let response = entry_service::update(&database, update_entry_payload).await;
+    assert!(response.errors.len() > 0);
 }
 
 #[rstest]
@@ -191,9 +190,10 @@ async fn test_error_on_updating_entry_with_duplicate_name(
     settings: &Settings,
     folder_id: i32,
     entry_text: String,
+    mut update_entry_payload: EntryUpdateSchema,
 ) {
     let database = database(settings).await;
-    let entry_1 = entry_service::create(
+    let entry_1 = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -203,19 +203,24 @@ async fn test_error_on_updating_entry_with_duplicate_name(
     .await
     .unwrap();
     let entry_2 =
-        entry_service::create(&database, ENTRY, folder_id, "entry2".to_owned(), entry_text)
+        entry_service::_create(&database, ENTRY, folder_id, "entry2".to_owned(), entry_text)
             .await
             .unwrap();
 
-    let response = entry_service::update_title(&database, entry_1.id, entry_2.title).await;
-    assert!(response.is_err());
+    update_entry_payload.id = entry_1.id;
+    update_entry_payload.title = Some(entry_2.title);
+    let response = entry_service::update(&database, update_entry_payload).await;
+    assert!(response.errors.len() > 0);
+
+    let entry = get_entry(&database, entry_1.id).await.unwrap();
+    assert_eq!(entry.title, entry_1.title);
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_get_entry(settings: &Settings, folder_id: i32, title: String, entry_text: String) {
     let database = database(settings).await;
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -255,7 +260,7 @@ async fn test_get_entry_text(
     #[case] entry_text: String,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -278,11 +283,11 @@ async fn test_get_entry_text(
 #[tokio::test]
 async fn test_get_all_entries(settings: &Settings, folder_id: i32, title: String) {
     let database = database(settings).await;
-    let _ = entry_service::create(&database, ENTRY, folder_id, title.to_owned(), "".to_owned())
+    let _ = entry_service::_create(&database, ENTRY, folder_id, title.to_owned(), "".to_owned())
         .await
         .unwrap();
     let title_2 = format!("{} 2", title);
-    let _ = entry_service::create(
+    let _ = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -307,7 +312,7 @@ async fn test_get_all_entries(settings: &Settings, folder_id: i32, title: String
 async fn test_search_entry_with_exact_title_match(settings: &Settings, folder_id: i32) {
     let database = database(settings).await;
 
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -330,7 +335,7 @@ async fn test_search_entry_with_exact_title_match(settings: &Settings, folder_id
 async fn test_search_entry_title_starts_with_keyword(settings: &Settings, folder_id: i32) {
     let database = database(settings).await;
 
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -352,7 +357,7 @@ async fn test_search_entry_title_starts_with_keyword(settings: &Settings, folder
 async fn test_search_entry_title_ends_with_keyword(settings: &Settings, folder_id: i32) {
     let database = database(settings).await;
 
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -374,7 +379,7 @@ async fn test_search_entry_title_ends_with_keyword(settings: &Settings, folder_i
 async fn test_search_entry_title_contains_keyword(settings: &Settings, folder_id: i32) {
     let database = database(settings).await;
 
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -396,7 +401,7 @@ async fn test_search_entry_title_contains_keyword(settings: &Settings, folder_id
 async fn test_search_entry_title_does_not_contain_keyword(settings: &Settings, folder_id: i32) {
     let database = database(settings).await;
 
-    let _entry = entry_service::create(
+    let _entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -417,7 +422,7 @@ async fn test_search_entry_title_does_not_contain_keyword(settings: &Settings, f
 async fn test_search_entry_title_contains_partial_keyword(settings: &Settings, folder_id: i32) {
     let database = database(settings).await;
 
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -440,7 +445,7 @@ async fn test_search_entry_title_contains_partial_keyword(settings: &Settings, f
 async fn test_search_entry_title_contains_keyword_with_typo(settings: &Settings, folder_id: i32) {
     let database = database(settings).await;
 
-    let _entry = entry_service::create(
+    let _entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
@@ -461,7 +466,7 @@ async fn test_search_entry_title_contains_keyword_with_typo(settings: &Settings,
 #[tokio::test]
 async fn test_delete_entry(settings: &Settings, folder_id: i32, title: String, entry_text: String) {
     let database = database(settings).await;
-    let entry = entry_service::create(
+    let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,

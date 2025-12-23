@@ -1,11 +1,8 @@
 use rstest::*;
 
 use hellebore::{
-    database::language_manager,
-    schema::{entry::EntryCreateSchema, language::LanguageSchema},
-    services::{entry_service, language_service},
-    settings::Settings,
-    types::entity::LANGUAGE,
+    database::language_manager, schema::entry::EntryCreateSchema, services::entry_service,
+    settings::Settings, types::entity::LANGUAGE,
 };
 
 use crate::fixtures::{
@@ -22,10 +19,10 @@ async fn test_create_language(
     settings: &Settings,
     folder_id: i32,
     language_name: String,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
 ) {
     let db = database(settings).await;
-    let entry = language_service::create(&db, create_language_payload).await;
+    let entry = entry_service::create(&db, create_language_payload).await;
 
     assert!(entry.is_ok());
     validate_entry_info_response(&entry.unwrap(), None, folder_id, LANGUAGE, &language_name);
@@ -35,11 +32,11 @@ async fn test_create_language(
 #[tokio::test]
 async fn test_error_on_creating_duplicate_language(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
 ) {
     let db = database(settings).await;
-    let _ = language_service::create(&db, create_language_payload.clone()).await;
-    let response = language_service::create(&db, create_language_payload).await;
+    let _ = entry_service::create(&db, create_language_payload.clone()).await;
+    let response = entry_service::create(&db, create_language_payload).await;
     assert!(response.is_err());
 }
 
@@ -49,10 +46,10 @@ async fn test_get_language(
     settings: &Settings,
     folder_id: i32,
     language_name: String,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
 ) {
     let db = database(settings).await;
-    let entry = language_service::create(&db, create_language_payload).await;
+    let entry = entry_service::create(&db, create_language_payload).await;
 
     assert!(entry.is_ok());
     let entry = entry.unwrap();
@@ -73,13 +70,10 @@ async fn test_get_language(
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_language(
-    settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
-) {
+async fn test_delete_language(settings: &Settings, create_language_payload: EntryCreateSchema) {
     let db = database(settings).await;
 
-    let entry = language_service::create(&db, create_language_payload)
+    let entry = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 

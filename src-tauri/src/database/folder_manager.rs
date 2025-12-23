@@ -32,8 +32,8 @@ where
     };
     let updated_entity = folder::ActiveModel {
         id: Unchanged(existing_entity.id),
-        parent_id: file_manager::convert_optional_folder_id_to_active_value(parent_id),
-        name: utils::set_value_or_null(name),
+        parent_id: file_manager::set_optional_folder_id(parent_id),
+        name: utils::set_optional_value(name),
     };
     updated_entity.update(con).await
 }

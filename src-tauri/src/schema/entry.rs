@@ -6,18 +6,29 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct EntryCreateSchema<E> {
-    pub folder_id: i32,
-    pub title: String,
-    pub properties: E,
+#[serde(rename_all_fields = "camelCase")]
+pub enum EntryProperties {
+    Language(LanguageSchema),
+    Person(PersonSchema),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct EntryUpdateSchema<E> {
+pub struct EntryCreateSchema {
+    pub folder_id: i32,
+    pub entity_type: EntityType,
+    pub title: String,
+    pub properties: EntryProperties,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EntryUpdateSchema {
     pub id: i32,
-    pub properties: E,
+    pub folder_id: Option<i32>,
+    pub title: Option<String>,
+    pub properties: Option<EntryProperties>,
+    pub text: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -27,13 +38,6 @@ pub struct EntryInfoResponseSchema {
     pub folder_id: i32,
     pub entity_type: EntityType,
     pub title: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all_fields = "camelCase")]
-pub enum EntryProperties {
-    Language(LanguageSchema),
-    Person(PersonSchema),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -1,7 +1,11 @@
 use ::entity::{entry, entry::Entity as EntryModel};
 use sea_orm::*;
 
-use crate::{database::file_manager, types::entity::EntityType, utils::CodedEnum};
+use crate::{
+    database::{file_manager, utils},
+    types::entity::EntityType,
+    utils::CodedEnum,
+};
 
 #[derive(DerivePartialModel, FromQueryResult)]
 #[sea_orm(entity = "EntryModel")]
@@ -35,7 +39,13 @@ where
     }
 }
 
-pub async fn update_title<C>(con: &C, id: i32, title: String) -> Result<entry::Model, DbErr>
+pub async fn update<C>(
+    con: &C,
+    id: i32,
+    folder_id: Option<i32>,
+    title: Option<String>,
+    text: Option<String>,
+) -> Result<entry::Model, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -44,44 +54,10 @@ where
     };
     let updated_entity = entry::ActiveModel {
         id: Unchanged(existing_entity.id),
-        folder_id: NotSet,
+        folder_id: file_manager::set_optional_folder_id(folder_id),
         entity_type: NotSet,
-        title: Set(title),
-        text: NotSet,
-    };
-    updated_entity.update(con).await
-}
-
-pub async fn update_folder<C>(con: &C, id: i32, folder_id: i32) -> Result<entry::Model, DbErr>
-where
-    C: ConnectionTrait,
-{
-    let Some(folder) = get_info(con, id).await? else {
-        return Err(DbErr::RecordNotFound("Entity not found.".to_owned()));
-    };
-    let folder = entry::ActiveModel {
-        id: Unchanged(folder.id),
-        folder_id: Set(file_manager::convert_negative_folder_id_to_null(folder_id)),
-        entity_type: NotSet,
-        title: NotSet,
-        text: NotSet,
-    };
-    folder.update(con).await
-}
-
-pub async fn update_text<C>(con: &C, id: i32, text: String) -> Result<entry::Model, DbErr>
-where
-    C: ConnectionTrait,
-{
-    let Some(existing_entity) = get_info(con, id).await? else {
-        return Err(DbErr::RecordNotFound("Entity not found.".to_owned()));
-    };
-    let updated_entity = entry::ActiveModel {
-        id: Unchanged(existing_entity.id),
-        folder_id: NotSet,
-        entity_type: NotSet,
-        title: NotSet,
-        text: Set(text),
+        title: utils::set_optional_value(title),
+        text: utils::set_optional_value(text),
     };
     updated_entity.update(con).await
 }

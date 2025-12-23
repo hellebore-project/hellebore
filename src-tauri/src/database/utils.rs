@@ -2,7 +2,7 @@ use sea_orm::entity::{ActiveValue, Value};
 
 use crate::utils::CodedEnum;
 
-pub fn set_value_or_null<V>(value: Option<V>) -> ActiveValue<V>
+pub fn set_optional_value<V>(value: Option<V>) -> ActiveValue<V>
 where
     V: Into<Value>,
 {
@@ -22,7 +22,7 @@ where
     }
 }
 
-pub fn set_type_or_null<V>(value: Option<V>) -> ActiveValue<i8>
+pub fn set_optional_type<V>(value: Option<V>) -> ActiveValue<i8>
 where
     V: CodedEnum,
 {

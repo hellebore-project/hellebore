@@ -1,38 +1,28 @@
 use crate::api::utils;
 use crate::errors::ApiError;
-use crate::schema::entry::{EntryArticleResponseSchema, EntryPropertyResponseSchema};
+use crate::schema::entry::{
+    EntryArticleResponseSchema, EntryCreateSchema, EntryPropertyResponseSchema, EntryUpdateSchema,
+};
 use crate::schema::{diagnostic::ResponseDiagnosticsSchema, entry::EntryInfoResponseSchema};
 use crate::services::entry_service;
 use crate::state::State;
 
 #[tauri::command]
-pub async fn update_entry_title(
+pub async fn create_entry(
     state: tauri::State<'_, State>,
-    id: i32,
-    title: String,
-) -> Result<(), ApiError> {
+    entry: EntryCreateSchema,
+) -> Result<EntryInfoResponseSchema, ApiError> {
     let state = state.lock().await;
-    entry_service::update_title(utils::get_database(&state)?, id, title).await
+    entry_service::create(utils::get_database(&state)?, entry).await
 }
 
 #[tauri::command]
-pub async fn update_entry_folder(
+pub async fn update_entries(
     state: tauri::State<'_, State>,
-    id: i32,
-    folder_id: i32,
-) -> Result<(), ApiError> {
+    entries: Vec<EntryUpdateSchema>,
+) -> Result<Vec<ResponseDiagnosticsSchema<i32>>, ApiError> {
     let state = state.lock().await;
-    entry_service::update_folder(utils::get_database(&state)?, id, folder_id).await
-}
-
-#[tauri::command]
-pub async fn update_entry_text(
-    state: tauri::State<'_, State>,
-    id: i32,
-    text: String,
-) -> Result<(), ApiError> {
-    let state = state.lock().await;
-    entry_service::update_text(utils::get_database(&state)?, id, text).await
+    Ok(entry_service::bulk_update(utils::get_database(&state)?, entries).await)
 }
 
 #[tauri::command]

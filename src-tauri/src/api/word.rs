@@ -13,6 +13,7 @@ pub async fn upsert_words(
     state: tauri::State<'_, State>,
     words: Vec<WordUpdateSchema>,
 ) -> Result<Vec<ResponseDiagnosticsSchema<Option<i32>>>, ApiError> {
+    // TODO: need a clearer API response
     let state = state.lock().await;
     word_service::bulk_upsert(utils::get_database(&state)?, words).await
 }

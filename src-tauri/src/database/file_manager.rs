@@ -39,7 +39,7 @@ pub fn convert_null_folder_id_to_root(id: Option<i32>) -> i32 {
 /// If `id` is a positive integer, then it is set in the database as is.
 /// If `id` is a negative integer, then `None` is set in the database.
 /// If `id` is `None`, then the value is not set in the database.
-pub fn convert_optional_folder_id_to_active_value(id: Option<i32>) -> ActiveValue<Option<i32>> {
+pub fn set_optional_folder_id(id: Option<i32>) -> ActiveValue<Option<i32>> {
     match id {
         Some(id) => ActiveValue::Set(convert_negative_folder_id_to_null(id)), // value is set in the DB
         None => ActiveValue::NotSet, // no value is set in the DB
