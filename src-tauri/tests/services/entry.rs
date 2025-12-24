@@ -109,6 +109,8 @@ async fn test_update_entry_title(
     update_entry_payload.title = Some("new title".to_owned());
     let response = entry_service::update(&database, update_entry_payload).await;
 
+    assert_eq!(response.data.id, entry.id);
+    assert!(response.data.title.updated);
     assert!(response.errors.is_empty());
 
     let entry = get_entry(&database, entry.id).await.unwrap();
@@ -143,6 +145,7 @@ async fn test_update_entry_folder(
     update_entry_payload.folder_id = Some(folder.id);
     let response = entry_service::update(&database, update_entry_payload).await;
 
+    assert!(response.data.folder_id.updated);
     assert!(response.errors.is_empty());
 
     let entry = get_entry(&database, entry.id).await.unwrap();
@@ -167,6 +170,7 @@ async fn test_update_entry_text(
     update_entry_payload.text = Some("updated text".to_owned());
     let response = entry_service::update(&database, update_entry_payload).await;
 
+    assert!(response.data.text.updated);
     assert!(response.errors.is_empty());
 
     let entry = get_entry(&database, entry.id).await;
@@ -177,10 +181,14 @@ async fn test_update_entry_text(
 #[tokio::test]
 async fn test_error_on_updating_nonexistent_entry(
     settings: &Settings,
-    update_entry_payload: EntryUpdateSchema,
+    mut update_entry_payload: EntryUpdateSchema,
 ) {
     let database = database(settings).await;
+
+    update_entry_payload.title = Some("edited-title".to_owned());
     let response = entry_service::update(&database, update_entry_payload).await;
+
+    assert!(!response.data.title.updated);
     assert!(response.errors.len() > 0);
 }
 
@@ -210,10 +218,32 @@ async fn test_error_on_updating_entry_with_duplicate_name(
     update_entry_payload.id = entry_1.id;
     update_entry_payload.title = Some(entry_2.title);
     let response = entry_service::update(&database, update_entry_payload).await;
+
+    assert!(!response.data.title.updated);
+    assert!(!response.data.title.is_unique);
     assert!(response.errors.len() > 0);
 
     let entry = get_entry(&database, entry_1.id).await.unwrap();
     assert_eq!(entry.title, entry_1.title);
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_noop_on_updating_entry_with_empty_payload(
+    settings: &Settings,
+    update_entry_payload: EntryUpdateSchema,
+) {
+    let database = database(settings).await;
+
+    let id = update_entry_payload.id;
+    let response = entry_service::update(&database, update_entry_payload).await;
+
+    assert_eq!(response.data.id, id);
+    assert!(!response.data.folder_id.updated);
+    assert!(!response.data.title.updated);
+    assert!(!response.data.properties.updated);
+    assert!(!response.data.text.updated);
+    assert!(response.errors.is_empty());
 }
 
 #[rstest]

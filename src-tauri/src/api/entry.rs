@@ -1,9 +1,12 @@
 use crate::api::utils;
 use crate::errors::ApiError;
-use crate::schema::entry::{
-    EntryArticleResponseSchema, EntryCreateSchema, EntryPropertyResponseSchema, EntryUpdateSchema,
+use crate::schema::{
+    common::DiagnosticResponseSchema,
+    entry::{
+        EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
+        EntryPropertyResponseSchema, EntryUpdateResponseSchema, EntryUpdateSchema,
+    },
 };
-use crate::schema::{diagnostic::ResponseDiagnosticsSchema, entry::EntryInfoResponseSchema};
 use crate::services::entry_service;
 use crate::state::State;
 
@@ -20,7 +23,7 @@ pub async fn create_entry(
 pub async fn update_entry(
     state: tauri::State<'_, State>,
     entry: EntryUpdateSchema,
-) -> Result<ResponseDiagnosticsSchema<i32>, ApiError> {
+) -> Result<DiagnosticResponseSchema<EntryUpdateResponseSchema>, ApiError> {
     let state = state.lock().await;
     Ok(entry_service::update(utils::get_database(&state)?, entry).await)
 }
@@ -29,7 +32,7 @@ pub async fn update_entry(
 pub async fn update_entries(
     state: tauri::State<'_, State>,
     entries: Vec<EntryUpdateSchema>,
-) -> Result<Vec<ResponseDiagnosticsSchema<i32>>, ApiError> {
+) -> Result<Vec<DiagnosticResponseSchema<EntryUpdateResponseSchema>>, ApiError> {
     let state = state.lock().await;
     Ok(entry_service::bulk_update(utils::get_database(&state)?, entries).await)
 }
@@ -39,7 +42,7 @@ pub async fn validate_entry_title(
     state: tauri::State<'_, State>,
     id: Option<i32>,
     title: &str,
-) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
+) -> Result<DiagnosticResponseSchema<bool>, ApiError> {
     let state = state.lock().await;
     entry_service::validate_title(utils::get_database(&state)?, id, title).await
 }

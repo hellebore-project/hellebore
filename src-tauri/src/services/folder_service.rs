@@ -5,7 +5,7 @@ use ::entity::folder::Model as Folder;
 use crate::database::{file_manager, folder_manager};
 use crate::errors::ApiError;
 use crate::schema::{
-    diagnostic::ResponseDiagnosticsSchema,
+    common::DiagnosticResponseSchema,
     file::BulkFileResponseSchema,
     folder::{
         FolderCreateSchema, FolderNameCollisionSchema, FolderResponseSchema, FolderUpdateSchema,
@@ -40,7 +40,7 @@ pub async fn validate_name(
     id: Option<i32>,
     parent_id: i32,
     name: &str,
-) -> Result<ResponseDiagnosticsSchema<FolderValidationSchema>, ApiError> {
+) -> Result<DiagnosticResponseSchema<FolderValidationSchema>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
 
     let is_unique = folder_manager::is_name_unique_at_location(database, parent_id, name)
@@ -82,7 +82,7 @@ pub async fn validate_name(
         ));
     }
 
-    return Ok(ResponseDiagnosticsSchema {
+    return Ok(DiagnosticResponseSchema {
         data: response,
         errors,
     });

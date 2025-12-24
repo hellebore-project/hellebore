@@ -1,7 +1,7 @@
 use crate::api::utils;
 use crate::errors::ApiError;
 use crate::schema::{
-    diagnostic::ResponseDiagnosticsSchema,
+    common::DiagnosticResponseSchema,
     word::{WordResponseSchema, WordUpdateSchema},
 };
 use crate::services::word_service;
@@ -12,7 +12,7 @@ use crate::types::grammar::WordType;
 pub async fn upsert_words(
     state: tauri::State<'_, State>,
     words: Vec<WordUpdateSchema>,
-) -> Result<Vec<ResponseDiagnosticsSchema<Option<i32>>>, ApiError> {
+) -> Result<Vec<DiagnosticResponseSchema<Option<i32>>>, ApiError> {
     // TODO: need a clearer API response
     let state = state.lock().await;
     word_service::bulk_upsert(utils::get_database(&state)?, words).await

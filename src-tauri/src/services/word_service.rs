@@ -6,17 +6,17 @@ use serde_json;
 use crate::database::{transaction_manager, word_manager};
 use crate::errors::ApiError;
 use crate::schema::word::WordUpdateSchema;
-use crate::schema::{diagnostic::ResponseDiagnosticsSchema, word::WordResponseSchema};
+use crate::schema::{common::DiagnosticResponseSchema, word::WordResponseSchema};
 use crate::types::entity::WORD;
 use crate::types::grammar::WordType;
 
 pub async fn bulk_upsert(
     database: &DatabaseConnection,
     words: Vec<WordUpdateSchema>,
-) -> Result<Vec<ResponseDiagnosticsSchema<Option<i32>>>, ApiError> {
+) -> Result<Vec<DiagnosticResponseSchema<Option<i32>>>, ApiError> {
     let txn = transaction_manager::begin(database).await?;
 
-    let mut responses: Vec<ResponseDiagnosticsSchema<Option<i32>>> = Vec::new();
+    let mut responses: Vec<DiagnosticResponseSchema<Option<i32>>> = Vec::new();
 
     for word in words {
         let mut errors: Vec<ApiError> = Vec::new();
@@ -34,7 +34,7 @@ pub async fn bulk_upsert(
             }
         };
 
-        responses.push(ResponseDiagnosticsSchema { data: id, errors })
+        responses.push(DiagnosticResponseSchema { data: id, errors })
     }
 
     transaction_manager::end(txn).await?;

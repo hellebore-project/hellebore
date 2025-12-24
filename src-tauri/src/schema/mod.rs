@@ -1,5 +1,5 @@
+pub mod common;
 pub mod config;
-pub mod diagnostic;
 pub mod entry;
 pub mod file;
 pub mod folder;

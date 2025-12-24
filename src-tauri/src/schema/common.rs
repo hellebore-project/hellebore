@@ -4,7 +4,13 @@ use crate::errors::ApiError;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ResponseDiagnosticsSchema<E> {
+pub struct UpdateResponseSchema {
+    pub updated: bool,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiagnosticResponseSchema<E> {
     pub data: E,
     pub errors: Vec<ApiError>,
 }
