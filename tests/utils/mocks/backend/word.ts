@@ -1,13 +1,13 @@
 import { CommandNames, WordType } from "@/domain/constants";
 import { Id } from "@/interface";
-import { WordResponse, WordUpsert, ApiError } from "@/domain/schema";
+import { WordResponse, WordUpsert, BackendApiError } from "@/domain/schema";
 
 import { MockedCommand, MockedInvoker } from "./invoker";
 
 export function mockUpsertWords(
     mockedInvoker: MockedInvoker,
     wordIds: Id[] | null = null,
-    errors: ApiError[][] | null = null,
+    errors: BackendApiError[][] | null = null,
 ) {
     wordIds = wordIds ?? [];
     errors = errors ?? [];

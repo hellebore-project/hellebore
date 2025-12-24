@@ -1,10 +1,4 @@
-import {
-    EntryTextUpdateResponse,
-    EntryTitleUpdateResponse,
-    EntryUpdateResponse,
-    WordUpsertResponse,
-    DomainManager,
-} from "@/domain";
+import { WordUpsertResponse, DomainManager } from "@/domain";
 import { EventProducer } from "@/utils/event";
 
 import {
@@ -118,7 +112,7 @@ export class SynchronizationService {
     private _requestEntrySynchronization(result: PollResultEntryData) {
         const request: SyncEntryRequest = {
             id: result.id,
-            entityType: result.entityType,
+            entryType: result.entryType,
             title: result.title ?? null,
             properties: result.properties ?? null,
             text: result.text ?? null,
@@ -135,53 +129,27 @@ export class SynchronizationService {
 
     private async _synchronizeEntry({
         id,
-        entityType,
-        title,
-        properties,
-        text,
-        words,
+        entryType,
+        folderId = null,
+        title = null,
+        properties = null,
+        text = null,
+        words = null,
     }: SyncEntryRequest): Promise<SyncEntryResponse> {
-        // TODO: rework this so that the data gets sent in a single IPC call.
-        // syncing the entry via multiple IPC calls is really bad
-
-        let titleUpdateResponse: EntryTitleUpdateResponse | null = null;
-        if (typeof title === "string")
-            titleUpdateResponse = await this._domain.entries.updateTitle(
-                id,
-                title,
-            );
-
-        let textUpdateResponse: EntryTextUpdateResponse | null = null;
-        if (typeof text === "string")
-            textUpdateResponse = await this._domain.entries.updateText(
-                id,
-                text,
-            );
-
-        let propertiesResponse: EntryUpdateResponse | null = null;
-        if (properties)
-            propertiesResponse = await this._domain.entries.updateProperties(
-                id,
-                entityType,
-                properties,
-            );
+        const entryResponse = await this._domain.entries.update({
+            id,
+            entryType,
+            folderId,
+            title,
+            properties,
+            text,
+        });
 
         let lexiconResponse: WordUpsertResponse[] | null = null;
-        if (words) {
-            try {
-                lexiconResponse = await this._domain.words.bulkUpsert(words);
-            } catch (error) {
-                console.error("Failed to update lexicon.");
-                console.error(error);
-            }
-            if (lexiconResponse === null)
-                console.error("Failed to update lexicon.");
-        }
+        if (words) lexiconResponse = await this._domain.words.bulkUpsert(words);
 
         return {
-            title: titleUpdateResponse,
-            text: textUpdateResponse,
-            properties: propertiesResponse,
+            entry: entryResponse,
             lexicon: lexiconResponse,
         };
     }

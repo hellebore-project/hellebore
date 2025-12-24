@@ -3,7 +3,7 @@ import {
     EntryArticleResponse,
     EntryInfoResponse,
     EntryPropertyResponse,
-    RawEntryPropertyResponse,
+    BackendEntryPropertyResponse,
 } from "@/domain";
 import { compareStrings } from "@/utils/string";
 
@@ -21,7 +21,7 @@ export function mockGetEntryProperties(
     entry: EntryPropertyResponse,
 ) {
     const entryType = entry.info.entityType;
-    const rawResponse: RawEntryPropertyResponse = {
+    const rawResponse: BackendEntryPropertyResponse = {
         info: entry.info,
         properties: {
             [entryType]: entry.properties,

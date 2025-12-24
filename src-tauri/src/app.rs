@@ -45,6 +45,8 @@ where
         api::project::update_project,
         api::project::get_project,
         // entry API
+        api::entry::create_entry,
+        api::entry::update_entry,
         api::entry::update_entries,
         api::entry::validate_entry_title,
         api::entry::get_entry,

@@ -17,6 +17,15 @@ pub async fn create_entry(
 }
 
 #[tauri::command]
+pub async fn update_entry(
+    state: tauri::State<'_, State>,
+    entry: EntryUpdateSchema,
+) -> Result<ResponseDiagnosticsSchema<i32>, ApiError> {
+    let state = state.lock().await;
+    Ok(entry_service::update(utils::get_database(&state)?, entry).await)
+}
+
+#[tauri::command]
 pub async fn update_entries(
     state: tauri::State<'_, State>,
     entries: Vec<EntryUpdateSchema>,

@@ -1,5 +1,3 @@
-import { EntityType, ENTITY_TYPE_LABELS } from "./entity";
-
 export const CommandNames = {
     Session: {
         Get: "get_session",
@@ -20,15 +18,9 @@ export const CommandNames = {
         Delete: "delete_folder",
     },
     Entry: {
-        Create(entityType: EntityType) {
-            return `create_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
-        },
-        UpdateFolder: "update_entry_folder",
-        UpdateTitle: "update_entry_title",
-        UpdateProperties(entityType: EntityType) {
-            return `update_${ENTITY_TYPE_LABELS[entityType].toLowerCase()}`;
-        },
-        UpdateArticle: "update_entry_text",
+        Create: "create_entry",
+        Update: "update_entry",
+        BulkUpdate: "update_entries",
         GetInfo: "get_entry",
         GetProperties: "get_entry_properties",
         GetArticle: "get_entry_text",

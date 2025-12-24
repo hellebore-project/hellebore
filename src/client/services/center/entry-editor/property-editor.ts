@@ -4,7 +4,7 @@ import { makeAutoObservable, toJS } from "mobx";
 
 import {
     BaseEntity,
-    EntityType,
+    EntryType,
     PersonProperties,
     PersonProperty,
 } from "@/domain";
@@ -77,9 +77,9 @@ export class PropertyEditorService {
     }
 
     _generateFieldData(): PropertyFieldData[] {
-        const entityType = this.info.entityType as EntityType;
+        const entityType = this.info.entryType as EntryType;
         switch (entityType) {
-            case EntityType.PERSON:
+            case EntryType.Person:
                 return this._generatePersonFieldData();
         }
         return [];
@@ -106,11 +106,11 @@ export class PropertyEditorService {
 
     setProperty(key: string, value: any) {
         try {
-            if (this.info.entityType == EntityType.PERSON)
+            if (this.info.entryType == EntryType.Person)
                 this._setPersonProperty(key, value);
             else {
                 console.error(
-                    `Unable to set property ${key} for an entity of type ${this.info.entityType}.`,
+                    `Unable to set property ${key} for an entity of type ${this.info.entryType}.`,
                 );
                 return;
             }
@@ -126,8 +126,8 @@ export class PropertyEditorService {
     _setProperty(key: string, value: any) {
         let isSet = true;
 
-        switch (this.info.entityType) {
-            case EntityType.PERSON:
+        switch (this.info.entryType) {
+            case EntryType.Person:
                 this._setPersonProperty(key, value);
                 break;
 
@@ -137,7 +137,7 @@ export class PropertyEditorService {
 
         if (!isSet)
             console.error(
-                `Unable to set property ${key} for an entity of type ${this.info.entityType}.`,
+                `Unable to set property ${key} for an entity of type ${this.info.entryType}.`,
             );
     }
 

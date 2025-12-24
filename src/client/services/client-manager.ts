@@ -10,11 +10,11 @@ import {
 } from "@/client/interface";
 import { CentralViewType, ViewAction } from "@/client/constants";
 import {
-    EntityType,
     DomainManager,
     ProjectResponse,
     BulkFileResponse,
     FolderUpdateResponse,
+    EntryType,
 } from "@/domain";
 import { Id } from "@/interface";
 
@@ -178,8 +178,9 @@ export class ClientManager {
         this.modal.onCreateProject.subscribe(({ name, dbFilePath }) =>
             this.createProject(name, dbFilePath),
         );
-        this.modal.onCreateEntry.subscribe(({ entityType, title, folderId }) =>
-            this.createEntry(entityType, title, folderId),
+        this.modal.onCreateEntry.subscribe(
+            ({ entryType: entityType, title, folderId }) =>
+                this.createEntry(entityType, title, folderId),
         );
 
         this.contextMenu.onEditFolderName.subscribe(({ id }) =>
@@ -399,7 +400,7 @@ export class ClientManager {
 
     // ENTRY HANDLING
 
-    async createEntry(entityType: EntityType, title: string, folderId: Id) {
+    async createEntry(entityType: EntryType, title: string, folderId: Id) {
         const entry = await this.domain.entries.create(
             entityType,
             title,
@@ -468,8 +469,9 @@ export class ClientManager {
 
         if (
             event.request.title &&
-            event.response.title &&
-            event.response.title.isUnique
+            event.response.entry &&
+            event.response.entry.title.updated &&
+            event.response.entry.title.isUnique
         )
             this.navigation.spotlight.updateEntityNodeText(
                 event.request.id,

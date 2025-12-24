@@ -26,9 +26,9 @@ function renderEntryCreator({ service }: EntryCreatorProps) {
                     label="Entity"
                     placeholder="Select an entity type"
                     data={ENTITY_TYPE_DROPDOWN_DATA}
-                    getValue={() => service.entityType?.toString() ?? null}
+                    getValue={() => service.entryType?.toString() ?? null}
                     onChange={(entityType) =>
-                        (service.entityType = Number(entityType))
+                        (service.entryType = Number(entityType))
                     }
                     comboboxProps={{
                         portalProps: {

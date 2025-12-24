@@ -30,6 +30,7 @@ export class WordManager {
             );
         } catch (error) {
             console.error(error);
+            console.error("An error occurred during a bulk word upsert.");
             return null;
         }
 

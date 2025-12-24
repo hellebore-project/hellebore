@@ -115,6 +115,14 @@ pub async fn update(
                 errors.push(e);
             }
         }
+
+        if title.is_none() {
+            errors.push(ApiError::field_not_updated(
+                "Unable to update the title.",
+                ENTRY,
+                "title".to_owned(),
+            ));
+        }
     }
 
     let txn_result = transaction_manager::begin(database).await;

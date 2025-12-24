@@ -727,8 +727,14 @@ export class SpotlightService {
             });
             moved = response.moved;
             cancelled = response.cancelled;
-        } else
-            moved = await this._domain.entries.updateFolder(id, destParentId);
+        } else {
+            const response = await this._domain.entries.update({
+                id,
+                folderId: destParentId,
+            });
+            if (response) moved = response.folderId.updated;
+            else moved = false;
+        }
 
         if (!moved && !cancelled)
             console.error(

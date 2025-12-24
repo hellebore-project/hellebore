@@ -52,13 +52,13 @@ export class ModalManager {
         this._open(modal);
     }
 
-    openEntryCreator({ entityType, folderId }: OpenEntryCreatorEvent) {
+    openEntryCreator({ entryType, folderId }: OpenEntryCreatorEvent) {
         const modal = new EntryCreatorService();
 
         modal.fetchPortalSelector.broker = this.fetchPortalSelector;
         modal.onCreateEntry.subscriptions = this.onCreateEntry.subscriptions;
 
-        modal.initialize(entityType, folderId ?? ROOT_FOLDER_ID);
+        modal.initialize(entryType, folderId ?? ROOT_FOLDER_ID);
 
         this._open(modal);
     }

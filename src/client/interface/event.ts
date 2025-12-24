@@ -1,9 +1,7 @@
 import {
     BaseEntity,
     BulkFileResponse,
-    EntityType,
-    EntryTextUpdateResponse,
-    EntryTitleUpdateResponse,
+    EntryType,
     EntryUpdateResponse,
     FolderUpdateResponse,
     WordType,
@@ -52,7 +50,7 @@ export interface DeleteFolderEvent {
 // ENTRY EVENTS
 
 export interface CreateEntryEvent {
-    entityType: EntityType;
+    entryType: EntryType;
     title: string;
     folderId: Id;
 }
@@ -78,7 +76,7 @@ export interface PollEvent {
 
 export interface PollResultEntryData {
     id: Id;
-    entityType: EntityType;
+    entryType: EntryType;
     title?: string;
     properties?: BaseEntity;
     text?: string;
@@ -93,7 +91,8 @@ export interface PollResult {
 
 export interface SyncEntryRequest {
     id: Id;
-    entityType: EntityType;
+    entryType: EntryType;
+    folderId?: Id | null;
     title?: string | null;
     properties?: BaseEntity | null;
     text?: string | null;
@@ -101,9 +100,7 @@ export interface SyncEntryRequest {
 }
 
 export interface SyncEntryResponse {
-    title: EntryTitleUpdateResponse | null;
-    text: EntryTextUpdateResponse | null;
-    properties: EntryUpdateResponse | null;
+    entry: EntryUpdateResponse | null;
     lexicon: WordUpsertResponse[] | null;
 }
 
@@ -115,7 +112,7 @@ export interface SyncEntryEvent {
 // VIEW EVENTS
 
 export interface OpenEntryCreatorEvent {
-    entityType?: EntityType;
+    entryType?: EntryType;
     folderId?: Id;
 }
 

@@ -12,7 +12,7 @@ import {
     SyncEntryEvent,
     Word,
 } from "@/client/interface";
-import { DomainManager, EntityType, WordType } from "@/domain";
+import { DomainManager, EntryType, WordType } from "@/domain";
 import { TableOfContentsItemData } from "@/shared/table-of-contents";
 import { EventProducer } from "@/utils/event";
 
@@ -30,7 +30,7 @@ export interface EntryEditorServiceArgs {
 
 interface OpenArticleEditorArgs {
     id: Id;
-    entityType?: EntityType;
+    entryType?: EntryType;
     title?: string;
     text?: string;
 }
@@ -150,7 +150,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     }
 
     get tabData() {
-        const entryType = this.info.entityType;
+        const entryType = this.info.entryType;
 
         const tabData: TableOfContentsItemData[] = [
             this._tabData.get(
@@ -160,7 +160,7 @@ export class EntryEditorService implements ICentralPanelContentService {
                 EntryViewType.PropertyEditor,
             ) as TableOfContentsItemData,
         ];
-        if (entryType === EntityType.LANGUAGE)
+        if (entryType === EntryType.Language)
             tabData.push(
                 this._tabData.get(
                     EntryViewType.WordEditor,
@@ -236,7 +236,12 @@ export class EntryEditorService implements ICentralPanelContentService {
         throw `Unable to load view with key ${viewKey}.`;
     }
 
-    async loadArticle({ id, entityType, title, text }: OpenArticleEditorArgs) {
+    async loadArticle({
+        id,
+        entryType: entityType,
+        title,
+        text,
+    }: OpenArticleEditorArgs) {
         if (this.isArticleEditorOpen && this.info.id == id) return; // the article is already open
 
         if (!entityType || title === undefined || text === undefined) {
@@ -282,7 +287,7 @@ export class EntryEditorService implements ICentralPanelContentService {
 
         if (info !== null) {
             this.currentView = EntryViewType.WordEditor;
-            this.info.load(languageId, EntityType.LANGUAGE, info.title);
+            this.info.load(languageId, EntryType.Language, info.title);
             // FIXME: should we be awaiting on this?
             this.lexicon.load(languageId, wordType);
         }
@@ -329,11 +334,11 @@ export class EntryEditorService implements ICentralPanelContentService {
         syncText = false,
         syncLexicon = false,
     }: PollEvent): PollResultEntryData | null {
-        if (this.info.id === null || this.info.entityType === null) return null;
+        if (this.info.id === null || this.info.entryType === null) return null;
 
         const entry: PollResultEntryData = {
             id: this.info.id,
-            entityType: this.info.entityType,
+            entryType: this.info.entryType,
         };
 
         if (syncTitle && this.info.titleChanged && this.info.isTitleValid)
@@ -358,16 +363,18 @@ export class EntryEditorService implements ICentralPanelContentService {
     handleSynchronization({ request, response }: SyncEntryEvent) {
         if (this.info.id != request.id) return;
 
-        if (response.title && response.title.updated) {
-            this.info.isTitleUnique = response.title.isUnique ?? true;
-            this.info.titleChanged = false;
+        if (response.entry) {
+            if (response.entry.title && response.entry.title.updated) {
+                this.info.isTitleUnique = response.entry.title.isUnique ?? true;
+                this.info.titleChanged = false;
+            }
+
+            if (response.entry.properties && response.entry.properties.updated)
+                this.properties.changed = false;
+
+            if (response.entry.text && response.entry.text.updated)
+                this.article.changed = false;
         }
-
-        if (response.properties && response.properties.updated)
-            this.properties.changed = false;
-
-        if (response.text && response.text.updated)
-            this.article.changed = false;
 
         if (request.words && response.lexicon) {
             const wordResponses = response.lexicon;

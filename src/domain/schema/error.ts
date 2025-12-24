@@ -15,7 +15,7 @@ export enum DomainErrorType {
     PROJECT_NOT_LOADED = "ProjectNotLoaded",
 }
 
-export type ApiError = Record<DomainErrorType, object>;
+export type BackendApiError = Record<DomainErrorType, object>;
 
 export interface BaseDomainError {
     type: DomainErrorType;
