@@ -4,7 +4,6 @@ import {
     BackendEntryPropertyResponse,
     BaseEntity,
     CommandNames,
-    EntityType,
     ENTRY_TYPE_LABEL_MAPPING,
     EntryArticleResponse,
     EntryInfoResponse,
@@ -21,13 +20,6 @@ import {
     BackendEntryUpdate,
 } from "@/domain";
 import { Id } from "@/interface";
-
-import {
-    is_field_non_unique,
-    is_field_not_updated,
-    is_table_not_updated,
-    process_backend_api_error,
-} from "./error-handler";
 
 export class EntryManager {
     async create(
@@ -64,7 +56,7 @@ export class EntryManager {
         properties = null,
         text = null,
     }: EntryUpdate<E>): Promise<EntryUpdateResponse | null> {
-        let response: DiagnosticResponse<Id>;
+        let response: DiagnosticResponse<EntryUpdateResponse>;
 
         try {
             response = await this._update({
@@ -80,40 +72,13 @@ export class EntryManager {
             return null;
         }
 
-        return this._createUpdateResponse(response);
-    }
-
-    private _createUpdateResponse(response: DiagnosticResponse<Id>) {
-        const cleanResponse: EntryUpdateResponse = {
-            id: response.data,
-            folderId: { updated: true },
-            title: { updated: true, isUnique: true },
-            properties: { updated: true },
-            text: { updated: true },
-        };
-
-        for (const error of response.errors) {
-            const processed_error = process_backend_api_error(error);
-            if (is_field_non_unique(processed_error, EntityType.ENTRY, "title"))
-                cleanResponse.title.isUnique = false;
-            else if (
-                is_field_not_updated(processed_error, EntityType.ENTRY, "title")
-            )
-                cleanResponse.title.updated = false;
-            else if (is_table_not_updated(processed_error, EntityType.ENTRY)) {
-                cleanResponse.title.updated = false;
-                cleanResponse.folderId.updated = false;
-                cleanResponse.text.updated = false;
-            }
-        }
-
-        return cleanResponse;
+        return response.data;
     }
 
     async bulkUpdate<E extends BaseEntity>(
         entries: EntryUpdate<E>[],
     ): Promise<EntryUpdateResponse[]> {
-        let responses: DiagnosticResponse<Id>[];
+        let responses: DiagnosticResponse<EntryUpdateResponse>[];
 
         try {
             responses = await this._bulkUpdate(entries);
@@ -122,7 +87,7 @@ export class EntryManager {
             return [];
         }
 
-        return responses.map((r) => this._createUpdateResponse(r));
+        return responses.map((r) => r.data);
     }
 
     async get(id: Id): Promise<EntryInfoResponse | null> {
@@ -268,7 +233,7 @@ export class EntryManager {
     async _update<E extends BaseEntity>(entry: EntryUpdate<E>) {
         const entryPayload = this._createUpdateRequestPayload(entry);
         const payload = { entry: entryPayload };
-        return invoke<DiagnosticResponse<Id>>(
+        return invoke<DiagnosticResponse<EntryUpdateResponse>>(
             CommandNames.Entry.Update,
             payload,
         );
@@ -279,7 +244,7 @@ export class EntryManager {
             this._createUpdateRequestPayload(entry),
         );
         const payload = { entries: entryPayloads };
-        return invoke<DiagnosticResponse<Id>[]>(
+        return invoke<DiagnosticResponse<EntryUpdateResponse>[]>(
             CommandNames.Entry.BulkUpdate,
             payload,
         );
