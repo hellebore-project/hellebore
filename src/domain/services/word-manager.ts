@@ -1,22 +1,21 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import { CommandNames, WordType } from "@/domain/constants";
-import { Id } from "@/interface";
 import {
+    BackendWordUpsertResponse,
     DiagnosticResponse,
     WordResponse,
     WordUpsert,
     WordUpsertResponse,
 } from "@/domain";
 
-type _UpsertWordResponse = DiagnosticResponse<Id | null>;
-type _BulkUpsertWordsResponse = _UpsertWordResponse[];
+type _WordBulkUpsertResponse = DiagnosticResponse<BackendWordUpsertResponse>[];
 
 export class WordManager {
     async bulkUpsert(
         words: WordUpsert[],
     ): Promise<WordUpsertResponse[] | null> {
-        let responses: _BulkUpsertWordsResponse;
+        let responses: _WordBulkUpsertResponse;
         try {
             responses = await this._bulkUpsertWords(
                 words.map((word) => ({
@@ -64,23 +63,13 @@ export class WordManager {
 
     private _buildUpsertResponse(
         upsertPayload: WordUpsert,
-        rawResponse: DiagnosticResponse<Id | null>,
+        rawResponse: DiagnosticResponse<BackendWordUpsertResponse>,
     ): WordUpsertResponse {
         let id = upsertPayload.id;
-        let created = false;
-        let updated = false;
+        if (rawResponse.data.id !== null) id = rawResponse.data.id;
 
-        if (id == null) {
-            id = rawResponse.data;
-            created = id != null;
-        } else updated = rawResponse.data != null;
-
-        if (rawResponse.data !== null) {
-            // upsert was successful
-            id = rawResponse.data;
-            if (upsertPayload.id === null) created = true;
-            else updated = true;
-        }
+        const created = rawResponse.data.status.created;
+        const updated = rawResponse.data.status.updated;
 
         return {
             ...upsertPayload,
@@ -92,8 +81,8 @@ export class WordManager {
 
     async _bulkUpsertWords(
         words: WordUpsert[],
-    ): Promise<_BulkUpsertWordsResponse> {
-        return invoke<_BulkUpsertWordsResponse>(CommandNames.Word.BulkUpsert, {
+    ): Promise<_WordBulkUpsertResponse> {
+        return invoke<_WordBulkUpsertResponse>(CommandNames.Word.BulkUpsert, {
             words,
         });
     }

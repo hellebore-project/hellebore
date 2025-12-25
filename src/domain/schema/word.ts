@@ -21,5 +21,13 @@ export interface WordUpsertResponse extends WordUpsert {
     updated: boolean;
 }
 
+export interface BackendWordUpsertResponse {
+    id: Id | null;
+    status: {
+        created: boolean;
+        updated: boolean;
+    };
+}
+
 // Interfaces for fetching words
 export type WordResponse = IdentifiedWordInfo & WordProperties;

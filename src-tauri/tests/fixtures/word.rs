@@ -1,7 +1,7 @@
 use rstest::*;
 
 use hellebore::{
-    schema::word::{WordResponseSchema, WordUpdateSchema},
+    schema::word::{WordResponseSchema, WordUpsertSchema},
     types::grammar::WordType,
 };
 
@@ -31,8 +31,8 @@ pub fn create_word_payload(
     word_spelling: String,
     word_definition: String,
     word_translations: Vec<String>,
-) -> WordUpdateSchema {
-    WordUpdateSchema {
+) -> WordUpsertSchema {
+    WordUpsertSchema {
         id: None,
         language_id: Some(1),
         word_type: Some(word_type),

@@ -12,7 +12,7 @@ use hellebore::{
     database::{language_manager, word_manager},
     schema::{
         entry::EntryCreateSchema,
-        word::{WordResponseSchema, WordUpdateSchema},
+        word::{WordResponseSchema, WordUpsertSchema},
     },
     services::{entry_service, word_service},
     settings::Settings,
@@ -35,7 +35,7 @@ fn validate_word_response(actual: &WordResponseSchema, expected: &WordResponseSc
 async fn test_create_word(
     settings: &Settings,
     create_language_payload: EntryCreateSchema,
-    mut create_word_payload: WordUpdateSchema,
+    mut create_word_payload: WordUpsertSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
     let db = database(settings).await;
@@ -52,10 +52,12 @@ async fn test_create_word(
     assert_eq!(responses.len(), 1);
 
     let response = responses.get(0).unwrap();
-    assert!(response.data.is_some());
+    assert!(response.data.id.is_some());
+    assert!(response.data.status.created);
+    assert!(!response.data.status.updated);
     assert!(response.errors.is_empty());
 
-    let id = response.data.unwrap();
+    let id = response.data.id.unwrap();
     let word = word_service::get(&db, id).await.unwrap();
 
     expected_word_response.id = id;
@@ -68,7 +70,7 @@ async fn test_create_word(
 async fn test_create_duplicate_word(
     settings: &Settings,
     create_language_payload: EntryCreateSchema,
-    mut create_word_payload: WordUpdateSchema,
+    mut create_word_payload: WordUpsertSchema,
 ) {
     let db = database(settings).await;
     let language = entry_service::create(&db, create_language_payload)
@@ -99,7 +101,7 @@ async fn test_create_duplicate_word(
 #[tokio::test]
 async fn test_update_word(
     settings: &Settings,
-    mut create_word_payload: WordUpdateSchema,
+    mut create_word_payload: WordUpsertSchema,
     create_language_payload: EntryCreateSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
@@ -114,7 +116,7 @@ async fn test_update_word(
     let new_spelling = "conducteur";
     let new_definition = "Pilot or operator of a vehicle.";
     let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
-    let update_payload = WordUpdateSchema {
+    let update_payload = WordUpsertSchema {
         id: Some(id),
         language_id: None,
         word_type: None,
@@ -128,6 +130,8 @@ async fn test_update_word(
 
     let responses = responses.unwrap();
     let response = responses.get(0).unwrap();
+    assert!(!response.data.status.created);
+    assert!(response.data.status.updated);
     assert!(response.errors.is_empty());
 
     let word = word_service::get(&db, id).await;
@@ -158,7 +162,7 @@ async fn test_error_on_updating_nonexistent_word(
     let new_spelling = "conducteur";
     let new_definition = "Pilot or operator of a vehicle.";
     let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
-    let update_payload = WordUpdateSchema {
+    let update_payload = WordUpsertSchema {
         id: Some(1),
         language_id: Some(language.id),
         word_type: None,
@@ -180,7 +184,7 @@ async fn test_error_on_updating_nonexistent_word(
 async fn test_get_word(
     settings: &Settings,
     create_language_payload: EntryCreateSchema,
-    mut create_word_payload: WordUpdateSchema,
+    mut create_word_payload: WordUpsertSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
     let db = database(settings).await;
@@ -221,7 +225,7 @@ async fn test_get_all_words_for_a_language(
         .await
         .unwrap();
 
-    let create_payload_1 = WordUpdateSchema {
+    let create_payload_1 = WordUpsertSchema {
         language_id: Some(language.id),
         word_type: Some(WordType::Noun),
         spelling: Some("rue".to_owned()),
@@ -230,7 +234,7 @@ async fn test_get_all_words_for_a_language(
     };
     let id_1 = upsert_word(&db, &create_payload_1).await.unwrap();
 
-    let create_payload_2 = WordUpdateSchema {
+    let create_payload_2 = WordUpsertSchema {
         language_id: Some(language.id),
         word_type: Some(WordType::Verb),
         spelling: Some("conduire".to_owned()),
@@ -262,7 +266,7 @@ async fn test_get_all_words_for_a_language(
 async fn test_delete_word(
     settings: &Settings,
     create_language_payload: EntryCreateSchema,
-    mut create_word_payload: WordUpdateSchema,
+    mut create_word_payload: WordUpsertSchema,
 ) {
     let db = database(settings).await;
     let language = entry_service::create(&db, create_language_payload)
@@ -289,7 +293,7 @@ async fn test_error_on_deleting_nonexistent_word(settings: &Settings) {
 async fn test_all_words_deleted_on_delete_language(
     settings: &Settings,
     create_language_payload: EntryCreateSchema,
-    mut create_word_payload: WordUpdateSchema,
+    mut create_word_payload: WordUpsertSchema,
 ) {
     let db = database(settings).await;
 

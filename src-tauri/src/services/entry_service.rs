@@ -133,11 +133,7 @@ pub async fn update(
         }
     }
 
-    let txn_result = _update(database, entry, &mut response, &mut errors).await;
-    if let Err(e) = txn_result {
-        response.set_updated(false);
-        errors.push(e);
-    }
+    _update(database, entry, &mut response, &mut errors).await;
 
     DiagnosticResponseSchema {
         data: response,
@@ -150,11 +146,9 @@ async fn _update(
     entry: EntryUpdateSchema,
     response: &mut EntryUpdateResponseSchema,
     errors: &mut Vec<ApiError>,
-) -> Result<(), ApiError> {
-    let txn = transaction_manager::begin(database).await?;
-
+) {
     let update_result =
-        entry_manager::update(&txn, entry.id, entry.folder_id, entry.title, entry.text)
+        entry_manager::update(database, entry.id, entry.folder_id, entry.title, entry.text)
             .await
             .map(|_| ())
             .map_err(|e| ApiError::not_updated(e, ENTRY));
@@ -167,17 +161,13 @@ async fn _update(
     }
 
     if let Some(property_values) = entry.properties {
-        let update_prop_result = _update_properties(&txn, entry.id, &property_values).await;
+        let update_prop_result = _update_properties(database, entry.id, &property_values).await;
 
         if let Err(e) = update_prop_result {
             response.properties.updated = false;
             errors.push(e);
         }
     }
-
-    transaction_manager::end(txn).await?;
-
-    Ok(())
 }
 
 async fn _update_properties<C>(

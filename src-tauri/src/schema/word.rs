@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{types::grammar::WordType, utils::value_or_default};
+use crate::{
+    schema::common::UpsertResponseSchema, types::grammar::WordType, utils::value_or_default,
+};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct WordUpdateSchema {
+pub struct WordUpsertSchema {
     pub id: Option<i32>,
     pub language_id: Option<i32>,
     pub word_type: Option<WordType>,
@@ -13,7 +15,7 @@ pub struct WordUpdateSchema {
     pub translations: Option<Vec<String>>,
 }
 
-impl WordUpdateSchema {
+impl WordUpsertSchema {
     pub fn to_response(&self) -> WordResponseSchema {
         WordResponseSchema {
             id: value_or_default(self.id),
@@ -22,6 +24,25 @@ impl WordUpdateSchema {
             spelling: value_or_default(self.spelling.clone()),
             definition: value_or_default(self.definition.clone()),
             translations: value_or_default(self.translations.clone()),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WordUpsertResponseSchema {
+    pub id: Option<i32>,
+    pub status: UpsertResponseSchema,
+}
+
+impl WordUpsertResponseSchema {
+    pub fn new(word: &WordUpsertSchema) -> Self {
+        WordUpsertResponseSchema {
+            id: word.id,
+            status: UpsertResponseSchema {
+                created: word.id.is_none(),
+                updated: word.id.is_some(),
+            },
         }
     }
 }
