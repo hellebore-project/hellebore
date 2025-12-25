@@ -57,7 +57,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     onOpenReferencedEntry: EventProducer<OpenEntryEditorEvent, unknown>;
     onChange: EventProducer<ChangeEntryEvent, unknown>;
     onPartialChange: EventProducer<ChangeEntryEvent, unknown>;
-    onChangeDelayed: EventProducer<ChangeEntryEvent, unknown>;
+    onPeriodicChange: EventProducer<ChangeEntryEvent, unknown>;
     onDelete: EventProducer<DeleteEntryEvent, unknown>;
 
     constructor({ domain, wordEditor }: EntryEditorServiceArgs) {
@@ -83,7 +83,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.onOpenReferencedEntry = new EventProducer();
         this.onChange = new EventProducer();
         this.onPartialChange = new EventProducer();
-        this.onChangeDelayed = new EventProducer();
+        this.onPeriodicChange = new EventProducer();
         this.onDelete = new EventProducer();
 
         makeAutoObservable<EntryEditorService, PrivateKeys>(this, {
@@ -96,7 +96,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             onOpenReferencedEntry: false,
             onChange: false,
             onPartialChange: false,
-            onChangeDelayed: false,
+            onPeriodicChange: false,
             onDelete: false,
         });
 
@@ -205,10 +205,10 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.info.fetchPortalSelector.broker = this.fetchPortalSelector;
         this.info.onChangeTitle.broker = this.onPartialChange;
 
-        this.article.onChange.broker = this.onChangeDelayed;
+        this.article.onChange.broker = this.onPeriodicChange;
         this.article.onSelectReference.broker = this.onOpenReferencedEntry;
 
-        this.properties.onChange.broker = this.onChangeDelayed;
+        this.properties.onChange.broker = this.onPeriodicChange;
 
         this.lexicon.fetchPortalSelector.broker = this.fetchPortalSelector;
         this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) => {
@@ -217,7 +217,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             this.onChange.produce({ id: languageId });
             this.loadLexicon(languageId, wordType);
         });
-        this.lexicon.onChange.broker = this.onChangeDelayed;
+        this.lexicon.onChange.broker = this.onPeriodicChange;
     }
 
     // LOADING
@@ -322,19 +322,22 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.onOpenReferencedEntry.broker = null;
         this.onChange.broker = null;
         this.onPartialChange.broker = null;
-        this.onChangeDelayed.broker = null;
+        this.onPeriodicChange.broker = null;
         this.onDelete.broker = null;
     }
 
     // SYNC
 
     fetchChanges({
+        id = null,
         syncTitle = false,
         syncProperties = false,
         syncText = false,
         syncLexicon = false,
     }: PollEvent): PollResultEntryData | null {
         if (this.info.id === null || this.info.entryType === null) return null;
+
+        if (id !== null && this.info.id !== id) return null;
 
         const entry: PollResultEntryData = {
             id: this.info.id,
@@ -360,36 +363,42 @@ export class EntryEditorService implements ICentralPanelContentService {
         return entry;
     }
 
-    handleSynchronization({ request, response }: SyncEntryEvent) {
-        if (this.info.id != request.id) return;
+    handleSynchronization(events: SyncEntryEvent[]) {
+        for (const { request, response } of events) {
+            if (this.info.id != request.id) return;
 
-        if (response.entry) {
-            if (response.entry.title && response.entry.title.updated) {
-                this.info.isTitleUnique = response.entry.title.isUnique ?? true;
-                this.info.titleChanged = false;
+            if (response.entry) {
+                if (response.entry.title && response.entry.title.updated) {
+                    this.info.isTitleUnique =
+                        response.entry.title.isUnique ?? true;
+                    this.info.titleChanged = false;
+                }
+
+                if (
+                    response.entry.properties &&
+                    response.entry.properties.updated
+                )
+                    this.properties.changed = false;
+
+                if (response.entry.text && response.entry.text.updated)
+                    this.article.changed = false;
             }
 
-            if (response.entry.properties && response.entry.properties.updated)
-                this.properties.changed = false;
+            if (request.words && response.lexicon) {
+                const wordResponses = response.lexicon;
 
-            if (response.entry.text && response.entry.text.updated)
-                this.article.changed = false;
-        }
+                const words: Word[] = request.words.map((word, i) => {
+                    const wordResponse = wordResponses[i];
+                    return {
+                        ...word,
+                        id: wordResponse.id,
+                        created: wordResponse.created,
+                        updated: wordResponse.updated,
+                    };
+                });
 
-        if (request.words && response.lexicon) {
-            const wordResponses = response.lexicon;
-
-            const words: Word[] = request.words.map((word, i) => {
-                const wordResponse = wordResponses[i];
-                return {
-                    ...word,
-                    id: wordResponse.id,
-                    created: wordResponse.created,
-                    updated: wordResponse.updated,
-                };
-            });
-
-            this.lexicon.afterSync(words);
+                this.lexicon.afterSync(words);
+            }
         }
     }
 

@@ -77,14 +77,14 @@ export class EntryManager {
 
     async bulkUpdate<E extends BaseEntity>(
         entries: EntryUpdate<E>[],
-    ): Promise<EntryUpdateResponse[]> {
+    ): Promise<EntryUpdateResponse[] | null> {
         let responses: DiagnosticResponse<EntryUpdateResponse>[];
 
         try {
             responses = await this._bulkUpdate(entries);
         } catch (error) {
             console.error(error);
-            return [];
+            return null;
         }
 
         return responses.map((r) => r.data);

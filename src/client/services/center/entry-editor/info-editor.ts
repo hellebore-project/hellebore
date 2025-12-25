@@ -62,7 +62,10 @@ export class EntryInfoService {
 
         // the sync will be happen immediately so that the title can validated in real-time;
         // to speed things up, we only sycn the title
-        this.onChangeTitle.produce({ id: this._id, poll: { syncTitle: true } });
+        this.onChangeTitle.produce({
+            id: this._id,
+            poll: { id: this._id, syncTitle: true },
+        });
     }
 
     get isTitleUnique() {

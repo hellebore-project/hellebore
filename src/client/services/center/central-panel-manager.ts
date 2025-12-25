@@ -8,7 +8,7 @@ import {
     ICentralPanelContentService,
     OpenEntryEditorEvent,
     PollEvent,
-    SyncEntryEvent,
+    SyncEvent,
     WordMetaData,
 } from "@/client/interface";
 import { DomainManager } from "@/domain";
@@ -57,7 +57,7 @@ export class CentralPanelManager {
     onChangePanel: EventProducer<ChangeCentralPanelEvent, unknown>;
     onChangeData: EventProducer<ChangeEntryEvent, unknown>;
     onPartialChangeData: EventProducer<ChangeEntryEvent, unknown>;
-    onChangeDataDelayed: EventProducer<ChangeEntryEvent, unknown>;
+    onPeriodicChangeData: EventProducer<ChangeEntryEvent, unknown>;
     onDeleteEntry: EventProducer<DeleteEntryEvent, unknown>;
 
     constructor({ domain }: CentralPanelManagerArgs) {
@@ -80,7 +80,7 @@ export class CentralPanelManager {
         this.onChangePanel = new EventProducer();
         this.onChangeData = new EventProducer();
         this.onPartialChangeData = new EventProducer();
-        this.onChangeDataDelayed = new EventProducer();
+        this.onPeriodicChangeData = new EventProducer();
         this.onDeleteEntry = new EventProducer();
 
         makeAutoObservable<CentralPanelManager, PrivateKeys>(this, {
@@ -92,7 +92,7 @@ export class CentralPanelManager {
             onChangePanel: false,
             onChangeData: false,
             onPartialChangeData: false,
-            onChangeDataDelayed: false,
+            onPeriodicChangeData: false,
             onDeleteEntry: false,
             // NOTE: mobx's makeAutoObserable infers generator methods as flows
             iterateOpenPanels: false,
@@ -164,7 +164,7 @@ export class CentralPanelManager {
         );
         service.onChange.broker = this.onChangeData;
         service.onPartialChange.broker = this.onPartialChangeData;
-        service.onChangeDelayed.broker = this.onChangeDataDelayed;
+        service.onPeriodicChange.broker = this.onPeriodicChangeData;
         service.onDelete.broker = this.onDeleteEntry;
 
         // NOTE: the entry-editor service needs to finish loading before we can proceed with
@@ -313,12 +313,12 @@ export class CentralPanelManager {
         return results;
     }
 
-    handleEntrySynchronization(event: SyncEntryEvent) {
+    handleEntrySynchronization(event: SyncEvent) {
         for (const service of this._panelServices.values()) {
             if (service.type !== CentralViewType.EntryEditor) continue;
 
             const entryEditor = service as EntryEditorService;
-            entryEditor.handleSynchronization(event);
+            entryEditor.handleSynchronization(event.entries);
         }
     }
 

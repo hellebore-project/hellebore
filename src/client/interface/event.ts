@@ -68,6 +68,7 @@ export interface DeleteEntryEvent {
 // POLLING
 
 export interface PollEvent {
+    id?: Id | null;
     syncTitle?: boolean;
     syncProperties?: boolean;
     syncText?: boolean;
@@ -107,6 +108,10 @@ export interface SyncEntryResponse {
 export interface SyncEntryEvent {
     request: SyncEntryRequest;
     response: SyncEntryResponse;
+}
+
+export interface SyncEvent {
+    entries: SyncEntryEvent[];
 }
 
 // VIEW EVENTS

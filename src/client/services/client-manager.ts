@@ -6,7 +6,7 @@ import {
     MoveFolderEvent,
     MoveFolderResult,
     PollEvent,
-    SyncEntryEvent,
+    SyncEvent,
 } from "@/client/interface";
 import { CentralViewType, ViewAction } from "@/client/constants";
 import {
@@ -130,8 +130,8 @@ export class ClientManager {
         this.central.onPartialChangeData.subscribe(({ poll }) =>
             this.synchronizer.requestSynchronization(poll ?? {}),
         );
-        this.central.onChangeDataDelayed.subscribe(() =>
-            this.synchronizer.requestDelayedSynchronization(),
+        this.central.onPeriodicChangeData.subscribe(() =>
+            this.synchronizer.requestPeriodicSynchronization(),
         );
         this.central.onDeleteEntry.subscribe(({ id, title }) =>
             this.deleteEntry(id, title),
@@ -196,7 +196,7 @@ export class ClientManager {
         this.synchronizer.onPoll.subscribe((event) =>
             this._fetchChanges(event),
         );
-        this.synchronizer.onSyncEntry.subscribe((event) =>
+        this.synchronizer.onSync.subscribe((event) =>
             this._handleEntrySynchronization(event),
         );
     }
@@ -464,19 +464,21 @@ export class ClientManager {
         return { entries: this.central.fetchChanges(event) };
     }
 
-    private _handleEntrySynchronization(event: SyncEntryEvent) {
+    private _handleEntrySynchronization(event: SyncEvent) {
         this.central.handleEntrySynchronization(event);
 
-        if (
-            event.request.title &&
-            event.response.entry &&
-            event.response.entry.title.updated &&
-            event.response.entry.title.isUnique
-        )
-            this.navigation.spotlight.updateEntityNodeText(
-                event.request.id,
-                event.request.title,
-            );
+        for (const { request, response } of event.entries) {
+            if (
+                request.title &&
+                response.entry &&
+                response.entry.title.updated &&
+                response.entry.title.isUnique
+            )
+                this.navigation.spotlight.updateEntityNodeText(
+                    request.id,
+                    request.title,
+                );
+        }
     }
 
     // HOOKS

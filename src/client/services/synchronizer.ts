@@ -1,69 +1,67 @@
-import { WordUpsertResponse, DomainManager } from "@/domain";
+import { DomainManager } from "@/domain";
 import { EventProducer } from "@/utils/event";
 
 import {
     PollEvent,
     PollResult,
-    PollResultEntryData,
     SyncEntryEvent,
     SyncEntryRequest,
-    SyncEntryResponse,
+    SyncEvent,
 } from "../interface";
 
 export class SynchronizationService {
-    readonly DEFAULT_SYNC_DELAY_TIME = 5000;
+    readonly DEFAULT_SYNC_PERIOD = 5000;
 
     private _waitingForSync = false;
     private _syncing = false;
-    private _lastRequested = 0;
-    private _lastSynced = 0;
+    private _lastFullRequestTime = 0;
+    private _lastFullSyncTime = 0;
 
     private _domain: DomainManager;
 
     onPoll: EventProducer<PollEvent, PollResult>;
-    onSyncEntry: EventProducer<SyncEntryEvent, void>;
+    onSync: EventProducer<SyncEvent, void>;
 
     constructor(domain: DomainManager) {
         this._domain = domain;
 
         this.onPoll = new EventProducer();
-        this.onSyncEntry = new EventProducer();
+        this.onSync = new EventProducer();
     }
 
-    get syncDelayTime() {
-        return this.DEFAULT_SYNC_DELAY_TIME;
+    get syncPeriod() {
+        return this.DEFAULT_SYNC_PERIOD;
     }
 
-    requestDelayedSynchronization() {
-        this._lastRequested = Date.now();
+    requestPeriodicSynchronization() {
+        this._lastFullRequestTime = Date.now();
 
         if (this._waitingForSync) return;
         this._waitingForSync = true;
 
-        this._requestDelayedSynchronization().finally(
+        this._requestPeriodicSynchronization().finally(
             () => (this._waitingForSync = false),
         );
     }
 
-    private async _requestDelayedSynchronization() {
-        // we don't want too many IPC calls being the backend,
+    private async _requestPeriodicSynchronization(): Promise<SyncEvent | null> {
+        // we don't want too many IPC calls being sent to the backend,
         // so we space them out via a debouncer
         while (true) {
-            await new Promise((r) => setTimeout(r, this.syncDelayTime));
-            if (this._lastSynced > this._lastRequested) return false;
-            if (Date.now() - this._lastRequested < this.syncDelayTime) continue;
+            await new Promise((r) => setTimeout(r, this.syncPeriod));
+            if (this._lastFullSyncTime > this._lastFullRequestTime) return null;
+            if (Date.now() - this._lastFullRequestTime < this.syncPeriod)
+                continue;
             if (this._syncing) continue;
             break;
         }
 
         // when requesting a delayed synchronization, all data has to be retrieved
         // since there's no guarantee that the request will get picked up due to the debouncer
-        this.requestFullSynchronization();
-
-        return true;
+        return this.requestFullSynchronization();
     }
 
-    requestFullSynchronization(): Promise<boolean>[] {
+    async requestFullSynchronization(): Promise<SyncEvent | null> {
         return this.requestSynchronization({
             syncTitle: true,
             syncText: true,
@@ -72,85 +70,91 @@ export class SynchronizationService {
         });
     }
 
+    /**
+     * Immediately fetches modified view data and creates a request to push it to the backend.
+     * This method must be synchronous to guarantee that the view data has been fetched by
+     * the time the method terminates.
+     * @returns promise that returns the sync event or null if the request is skipped
+     */
     requestSynchronization({
+        id = null,
         syncTitle = false,
         syncProperties = false,
         syncText = false,
         syncLexicon = false,
-    }: PollEvent): Promise<boolean>[] {
-        // this method has to run synchronously;
-        // we need to guarantee that the sync request is submitted before the method exits
-
+    }: PollEvent): Promise<SyncEvent | null> {
         if (!syncTitle && !syncProperties && !syncText && !syncLexicon)
-            return [];
+            return new Promise(() => null);
 
-        const [result] = this.onPoll.produce({
+        const result = this.onPoll.produceOne({
+            id,
             syncTitle,
             syncProperties,
             syncText,
             syncLexicon,
         });
 
-        if (result.entries.length == 0) return [];
+        if (result.entries.length == 0) return new Promise(() => null);
 
-        // the last synced time corresponds to the moment that the view data is retrieved
-        this._lastSynced = Date.now();
+        if (
+            id === null &&
+            syncTitle &&
+            syncProperties &&
+            syncText &&
+            syncLexicon
+        )
+            // the last sync time corresponds to the moment that the view data is retrieved
+            this._lastFullSyncTime = Date.now();
+
         // the syncing flag is set to true as soon as the request is prepared;
         // this forces the delayed sync event to be delayed until the current sync event is handled
         this._syncing = true;
         // the waiting-for-sync flag is set to false to permit the creation of a delayed sync event
         this._waitingForSync = false;
 
-        const syncPromises: Promise<boolean>[] = [];
-
-        for (const entryResult of result.entries)
-            syncPromises.push(this._requestEntrySynchronization(entryResult));
-
-        return syncPromises;
-    }
-
-    private _requestEntrySynchronization(result: PollResultEntryData) {
-        const request: SyncEntryRequest = {
+        const requests: SyncEntryRequest[] = result.entries.map((result) => ({
             id: result.id,
             entryType: result.entryType,
             title: result.title ?? null,
             properties: result.properties ?? null,
             text: result.text ?? null,
             words: result.words ?? null,
-        };
+        }));
 
-        return this._synchronizeEntry(request).then((response) => {
+        return this._synchronize(requests).then((events) => {
             this._syncing = false;
-            if (!response) return false;
-            this.onSyncEntry.produce({ request, response });
-            return true;
+            const event = { entries: events };
+            this.onSync.produce(event);
+            return event;
         });
     }
 
-    private async _synchronizeEntry({
-        id,
-        entryType,
-        folderId = null,
-        title = null,
-        properties = null,
-        text = null,
-        words = null,
-    }: SyncEntryRequest): Promise<SyncEntryResponse> {
-        const entryResponse = await this._domain.entries.update({
-            id,
-            entryType,
-            folderId,
-            title,
-            properties,
-            text,
-        });
+    private async _synchronize(
+        requests: SyncEntryRequest[],
+    ): Promise<SyncEntryEvent[]> {
+        const events: SyncEntryEvent[] = requests.map((r) => ({
+            request: r,
+            response: {
+                entry: null,
+                lexicon: null,
+            },
+        }));
 
-        let lexiconResponse: WordUpsertResponse[] | null = null;
-        if (words) lexiconResponse = await this._domain.words.bulkUpsert(words);
+        const entryResponses = await this._domain.entries.bulkUpdate(requests);
+        if (entryResponses) {
+            for (let i = 0; i < events.length; i++)
+                events[i].response.entry = entryResponses[i];
+        }
 
-        return {
-            entry: entryResponse,
-            lexicon: lexiconResponse,
-        };
+        for (const event of events) {
+            if (event.request.words) {
+                const lexiconResponse = await this._domain.words.bulkUpsert(
+                    event.request.words,
+                );
+                event.response.lexicon = lexiconResponse;
+            }
+        }
+
+        return events;
     }
 }
