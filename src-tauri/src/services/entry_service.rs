@@ -13,7 +13,7 @@ use crate::schema::{
         EntryPropertyResponseSchema, EntryUpdateResponseSchema, EntryUpdateSchema,
     },
 };
-use crate::services::{language_service, person_service};
+use crate::services::{language_service, person_service, word_service};
 use crate::types::entity::{ENTRY, EntityType};
 
 pub async fn create(
@@ -166,6 +166,22 @@ async fn _update(
         if let Err(e) = update_prop_result {
             response.properties.updated = false;
             errors.push(e);
+        }
+    }
+
+    if let Some(word_values) = entry.words {
+        let upsert_word_results = word_service::bulk_upsert(database, word_values).await;
+
+        match upsert_word_results {
+            Ok(upsert_word_responses) => {
+                for upsert_word_response in upsert_word_responses.into_iter() {
+                    response.words.push(upsert_word_response.data);
+                    errors.extend(upsert_word_response.errors);
+                }
+            }
+            Err(e) => {
+                errors.push(e);
+            }
         }
     }
 }

@@ -54,7 +54,7 @@ where
         language_id: utils::set_optional_value(language_id),
         word_type: utils::set_optional_type(word_type),
         spelling: utils::set_optional_value(spelling),
-        definition: utils::set_value_or_default(definition),
+        definition: utils::set_optional_value(definition),
         translations,
     };
     updated_entity.update(con).await

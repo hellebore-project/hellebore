@@ -1,10 +1,5 @@
-use ::entity::entry::Model as EntryModel;
 use hellebore::{
-    database::file_manager,
-    schema::{
-        entry::{EntryInfoResponseSchema, EntryUpdateSchema},
-        folder::FolderCreateSchema,
-    },
+    schema::{entry::EntryUpdateSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
     types::entity::ENTRY,
@@ -14,60 +9,38 @@ use rstest::*;
 use crate::{
     fixtures::{
         database,
-        entry::{entry_text, update_entry_payload},
+        entry::{entry_text, entry_title, update_entry_payload},
         folder::{folder_create_payload, folder_id},
         settings,
     },
-    utils::query::get_entry,
+    utils::{
+        query::get_entry,
+        validation::{validate_entry_model, validate_generic_entry_info_response},
+    },
 };
-
-fn validate_model(entry: &EntryModel, id: Option<i32>, folder_id: i32, title: &str, text: &str) {
-    if id.is_some() {
-        assert_eq!(id.unwrap(), entry.id);
-    }
-    assert_eq!(
-        folder_id,
-        file_manager::convert_null_folder_id_to_root(entry.folder_id)
-    );
-    assert_eq!(title, entry.title);
-    assert_eq!(text, entry.text);
-}
-
-fn validate_info_response(
-    entry: &EntryInfoResponseSchema,
-    id: Option<i32>,
-    folder_id: i32,
-    title: &str,
-) {
-    if id.is_some() {
-        assert_eq!(id.unwrap(), entry.id);
-    }
-    assert_eq!(folder_id, entry.folder_id);
-    assert_eq!(title, entry.title);
-}
-
-#[fixture]
-fn title() -> String {
-    "Entry".to_string()
-}
 
 #[rstest]
 #[tokio::test]
-async fn test_create_entry(settings: &Settings, folder_id: i32, title: String, entry_text: String) {
+async fn test_create_entry(
+    settings: &Settings,
+    folder_id: i32,
+    entry_title: String,
+    entry_text: String,
+) {
     let database = database(settings).await;
 
     let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
-        title.to_owned(),
+        entry_title.to_owned(),
         entry_text.to_owned(),
     )
     .await;
 
     assert!(entry.is_ok());
     let entry = entry.unwrap();
-    validate_model(&entry, None, folder_id, &title, &entry_text);
+    validate_entry_model(&entry, None, folder_id, &entry_title, &entry_text);
 }
 
 #[rstest]
@@ -75,7 +48,7 @@ async fn test_create_entry(settings: &Settings, folder_id: i32, title: String, e
 async fn test_error_on_creating_entry_with_duplicate_name(
     settings: &Settings,
     folder_id: i32,
-    title: String,
+    entry_title: String,
     entry_text: String,
 ) {
     let database = database(settings).await;
@@ -83,11 +56,11 @@ async fn test_error_on_creating_entry_with_duplicate_name(
         &database,
         ENTRY,
         folder_id,
-        title.to_owned(),
+        entry_title.to_owned(),
         entry_text.to_owned(),
     )
     .await;
-    let entry = entry_service::_create(&database, ENTRY, folder_id, title, entry_text).await;
+    let entry = entry_service::_create(&database, ENTRY, folder_id, entry_title, entry_text).await;
     assert!(entry.is_err());
 }
 
@@ -96,34 +69,7 @@ async fn test_error_on_creating_entry_with_duplicate_name(
 async fn test_update_entry_title(
     settings: &Settings,
     folder_id: i32,
-    title: String,
-    entry_text: String,
-    mut update_entry_payload: EntryUpdateSchema,
-) {
-    let database = database(settings).await;
-    let entry = entry_service::_create(&database, ENTRY, folder_id, title, entry_text.to_owned())
-        .await
-        .unwrap();
-
-    update_entry_payload.id = entry.id;
-    update_entry_payload.title = Some("new title".to_owned());
-    let response = entry_service::update(&database, update_entry_payload).await;
-
-    assert_eq!(response.data.id, entry.id);
-    assert!(response.data.title.updated);
-    assert!(response.errors.is_empty());
-
-    let entry = get_entry(&database, entry.id).await.unwrap();
-    validate_model(&entry, None, folder_id, "new title", &entry_text);
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_update_entry_folder(
-    settings: &Settings,
-    folder_id: i32,
-    folder_create_payload: FolderCreateSchema,
-    title: String,
+    entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
@@ -132,24 +78,63 @@ async fn test_update_entry_folder(
         &database,
         ENTRY,
         folder_id,
-        title.to_owned(),
+        entry_title,
         entry_text.to_owned(),
     )
     .await
     .unwrap();
+
+    update_entry_payload.id = entry.id;
+    update_entry_payload.title = Some("new title".to_owned());
+    let response = entry_service::update(&database, update_entry_payload).await;
+
+    assert_eq!(response.data.id, entry.id);
+    assert!(!response.data.folder_id.updated);
+    assert!(response.data.title.updated);
+    assert!(!response.data.text.updated);
+    assert!(response.data.words.is_empty());
+    assert!(response.errors.is_empty());
+
+    let entry = get_entry(&database, entry.id).await.unwrap();
+    validate_entry_model(&entry, None, folder_id, "new title", &entry_text);
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_update_entry_folder(
+    settings: &Settings,
+    folder_id: i32,
+    folder_create_payload: FolderCreateSchema,
+    entry_title: String,
+    entry_text: String,
+    mut update_entry_payload: EntryUpdateSchema,
+) {
+    let database = database(settings).await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
+    let entry = entry_service::_create(
+        &database,
+        ENTRY,
+        folder_id,
+        entry_title.to_owned(),
+        entry_text.to_owned(),
+    )
+    .await
+    .unwrap();
 
     update_entry_payload.id = entry.id;
     update_entry_payload.folder_id = Some(folder.id);
     let response = entry_service::update(&database, update_entry_payload).await;
 
     assert!(response.data.folder_id.updated);
+    assert!(!response.data.title.updated);
+    assert!(!response.data.text.updated);
+    assert!(response.data.words.is_empty());
     assert!(response.errors.is_empty());
 
     let entry = get_entry(&database, entry.id).await.unwrap();
-    validate_model(&entry, None, folder.id, &title, &entry_text);
+    validate_entry_model(&entry, None, folder.id, &entry_title, &entry_text);
 }
 
 #[rstest]
@@ -157,24 +142,80 @@ async fn test_update_entry_folder(
 async fn test_update_entry_text(
     settings: &Settings,
     folder_id: i32,
-    title: String,
+    entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::_create(&database, ENTRY, folder_id, title.to_owned(), entry_text)
-        .await
-        .unwrap();
+    let entry = entry_service::_create(
+        &database,
+        ENTRY,
+        folder_id,
+        entry_title.to_owned(),
+        entry_text,
+    )
+    .await
+    .unwrap();
 
     update_entry_payload.id = entry.id;
     update_entry_payload.text = Some("updated text".to_owned());
     let response = entry_service::update(&database, update_entry_payload).await;
 
+    assert!(!response.data.folder_id.updated);
+    assert!(!response.data.title.updated);
     assert!(response.data.text.updated);
+    assert!(response.data.words.is_empty());
     assert!(response.errors.is_empty());
 
     let entry = get_entry(&database, entry.id).await;
-    validate_model(&entry.unwrap(), None, folder_id, &title, "updated text");
+    validate_entry_model(
+        &entry.unwrap(),
+        None,
+        folder_id,
+        &entry_title,
+        "updated text",
+    );
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_update_entry(
+    settings: &Settings,
+    folder_id: i32,
+    folder_create_payload: FolderCreateSchema,
+    entry_title: String,
+    entry_text: String,
+    mut update_entry_payload: EntryUpdateSchema,
+) {
+    let database = database(settings).await;
+    let folder = folder_service::create(&database, folder_create_payload)
+        .await
+        .unwrap();
+    let entry = entry_service::_create(
+        &database,
+        ENTRY,
+        folder_id,
+        entry_title,
+        entry_text.to_owned(),
+    )
+    .await
+    .unwrap();
+
+    update_entry_payload.id = entry.id;
+    update_entry_payload.folder_id = Some(folder.id);
+    update_entry_payload.title = Some("new title".to_owned());
+    update_entry_payload.text = Some("updated text".to_owned());
+    let response = entry_service::update(&database, update_entry_payload).await;
+
+    assert_eq!(response.data.id, entry.id);
+    assert!(response.data.folder_id.updated);
+    assert!(response.data.title.updated);
+    assert!(response.data.text.updated);
+    assert!(response.data.words.is_empty());
+    assert!(response.errors.is_empty());
+
+    let entry = get_entry(&database, entry.id).await.unwrap();
+    validate_entry_model(&entry, None, folder.id, "new title", "updated text");
 }
 
 #[rstest]
@@ -248,20 +289,25 @@ async fn test_noop_on_updating_entry_with_empty_payload(
 
 #[rstest]
 #[tokio::test]
-async fn test_get_entry(settings: &Settings, folder_id: i32, title: String, entry_text: String) {
+async fn test_get_entry(
+    settings: &Settings,
+    folder_id: i32,
+    entry_title: String,
+    entry_text: String,
+) {
     let database = database(settings).await;
     let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
-        title.to_owned(),
+        entry_title.to_owned(),
         entry_text.to_owned(),
     )
     .await
     .unwrap();
 
     let entry = get_entry(&database, entry.id).await;
-    validate_model(&entry.unwrap(), None, folder_id, &title, &entry_text);
+    validate_entry_model(&entry.unwrap(), None, folder_id, &entry_title, &entry_text);
 }
 
 #[rstest]
@@ -286,7 +332,7 @@ async fn test_error_on_getting_properties_of_nonexistent_entry(settings: &Settin
 async fn test_get_entry_text(
     settings: &Settings,
     folder_id: i32,
-    title: String,
+    entry_title: String,
     #[case] entry_text: String,
 ) {
     let database = database(settings).await;
@@ -294,7 +340,7 @@ async fn test_get_entry_text(
         &database,
         ENTRY,
         folder_id,
-        title.to_owned(),
+        entry_title.to_owned(),
         entry_text.to_owned(),
     )
     .await
@@ -305,18 +351,24 @@ async fn test_get_entry_text(
     assert!(article.is_ok());
 
     let article = article.unwrap();
-    validate_info_response(&article.info, None, folder_id, &title);
+    validate_generic_entry_info_response(&article.info, None, folder_id, &entry_title);
     assert_eq!(article.text, entry_text);
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_get_all_entries(settings: &Settings, folder_id: i32, title: String) {
+async fn test_get_all_entries(settings: &Settings, folder_id: i32, entry_title: String) {
     let database = database(settings).await;
-    let _ = entry_service::_create(&database, ENTRY, folder_id, title.to_owned(), "".to_owned())
-        .await
-        .unwrap();
-    let title_2 = format!("{} 2", title);
+    let _ = entry_service::_create(
+        &database,
+        ENTRY,
+        folder_id,
+        entry_title.to_owned(),
+        "".to_owned(),
+    )
+    .await
+    .unwrap();
+    let title_2 = format!("{} 2", entry_title);
     let _ = entry_service::_create(
         &database,
         ENTRY,
@@ -333,8 +385,8 @@ async fn test_get_all_entries(settings: &Settings, folder_id: i32, title: String
     let mut entries = entries.unwrap();
     assert_eq!(2, entries.len());
     entries.sort_by(|a, b| a.title.cmp(&b.title));
-    validate_info_response(&entries[0], None, folder_id, &title);
-    validate_info_response(&entries[1], None, folder_id, &title_2);
+    validate_generic_entry_info_response(&entries[0], None, folder_id, &entry_title);
+    validate_generic_entry_info_response(&entries[1], None, folder_id, &title_2);
 }
 
 #[rstest]
@@ -494,13 +546,18 @@ async fn test_search_entry_title_contains_keyword_with_typo(settings: &Settings,
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_entry(settings: &Settings, folder_id: i32, title: String, entry_text: String) {
+async fn test_delete_entry(
+    settings: &Settings,
+    folder_id: i32,
+    entry_title: String,
+    entry_text: String,
+) {
     let database = database(settings).await;
     let entry = entry_service::_create(
         &database,
         ENTRY,
         folder_id,
-        title.to_owned(),
+        entry_title.to_owned(),
         entry_text.to_owned(),
     )
     .await

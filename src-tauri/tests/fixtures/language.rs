@@ -8,20 +8,26 @@ use hellebore::{
     types::entity::LANGUAGE,
 };
 
-use crate::fixtures::folder::folder_id;
+use crate::fixtures::entry::create_entry_payload;
 
 #[fixture]
 pub fn language_name() -> String {
-    return "French".to_string();
+    "French".to_string()
 }
 
 #[fixture]
-pub fn create_language_payload(folder_id: i32, language_name: String) -> EntryCreateSchema {
-    let language = LanguageSchema {};
-    EntryCreateSchema {
-        folder_id,
-        entity_type: LANGUAGE,
-        title: language_name.to_string(),
-        properties: EntryProperties::Language(language),
-    }
+pub fn language_properties() -> LanguageSchema {
+    LanguageSchema {}
+}
+
+#[fixture]
+pub fn create_language_payload(
+    mut create_entry_payload: EntryCreateSchema,
+    language_name: String,
+    language_properties: LanguageSchema,
+) -> EntryCreateSchema {
+    create_entry_payload.entity_type = LANGUAGE;
+    create_entry_payload.title = language_name.to_string();
+    create_entry_payload.properties = EntryProperties::Language(language_properties);
+    create_entry_payload
 }

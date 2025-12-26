@@ -1,7 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    schema::{common::UpdateResponseSchema, language::LanguageSchema, person::PersonSchema},
+    schema::{
+        common::UpdateResponseSchema,
+        language::LanguageSchema,
+        person::PersonSchema,
+        word::{WordUpsertResponseSchema, WordUpsertSchema},
+    },
     types::entity::EntityType,
 };
 
@@ -29,6 +34,7 @@ pub struct EntryUpdateSchema {
     pub title: Option<String>,
     pub properties: Option<EntryProperties>,
     pub text: Option<String>,
+    pub words: Option<Vec<WordUpsertSchema>>,
 }
 
 impl EntryUpdateSchema {
@@ -37,6 +43,7 @@ impl EntryUpdateSchema {
             || self.title.is_some()
             || self.properties.is_some()
             || self.text.is_some()
+            || self.words.is_some()
     }
 }
 
@@ -55,6 +62,7 @@ pub struct EntryUpdateResponseSchema {
     pub title: EntryTitleUpdateResponseSchema,
     pub properties: UpdateResponseSchema,
     pub text: UpdateResponseSchema,
+    pub words: Vec<WordUpsertResponseSchema>,
 }
 
 impl EntryUpdateResponseSchema {
@@ -74,6 +82,7 @@ impl EntryUpdateResponseSchema {
             text: UpdateResponseSchema {
                 updated: entry.text.is_some(),
             },
+            words: Vec::new(),
         }
     }
 

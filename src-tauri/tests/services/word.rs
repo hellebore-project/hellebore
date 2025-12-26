@@ -5,7 +5,7 @@ use crate::{
         settings,
         word::{create_word_payload, expected_word_response},
     },
-    utils::query::upsert_word,
+    utils::{query::upsert_word, validation::validate_word_response},
 };
 
 use hellebore::{
@@ -17,18 +17,8 @@ use hellebore::{
     services::{entry_service, word_service},
     settings::Settings,
     types::grammar::WordType,
-    utils::CodedEnum,
 };
 use rstest::*;
-
-fn validate_word_response(actual: &WordResponseSchema, expected: &WordResponseSchema) {
-    assert_eq!(expected.id, actual.id);
-    assert_eq!(expected.language_id, actual.language_id);
-    assert_eq!(expected.word_type.code(), actual.word_type.code());
-    assert_eq!(expected.spelling, actual.spelling);
-    assert_eq!(expected.definition, actual.definition);
-    assert_eq!(expected.translations, actual.translations);
-}
 
 #[rstest]
 #[tokio::test]
@@ -145,6 +135,59 @@ async fn test_update_word(
     expected_word_response.definition = new_definition.to_owned();
     expected_word_response.translations = new_translations;
 
+    validate_word_response(&word, &expected_word_response);
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_update_word_atomically(
+    settings: &Settings,
+    mut create_word_payload: WordUpsertSchema,
+    create_language_payload: EntryCreateSchema,
+    mut expected_word_response: WordResponseSchema,
+) {
+    let db = database(settings).await;
+    let language = entry_service::create(&db, create_language_payload)
+        .await
+        .unwrap();
+
+    create_word_payload.language_id = Some(language.id);
+    let id = upsert_word(&db, &create_word_payload).await.unwrap();
+
+    let new_spelling = "conducteur";
+    let mut update_payload = WordUpsertSchema {
+        id: Some(id),
+        language_id: None,
+        word_type: None,
+        spelling: Some(new_spelling.to_owned()),
+        definition: None,
+        translations: None,
+    };
+
+    let _ = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
+    let word = word_service::get(&db, id).await.unwrap();
+
+    expected_word_response.id = word.id;
+    expected_word_response.language_id = word.language_id;
+    expected_word_response.spelling = new_spelling.to_owned();
+    validate_word_response(&word, &expected_word_response);
+
+    let new_definition = "Pilot or operator of a vehicle.";
+    update_payload.definition = Some(new_definition.to_owned());
+
+    let _ = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
+    let word = word_service::get(&db, id).await.unwrap();
+
+    expected_word_response.definition = new_definition.to_owned();
+    validate_word_response(&word, &expected_word_response);
+
+    let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
+    update_payload.translations = Some(new_translations.clone());
+
+    let _ = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
+    let word = word_service::get(&db, id).await.unwrap();
+
+    expected_word_response.translations = new_translations;
     validate_word_response(&word, &expected_word_response);
 }
 

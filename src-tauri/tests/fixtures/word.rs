@@ -6,6 +6,11 @@ use hellebore::{
 };
 
 #[fixture]
+pub fn word_id() -> i32 {
+    0
+}
+
+#[fixture]
 pub fn word_type() -> WordType {
     WordType::Noun
 }
@@ -39,6 +44,18 @@ pub fn create_word_payload(
         spelling: Some(word_spelling),
         definition: Some(word_definition),
         translations: Some(word_translations),
+    }
+}
+
+#[fixture]
+pub fn update_word_payload(word_id: i32, word_spelling: String) -> WordUpsertSchema {
+    WordUpsertSchema {
+        id: Some(word_id),
+        language_id: Some(1),
+        word_type: None,
+        spelling: Some(format!("{}-modified", word_spelling)),
+        definition: None,
+        translations: None,
     }
 }
 
