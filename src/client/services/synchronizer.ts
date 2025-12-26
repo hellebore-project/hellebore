@@ -134,25 +134,13 @@ export class SynchronizationService {
     ): Promise<SyncEntryEvent[]> {
         const events: SyncEntryEvent[] = requests.map((r) => ({
             request: r,
-            response: {
-                entry: null,
-                lexicon: null,
-            },
+            response: { entry: null },
         }));
 
         const entryResponses = await this._domain.entries.bulkUpdate(requests);
         if (entryResponses) {
             for (let i = 0; i < events.length; i++)
                 events[i].response.entry = entryResponses[i];
-        }
-
-        for (const event of events) {
-            if (event.request.words) {
-                const lexiconResponse = await this._domain.words.bulkUpsert(
-                    event.request.words,
-                );
-                event.response.lexicon = lexiconResponse;
-            }
         }
 
         return events;

@@ -55,6 +55,7 @@ export class EntryManager {
         title = null,
         properties = null,
         text = null,
+        words = null,
     }: EntryUpdate<E>): Promise<EntryUpdateResponse | null> {
         let response: DiagnosticResponse<EntryUpdateResponse>;
 
@@ -66,6 +67,7 @@ export class EntryManager {
                 title,
                 properties,
                 text,
+                words,
             });
         } catch (error) {
             console.error(error);
@@ -257,6 +259,7 @@ export class EntryManager {
         title = null,
         properties = null,
         text = null,
+        words = null,
     }: EntryUpdate<E>): BackendEntryUpdate {
         let mappedProperties: Partial<Record<EntryTypeLabel, E>> | null = null;
         if (properties) {
@@ -276,6 +279,7 @@ export class EntryManager {
             title,
             properties: mappedProperties,
             text,
+            words,
         };
     }
 

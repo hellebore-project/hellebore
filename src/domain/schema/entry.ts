@@ -1,5 +1,8 @@
-import { BaseEntity, EntryType, EntryTypeLabel } from "@/domain";
+import { EntryType, EntryTypeLabel } from "@/domain/constants";
+import { BaseEntity } from "@/domain/interface";
 import { Id, IdentifiedObject } from "@/interface";
+
+import { WordUpsert, WordUpsertResponse } from "./word";
 
 export type EntryPropertyMapping = Partial<Record<EntryTypeLabel, BaseEntity>>;
 
@@ -27,6 +30,7 @@ export interface EntryUpdate<E extends BaseEntity> extends IdentifiedObject {
     title?: string | null;
     properties?: E | null;
     text?: string | null;
+    words?: WordUpsert[] | null;
 }
 
 export interface BackendEntryUpdate extends IdentifiedObject {
@@ -34,6 +38,7 @@ export interface BackendEntryUpdate extends IdentifiedObject {
     title: string | null;
     properties: EntryPropertyMapping | null;
     text: string | null;
+    words: WordUpsert[] | null;
 }
 
 export interface EntryUpdateResponse extends IdentifiedObject {
@@ -50,6 +55,7 @@ export interface EntryUpdateResponse extends IdentifiedObject {
     text: {
         updated: boolean;
     };
+    words: WordUpsertResponse[];
 }
 
 export interface EntryInfoResponse extends BaseEntryInfo {

@@ -145,7 +145,6 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     set currentView(key: EntryViewType) {
         if (this._viewKey == key) return;
-        if (this._viewKey == EntryViewType.WordEditor) this.lexicon.reset();
         this._viewKey = key;
     }
 
@@ -384,8 +383,8 @@ export class EntryEditorService implements ICentralPanelContentService {
                     this.article.changed = false;
             }
 
-            if (request.words && response.lexicon) {
-                const wordResponses = response.lexicon;
+            if (request.words && response.entry && response.entry.words) {
+                const wordResponses = response.entry.words;
 
                 const words: Word[] = request.words.map((word, i) => {
                     const wordResponse = wordResponses[i];
@@ -397,7 +396,7 @@ export class EntryEditorService implements ICentralPanelContentService {
                     };
                 });
 
-                this.lexicon.afterSync(words);
+                this.lexicon.handleSynchronization(words);
             }
         }
     }

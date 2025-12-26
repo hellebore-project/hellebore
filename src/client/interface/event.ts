@@ -5,7 +5,6 @@ import {
     EntryUpdateResponse,
     FolderUpdateResponse,
     WordType,
-    WordUpsertResponse,
 } from "@/domain";
 import { Id, Point } from "@/interface";
 
@@ -102,7 +101,6 @@ export interface SyncEntryRequest {
 
 export interface SyncEntryResponse {
     entry: EntryUpdateResponse | null;
-    lexicon: WordUpsertResponse[] | null;
 }
 
 export interface SyncEntryEvent {
