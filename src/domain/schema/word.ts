@@ -16,12 +16,7 @@ export interface WordUpsert extends WordCreate {
     id: Id | null;
 }
 
-export interface WordUpsertResponse extends WordUpsert {
-    created: boolean;
-    updated: boolean;
-}
-
-export interface BackendWordUpsertResponse {
+export interface WordUpsertResponse {
     id: Id | null;
     status: {
         created: boolean;

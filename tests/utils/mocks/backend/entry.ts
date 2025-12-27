@@ -4,10 +4,66 @@ import {
     EntryInfoResponse,
     EntryPropertyResponse,
     BackendEntryPropertyResponse,
+    BackendEntryUpdate,
+    EntryUpdateResponse,
+    DiagnosticResponse,
+    WordUpsertResponse,
 } from "@/domain";
 import { compareStrings } from "@/utils/string";
 
-import { MockedInvoker } from "./invoker";
+import { MockedCommand, MockedInvoker } from "./invoker";
+
+export function mockBulkUpdateEntries(mockedInvoker: MockedInvoker) {
+    const command = async ({
+        entries,
+    }: {
+        entries: BackendEntryUpdate[];
+    }): Promise<DiagnosticResponse<EntryUpdateResponse>[]> => {
+        return entries.map((entry) => {
+            let wordResponses: WordUpsertResponse[] | null = null;
+            if (entry.words) {
+                wordResponses = entry.words.map((word) => {
+                    const wordResponse: WordUpsertResponse = {
+                        id: word.id,
+                        status: {
+                            created: word.id === null,
+                            updated: word.id !== null,
+                        },
+                    };
+                    return wordResponse;
+                });
+            }
+
+            const response: DiagnosticResponse<EntryUpdateResponse> = {
+                data: {
+                    id: entry.id,
+                    folderId: {
+                        updated: entry.folderId !== null,
+                    },
+                    title: {
+                        updated: entry.title !== null,
+                        isUnique: true,
+                    },
+                    properties: {
+                        updated: entry.properties !== null,
+                    },
+                    text: {
+                        updated: entry.text !== null,
+                    },
+                    words: wordResponses,
+                },
+                errors: [],
+            };
+
+            return response;
+        });
+    };
+
+    mockedInvoker.mockCommand(
+        CommandNames.Entry.BulkUpdate,
+        command as MockedCommand,
+    );
+}
 
 export function mockGetEntryInfo(
     mockedInvoker: MockedInvoker,

@@ -391,8 +391,8 @@ export class EntryEditorService implements ICentralPanelContentService {
                     return {
                         ...word,
                         id: wordResponse.id,
-                        created: wordResponse.created,
-                        updated: wordResponse.updated,
+                        created: wordResponse.status.created,
+                        updated: wordResponse.status.updated,
                     };
                 });
 

@@ -2,14 +2,13 @@ import { invoke } from "@tauri-apps/api/core";
 
 import { CommandNames, WordType } from "@/domain/constants";
 import {
-    BackendWordUpsertResponse,
     DiagnosticResponse,
     WordResponse,
     WordUpsert,
     WordUpsertResponse,
 } from "@/domain";
 
-type _WordBulkUpsertResponse = DiagnosticResponse<BackendWordUpsertResponse>[];
+type _WordBulkUpsertResponse = DiagnosticResponse<WordUpsertResponse>[];
 
 export class WordManager {
     async bulkUpsert(
@@ -33,9 +32,10 @@ export class WordManager {
             return null;
         }
 
-        return responses.map((response, i) => {
-            return this._buildUpsertResponse(words[i], response);
-        });
+        return responses.map((response) => ({
+            id: response.data.id,
+            status: response.data.status,
+        }));
     }
 
     async getAllForLanguage(
@@ -59,24 +59,6 @@ export class WordManager {
             return false;
         }
         return true;
-    }
-
-    private _buildUpsertResponse(
-        upsertPayload: WordUpsert,
-        rawResponse: DiagnosticResponse<BackendWordUpsertResponse>,
-    ): WordUpsertResponse {
-        let id = upsertPayload.id;
-        if (rawResponse.data.id !== null) id = rawResponse.data.id;
-
-        const created = rawResponse.data.status.created;
-        const updated = rawResponse.data.status.updated;
-
-        return {
-            ...upsertPayload,
-            id,
-            created,
-            updated,
-        };
     }
 
     async _bulkUpsertWords(
