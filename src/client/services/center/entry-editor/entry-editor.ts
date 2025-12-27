@@ -367,36 +367,30 @@ export class EntryEditorService implements ICentralPanelContentService {
             if (this.info.id != request.id) return;
 
             if (response.entry) {
-                if (response.entry.title && response.entry.title.updated) {
-                    this.info.isTitleUnique =
-                        response.entry.title.isUnique ?? true;
+                this.info.isTitleUnique = response.entry.title.isUnique ?? true;
+                if (response.entry.title.updated)
                     this.info.titleChanged = false;
-                }
 
-                if (
-                    response.entry.properties &&
-                    response.entry.properties.updated
-                )
+                if (response.entry.properties.updated)
                     this.properties.changed = false;
 
-                if (response.entry.text && response.entry.text.updated)
-                    this.article.changed = false;
-            }
+                if (response.entry.text.updated) this.article.changed = false;
 
-            if (request.words && response.entry && response.entry.words) {
-                const wordResponses = response.entry.words;
+                if (request.words) {
+                    const wordResponses = response.entry.words;
 
-                const words: Word[] = request.words.map((word, i) => {
-                    const wordResponse = wordResponses[i];
-                    return {
-                        ...word,
-                        id: wordResponse.id,
-                        created: wordResponse.status.created,
-                        updated: wordResponse.status.updated,
-                    };
-                });
+                    const words: Word[] = request.words.map((word, i) => {
+                        const wordResponse = wordResponses[i];
+                        return {
+                            ...word,
+                            id: wordResponse.id,
+                            created: wordResponse.status.created,
+                            updated: wordResponse.status.updated,
+                        };
+                    });
 
-                this.lexicon.handleSynchronization(words);
+                    this.lexicon.handleSynchronization(words);
+                }
             }
         }
     }

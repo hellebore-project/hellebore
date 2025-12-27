@@ -60,8 +60,8 @@ export class EntryInfoService {
         this._title = title;
         this._titleChanged = true;
 
-        // the sync will be happen immediately so that the title can validated in real-time;
-        // to speed things up, we only sycn the title
+        // the sync will happen immediately so that the title can be validated in real-time;
+        // to speed things up, we only sync the title
         this.onChangeTitle.produce({
             id: this._id,
             poll: { id: this._id, syncTitle: true },
