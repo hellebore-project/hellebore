@@ -1,51 +1,68 @@
-use sea_orm::{DatabaseConnection, DatabaseTransaction};
+use sea_orm::{ConnectionTrait, DatabaseConnection};
 
 use ::entity::word::Model as Word;
 use serde_json;
 
-use crate::database::{transaction_manager, word_manager};
+use crate::database::word_manager;
 use crate::errors::ApiError;
-use crate::schema::word::WordUpdateSchema;
-use crate::schema::{diagnostic::ResponseDiagnosticsSchema, word::WordResponseSchema};
+use crate::schema::{
+    common::DiagnosticResponseSchema,
+    word::{WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
+};
 use crate::types::entity::WORD;
 use crate::types::grammar::WordType;
 
 pub async fn bulk_upsert(
     database: &DatabaseConnection,
-    words: Vec<WordUpdateSchema>,
-) -> Result<Vec<ResponseDiagnosticsSchema<Option<i32>>>, ApiError> {
-    let txn = transaction_manager::begin(database).await?;
-
-    let mut responses: Vec<ResponseDiagnosticsSchema<Option<i32>>> = Vec::new();
+    words: Vec<WordUpsertSchema>,
+) -> Result<Vec<DiagnosticResponseSchema<WordUpsertResponseSchema>>, ApiError> {
+    let mut responses: Vec<DiagnosticResponseSchema<WordUpsertResponseSchema>> = Vec::new();
 
     for word in words {
+        let mut created = false;
+        let mut updated = false;
+        let mut data = WordUpsertResponseSchema::new(&word);
         let mut errors: Vec<ApiError> = Vec::new();
 
         let result: Result<Word, ApiError> = match word.id {
-            Some(_) => _update(&txn, word, &mut errors).await,
-            None => _create(&txn, word, &mut errors).await,
-        };
-
-        let id = match result {
-            Ok(w) => Some(w.id),
-            Err(e) => {
-                errors.push(e);
-                None
+            Some(_) => {
+                updated = true;
+                _update(database, word, &mut errors).await
+            }
+            None => {
+                created = true;
+                _create(database, word, &mut errors).await
             }
         };
 
-        responses.push(ResponseDiagnosticsSchema { data: id, errors })
+        match result {
+            Ok(w) => {
+                data.id = Some(w.id);
+            }
+            Err(e) => {
+                created = false;
+                updated = false;
+                errors.push(e);
+            }
+        };
+
+        data.status.created = created;
+        data.status.updated = updated;
+
+        responses.push(DiagnosticResponseSchema { data, errors })
     }
 
-    transaction_manager::end(txn).await?;
     return Ok(responses);
 }
 
-async fn _create(
-    txn: &DatabaseTransaction,
-    word: WordUpdateSchema,
+async fn _create<C>(
+    con: &C,
+    word: WordUpsertSchema,
     errors: &mut Vec<ApiError>,
-) -> Result<Word, ApiError> {
+) -> Result<Word, ApiError>
+where
+    C: ConnectionTrait,
+{
     if word.language_id.is_none() {
         return Err(ApiError::field_invalid(
             "Language ID of new word cannot be none",
@@ -73,7 +90,7 @@ async fn _create(
     };
 
     return word_manager::insert(
-        txn,
+        con,
         word.language_id.unwrap(),
         word.word_type.unwrap(),
         word.spelling,
@@ -84,11 +101,14 @@ async fn _create(
     .map_err(|e| ApiError::not_inserted(e, WORD));
 }
 
-async fn _update(
-    txn: &DatabaseTransaction,
-    word: WordUpdateSchema,
+async fn _update<C>(
+    con: &C,
+    word: WordUpsertSchema,
     errors: &mut Vec<ApiError>,
-) -> Result<Word, ApiError> {
+) -> Result<Word, ApiError>
+where
+    C: ConnectionTrait,
+{
     if word.id.is_none() {
         return Err(ApiError::field_invalid(
             "Word ID cannot be none",
@@ -108,7 +128,7 @@ async fn _update(
     };
 
     word_manager::update(
-        txn,
+        con,
         word.id.unwrap(),
         word.language_id,
         word.word_type,

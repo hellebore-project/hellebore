@@ -1,6 +1,6 @@
-import { ApiError } from "./error";
+import { BackendApiError } from "./error";
 
 export interface DiagnosticResponse<T> {
     data: T;
-    errors: ApiError[];
+    errors: BackendApiError[];
 }

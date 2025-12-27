@@ -8,8 +8,11 @@ use hellebore::{
 
 pub mod entry;
 pub mod folder;
+
 pub mod language;
 pub mod word;
+
+pub mod person;
 
 #[fixture]
 #[once]

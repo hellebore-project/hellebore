@@ -25,9 +25,9 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Folder,
-    #[sea_orm(has_many = "super::language::Entity")]
+    #[sea_orm(has_one = "super::language::Entity")]
     Language,
-    #[sea_orm(has_many = "super::person::Entity")]
+    #[sea_orm(has_one = "super::person::Entity")]
     Person,
 }
 

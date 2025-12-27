@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { ChangeEntryEvent } from "@/client/interface";
-import { ENTITY_TYPE_LABELS, EntityType, ENTRY_ID_SENTINEL } from "@/domain";
+import { ENTITY_TYPE_LABELS, ENTRY_ID_SENTINEL, EntryType } from "@/domain";
 import { EventProducer } from "@/utils/event";
 
 type PrivateKeys = "_titleChanged";
@@ -9,7 +9,7 @@ type PrivateKeys = "_titleChanged";
 export class EntryInfoService {
     // STATE
     private _id: number = ENTRY_ID_SENTINEL;
-    private _entityType: EntityType | null = null;
+    private _entryType: EntryType | null = null;
     private _title = "";
     private _isTitleUnique = true;
     private _titleChanged = false;
@@ -38,16 +38,16 @@ export class EntryInfoService {
         this._id = id;
     }
 
-    get entityType() {
-        return this._entityType;
+    get entryType() {
+        return this._entryType;
     }
 
-    set entityType(type: EntityType | null) {
-        this._entityType = type;
+    set entryType(type: EntryType | null) {
+        this._entryType = type;
     }
 
-    get entityTypeLabel() {
-        return ENTITY_TYPE_LABELS[this.entityType as EntityType];
+    get entryTypeLabel() {
+        return ENTITY_TYPE_LABELS[this.entryType as EntryType];
     }
 
     get title() {
@@ -60,9 +60,12 @@ export class EntryInfoService {
         this._title = title;
         this._titleChanged = true;
 
-        // the sync will be happen immediately so that the title can validated in real-time;
-        // to speed things up, we only sycn the title
-        this.onChangeTitle.produce({ id: this._id, poll: { syncTitle: true } });
+        // the sync will happen immediately so that the title can be validated in real-time;
+        // to speed things up, we only sync the title
+        this.onChangeTitle.produce({
+            id: this._id,
+            poll: { id: this._id, syncTitle: true },
+        });
     }
 
     get isTitleUnique() {
@@ -89,9 +92,9 @@ export class EntryInfoService {
         return this._loaded;
     }
 
-    load(id: number, type: EntityType, title: string) {
+    load(id: number, type: EntryType, title: string) {
         this.id = id;
-        this.entityType = type;
+        this.entryType = type;
         // mutate the private title variable directly to avoid an unnecessary sync
         this._title = title;
         this.isTitleUnique = true;

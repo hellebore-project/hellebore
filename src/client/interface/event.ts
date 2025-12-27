@@ -1,13 +1,10 @@
 import {
     BaseEntity,
     BulkFileResponse,
-    EntityType,
-    EntryTextUpdateResponse,
-    EntryTitleUpdateResponse,
+    EntryType,
     EntryUpdateResponse,
     FolderUpdateResponse,
     WordType,
-    WordUpsertResponse,
 } from "@/domain";
 import { Id, Point } from "@/interface";
 
@@ -52,7 +49,7 @@ export interface DeleteFolderEvent {
 // ENTRY EVENTS
 
 export interface CreateEntryEvent {
-    entityType: EntityType;
+    entryType: EntryType;
     title: string;
     folderId: Id;
 }
@@ -70,6 +67,7 @@ export interface DeleteEntryEvent {
 // POLLING
 
 export interface PollEvent {
+    id?: Id | null;
     syncTitle?: boolean;
     syncProperties?: boolean;
     syncText?: boolean;
@@ -78,7 +76,7 @@ export interface PollEvent {
 
 export interface PollResultEntryData {
     id: Id;
-    entityType: EntityType;
+    entryType: EntryType;
     title?: string;
     properties?: BaseEntity;
     text?: string;
@@ -93,7 +91,8 @@ export interface PollResult {
 
 export interface SyncEntryRequest {
     id: Id;
-    entityType: EntityType;
+    entryType: EntryType;
+    folderId?: Id | null;
     title?: string | null;
     properties?: BaseEntity | null;
     text?: string | null;
@@ -101,10 +100,7 @@ export interface SyncEntryRequest {
 }
 
 export interface SyncEntryResponse {
-    title: EntryTitleUpdateResponse | null;
-    text: EntryTextUpdateResponse | null;
-    properties: EntryUpdateResponse | null;
-    lexicon: WordUpsertResponse[] | null;
+    entry: EntryUpdateResponse | null;
 }
 
 export interface SyncEntryEvent {
@@ -112,10 +108,14 @@ export interface SyncEntryEvent {
     response: SyncEntryResponse;
 }
 
+export interface SyncEvent {
+    entries: SyncEntryEvent[];
+}
+
 // VIEW EVENTS
 
 export interface OpenEntryCreatorEvent {
-    entityType?: EntityType;
+    entryType?: EntryType;
     folderId?: Id;
 }
 

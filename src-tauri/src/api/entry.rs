@@ -1,38 +1,40 @@
 use crate::api::utils;
 use crate::errors::ApiError;
-use crate::schema::entry::{EntryArticleResponseSchema, EntryPropertyResponseSchema};
-use crate::schema::{diagnostic::ResponseDiagnosticsSchema, entry::EntryInfoResponseSchema};
+use crate::schema::{
+    common::DiagnosticResponseSchema,
+    entry::{
+        EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
+        EntryPropertyResponseSchema, EntryUpdateResponseSchema, EntryUpdateSchema,
+    },
+};
 use crate::services::entry_service;
 use crate::state::State;
 
 #[tauri::command]
-pub async fn update_entry_title(
+pub async fn create_entry(
     state: tauri::State<'_, State>,
-    id: i32,
-    title: String,
-) -> Result<(), ApiError> {
+    entry: EntryCreateSchema,
+) -> Result<EntryInfoResponseSchema, ApiError> {
     let state = state.lock().await;
-    entry_service::update_title(utils::get_database(&state)?, id, title).await
+    entry_service::create(utils::get_database(&state)?, entry).await
 }
 
 #[tauri::command]
-pub async fn update_entry_folder(
+pub async fn update_entry(
     state: tauri::State<'_, State>,
-    id: i32,
-    folder_id: i32,
-) -> Result<(), ApiError> {
+    entry: EntryUpdateSchema,
+) -> Result<DiagnosticResponseSchema<EntryUpdateResponseSchema>, ApiError> {
     let state = state.lock().await;
-    entry_service::update_folder(utils::get_database(&state)?, id, folder_id).await
+    Ok(entry_service::update(utils::get_database(&state)?, entry).await)
 }
 
 #[tauri::command]
-pub async fn update_entry_text(
+pub async fn update_entries(
     state: tauri::State<'_, State>,
-    id: i32,
-    text: String,
-) -> Result<(), ApiError> {
+    entries: Vec<EntryUpdateSchema>,
+) -> Result<Vec<DiagnosticResponseSchema<EntryUpdateResponseSchema>>, ApiError> {
     let state = state.lock().await;
-    entry_service::update_text(utils::get_database(&state)?, id, text).await
+    Ok(entry_service::bulk_update(utils::get_database(&state)?, entries).await)
 }
 
 #[tauri::command]
@@ -40,7 +42,7 @@ pub async fn validate_entry_title(
     state: tauri::State<'_, State>,
     id: Option<i32>,
     title: &str,
-) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
+) -> Result<DiagnosticResponseSchema<bool>, ApiError> {
     let state = state.lock().await;
     entry_service::validate_title(utils::get_database(&state)?, id, title).await
 }

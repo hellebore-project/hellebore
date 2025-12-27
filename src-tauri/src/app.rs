@@ -45,9 +45,9 @@ where
         api::project::update_project,
         api::project::get_project,
         // entry API
-        api::entry::update_entry_title,
-        api::entry::update_entry_folder,
-        api::entry::update_entry_text,
+        api::entry::create_entry,
+        api::entry::update_entry,
+        api::entry::update_entries,
         api::entry::validate_entry_title,
         api::entry::get_entry,
         api::entry::get_entries,
@@ -62,11 +62,6 @@ where
         api::folder::get_folder,
         api::folder::get_folders,
         api::folder::delete_folder,
-        // language API
-        api::language::create_language,
-        // person API
-        api::person::create_person,
-        api::person::update_person,
         // word API
         api::word::upsert_words,
         api::word::get_word,

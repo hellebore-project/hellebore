@@ -1,60 +1,38 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import {
-    ApiError,
+    BackendEntryPropertyResponse,
     BaseEntity,
-    EntryInfoResponse,
-    EntryCreate,
-    EntryPropertyResponse,
-    EntryPropertyUpdate,
-    EntryArticleResponse,
     CommandNames,
-    EntityType,
-    ROOT_FOLDER_ID,
+    ENTRY_TYPE_LABEL_MAPPING,
+    EntryArticleResponse,
+    EntryInfoResponse,
+    EntryPropertyResponse,
+    EntryUpdate,
+    EntryUpdateResponse,
+    EntryType,
+    EntryTypeLabel,
     LanguageProperties,
     PersonProperties,
+    ROOT_FOLDER_ID,
+    EntryCreate,
+    DiagnosticResponse,
+    BackendEntryUpdate,
 } from "@/domain";
 import { Id } from "@/interface";
 
-import { is_field_unique, process_api_error } from "./error-handler";
-
-export enum EntryType {
-    Language = "Language",
-    Person = "Person",
-}
-
-export type EntryPropertyMapping = Partial<Record<EntryType, BaseEntity>>;
-
-export interface RawEntryPropertyResponse {
-    info: EntryInfoResponse;
-    properties: EntryPropertyMapping;
-}
-
-export interface EntryTitleUpdateResponse {
-    updated: boolean;
-    isUnique: boolean;
-}
-
-export interface EntryUpdateResponse {
-    updated: boolean;
-}
-
-export interface EntryTextUpdateResponse {
-    updated: boolean;
-}
-
 export class EntryManager {
     async create(
-        entityType: EntityType,
+        entityType: EntryType,
         title: string,
         folderId: number = ROOT_FOLDER_ID,
     ): Promise<EntryInfoResponse | null> {
         let response: EntryInfoResponse | null;
 
         try {
-            if (entityType === EntityType.LANGUAGE)
+            if (entityType === EntryType.Language)
                 response = await this._createLanguage(title, folderId);
-            else if (entityType === EntityType.PERSON)
+            else if (entityType === EntryType.Person)
                 response = await this._createPerson(title, folderId);
             else {
                 console.error(
@@ -70,71 +48,48 @@ export class EntryManager {
         return response;
     }
 
-    async updateProperties<E extends BaseEntity>(
-        id: Id,
-        entityType: EntityType,
-        properties: E,
-    ): Promise<EntryUpdateResponse> {
-        // some entity types don't have properties, so skip updating them
-        if (entityType === EntityType.LANGUAGE) return { updated: false };
-
-        const payload = { id, properties };
+    async update<E extends BaseEntity>({
+        id,
+        entryType,
+        folderId = null,
+        title = null,
+        properties = null,
+        text = null,
+        words = null,
+    }: EntryUpdate<E>): Promise<EntryUpdateResponse | null> {
+        let response: DiagnosticResponse<EntryUpdateResponse>;
 
         try {
-            await this._updateProperties(entityType, payload);
+            response = await this._update({
+                id,
+                entryType,
+                folderId,
+                title,
+                properties,
+                text,
+                words,
+            });
         } catch (error) {
             console.error(error);
-            return { updated: false };
+            return null;
         }
 
-        return { updated: true };
+        return response.data;
     }
 
-    async updateFolder(id: Id, folderId: Id): Promise<boolean> {
-        let updated = true;
+    async bulkUpdate<E extends BaseEntity>(
+        entries: EntryUpdate<E>[],
+    ): Promise<EntryUpdateResponse[] | null> {
+        let responses: DiagnosticResponse<EntryUpdateResponse>[];
 
         try {
-            await this._updateFolder(id, folderId);
-        } catch (error) {
-            updated = false;
-            console.error(error);
-        }
-
-        return updated;
-    }
-
-    async updateTitle(
-        id: Id,
-        title: string,
-    ): Promise<EntryTitleUpdateResponse> {
-        const response: EntryTitleUpdateResponse = {
-            updated: true,
-            isUnique: true,
-        };
-
-        try {
-            await this._updateTitle(id, title);
-        } catch (error) {
-            response.updated = false;
-            console.error(error);
-
-            const _error = process_api_error(error as ApiError);
-            if (!is_field_unique(_error, EntityType.ENTRY, "title"))
-                response.isUnique = false;
-        }
-
-        return response;
-    }
-
-    async updateText(id: Id, text: string): Promise<EntryTextUpdateResponse> {
-        let updated = true;
-        try {
-            await this._updateArticle(id, text);
+            responses = await this._bulkUpdate(entries);
         } catch (error) {
             console.error(error);
-            updated = false;
+            return null;
         }
-        return { updated };
+
+        return responses.map((r) => r.data);
     }
 
     async get(id: Id): Promise<EntryInfoResponse | null> {
@@ -148,7 +103,7 @@ export class EntryManager {
     }
 
     async getProperties(id: number): Promise<EntryPropertyResponse | null> {
-        let response: RawEntryPropertyResponse | null;
+        let response: BackendEntryPropertyResponse | null;
 
         try {
             response = await this._getProperties(id);
@@ -162,7 +117,7 @@ export class EntryManager {
             return null;
         }
 
-        const keys = Object.keys(response.properties) as EntryType[];
+        const keys = Object.keys(response.properties) as EntryTypeLabel[];
         if (keys.length === 0) {
             console.error(`Entry property response is malformed.`);
             return null;
@@ -236,63 +191,104 @@ export class EntryManager {
         name: string,
         folderId: number,
     ): Promise<EntryInfoResponse> {
-        const entry: EntryCreate<LanguageProperties> = {
+        return this._create<LanguageProperties>({
+            entryType: EntryType.Language,
             folderId,
             title: name,
             properties: {},
-        };
-        return this._create<LanguageProperties>(EntityType.LANGUAGE, entry);
+        });
     }
 
     async _createPerson(
         name: string,
         folderId: number,
     ): Promise<EntryInfoResponse> {
-        const entry: EntryCreate<PersonProperties> = {
-            folderId: folderId,
+        return this._create<PersonProperties>({
+            entryType: EntryType.Person,
+            folderId,
             title: name,
             properties: { name },
-        };
-        return this._create<PersonProperties>(EntityType.PERSON, entry);
-    }
-
-    async _create<E extends BaseEntity>(
-        entityType: EntityType,
-        entry: EntryCreate<E>,
-    ): Promise<EntryInfoResponse> {
-        return invoke<EntryInfoResponse>(
-            CommandNames.Entry.Create(entityType),
-            { entry },
-        );
-    }
-
-    async _updateFolder(id: Id, folderId: Id) {
-        return invoke<void>(CommandNames.Entry.UpdateFolder, { id, folderId });
-    }
-
-    async _updateTitle(id: Id, title: string) {
-        return invoke<void>(CommandNames.Entry.UpdateTitle, { id, title });
-    }
-
-    async _updateProperties<E extends BaseEntity>(
-        entityType: EntityType,
-        entry: EntryPropertyUpdate<E>,
-    ): Promise<void> {
-        return invoke(CommandNames.Entry.UpdateProperties(entityType), {
-            entry,
         });
     }
 
-    async _updateArticle(id: Id, text: string) {
-        return invoke<void>(CommandNames.Entry.UpdateArticle, { id, text });
+    async _create<E extends BaseEntity>({
+        entryType,
+        folderId,
+        title,
+        properties,
+    }: EntryCreate<E>): Promise<EntryInfoResponse> {
+        const entryTypeLabel = ENTRY_TYPE_LABEL_MAPPING[entryType];
+        const mappedProperties = { [entryTypeLabel]: properties };
+
+        const payload = {
+            entry: {
+                folderId,
+                entityType: entryType,
+                title,
+                properties: mappedProperties,
+            },
+        };
+
+        return invoke<EntryInfoResponse>(CommandNames.Entry.Create, payload);
+    }
+
+    async _update<E extends BaseEntity>(entry: EntryUpdate<E>) {
+        const entryPayload = this._createUpdateRequestPayload(entry);
+        const payload = { entry: entryPayload };
+        return invoke<DiagnosticResponse<EntryUpdateResponse>>(
+            CommandNames.Entry.Update,
+            payload,
+        );
+    }
+
+    async _bulkUpdate<E extends BaseEntity>(entries: EntryUpdate<E>[]) {
+        const entryPayloads = entries.map((entry) =>
+            this._createUpdateRequestPayload(entry),
+        );
+        const payload = { entries: entryPayloads };
+        return invoke<DiagnosticResponse<EntryUpdateResponse>[]>(
+            CommandNames.Entry.BulkUpdate,
+            payload,
+        );
+    }
+
+    private _createUpdateRequestPayload<E extends BaseEntity>({
+        id,
+        entryType = null,
+        folderId = null,
+        title = null,
+        properties = null,
+        text = null,
+        words = null,
+    }: EntryUpdate<E>): BackendEntryUpdate {
+        let mappedProperties: Partial<Record<EntryTypeLabel, E>> | null = null;
+        if (properties) {
+            if (entryType === null)
+                throw (
+                    `Failed to update entry ${id}; a non-null entry type must be specified ` +
+                    "in order to update the entry properties."
+                );
+
+            const entryTypeLabel = ENTRY_TYPE_LABEL_MAPPING[entryType];
+            mappedProperties = { [entryTypeLabel]: properties };
+        }
+
+        return {
+            id,
+            folderId,
+            title,
+            properties: mappedProperties,
+            text,
+            words,
+        };
     }
 
     async _getInfo(id: Id): Promise<EntryInfoResponse> {
         return invoke<EntryInfoResponse>(CommandNames.Entry.GetInfo, { id });
     }
 
-    async _getProperties(id: Id): Promise<RawEntryPropertyResponse> {
-        return invoke<RawEntryPropertyResponse>(
+    async _getProperties(id: Id): Promise<BackendEntryPropertyResponse> {
+        return invoke<BackendEntryPropertyResponse>(
             CommandNames.Entry.GetProperties,
             { id },
         );

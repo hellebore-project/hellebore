@@ -1,29 +1,60 @@
-use sea_orm::DatabaseConnection;
+use futures::future;
+
+use sea_orm::{ConnectionTrait, DatabaseConnection};
 
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
 use crate::errors::ApiError;
-use crate::schema::entry::{
-    EntryArticleResponseSchema, EntryProperties, EntryPropertyResponseSchema,
+use crate::schema::{
+    common::DiagnosticResponseSchema,
+    entry::{
+        EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema, EntryProperties,
+        EntryPropertyResponseSchema, EntryUpdateResponseSchema, EntryUpdateSchema,
+    },
 };
-use crate::schema::{diagnostic::ResponseDiagnosticsSchema, entry::EntryInfoResponseSchema};
-use crate::services::{language_service, person_service};
+use crate::services::{language_service, person_service, word_service};
 use crate::types::entity::{ENTRY, EntityType};
 
-// NOTE: this currently isn't being used in production,
-// though we'll probably need this to create generic entries
 pub async fn create(
     database: &DatabaseConnection,
+    entry: EntryCreateSchema,
+) -> Result<EntryInfoResponseSchema, ApiError> {
+    let entity_type = entry.entity_type;
+    let folder_id = entry.folder_id;
+    let title = entry.title;
+    let properties = entry.properties;
+
+    let txn = transaction_manager::begin(database).await?;
+
+    let entry = _create(
+        &txn,
+        entity_type,
+        folder_id,
+        title.to_owned(),
+        "".to_owned(),
+    )
+    .await?;
+
+    _create_properties(&txn, entry.id, &properties).await?;
+
+    transaction_manager::end(txn).await?;
+
+    Ok(generate_insert_response(&entry))
+}
+
+pub async fn _create<C>(
+    con: &C,
     entity_type: EntityType,
     folder_id: i32,
     title: String,
     text: String,
-) -> Result<EntryModel, ApiError> {
-    let txn = transaction_manager::begin(database).await?;
-
+) -> Result<EntryModel, ApiError>
+where
+    C: ConnectionTrait,
+{
     let entry = entry_manager::insert(
-        &txn,
+        con,
         entity_type,
         folder_id,
         title.to_owned(),
@@ -32,63 +63,160 @@ pub async fn create(
     .await
     .map_err(|e| ApiError::not_inserted(e, ENTRY))?;
 
-    transaction_manager::end(txn).await?;
     Ok(entry)
 }
 
-pub async fn update_title(
-    database: &DatabaseConnection,
+async fn _create_properties<C>(
+    con: &C,
     id: i32,
-    title: String,
-) -> Result<(), ApiError> {
-    // Check whether the updated title is unique; if not, then abort the update
-    let _title = title.clone();
-    let is_unique = entry_manager::is_title_unique_for_id(database, Some(id), &title)
-        .await
-        .map_err(|e| ApiError::query_failed(e, ENTRY))?;
+    properties: &EntryProperties,
+) -> Result<(), ApiError>
+where
+    C: ConnectionTrait,
+{
+    match properties {
+        EntryProperties::Language(_) => Ok(language_service::create(con, id).await?),
+        EntryProperties::Person(props) => Ok(person_service::create(con, id, props).await?),
+    }
+}
 
-    if !is_unique {
-        return Err(ApiError::field_not_unique(
-            ENTRY,
-            Some(id),
-            "title".to_owned(),
-            _title,
-        ));
+pub async fn update(
+    database: &DatabaseConnection,
+    mut entry: EntryUpdateSchema,
+) -> DiagnosticResponseSchema<EntryUpdateResponseSchema> {
+    let mut response = EntryUpdateResponseSchema::new(&entry);
+    let mut errors: Vec<ApiError> = Vec::new();
+
+    if !entry.has_update() {
+        // if the request payload is empty, then this is a no-op;
+        // this also applies when the entry doesn't exist in the DB
+        response.set_updated(false);
+        return DiagnosticResponseSchema {
+            data: response,
+            errors,
+        };
     }
 
-    return entry_manager::update_title(database, id, title)
-        .await
-        .map(|_| ())
-        .map_err(|e| ApiError::field_not_updated(e, ENTRY, "title".to_owned()));
+    // Check whether the updated title is unique; if not, then don't update the title
+    if let Some(title_value) = entry.title.clone() {
+        let is_unique_result =
+            entry_manager::is_title_unique_for_id(database, Some(entry.id), &title_value)
+                .await
+                .map_err(|e| ApiError::query_failed(e, ENTRY));
+
+        match is_unique_result {
+            Ok(is_unique) => {
+                if !is_unique {
+                    response.title.is_unique = false;
+                    entry.title = None;
+                    errors.push(ApiError::field_not_unique(
+                        ENTRY,
+                        Some(entry.id),
+                        "title".to_owned(),
+                        title_value,
+                    ));
+                }
+            }
+            Err(e) => {
+                entry.title = None;
+                errors.push(e);
+            }
+        }
+
+        if entry.title.is_none() {
+            response.title.updated = false;
+            errors.push(ApiError::field_not_updated(
+                "Unable to update the title.",
+                ENTRY,
+                "title".to_owned(),
+            ));
+        }
+    }
+
+    _update(database, entry, &mut response, &mut errors).await;
+
+    DiagnosticResponseSchema {
+        data: response,
+        errors,
+    }
 }
 
-pub async fn update_folder(
+async fn _update(
     database: &DatabaseConnection,
-    id: i32,
-    folder_id: i32,
-) -> Result<(), ApiError> {
-    return entry_manager::update_folder(database, id, folder_id)
-        .await
-        .map(|_| ())
-        .map_err(|e| ApiError::field_not_updated(e, ENTRY, "folder_id".to_owned()));
+    entry: EntryUpdateSchema,
+    response: &mut EntryUpdateResponseSchema,
+    errors: &mut Vec<ApiError>,
+) {
+    let update_result =
+        entry_manager::update(database, entry.id, entry.folder_id, entry.title, entry.text)
+            .await
+            .map(|_| ())
+            .map_err(|e| ApiError::not_updated(e, ENTRY));
+
+    if let Err(e) = update_result {
+        response.folder_id.updated = false;
+        response.title.updated = false;
+        response.text.updated = false;
+        errors.push(e);
+    }
+
+    if let Some(property_values) = entry.properties {
+        let update_prop_result = _update_properties(database, entry.id, &property_values).await;
+
+        if let Err(e) = update_prop_result {
+            response.properties.updated = false;
+            errors.push(e);
+        }
+    }
+
+    if let Some(word_values) = entry.words {
+        let upsert_word_results = word_service::bulk_upsert(database, word_values).await;
+
+        match upsert_word_results {
+            Ok(upsert_word_responses) => {
+                for upsert_word_response in upsert_word_responses.into_iter() {
+                    response.words.push(upsert_word_response.data);
+                    errors.extend(upsert_word_response.errors);
+                }
+            }
+            Err(e) => {
+                errors.push(e);
+            }
+        }
+    }
 }
 
-pub async fn update_text(
-    database: &DatabaseConnection,
+async fn _update_properties<C>(
+    con: &C,
     id: i32,
-    text: String,
-) -> Result<(), ApiError> {
-    return entry_manager::update_text(database, id, text)
-        .await
-        .map(|_| ())
-        .map_err(|e| ApiError::field_not_updated(e, ENTRY, "text".to_owned()));
+    properties: &EntryProperties,
+) -> Result<(), ApiError>
+where
+    C: ConnectionTrait,
+{
+    match properties {
+        EntryProperties::Language(_) => Ok(()),
+        EntryProperties::Person(props) => Ok(person_service::update(con, id, props).await?),
+    }
+}
+
+pub async fn bulk_update(
+    database: &DatabaseConnection,
+    entries: Vec<EntryUpdateSchema>,
+) -> Vec<DiagnosticResponseSchema<EntryUpdateResponseSchema>> {
+    future::join_all(
+        entries
+            .into_iter()
+            .map(async |entry| update(database, entry).await),
+    )
+    .await
 }
 
 pub async fn validate_title(
     database: &DatabaseConnection,
     id: Option<i32>,
     title: &str,
-) -> Result<ResponseDiagnosticsSchema<bool>, ApiError> {
+) -> Result<DiagnosticResponseSchema<bool>, ApiError> {
     let mut errors: Vec<ApiError> = Vec::new();
     let is_unique = entry_manager::is_title_unique_for_id(database, id, title)
         .await
@@ -101,7 +229,7 @@ pub async fn validate_title(
             title,
         ));
     }
-    return Ok(ResponseDiagnosticsSchema {
+    return Ok(DiagnosticResponseSchema {
         data: is_unique,
         errors,
     });

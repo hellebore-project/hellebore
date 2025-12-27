@@ -1,5 +1,5 @@
 use hellebore::database::entry_manager;
-use hellebore::schema::word::WordUpdateSchema;
+use hellebore::schema::word::WordUpsertSchema;
 use hellebore::services::word_service;
 use sea_orm::*;
 
@@ -12,12 +12,12 @@ pub async fn get_entry(database: &DatabaseConnection, id: i32) -> Option<entry_e
     entry.unwrap()
 }
 
-pub async fn upsert_word(db: &DatabaseConnection, word_payload: &WordUpdateSchema) -> Option<i32> {
+pub async fn upsert_word(db: &DatabaseConnection, word_payload: &WordUpsertSchema) -> Option<i32> {
     let responses = word_service::bulk_upsert(&db, vec![word_payload.clone()])
         .await
         .unwrap();
     let response = responses.get(0).unwrap();
-    response.data
+    response.data.id
 }
 
 pub async fn get_all_words_for_language(

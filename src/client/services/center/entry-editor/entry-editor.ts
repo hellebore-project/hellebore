@@ -12,7 +12,7 @@ import {
     SyncEntryEvent,
     Word,
 } from "@/client/interface";
-import { DomainManager, EntityType, WordType } from "@/domain";
+import { DomainManager, EntryType, WordType } from "@/domain";
 import { TableOfContentsItemData } from "@/shared/table-of-contents";
 import { EventProducer } from "@/utils/event";
 
@@ -30,7 +30,7 @@ export interface EntryEditorServiceArgs {
 
 interface OpenArticleEditorArgs {
     id: Id;
-    entityType?: EntityType;
+    entryType?: EntryType;
     title?: string;
     text?: string;
 }
@@ -57,7 +57,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     onOpenReferencedEntry: EventProducer<OpenEntryEditorEvent, unknown>;
     onChange: EventProducer<ChangeEntryEvent, unknown>;
     onPartialChange: EventProducer<ChangeEntryEvent, unknown>;
-    onChangeDelayed: EventProducer<ChangeEntryEvent, unknown>;
+    onPeriodicChange: EventProducer<ChangeEntryEvent, unknown>;
     onDelete: EventProducer<DeleteEntryEvent, unknown>;
 
     constructor({ domain, wordEditor }: EntryEditorServiceArgs) {
@@ -83,7 +83,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.onOpenReferencedEntry = new EventProducer();
         this.onChange = new EventProducer();
         this.onPartialChange = new EventProducer();
-        this.onChangeDelayed = new EventProducer();
+        this.onPeriodicChange = new EventProducer();
         this.onDelete = new EventProducer();
 
         makeAutoObservable<EntryEditorService, PrivateKeys>(this, {
@@ -96,7 +96,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             onOpenReferencedEntry: false,
             onChange: false,
             onPartialChange: false,
-            onChangeDelayed: false,
+            onPeriodicChange: false,
             onDelete: false,
         });
 
@@ -145,12 +145,11 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     set currentView(key: EntryViewType) {
         if (this._viewKey == key) return;
-        if (this._viewKey == EntryViewType.WordEditor) this.lexicon.reset();
         this._viewKey = key;
     }
 
     get tabData() {
-        const entryType = this.info.entityType;
+        const entryType = this.info.entryType;
 
         const tabData: TableOfContentsItemData[] = [
             this._tabData.get(
@@ -160,7 +159,7 @@ export class EntryEditorService implements ICentralPanelContentService {
                 EntryViewType.PropertyEditor,
             ) as TableOfContentsItemData,
         ];
-        if (entryType === EntityType.LANGUAGE)
+        if (entryType === EntryType.Language)
             tabData.push(
                 this._tabData.get(
                     EntryViewType.WordEditor,
@@ -205,10 +204,10 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.info.fetchPortalSelector.broker = this.fetchPortalSelector;
         this.info.onChangeTitle.broker = this.onPartialChange;
 
-        this.article.onChange.broker = this.onChangeDelayed;
+        this.article.onChange.broker = this.onPeriodicChange;
         this.article.onSelectReference.broker = this.onOpenReferencedEntry;
 
-        this.properties.onChange.broker = this.onChangeDelayed;
+        this.properties.onChange.broker = this.onPeriodicChange;
 
         this.lexicon.fetchPortalSelector.broker = this.fetchPortalSelector;
         this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) => {
@@ -217,7 +216,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             this.onChange.produce({ id: languageId });
             this.loadLexicon(languageId, wordType);
         });
-        this.lexicon.onChange.broker = this.onChangeDelayed;
+        this.lexicon.onChange.broker = this.onPeriodicChange;
     }
 
     // LOADING
@@ -236,7 +235,12 @@ export class EntryEditorService implements ICentralPanelContentService {
         throw `Unable to load view with key ${viewKey}.`;
     }
 
-    async loadArticle({ id, entityType, title, text }: OpenArticleEditorArgs) {
+    async loadArticle({
+        id,
+        entryType: entityType,
+        title,
+        text,
+    }: OpenArticleEditorArgs) {
         if (this.isArticleEditorOpen && this.info.id == id) return; // the article is already open
 
         if (!entityType || title === undefined || text === undefined) {
@@ -282,7 +286,7 @@ export class EntryEditorService implements ICentralPanelContentService {
 
         if (info !== null) {
             this.currentView = EntryViewType.WordEditor;
-            this.info.load(languageId, EntityType.LANGUAGE, info.title);
+            this.info.load(languageId, EntryType.Language, info.title);
             // FIXME: should we be awaiting on this?
             this.lexicon.load(languageId, wordType);
         }
@@ -317,23 +321,26 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.onOpenReferencedEntry.broker = null;
         this.onChange.broker = null;
         this.onPartialChange.broker = null;
-        this.onChangeDelayed.broker = null;
+        this.onPeriodicChange.broker = null;
         this.onDelete.broker = null;
     }
 
     // SYNC
 
     fetchChanges({
+        id = null,
         syncTitle = false,
         syncProperties = false,
         syncText = false,
         syncLexicon = false,
     }: PollEvent): PollResultEntryData | null {
-        if (this.info.id === null || this.info.entityType === null) return null;
+        if (this.info.id === null || this.info.entryType === null) return null;
+
+        if (id !== null && this.info.id !== id) return null;
 
         const entry: PollResultEntryData = {
             id: this.info.id,
-            entityType: this.info.entityType,
+            entryType: this.info.entryType,
         };
 
         if (syncTitle && this.info.titleChanged && this.info.isTitleValid)
@@ -355,34 +362,36 @@ export class EntryEditorService implements ICentralPanelContentService {
         return entry;
     }
 
-    handleSynchronization({ request, response }: SyncEntryEvent) {
-        if (this.info.id != request.id) return;
+    handleSynchronization(events: SyncEntryEvent[]) {
+        for (const { request, response } of events) {
+            if (this.info.id != request.id) return;
 
-        if (response.title && response.title.updated) {
-            this.info.isTitleUnique = response.title.isUnique ?? true;
-            this.info.titleChanged = false;
-        }
+            if (response.entry) {
+                this.info.isTitleUnique = response.entry.title.isUnique ?? true;
+                if (response.entry.title.updated)
+                    this.info.titleChanged = false;
 
-        if (response.properties && response.properties.updated)
-            this.properties.changed = false;
+                if (response.entry.properties.updated)
+                    this.properties.changed = false;
 
-        if (response.text && response.text.updated)
-            this.article.changed = false;
+                if (response.entry.text.updated) this.article.changed = false;
 
-        if (request.words && response.lexicon) {
-            const wordResponses = response.lexicon;
+                if (request.words) {
+                    const wordResponses = response.entry.words;
 
-            const words: Word[] = request.words.map((word, i) => {
-                const wordResponse = wordResponses[i];
-                return {
-                    ...word,
-                    id: wordResponse.id,
-                    created: wordResponse.created,
-                    updated: wordResponse.updated,
-                };
-            });
+                    const words: Word[] = request.words.map((word, i) => {
+                        const wordResponse = wordResponses[i];
+                        return {
+                            ...word,
+                            id: wordResponse.id,
+                            created: wordResponse.status.created,
+                            updated: wordResponse.status.updated,
+                        };
+                    });
 
-            this.lexicon.afterSync(words);
+                    this.lexicon.handleSynchronization(words);
+                }
+            }
         }
     }
 

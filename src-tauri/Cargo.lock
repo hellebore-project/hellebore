@@ -2025,6 +2025,7 @@ name = "hellebore"
 version = "0.0.0"
 dependencies = [
  "entity",
+ "futures",
  "migration",
  "rstest",
  "sea-orm",

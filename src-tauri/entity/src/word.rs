@@ -20,7 +20,7 @@ pub enum Relation {
     #[sea_orm(
         belongs_to = "super::language::Entity",
         from = "Column::LanguageId",
-        to = "super::language::Column::Id",
+        to = "super::language::Column::EntryId",
         on_update = "NoAction",
         on_delete = "Cascade"
     )]

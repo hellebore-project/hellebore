@@ -51,10 +51,10 @@ where
     };
     let updated_entity = word::ActiveModel {
         id: Unchanged(id),
-        language_id: utils::set_value_or_null(language_id),
-        word_type: utils::set_type_or_null(word_type),
-        spelling: utils::set_value_or_null(spelling),
-        definition: utils::set_value_or_default(definition),
+        language_id: utils::set_optional_value(language_id),
+        word_type: utils::set_optional_type(word_type),
+        spelling: utils::set_optional_value(spelling),
+        definition: utils::set_optional_value(definition),
         translations,
     };
     updated_entity.update(con).await

@@ -506,7 +506,7 @@ async fn test_delete_folder_with_entries(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_1 = entry_service::create(
+    let entry_1 = entry_service::_create(
         &database,
         ENTRY,
         folder.id,
@@ -516,7 +516,7 @@ async fn test_delete_folder_with_entries(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_2 = entry_service::create(
+    let entry_2 = entry_service::_create(
         &database,
         ENTRY,
         folder.id,
@@ -553,7 +553,7 @@ async fn test_delete_folder_and_subfolder_with_entries(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_in_parent = entry_service::create(
+    let entry_in_parent = entry_service::_create(
         &database,
         ENTRY,
         parent_folder.id,
@@ -573,7 +573,7 @@ async fn test_delete_folder_and_subfolder_with_entries(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_in_sub = entry_service::create(
+    let entry_in_sub = entry_service::_create(
         &database,
         ENTRY,
         sub_folder.id,
@@ -655,7 +655,7 @@ async fn test_delete_deep_file_tree(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_1 = entry_service::create(
+    let entry_1 = entry_service::_create(
         &database,
         ENTRY,
         folder_1.id,
@@ -665,7 +665,7 @@ async fn test_delete_deep_file_tree(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_2 = entry_service::create(
+    let entry_2 = entry_service::_create(
         &database,
         ENTRY,
         folder_2.id,
@@ -675,7 +675,7 @@ async fn test_delete_deep_file_tree(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_3 = entry_service::create(
+    let entry_3 = entry_service::_create(
         &database,
         ENTRY,
         folder_3.id,
@@ -685,7 +685,7 @@ async fn test_delete_deep_file_tree(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_4 = entry_service::create(
+    let entry_4 = entry_service::_create(
         &database,
         ENTRY,
         folder_4.id,
@@ -695,7 +695,7 @@ async fn test_delete_deep_file_tree(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_5 = entry_service::create(
+    let entry_5 = entry_service::_create(
         &database,
         ENTRY,
         folder_5.id,

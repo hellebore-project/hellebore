@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
 import { WordTable } from "@/client";
-import { mockDeleteWord, mockUpsertWords } from "@tests/utils/mocks";
+import { mockDeleteWord } from "@tests/utils/mocks";
 import { render } from "@tests/utils/render";
 
 import { test } from "../fixtures";
@@ -135,13 +135,10 @@ describe("cell selection", () => {
 describe("cell editing", () => {
     test("can edit a text cell", async ({
         user,
-        mockedInvoker,
         wordEditorService,
         entryId,
         mockedWord,
     }) => {
-        mockUpsertWords(mockedInvoker);
-
         await wordEditorService.load(entryId, mockedWord.wordType);
 
         render(<WordTable service={wordEditorService.spreadsheet} />);

@@ -1,7 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import { CommandNames, WordType } from "@/domain/constants";
-import { Id } from "@/interface";
 import {
     DiagnosticResponse,
     WordResponse,
@@ -9,14 +8,13 @@ import {
     WordUpsertResponse,
 } from "@/domain";
 
-type _UpsertWordResponse = DiagnosticResponse<Id | null>;
-type _BulkUpsertWordsResponse = _UpsertWordResponse[];
+type _WordBulkUpsertResponse = DiagnosticResponse<WordUpsertResponse>[];
 
 export class WordManager {
     async bulkUpsert(
         words: WordUpsert[],
     ): Promise<WordUpsertResponse[] | null> {
-        let responses: _BulkUpsertWordsResponse;
+        let responses: _WordBulkUpsertResponse;
         try {
             responses = await this._bulkUpsertWords(
                 words.map((word) => ({
@@ -30,12 +28,14 @@ export class WordManager {
             );
         } catch (error) {
             console.error(error);
+            console.error("An error occurred during a bulk word upsert.");
             return null;
         }
 
-        return responses.map((response, i) => {
-            return this._buildUpsertResponse(words[i], response);
-        });
+        return responses.map((response) => ({
+            id: response.data.id,
+            status: response.data.status,
+        }));
     }
 
     async getAllForLanguage(
@@ -61,38 +61,10 @@ export class WordManager {
         return true;
     }
 
-    private _buildUpsertResponse(
-        upsertPayload: WordUpsert,
-        rawResponse: DiagnosticResponse<Id | null>,
-    ): WordUpsertResponse {
-        let id = upsertPayload.id;
-        let created = false;
-        let updated = false;
-
-        if (id == null) {
-            id = rawResponse.data;
-            created = id != null;
-        } else updated = rawResponse.data != null;
-
-        if (rawResponse.data !== null) {
-            // upsert was successful
-            id = rawResponse.data;
-            if (upsertPayload.id === null) created = true;
-            else updated = true;
-        }
-
-        return {
-            ...upsertPayload,
-            id,
-            created,
-            updated,
-        };
-    }
-
     async _bulkUpsertWords(
         words: WordUpsert[],
-    ): Promise<_BulkUpsertWordsResponse> {
-        return invoke<_BulkUpsertWordsResponse>(CommandNames.Word.BulkUpsert, {
+    ): Promise<_WordBulkUpsertResponse> {
+        return invoke<_WordBulkUpsertResponse>(CommandNames.Word.BulkUpsert, {
             words,
         });
     }

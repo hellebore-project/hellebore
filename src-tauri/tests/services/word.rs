@@ -5,42 +5,31 @@ use crate::{
         settings,
         word::{create_word_payload, expected_word_response},
     },
-    utils::query::upsert_word,
+    utils::{query::upsert_word, validation::validate_word_response},
 };
 
 use hellebore::{
     database::{language_manager, word_manager},
     schema::{
         entry::EntryCreateSchema,
-        language::LanguageSchema,
-        word::{WordResponseSchema, WordUpdateSchema},
+        word::{WordResponseSchema, WordUpsertSchema},
     },
-    services::{entry_service, language_service, word_service},
+    services::{entry_service, word_service},
     settings::Settings,
     types::grammar::WordType,
-    utils::CodedEnum,
 };
 use rstest::*;
-
-fn validate_word_response(actual: &WordResponseSchema, expected: &WordResponseSchema) {
-    assert_eq!(expected.id, actual.id);
-    assert_eq!(expected.language_id, actual.language_id);
-    assert_eq!(expected.word_type.code(), actual.word_type.code());
-    assert_eq!(expected.spelling, actual.spelling);
-    assert_eq!(expected.definition, actual.definition);
-    assert_eq!(expected.translations, actual.translations);
-}
 
 #[rstest]
 #[tokio::test]
 async fn test_create_word(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
-    mut create_word_payload: WordUpdateSchema,
+    create_language_payload: EntryCreateSchema,
+    mut create_word_payload: WordUpsertSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -53,10 +42,12 @@ async fn test_create_word(
     assert_eq!(responses.len(), 1);
 
     let response = responses.get(0).unwrap();
-    assert!(response.data.is_some());
+    assert!(response.data.id.is_some());
+    assert!(response.data.status.created);
+    assert!(!response.data.status.updated);
     assert!(response.errors.is_empty());
 
-    let id = response.data.unwrap();
+    let id = response.data.id.unwrap();
     let word = word_service::get(&db, id).await.unwrap();
 
     expected_word_response.id = id;
@@ -68,11 +59,11 @@ async fn test_create_word(
 #[tokio::test]
 async fn test_create_duplicate_word(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
-    mut create_word_payload: WordUpdateSchema,
+    create_language_payload: EntryCreateSchema,
+    mut create_word_payload: WordUpsertSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -100,12 +91,12 @@ async fn test_create_duplicate_word(
 #[tokio::test]
 async fn test_update_word(
     settings: &Settings,
-    mut create_word_payload: WordUpdateSchema,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    mut create_word_payload: WordUpsertSchema,
+    create_language_payload: EntryCreateSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -115,7 +106,7 @@ async fn test_update_word(
     let new_spelling = "conducteur";
     let new_definition = "Pilot or operator of a vehicle.";
     let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
-    let update_payload = WordUpdateSchema {
+    let update_payload = WordUpsertSchema {
         id: Some(id),
         language_id: None,
         word_type: None,
@@ -129,6 +120,8 @@ async fn test_update_word(
 
     let responses = responses.unwrap();
     let response = responses.get(0).unwrap();
+    assert!(!response.data.status.created);
+    assert!(response.data.status.updated);
     assert!(response.errors.is_empty());
 
     let word = word_service::get(&db, id).await;
@@ -147,19 +140,72 @@ async fn test_update_word(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_updating_nonexistent_word(
+async fn test_update_word_atomically(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    mut create_word_payload: WordUpsertSchema,
+    create_language_payload: EntryCreateSchema,
+    mut expected_word_response: WordResponseSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
+        .await
+        .unwrap();
+
+    create_word_payload.language_id = Some(language.id);
+    let id = upsert_word(&db, &create_word_payload).await.unwrap();
+
+    let new_spelling = "conducteur";
+    let mut update_payload = WordUpsertSchema {
+        id: Some(id),
+        language_id: None,
+        word_type: None,
+        spelling: Some(new_spelling.to_owned()),
+        definition: None,
+        translations: None,
+    };
+
+    let _ = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
+    let word = word_service::get(&db, id).await.unwrap();
+
+    expected_word_response.id = word.id;
+    expected_word_response.language_id = word.language_id;
+    expected_word_response.spelling = new_spelling.to_owned();
+    validate_word_response(&word, &expected_word_response);
+
+    let new_definition = "Pilot or operator of a vehicle.";
+    update_payload.definition = Some(new_definition.to_owned());
+
+    let _ = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
+    let word = word_service::get(&db, id).await.unwrap();
+
+    expected_word_response.definition = new_definition.to_owned();
+    validate_word_response(&word, &expected_word_response);
+
+    let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
+    update_payload.translations = Some(new_translations.clone());
+
+    let _ = word_service::bulk_upsert(&db, vec![update_payload.clone()]).await;
+    let word = word_service::get(&db, id).await.unwrap();
+
+    expected_word_response.translations = new_translations;
+    validate_word_response(&word, &expected_word_response);
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_error_on_updating_nonexistent_word(
+    settings: &Settings,
+    create_language_payload: EntryCreateSchema,
+) {
+    let db = database(settings).await;
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
     let new_spelling = "conducteur";
     let new_definition = "Pilot or operator of a vehicle.";
     let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
-    let update_payload = WordUpdateSchema {
+    let update_payload = WordUpsertSchema {
         id: Some(1),
         language_id: Some(language.id),
         word_type: None,
@@ -180,12 +226,12 @@ async fn test_error_on_updating_nonexistent_word(
 #[tokio::test]
 async fn test_get_word(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
-    mut create_word_payload: WordUpdateSchema,
+    create_language_payload: EntryCreateSchema,
+    mut create_word_payload: WordUpsertSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -215,14 +261,14 @@ async fn test_error_on_getting_nonexistent_word(settings: &Settings) {
 #[tokio::test]
 async fn test_get_all_words_for_a_language(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
+    create_language_payload: EntryCreateSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
-    let create_payload_1 = WordUpdateSchema {
+    let create_payload_1 = WordUpsertSchema {
         language_id: Some(language.id),
         word_type: Some(WordType::Noun),
         spelling: Some("rue".to_owned()),
@@ -231,7 +277,7 @@ async fn test_get_all_words_for_a_language(
     };
     let id_1 = upsert_word(&db, &create_payload_1).await.unwrap();
 
-    let create_payload_2 = WordUpdateSchema {
+    let create_payload_2 = WordUpsertSchema {
         language_id: Some(language.id),
         word_type: Some(WordType::Verb),
         spelling: Some("conduire".to_owned()),
@@ -262,11 +308,11 @@ async fn test_get_all_words_for_a_language(
 #[tokio::test]
 async fn test_delete_word(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
-    mut create_word_payload: WordUpdateSchema,
+    create_language_payload: EntryCreateSchema,
+    mut create_word_payload: WordUpsertSchema,
 ) {
     let db = database(settings).await;
-    let language = language_service::create(&db, create_language_payload)
+    let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
@@ -289,12 +335,12 @@ async fn test_error_on_deleting_nonexistent_word(settings: &Settings) {
 #[tokio::test]
 async fn test_all_words_deleted_on_delete_language(
     settings: &Settings,
-    create_language_payload: EntryCreateSchema<LanguageSchema>,
-    mut create_word_payload: WordUpdateSchema,
+    create_language_payload: EntryCreateSchema,
+    mut create_word_payload: WordUpsertSchema,
 ) {
     let db = database(settings).await;
 
-    let entry = language_service::create(&db, create_language_payload)
+    let entry = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
     let id = entry.id;

@@ -25,7 +25,7 @@ impl MigrationTrait for Migration {
                         ForeignKey::create()
                             .name(WORD_LANG_ID_FK_NAME)
                             .from(Word::Table, Word::LanguageId)
-                            .to(Language::Table, Language::Id)
+                            .to(Language::Table, Language::EntryId) // FIXME: the entry ID should be the foreign key
                             .on_delete(ForeignKeyAction::Cascade),
                     )
                     .to_owned(),

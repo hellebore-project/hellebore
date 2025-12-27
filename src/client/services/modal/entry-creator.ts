@@ -3,7 +3,7 @@ import { FormEvent } from "react";
 
 import { ModalType } from "@/client/constants";
 import { CreateEntryEvent, IModalContentManager } from "@/client/interface";
-import { EntryInfoResponse, EntityType, ROOT_FOLDER_ID } from "@/domain";
+import { EntryInfoResponse, ROOT_FOLDER_ID, EntryType } from "@/domain";
 import { Id } from "@/interface";
 import { EventProducer } from "@/utils/event";
 
@@ -14,7 +14,7 @@ export class EntryCreatorService implements IModalContentManager {
     // STATE
     private _entryTitle = "";
     private _folderId: Id = ROOT_FOLDER_ID;
-    private _entityType: EntityType | null = null;
+    private _entryType: EntryType | null = null;
     private _isTitleUnique = true;
 
     // EVENTS
@@ -48,12 +48,12 @@ export class EntryCreatorService implements IModalContentManager {
         this._entryTitle = title;
     }
 
-    get entityType() {
-        return this._entityType;
+    get entryType() {
+        return this._entryType;
     }
 
-    set entityType(value: EntityType | null) {
-        this._entityType = value;
+    set entryType(value: EntryType | null) {
+        this._entryType = value;
     }
 
     get isTitleUnique() {
@@ -64,8 +64,8 @@ export class EntryCreatorService implements IModalContentManager {
         this._isTitleUnique = isUnique;
     }
 
-    initialize(entityType: EntityType | null = null, folderId?: Id) {
-        this._entityType = entityType;
+    initialize(entryType: EntryType | null = null, folderId?: Id) {
+        this._entryType = entryType;
         this._folderId = folderId ?? ROOT_FOLDER_ID;
         this.entryTitle = "";
         this._isTitleUnique = true;
@@ -78,7 +78,7 @@ export class EntryCreatorService implements IModalContentManager {
             // HACK: assume that the user has entered an entity type
             // TODO: when entity type is null, we need to default to some sort of generic entity
             // without any properties
-            entityType: this.entityType as EntityType,
+            entryType: this.entryType as EntryType,
             title: this._entryTitle,
             folderId: this._folderId,
         });
