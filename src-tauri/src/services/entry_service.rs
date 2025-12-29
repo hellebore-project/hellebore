@@ -4,7 +4,7 @@ use sea_orm::{ConnectionTrait, DatabaseConnection};
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
-use crate::model::errors::api_error::ApiError;
+use crate::model::{errors::api_error::ApiError, text::TextNode};
 use crate::schema::{
     common::DiagnosticResponseSchema,
     entry::{
@@ -12,7 +12,7 @@ use crate::schema::{
         EntryPropertyResponseSchema, EntryUpdateResponseSchema, EntryUpdateSchema,
     },
 };
-use crate::services::{language_service, person_service, word_service};
+use crate::services::{entry_text_service, language_service, person_service, word_service};
 use crate::types::entity::{ENTRY, EntityType};
 
 pub async fn create(
@@ -303,17 +303,21 @@ pub async fn get_text(
     database: &DatabaseConnection,
     id: i32,
 ) -> Result<EntryArticleResponseSchema, ApiError> {
-    let entry = entry_manager::get(database, id).await.map_err(|e| {
-        ApiError::db(
+    let entry = entry_manager::get(database, id)
+        .await
+        .map_err(|e| ApiError::db(
             "Failed to query entry table while fetching an entry by id",
             e,
-        )
-    })?;
+        ))?;
 
-    match entry {
-        Some(entry) => Ok(generate_article_response(&entry)),
+    let entry = match entry {
+        Some(entry) => entry,
         None => return Err(ApiError::not_found("Entry not found", ENTRY)),
-    }
+    };
+
+    let text = entry_text_service::sync_text(database, &entry.text).await;
+
+    Ok(generate_text_response(entry, text))
 }
 
 pub async fn get_all(
@@ -389,7 +393,7 @@ pub fn generate_property_response(
     }
 }
 
-pub fn generate_article_response(entry: &EntryModel) -> EntryArticleResponseSchema {
+pub fn generate_text_response(entry: EntryModel, text: TextNode) -> EntryArticleResponseSchema {
     EntryArticleResponseSchema {
         info: EntryInfoResponseSchema {
             id: entry.id,
@@ -397,6 +401,6 @@ pub fn generate_article_response(entry: &EntryModel) -> EntryArticleResponseSche
             title: entry.title.to_owned(),
             entity_type: EntityType::from(entry.entity_type),
         },
-        text: entry.text.to_owned(),
+        text,
     }
 }
