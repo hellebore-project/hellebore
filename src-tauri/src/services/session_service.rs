@@ -1,6 +1,6 @@
 use sea_orm::DatabaseConnection;
 
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 use crate::schema::project::ProjectResponseSchema;
 use crate::schema::session::SessionResponseSchema;
 use crate::services::project_service;

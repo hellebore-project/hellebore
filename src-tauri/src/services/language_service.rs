@@ -1,7 +1,7 @@
 use sea_orm::ConnectionTrait;
 
 use crate::database::language_manager;
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 use crate::schema::language::LanguageSchema;
 use crate::types::entity::LANGUAGE;
 

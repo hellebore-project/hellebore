@@ -1,5 +1,5 @@
 use crate::api::utils;
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 use crate::schema::session::SessionResponseSchema;
 use crate::services::session_service;
 use crate::state::State;

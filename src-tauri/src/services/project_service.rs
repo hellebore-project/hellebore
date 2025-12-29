@@ -4,7 +4,7 @@ use tokio::sync::MutexGuard;
 use ::entity::project::Model as Project;
 
 use crate::database::{project_manager, setup};
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 use crate::schema::project::{ProjectLoadResponseSchema, ProjectResponseSchema};
 use crate::state::StateData;
 use crate::types::entity::PROJECT;

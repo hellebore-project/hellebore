@@ -1,11 +1,10 @@
 use futures::future;
-
 use sea_orm::{ConnectionTrait, DatabaseConnection};
 
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 use crate::schema::{
     common::DiagnosticResponseSchema,
     entry::{
@@ -300,7 +299,7 @@ pub async fn get_all(
         .await
         .map_err(|e| ApiError::query_failed(e, ENTRY))?;
     let entries = entries.iter().map(generate_info_response).collect();
-    return Ok(entries);
+    Ok(entries)
 }
 
 pub async fn search(
@@ -311,14 +310,14 @@ pub async fn search(
         .await
         .map_err(|e| ApiError::query_failed(e, ENTRY))?;
     let entries = entries.iter().map(generate_info_response).collect();
-    return Ok(entries);
+    Ok(entries)
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
     entry_manager::delete(database, id)
         .await
         .map_err(|e| ApiError::not_deleted(e, ENTRY))?;
-    return Ok(());
+    Ok(())
 }
 
 pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result<(), ApiError> {
@@ -356,7 +355,7 @@ pub fn generate_property_response(
     }
 }
 
-pub fn generate_article_response(entry: &entity::entry::Model) -> EntryArticleResponseSchema {
+pub fn generate_article_response(entry: &EntryModel) -> EntryArticleResponseSchema {
     EntryArticleResponseSchema {
         info: EntryInfoResponseSchema {
             id: entry.id,

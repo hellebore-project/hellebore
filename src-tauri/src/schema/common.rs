@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

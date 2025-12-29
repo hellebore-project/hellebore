@@ -1,5 +1,5 @@
 use crate::api::utils;
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 use crate::schema::project::ProjectResponseSchema;
 use crate::services::project_service;
 use crate::state::State;
