@@ -36,7 +36,8 @@ async fn _sync_text_node(
 
     if let Some(content) = &mut node.content {
         for child_node in content.iter_mut() {
-            // reminder to self: recursive async calls need to be boxed
+            // reminder to self: when doing a recursive async call,
+            // the future needs to be allocated on the heap and pinned
             Box::pin(_sync_text_node(
                 database,
                 child_node,
