@@ -21,7 +21,7 @@ pub fn entry_properties() -> EntryProperties {
 
 #[fixture]
 pub fn entry_text() -> String {
-    "".to_string()
+    "mocked article text".to_string()
 }
 
 #[fixture]

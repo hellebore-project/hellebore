@@ -3,7 +3,7 @@ use sea_orm::{ConnectionTrait, DatabaseConnection};
 use ::entity::person::Model as Person;
 
 use crate::database::person_manager;
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 use crate::schema::person::PersonSchema;
 use crate::types::entity::PERSON;
 

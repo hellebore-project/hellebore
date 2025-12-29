@@ -2,7 +2,7 @@ use sea_orm::{Database, DatabaseConnection};
 
 use migration::{Migrator, MigratorTrait};
 
-use crate::{errors::ApiError, settings::Settings};
+use crate::{model::errors::api_error::ApiError, settings::Settings};
 
 pub async fn setup(settings: &Settings) -> Result<DatabaseConnection, ApiError> {
     // connect to the DB

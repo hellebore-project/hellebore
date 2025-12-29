@@ -1,6 +1,6 @@
 use sea_orm::{DatabaseConnection, DatabaseTransaction, TransactionTrait};
 
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 
 /* NOTE
 The sea-orm docs recommend creating a transaction inside a closure.

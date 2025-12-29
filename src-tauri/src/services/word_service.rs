@@ -4,7 +4,7 @@ use ::entity::word::Model as Word;
 use serde_json;
 
 use crate::database::word_manager;
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 use crate::schema::{
     common::DiagnosticResponseSchema,
     word::{WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},

@@ -5,14 +5,17 @@ use crate::types::entity::EntityType;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all_fields = "camelCase")]
 pub enum ApiError {
+    // FIXME: not an API error
     DatabaseConnectionFailed {
         msg: String,
         connection_string: String,
     },
+    // FIXME: not an API error
     DatabaseMigrationFailed {
         msg: String,
         connection_string: String,
     },
+    // FIXME: not an API error
     DatabaseTransactionFailed {
         msg: String,
     },
@@ -32,6 +35,7 @@ pub enum ApiError {
         msg: String,
         entity_type: EntityType,
     },
+    // FIXME: not an API error
     QueryFailed {
         msg: String,
         entity_type: EntityType,

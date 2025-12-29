@@ -3,7 +3,7 @@ use sea_orm::DatabaseConnection;
 use ::entity::folder::Model as Folder;
 
 use crate::database::{file_manager, folder_manager};
-use crate::errors::ApiError;
+use crate::model::errors::api_error::ApiError;
 use crate::schema::{
     common::DiagnosticResponseSchema,
     file::BulkFileResponseSchema,
