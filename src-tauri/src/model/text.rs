@@ -59,6 +59,16 @@ impl TextNode {
         node
     }
 
+    pub fn new_reference(id: i32, label: String) -> Self {
+        let mut node = TextNode::new("mention".to_owned());
+        node.attrs = Some(HashMap::from([
+            ("id".to_owned(), id.into()),
+            ("label".to_owned(), label.into()),
+            ("mentionSuggestionChar".to_owned(), "@".into()),
+        ]));
+        node
+    }
+
     pub fn is_type(&self, node_type: &str) -> bool {
         self.node_type.is_some() && self.node_type.as_ref().unwrap() == node_type
     }

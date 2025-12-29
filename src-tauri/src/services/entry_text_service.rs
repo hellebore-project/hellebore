@@ -10,6 +10,8 @@ pub async fn sync_text(database: &DatabaseConnection, text: &String) -> TextNode
     let mut db_errors: Vec<DbErr> = Vec::new();
     _sync_text_node(database, &mut text, &mut text_errors, &mut db_errors).await;
 
+    // TODO: do something with the errors
+
     text
 }
 
