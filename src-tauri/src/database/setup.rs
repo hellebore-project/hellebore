@@ -12,12 +12,12 @@ pub async fn setup(settings: &Settings) -> Result<DatabaseConnection, ApiError> 
     };
     let db = Database::connect(&conn_str)
         .await
-        .map_err(|e| ApiError::db("Failed to connect to the DB", e))?;
+        .map_err(|e| ApiError::db("Failed to connect to the DB.", e))?;
 
     // migrate the DB
     Migrator::up(&db, None)
         .await
-        .map_err(|e| ApiError::db("DB migrations failed", e))?;
+        .map_err(|e| ApiError::db("DB migrations failed.", e))?;
 
     Ok(db)
 }

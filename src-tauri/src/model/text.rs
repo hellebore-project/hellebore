@@ -103,4 +103,9 @@ impl TextNode {
 
         content.last_mut().unwrap()
     }
+
+    pub fn with_child(mut self, child: TextNode) -> TextNode {
+        self.add_child(child);
+        self
+    }
 }

@@ -27,11 +27,8 @@ pub fn entry_text() -> String {
 
 #[fixture]
 pub fn entry_text_node(entry_text: String) -> TextNode {
-    let mut doc = TextNode::new_doc();
-    let par = doc.add_child(TextNode::new_paragraph());
-    par.add_child(TextNode::new_text(entry_text));
-
-    doc
+    TextNode::new_doc()
+        .with_child(TextNode::new_paragraph().with_child(TextNode::new_text(entry_text)))
 }
 
 #[fixture]

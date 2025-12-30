@@ -17,7 +17,7 @@ pub struct UpsertResponseSchema {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DiagnosticResponseSchema<E> {
-    pub data: E,
+pub struct DiagnosticResponseSchema<D> {
+    pub data: D,
     pub errors: Vec<ApiError>,
 }

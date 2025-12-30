@@ -29,7 +29,7 @@ pub async fn create(
         project = match project_manager::insert(&db, &name).await {
             Ok(entity) => generate_response(&entity),
             Err(e) => {
-                return Err(ApiError::not_created("", PROJECT).from_error(e));
+                return Err(ApiError::not_created("Project not created.", PROJECT).from_error(e));
             }
         };
     } else {
@@ -52,7 +52,7 @@ pub async fn load(
     let project = match get(&db).await? {
         Some(project) => project,
         None => {
-            return Err(ApiError::not_found("Project not found", PROJECT));
+            return Err(ApiError::not_found("Project not found.", PROJECT));
         }
     };
     Ok(ProjectLoadResponseSchema { info: project, db })
@@ -72,12 +72,12 @@ pub async fn update(
     let project = match get(&database).await? {
         Some(project) => project,
         None => {
-            return Err(ApiError::not_found("Project not found", PROJECT));
+            return Err(ApiError::not_found("Project not found.", PROJECT));
         }
     };
     return match project_manager::update(database, project.id, &name).await {
         Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_updated("Project not updated", PROJECT).from_error(e)),
+        Err(e) => Err(ApiError::not_updated("Project not updated.", PROJECT).from_error(e)),
     };
 }
 
@@ -96,7 +96,7 @@ pub async fn get_all(
 ) -> Result<Vec<ProjectResponseSchema>, ApiError> {
     let projects = project_manager::get_all(database).await.map_err(|e| {
         ApiError::db(
-            "Failed to query project table while fetching all projects",
+            "Failed to query project table while fetching all projects.",
             e,
         )
     })?;

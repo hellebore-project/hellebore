@@ -75,11 +75,14 @@ async fn test_get_entry_text(
     .await
     .unwrap();
 
-    let article = entry_service::get_text(&database, entry.id).await;
+    let response = entry_service::get_text(&database, entry.id).await;
 
-    assert!(article.is_ok());
+    assert!(response.is_ok());
 
-    let article = article.unwrap();
+    let diagnostic_response = response.unwrap();
+    assert!(diagnostic_response.errors.is_empty());
+
+    let article = diagnostic_response.data;
     validate_generic_entry_info_response(&article.info, None, folder_id, &entry_title);
     assert_eq!(article.text, entry_text_node);
 }

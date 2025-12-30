@@ -69,7 +69,7 @@ pub async fn get_entry_properties(
 pub async fn get_entry_text(
     state: tauri::State<'_, State>,
     id: i32,
-) -> Result<EntryArticleResponseSchema, ApiError> {
+) -> Result<DiagnosticResponseSchema<EntryArticleResponseSchema>, ApiError> {
     let state = state.lock().await;
     entry_service::get_text(utils::get_database(&state)?, id).await
 }

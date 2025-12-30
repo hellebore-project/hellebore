@@ -21,7 +21,7 @@ pub async fn create(
 ) -> Result<FolderResponseSchema, ApiError> {
     return match folder_manager::insert(database, folder.parent_id, &folder.name).await {
         Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_created("Folder not created", FOLDER).from_error(e)),
+        Err(e) => Err(ApiError::not_created("Folder not created.", FOLDER).from_error(e)),
     };
 }
 
@@ -31,7 +31,7 @@ pub async fn update(
 ) -> Result<FolderResponseSchema, ApiError> {
     return match folder_manager::update(database, folder.id, folder.parent_id, folder.name).await {
         Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_updated("Folder not updated", FOLDER).from_error(e)),
+        Err(e) => Err(ApiError::not_updated("Folder not updated.", FOLDER).from_error(e)),
     };
 }
 
@@ -47,7 +47,7 @@ pub async fn validate_name(
         .await
         .map_err(|e| {
             ApiError::db(
-                "Failed to query the folder table while verifying whether a name is locally unique",
+                "Failed to query the folder table while verifying whether a name is locally unique.",
                 e,
             )
         })?;
@@ -77,7 +77,7 @@ pub async fn validate_name(
         };
 
         errors.push(ApiError::field_not_unique(
-            "Folder names must be locally unique",
+            "Folder names must be locally unique.",
             FOLDER,
             id,
             "name".to_owned(),
@@ -94,7 +94,7 @@ pub async fn validate_name(
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderResponseSchema, ApiError> {
     let folder = folder_manager::get(database, id).await.map_err(|e| {
         ApiError::db(
-            "Failed to query the folder table while fetching a folder by ID",
+            "Failed to query the folder table while fetching a folder by ID.",
             e,
         )
     })?;
@@ -109,7 +109,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderRespons
 pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponseSchema>, ApiError> {
     let folders = folder_manager::get_all(database).await.map_err(|e| {
         ApiError::db(
-            "Failed to query the folder table while fetching all folders",
+            "Failed to query the folder table while fetching all folders.",
             e,
         )
     })?;
@@ -125,7 +125,7 @@ pub async fn delete(
 
     let _ = folder_manager::delete(database, id)
         .await
-        .map_err(|e| ApiError::not_deleted("Folder not deleted", FOLDER).from_error(e))?;
+        .map_err(|e| ApiError::not_deleted("Folder not deleted.", FOLDER).from_error(e))?;
 
     return Ok(contents);
 }
@@ -134,7 +134,9 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
     folder_manager::delete_many(database, ids)
         .await
         .map(|_| ())
-        .map_err(|e| ApiError::not_deleted("One or more folders not deleted", FOLDER).from_error(e))
+        .map_err(|e| {
+            ApiError::not_deleted("One or more folders not deleted.", FOLDER).from_error(e)
+        })
 }
 
 fn generate_response(folder: &Folder) -> FolderResponseSchema {
