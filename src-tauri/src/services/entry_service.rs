@@ -4,7 +4,7 @@ use sea_orm::{ConnectionTrait, DatabaseConnection};
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
-use crate::model::errors::api_error::ApiError;
+use crate::model::{errors::api_error::ApiError, text::TextNode};
 use crate::schema::{
     common::DiagnosticResponseSchema,
     entry::{
@@ -12,7 +12,7 @@ use crate::schema::{
         EntryPropertyResponseSchema, EntryUpdateResponseSchema, EntryUpdateSchema,
     },
 };
-use crate::services::{language_service, person_service, word_service};
+use crate::services::{entry_text_service, language_service, person_service, word_service};
 use crate::types::entity::{ENTRY, EntityType};
 
 pub async fn create(
@@ -60,7 +60,7 @@ where
         text.to_owned(),
     )
     .await
-    .map_err(|e| ApiError::not_created("Entry record not created", ENTRY).from_error(e))?;
+    .map_err(|e| ApiError::not_created("Entry record not created.", ENTRY).from_error(e))?;
 
     Ok(entry)
 }
@@ -101,7 +101,7 @@ pub async fn update(
         let is_unique_result =
             entry_manager::is_title_unique_for_id(database, Some(entry.id), &title_value)
                 .await
-                .map_err(|e| ApiError::db("Entry title is not unique", e));
+                .map_err(|e| ApiError::db("Entry title is not unique.", e));
 
         match is_unique_result {
             Ok(is_unique) => {
@@ -109,7 +109,7 @@ pub async fn update(
                     response.title.is_unique = false;
                     entry.title = None;
                     errors.push(ApiError::field_not_unique(
-                        "Entry title must be globally unique",
+                        "Entry title must be globally unique.",
                         ENTRY,
                         Some(entry.id),
                         "title".to_owned(),
@@ -151,7 +151,7 @@ async fn _update(
         entry_manager::update(database, entry.id, entry.folder_id, entry.title, entry.text)
             .await
             .map(|_| ())
-            .map_err(|e| ApiError::not_updated("Entry record not updated", ENTRY).from_error(e));
+            .map_err(|e| ApiError::not_updated("Entry record not updated.", ENTRY).from_error(e));
 
     if let Err(e) = update_result {
         response.folder_id.updated = false;
@@ -223,14 +223,14 @@ pub async fn validate_title(
         .await
         .map_err(|e| {
             ApiError::db(
-                "Failed to query the entry table while checking whether the title is unique",
+                "Failed to query the entry table while checking whether the title is unique.",
                 e,
             )
         })?;
 
     if !is_unique {
         errors.push(ApiError::field_not_unique(
-            "Entry title must be globally unique",
+            "Entry title must be globally unique.",
             ENTRY,
             id,
             "title".to_owned(),
@@ -250,14 +250,14 @@ pub async fn get_info(
 ) -> Result<EntryInfoResponseSchema, ApiError> {
     let info = entry_manager::get_info(database, id).await.map_err(|err| {
         ApiError::db(
-            "Failed to query entry table while fetching an entry by id",
+            "Failed to query entry table while fetching an entry by id.",
             err,
         )
     })?;
 
     match info {
         Some(info) => Ok(generate_info_response(&info)),
-        None => return Err(ApiError::not_found("Entry not found", ENTRY)),
+        None => return Err(ApiError::not_found("Entry not found.", ENTRY)),
     }
 }
 
@@ -267,13 +267,13 @@ pub async fn get_properties(
 ) -> Result<EntryPropertyResponseSchema, ApiError> {
     let info = entry_manager::get_info(database, id).await.map_err(|err| {
         ApiError::db(
-            "Failed to query entry table while fetching an entry by id",
+            "Failed to query entry table while fetching an entry by id.",
             err,
         )
     })?;
 
     if info.is_none() {
-        return Err(ApiError::not_found("Entry not found", ENTRY));
+        return Err(ApiError::not_found("Entry not found.", ENTRY));
     }
     let info = info.unwrap();
 
@@ -293,7 +293,7 @@ async fn _get_properties(
             person_service::get(database, id).await?,
         )),
         _ => Err(ApiError::internal(&format!(
-            "Entries of type {} are not supported",
+            "Entries of type {} are not supported.",
             entity_type
         ))),
     }
@@ -302,18 +302,29 @@ async fn _get_properties(
 pub async fn get_text(
     database: &DatabaseConnection,
     id: i32,
-) -> Result<EntryArticleResponseSchema, ApiError> {
+) -> Result<DiagnosticResponseSchema<EntryArticleResponseSchema>, ApiError> {
     let entry = entry_manager::get(database, id).await.map_err(|e| {
         ApiError::db(
-            "Failed to query entry table while fetching an entry by id",
+            "Failed to query entry table while fetching an entry by id.",
             e,
         )
     })?;
 
-    match entry {
-        Some(entry) => Ok(generate_article_response(&entry)),
-        None => return Err(ApiError::not_found("Entry not found", ENTRY)),
-    }
+    let entry = match entry {
+        Some(entry) => entry,
+        None => return Err(ApiError::not_found("Entry not found.", ENTRY)),
+    };
+
+    let mut errors: Vec<ApiError> = Vec::new();
+    let text = entry_text_service::sync_text(database, &entry.text, &mut errors).await;
+
+    let text_response = generate_text_response(entry, text);
+    let diagnostic_response = DiagnosticResponseSchema {
+        data: text_response,
+        errors,
+    };
+
+    Ok(diagnostic_response)
 }
 
 pub async fn get_all(
@@ -321,7 +332,7 @@ pub async fn get_all(
 ) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
     let entries = entry_manager::get_all(database)
         .await
-        .map_err(|e| ApiError::db("Failed to query entry table while fetching all entries", e))?;
+        .map_err(|e| ApiError::db("Failed to query entry table while fetching all entries.", e))?;
     let entries = entries.iter().map(generate_info_response).collect();
 
     Ok(entries)
@@ -335,7 +346,7 @@ pub async fn search(
         .await
         .map_err(|e| {
             ApiError::db(
-                "Failed to query the entry table while searching for entries",
+                "Failed to query the entry table while searching for entries.",
                 e,
             )
         })?;
@@ -346,7 +357,7 @@ pub async fn search(
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
     entry_manager::delete(database, id).await.map_err(|e| {
-        ApiError::not_deleted("Failed to delete an entry record", ENTRY).from_error(e)
+        ApiError::not_deleted("Failed to delete an entry record.", ENTRY).from_error(e)
     })?;
     Ok(())
 }
@@ -356,7 +367,7 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
         .await
         .map(|_| ())
         .map_err(|e| {
-            ApiError::not_deleted("Failed to bulk delete one or more entry records", ENTRY)
+            ApiError::not_deleted("Failed to bulk delete one or more entry records.", ENTRY)
                 .from_error(e)
         })
 }
@@ -389,7 +400,7 @@ pub fn generate_property_response(
     }
 }
 
-pub fn generate_article_response(entry: &EntryModel) -> EntryArticleResponseSchema {
+pub fn generate_text_response(entry: EntryModel, text: TextNode) -> EntryArticleResponseSchema {
     EntryArticleResponseSchema {
         info: EntryInfoResponseSchema {
             id: entry.id,
@@ -397,6 +408,6 @@ pub fn generate_article_response(entry: &EntryModel) -> EntryArticleResponseSche
             title: entry.title.to_owned(),
             entity_type: EntityType::from(entry.entity_type),
         },
-        text: entry.text.to_owned(),
+        text,
     }
 }

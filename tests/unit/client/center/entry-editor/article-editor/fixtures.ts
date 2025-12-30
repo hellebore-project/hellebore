@@ -2,7 +2,6 @@ import { JSONContent } from "@tiptap/core";
 
 import { EntryViewType, ArticleEditorService } from "@/client";
 import { EntryArticleResponse, EntryInfoResponse } from "@/domain";
-import { Id } from "@/interface";
 import {
     mockGetEntryArticle,
     createDocNode,
@@ -38,7 +37,7 @@ export const test = baseTest.extend<BasePropertyEditorFixtures>({
     ) => {
         const entryWithArticle: EntryArticleResponse = {
             info: mockedEntryInfo,
-            text: JSON.stringify(entryArticle),
+            text: entryArticle,
         };
         mockGetEntryArticle(mockedInvoker, entryWithArticle);
         use(entryWithArticle);

@@ -6,6 +6,7 @@ import { ClientManager, state } from "@/client";
 import {
     EntityType,
     EntryInfoResponse,
+    EntryType,
     FolderResponse,
     ProjectResponse,
     SessionResponse,
@@ -82,7 +83,8 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     entryInfo: async ({ entryId, entryType, folderId, entryTitle }, use) => {
         const entry: EntryInfoResponse = {
             id: entryId,
-            entityType: entryType,
+            // TODO: remove cast once generic entries are supported
+            entityType: entryType as unknown as EntryType,
             folderId,
             title: entryTitle,
         };

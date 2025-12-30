@@ -1,12 +1,17 @@
 use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 
-use crate::types::entity::EntityType;
+use crate::{model::errors::text_error::TextError, types::entity::EntityType};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all_fields = "camelCase")]
 pub enum ApiError {
     ProjectNotLoaded,
+    BadEntryText {
+        error: TextError,
+    },
+
+    // GENERAL ERRORS
     NotCreated {
         msg: String,
         entity_type: EntityType,
@@ -49,6 +54,8 @@ pub enum ApiError {
         value: String,
         error: Option<String>,
     },
+
+    // MISCELLANEOUS ERRORS
     InternalError {
         msg: String,
         error: Option<String>,
@@ -56,6 +63,10 @@ pub enum ApiError {
 }
 
 impl ApiError {
+    pub fn bad_entry_text(error: TextError) -> ApiError {
+        ApiError::BadEntryText { error }
+    }
+
     pub fn not_created(msg: &str, entity_type: EntityType) -> ApiError {
         ApiError::NotCreated {
             msg: msg.to_owned(),
@@ -144,7 +155,6 @@ impl ApiError {
 
     pub fn from_error<E: ToString>(self, error: E) -> Self {
         match self {
-            ApiError::ProjectNotLoaded => ApiError::ProjectNotLoaded,
             ApiError::NotCreated {
                 msg, entity_type, ..
             } => ApiError::NotCreated {
@@ -218,6 +228,10 @@ impl ApiError {
                 msg,
                 error: Some(error.to_string()),
             },
+            _ => ApiError::InternalError {
+                msg: self.to_string(),
+                error: Some(error.to_string()),
+            },
         }
     }
 }
@@ -226,6 +240,9 @@ impl std::fmt::Display for ApiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ApiError::ProjectNotLoaded => write!(f, "Project not loaded"),
+            ApiError::BadEntryText { error } => {
+                write!(f, "BAD ENTRY TEXT. {}", error)
+            }
             ApiError::NotCreated {
                 msg,
                 entity_type,
@@ -233,7 +250,7 @@ impl std::fmt::Display for ApiError {
             } => {
                 write!(
                     f,
-                    "Not inserted: {}. Entity: {:?}. Error: {:?}",
+                    "NOT INSERTED. {} Entity: {:?}. Error: {:?}",
                     msg, entity_type, error
                 )
             }
@@ -244,7 +261,7 @@ impl std::fmt::Display for ApiError {
             } => {
                 write!(
                     f,
-                    "Not updated: {}. Entity: {:?}. Error: {:?}",
+                    "NOT UPDATED. {} Entity: {:?}. Error: {:?}",
                     msg, entity_type, error,
                 )
             }
@@ -255,7 +272,7 @@ impl std::fmt::Display for ApiError {
             } => {
                 write!(
                     f,
-                    "Not found: {}. Entity: {:?}. Error: {:?}",
+                    "NOT FOUND. {} Entity: {:?}. Error: {:?}",
                     msg, entity_type, error,
                 )
             }
@@ -266,7 +283,7 @@ impl std::fmt::Display for ApiError {
             } => {
                 write!(
                     f,
-                    "Not deleted: {}. Entity: {:?}. Error: {:?}",
+                    "NOT DELETED. {} Entity: {:?}. Error: {:?}",
                     msg, entity_type, error
                 )
             }
@@ -277,7 +294,7 @@ impl std::fmt::Display for ApiError {
                 error,
             } => write!(
                 f,
-                "Field not updated: {}. Entity: {:?}; key: {}. Error: {:?}",
+                "FIELD NOT UPDATED. {} Entity: {:?}; key: {}. Error: {:?}",
                 msg, entity_type, key, error
             ),
             ApiError::FieldNotUnique {
@@ -289,7 +306,7 @@ impl std::fmt::Display for ApiError {
                 error,
             } => write!(
                 f,
-                "Field not unique: {}. Entity: {:?}; id: {:?}; key: {}; value: {}. Error: {:?}",
+                "FIELD NOT UNIQUE. {} Entity: {:?}; id: {:?}; key: {}; value: {}. Error: {:?}",
                 msg, entity_type, id, key, value, error
             ),
             ApiError::FieldInvalid {
@@ -301,11 +318,11 @@ impl std::fmt::Display for ApiError {
                 error,
             } => write!(
                 f,
-                "Field invalid: {}. Entity: {:?}; id: {:?}; key: {}; value: {}. Error: {:?}",
+                "INVALID FIELD. {} Entity: {:?}; id: {:?}; key: {}; value: {}. Error: {:?}",
                 msg, entity_type, id, key, value, error
             ),
             ApiError::InternalError { msg, error } => {
-                write!(f, "Internal error: {}. Error: {:?}", msg, error)
+                write!(f, "INTERNAL ERROR. {} Error: {:?}", msg, error)
             }
         }
     }

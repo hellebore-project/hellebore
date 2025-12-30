@@ -1,10 +1,12 @@
-use hellebore::{services::entry_service, settings::Settings, types::entity::ENTRY};
+use hellebore::{
+    model::text::TextNode, services::entry_service, settings::Settings, types::entity::ENTRY,
+};
 use rstest::*;
 
 use crate::{
     fixtures::{
         database,
-        entry::{entry_text, entry_title},
+        entry::{entry_text, entry_text_json, entry_text_node, entry_title},
         folder::folder_id,
         settings,
     },
@@ -59,7 +61,8 @@ async fn test_get_entry_text(
     settings: &Settings,
     folder_id: i32,
     entry_title: String,
-    entry_text: String,
+    entry_text_node: TextNode,
+    entry_text_json: String,
 ) {
     let database = database(settings).await;
     let entry = entry_service::_create(
@@ -67,18 +70,21 @@ async fn test_get_entry_text(
         ENTRY,
         folder_id,
         entry_title.to_owned(),
-        entry_text.to_owned(),
+        entry_text_json.to_owned(),
     )
     .await
     .unwrap();
 
-    let article = entry_service::get_text(&database, entry.id).await;
+    let response = entry_service::get_text(&database, entry.id).await;
 
-    assert!(article.is_ok());
+    assert!(response.is_ok());
 
-    let article = article.unwrap();
+    let diagnostic_response = response.unwrap();
+    assert!(diagnostic_response.errors.is_empty());
+
+    let article = diagnostic_response.data;
     validate_generic_entry_info_response(&article.info, None, folder_id, &entry_title);
-    assert_eq!(article.text, entry_text);
+    assert_eq!(article.text, entry_text_node);
 }
 
 #[rstest]

@@ -65,7 +65,7 @@ where
 {
     if word.language_id.is_none() {
         return Err(ApiError::field_invalid(
-            "Language ID of new word cannot be none",
+            "Language ID of new word cannot be none.",
             WORD,
             None,
             "language_id",
@@ -73,7 +73,7 @@ where
         ));
     } else if word.word_type.is_none() {
         return Err(ApiError::field_invalid(
-            "Type of new word cannot be none",
+            "Type of new word cannot be none.",
             WORD,
             None,
             "word_type",
@@ -98,7 +98,7 @@ where
         translations,
     )
     .await
-    .map_err(|e| ApiError::not_created("Word not created", WORD).from_error(e));
+    .map_err(|e| ApiError::not_created("Word not created.", WORD).from_error(e));
 }
 
 async fn _update<C>(
@@ -111,7 +111,7 @@ where
 {
     if word.id.is_none() {
         return Err(ApiError::field_invalid(
-            "Word ID cannot be none",
+            "Word ID cannot be none.",
             WORD,
             None,
             "id",
@@ -137,7 +137,7 @@ where
         translations,
     )
     .await
-    .map_err(|e| ApiError::not_updated("Word not updated", WORD).from_error(e))
+    .map_err(|e| ApiError::not_updated("Word not updated.", WORD).from_error(e))
 }
 
 pub fn _serialize_translations(
@@ -147,7 +147,7 @@ pub fn _serialize_translations(
         Some(t) => match serde_json::to_value(&t) {
             Ok(_t) => Ok(Some(_t)),
             Err(e) => Err(ApiError::field_not_updated(
-                "Failed to serialize word translations",
+                "Failed to serialize word translations.",
                 WORD,
                 String::from("translations"),
             )
@@ -160,7 +160,7 @@ pub fn _serialize_translations(
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<WordResponseSchema, ApiError> {
     let word = word_manager::get(database, id).await.map_err(|e| {
         ApiError::db(
-            "Failed to query the word table while fetching a word by ID",
+            "Failed to query the word table while fetching a word by ID.",
             e,
         )
     })?;
@@ -177,7 +177,12 @@ pub async fn get_all_for_language(
 ) -> Result<Vec<WordResponseSchema>, ApiError> {
     let words = word_manager::get_all_for_language(database, language_id, word_type)
         .await
-        .map_err(|e| ApiError::db("Failed to query the word table while fetching all words", e))?;
+        .map_err(|e| {
+            ApiError::db(
+                "Failed to query the word table while fetching all words.",
+                e,
+            )
+        })?;
 
     let mut word_responses: Vec<WordResponseSchema> = Vec::new();
     for word in words.iter() {
@@ -194,7 +199,7 @@ pub async fn get_all_for_language(
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
     word_manager::delete(database, id)
         .await
-        .map_err(|e| ApiError::not_deleted("Word not deleted", WORD).from_error(e))?;
+        .map_err(|e| ApiError::not_deleted("Word not deleted.", WORD).from_error(e))?;
     return Ok(());
 }
 
@@ -217,7 +222,7 @@ fn _convert_translations_to_vec(
         Some(array) => array,
         None => {
             return Err(ApiError::field_invalid(
-                "Failed to deserialize word translations into a vector",
+                "Failed to deserialize word translations into a vector.",
                 WORD,
                 Some(id),
                 "translations",
@@ -232,7 +237,7 @@ fn _convert_translations_to_vec(
             Some(v) => v.to_string(),
             None => {
                 return Err(ApiError::field_invalid(
-                    "Failed to deserialize word translation into a string",
+                    "Failed to deserialize word translation into a string.",
                     WORD,
                     Some(id),
                     "translations",

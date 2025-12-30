@@ -2,6 +2,7 @@ pub mod project_service;
 pub mod session_service;
 
 pub mod entry_service;
+pub mod entry_text_service;
 pub mod file_service;
 pub mod folder_service;
 

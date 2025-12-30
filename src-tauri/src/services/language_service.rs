@@ -10,7 +10,7 @@ where
     C: ConnectionTrait,
 {
     language_manager::insert(con, entry_id).await.map_err(|e| {
-        ApiError::not_created("Failed to create language record", LANGUAGE).from_error(e)
+        ApiError::not_created("Failed to create language record.", LANGUAGE).from_error(e)
     })?;
 
     Ok(())

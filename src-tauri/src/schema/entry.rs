@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    model::text::TextNode,
     schema::{
         common::UpdateResponseSchema,
         language::LanguageSchema,
@@ -114,5 +115,5 @@ pub struct EntryPropertyResponseSchema {
 #[serde(rename_all = "camelCase")]
 pub struct EntryArticleResponseSchema {
     pub info: EntryInfoResponseSchema,
-    pub text: String,
+    pub text: TextNode,
 }

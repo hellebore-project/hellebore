@@ -1,4 +1,5 @@
 use hellebore::{
+    model::text::TextNode,
     schema::{
         entry::{EntryCreateSchema, EntryProperties, EntryUpdateSchema},
         language::LanguageSchema,
@@ -22,6 +23,17 @@ pub fn entry_properties() -> EntryProperties {
 #[fixture]
 pub fn entry_text() -> String {
     "mocked article text".to_string()
+}
+
+#[fixture]
+pub fn entry_text_node(entry_text: String) -> TextNode {
+    TextNode::new_doc()
+        .with_child(TextNode::new_paragraph().with_child(TextNode::new_text(entry_text)))
+}
+
+#[fixture]
+pub fn entry_text_json(entry_text_node: TextNode) -> String {
+    serde_json::to_string(&entry_text_node).unwrap()
 }
 
 #[fixture]
