@@ -137,12 +137,16 @@ export class EntryManager {
     }
 
     async getArticle(id: Id): Promise<EntryArticleResponse | null> {
+        let response: DiagnosticResponse<EntryArticleResponse> | null;
+
         try {
-            return await this._getArticle(id);
+            response = await this._getArticle(id);
         } catch (error) {
             console.error(error);
             return null;
         }
+
+        return response.data;
     }
 
     async getAll(): Promise<EntryInfoResponse[] | null> {
@@ -294,10 +298,15 @@ export class EntryManager {
         );
     }
 
-    async _getArticle(id: Id): Promise<EntryArticleResponse> {
-        return invoke<EntryArticleResponse>(CommandNames.Entry.GetArticle, {
-            id,
-        });
+    async _getArticle(
+        id: Id,
+    ): Promise<DiagnosticResponse<EntryArticleResponse>> {
+        return invoke<DiagnosticResponse<EntryArticleResponse>>(
+            CommandNames.Entry.GetArticle,
+            {
+                id,
+            },
+        );
     }
 
     async _getAll() {

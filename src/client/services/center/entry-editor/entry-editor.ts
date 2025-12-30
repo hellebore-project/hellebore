@@ -28,13 +28,6 @@ export interface EntryEditorServiceArgs {
     wordEditor: Omit<WordEditorServiceArgs, "domain" | "info">;
 }
 
-interface OpenArticleEditorArgs {
-    id: Id;
-    entryType?: EntryType;
-    title?: string;
-    text?: string;
-}
-
 export class EntryEditorService implements ICentralPanelContentService {
     // CONSTANTS
     ENTRY_HEADER_SPACE_HEIGHT = 25;
@@ -226,8 +219,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         viewKey = EntryViewType.ArticleEditor,
         wordType,
     }: OpenEntryEditorEvent) {
-        if (viewKey == EntryViewType.ArticleEditor)
-            return this.loadArticle({ id });
+        if (viewKey == EntryViewType.ArticleEditor) return this.loadArticle(id);
         else if (viewKey == EntryViewType.PropertyEditor)
             return this.loadProperties(id);
         else if (viewKey == EntryViewType.WordEditor)
@@ -235,27 +227,14 @@ export class EntryEditorService implements ICentralPanelContentService {
         throw `Unable to load view with key ${viewKey}.`;
     }
 
-    async loadArticle({
-        id,
-        entryType: entityType,
-        title,
-        text,
-    }: OpenArticleEditorArgs) {
+    async loadArticle(id: Id) {
         if (this.isArticleEditorOpen && this.info.id == id) return; // the article is already open
 
-        if (!entityType || title === undefined || text === undefined) {
-            const response = await this._domain.entries.getArticle(id);
-            if (response) {
-                entityType = response.info.entityType;
-                title = response.info.title;
-                text = response.text;
-            }
-        }
-
-        if (entityType && title !== undefined && text !== undefined) {
+        const response = await this._domain.entries.getArticle(id);
+        if (response) {
             this.currentView = EntryViewType.ArticleEditor;
-            this.info.load(id, entityType, title);
-            this.article.initialize(text);
+            this.info.load(id, response.info.entityType, response.info.title);
+            this.article.initialize(response.text);
         }
     }
 

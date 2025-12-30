@@ -1,3 +1,5 @@
+import { JSONContent } from "@tiptap/core";
+
 import { EntryType, EntryTypeLabel } from "@/domain/constants";
 import { BaseEntity } from "@/domain/interface";
 import { Id, IdentifiedObject } from "@/interface";
@@ -75,5 +77,5 @@ export interface BackendEntryPropertyResponse {
 
 export interface EntryArticleResponse {
     info: EntryInfoResponse;
-    text: string;
+    text: JSONContent;
 }

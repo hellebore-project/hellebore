@@ -79,8 +79,8 @@ export class ArticleEditorService {
         this._selectedRefIndex = index;
     }
 
-    initialize(text: string) {
-        this.content = text ? JSON.parse(text) : "";
+    initialize(text: JSONContent) {
+        this.content = text ?? "";
     }
 
     reset() {
