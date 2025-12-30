@@ -12,7 +12,7 @@ but the latter is more intuitive to use.
 pub async fn begin(db: &DatabaseConnection) -> Result<DatabaseTransaction, ApiError> {
     db.begin()
         .await
-        .map_err(|e| ApiError::db_transaction_failed(e))
+        .map_err(|e| ApiError::db("Failed to create a new DB transaction", e))
 }
 
 pub async fn end(txn: DatabaseTransaction) -> Result<(), ApiError> {
@@ -20,5 +20,5 @@ pub async fn end(txn: DatabaseTransaction) -> Result<(), ApiError> {
     // if the transaction object goes out of scope
     txn.commit()
         .await
-        .map_err(|e| ApiError::db_transaction_failed(e))
+        .map_err(|e| ApiError::db("Failed to commit a DB transaction", e))
 }

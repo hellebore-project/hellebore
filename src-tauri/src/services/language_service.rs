@@ -9,9 +9,9 @@ pub async fn create<C>(con: &C, entry_id: i32) -> Result<(), ApiError>
 where
     C: ConnectionTrait,
 {
-    language_manager::insert(con, entry_id)
-        .await
-        .map_err(|e| ApiError::not_inserted(e, LANGUAGE))?;
+    language_manager::insert(con, entry_id).await.map_err(|e| {
+        ApiError::not_created("Failed to create language record", LANGUAGE).from_error(e)
+    })?;
 
     Ok(())
 }
