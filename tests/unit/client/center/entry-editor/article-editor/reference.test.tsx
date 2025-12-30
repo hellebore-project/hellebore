@@ -72,16 +72,17 @@ describe("multiple options", () => {
         otherEntries: async ({}, use) => {
             use([
                 referencedEntryInfo,
+                // TODO: remove casts once generic entries are supported
                 {
                     id: 3,
                     folderId: -1,
-                    entityType: EntityType.ENTRY,
+                    entityType: EntityType.ENTRY as unknown as EntryType,
                     title: "mocked-other",
                 },
                 {
                     id: 4,
                     folderId: -1,
-                    entityType: EntityType.ENTRY,
+                    entityType: EntityType.ENTRY as unknown as EntryType,
                     title: "mocked-another",
                 },
             ]);

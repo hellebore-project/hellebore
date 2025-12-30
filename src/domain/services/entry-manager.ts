@@ -146,6 +146,10 @@ export class EntryManager {
             return null;
         }
 
+        for (const error of response.errors) {
+            console.error(error);
+        }
+
         return response.data;
     }
 
