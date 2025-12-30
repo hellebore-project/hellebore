@@ -21,7 +21,7 @@ pub async fn create(
 ) -> Result<FolderResponseSchema, ApiError> {
     return match folder_manager::insert(database, folder.parent_id, &folder.name).await {
         Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_created("Folder not created", FOLDER, Some(e))),
+        Err(e) => Err(ApiError::not_created("Folder not created", FOLDER).from_error(e)),
     };
 }
 
@@ -31,7 +31,7 @@ pub async fn update(
 ) -> Result<FolderResponseSchema, ApiError> {
     return match folder_manager::update(database, folder.id, folder.parent_id, folder.name).await {
         Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_updated("Folder not updated", FOLDER, Some(e))),
+        Err(e) => Err(ApiError::not_updated("Folder not updated", FOLDER).from_error(e)),
     };
 }
 
@@ -72,10 +72,7 @@ pub async fn validate_name(
                 colliding_folder: generate_response(&_colliding_folder),
             }),
             None => {
-                return Err(ApiError::internal(
-                    "Failed to query colliding folder.",
-                    None::<String>,
-                ));
+                return Err(ApiError::internal("Failed to query colliding folder."));
             }
         };
 
@@ -85,7 +82,6 @@ pub async fn validate_name(
             id,
             "name".to_owned(),
             name,
-            None::<String>,
         ));
     }
 
@@ -105,11 +101,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderRespons
     return match folder {
         Some(entity) => Ok(generate_response(&entity)),
         None => {
-            return Err(ApiError::not_found(
-                "Folder not found.",
-                FOLDER,
-                None::<String>,
-            ));
+            return Err(ApiError::not_found("Folder not found.", FOLDER));
         }
     };
 }
@@ -133,7 +125,7 @@ pub async fn delete(
 
     let _ = folder_manager::delete(database, id)
         .await
-        .map_err(|e| ApiError::not_deleted("Folder not deleted", FOLDER, Some(e)))?;
+        .map_err(|e| ApiError::not_deleted("Folder not deleted", FOLDER).from_error(e))?;
 
     return Ok(contents);
 }
@@ -142,7 +134,7 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
     folder_manager::delete_many(database, ids)
         .await
         .map(|_| ())
-        .map_err(|e| ApiError::not_deleted("One or more folders not deleted", FOLDER, Some(e)))
+        .map_err(|e| ApiError::not_deleted("One or more folders not deleted", FOLDER).from_error(e))
 }
 
 fn generate_response(folder: &Folder) -> FolderResponseSchema {

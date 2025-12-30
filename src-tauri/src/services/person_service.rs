@@ -13,7 +13,7 @@ where
 {
     person_manager::insert(con, entry_id, &properties.name)
         .await
-        .map_err(|e| ApiError::not_created("", PERSON, Some(e)))?;
+        .map_err(|e| ApiError::not_created("", PERSON).from_error(e))?;
     Ok(())
 }
 
@@ -24,7 +24,7 @@ where
     person_manager::update(con, id, &properties.name)
         .await
         .map(|_| ())
-        .map_err(|e| ApiError::not_updated("Person not updated", PERSON, Some(e)))
+        .map_err(|e| ApiError::not_updated("Person not updated", PERSON).from_error(e))
 }
 
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<PersonSchema, ApiError> {
@@ -36,11 +36,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<PersonSchema,
     })?;
     return match person {
         Some(person) => Ok(generate_response(person)),
-        None => Err(ApiError::not_found(
-            "Person not found",
-            PERSON,
-            None::<String>,
-        )),
+        None => Err(ApiError::not_found("Person not found", PERSON)),
     };
 }
 

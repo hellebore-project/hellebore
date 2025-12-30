@@ -1,5 +1,5 @@
 use futures::future;
-use sea_orm::{ConnectionTrait, DatabaseConnection, DbErr};
+use sea_orm::{ConnectionTrait, DatabaseConnection};
 
 use ::entity::entry::Model as EntryModel;
 
@@ -60,7 +60,7 @@ where
         text.to_owned(),
     )
     .await
-    .map_err(|e| ApiError::not_created("Entry record not created", ENTRY, Some(e)))?;
+    .map_err(|e| ApiError::not_created("Entry record not created", ENTRY).from_error(e))?;
 
     Ok(entry)
 }
@@ -114,7 +114,6 @@ pub async fn update(
                         Some(entry.id),
                         "title".to_owned(),
                         title_value,
-                        None::<DbErr>,
                     ));
                 }
             }
@@ -130,7 +129,6 @@ pub async fn update(
                 "Unable to update the title.",
                 ENTRY,
                 "title".to_owned(),
-                None::<DbErr>,
             ));
         }
     }
@@ -153,7 +151,7 @@ async fn _update(
         entry_manager::update(database, entry.id, entry.folder_id, entry.title, entry.text)
             .await
             .map(|_| ())
-            .map_err(|e| ApiError::not_updated("Entry record not updated", ENTRY, Some(e)));
+            .map_err(|e| ApiError::not_updated("Entry record not updated", ENTRY).from_error(e));
 
     if let Err(e) = update_result {
         response.folder_id.updated = false;
@@ -237,7 +235,6 @@ pub async fn validate_title(
             id,
             "title".to_owned(),
             title,
-            None::<DbErr>,
         ));
     }
 
@@ -260,7 +257,7 @@ pub async fn get_info(
 
     match info {
         Some(info) => Ok(generate_info_response(&info)),
-        None => return Err(ApiError::not_found("Entry not found", ENTRY, None::<DbErr>)),
+        None => return Err(ApiError::not_found("Entry not found", ENTRY)),
     }
 }
 
@@ -276,7 +273,7 @@ pub async fn get_properties(
     })?;
 
     if info.is_none() {
-        return Err(ApiError::not_found("Entry not found", ENTRY, None::<DbErr>));
+        return Err(ApiError::not_found("Entry not found", ENTRY));
     }
     let info = info.unwrap();
 
@@ -295,10 +292,10 @@ async fn _get_properties(
         EntityType::Person => Ok(EntryProperties::Person(
             person_service::get(database, id).await?,
         )),
-        _ => Err(ApiError::internal(
-            &format!("Entries of type {} are not supported", entity_type),
-            None::<String>,
-        )),
+        _ => Err(ApiError::internal(&format!(
+            "Entries of type {} are not supported",
+            entity_type
+        ))),
     }
 }
 
@@ -315,7 +312,7 @@ pub async fn get_text(
 
     match entry {
         Some(entry) => Ok(generate_article_response(&entry)),
-        None => return Err(ApiError::not_found("Entry not found", ENTRY, None::<DbErr>)),
+        None => return Err(ApiError::not_found("Entry not found", ENTRY)),
     }
 }
 
@@ -348,9 +345,9 @@ pub async fn search(
 }
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
-    entry_manager::delete(database, id)
-        .await
-        .map_err(|e| ApiError::not_deleted("Failed to delete an entry record", ENTRY, Some(e)))?;
+    entry_manager::delete(database, id).await.map_err(|e| {
+        ApiError::not_deleted("Failed to delete an entry record", ENTRY).from_error(e)
+    })?;
     Ok(())
 }
 
@@ -359,11 +356,8 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
         .await
         .map(|_| ())
         .map_err(|e| {
-            ApiError::not_deleted(
-                "Failed to bulk delete one or more entry records",
-                ENTRY,
-                Some(e),
-            )
+            ApiError::not_deleted("Failed to bulk delete one or more entry records", ENTRY)
+                .from_error(e)
         })
 }
 

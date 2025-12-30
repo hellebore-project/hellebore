@@ -1,7 +1,7 @@
 use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 
-use crate::{types::entity::EntityType, utils::string_or_none};
+use crate::types::entity::EntityType;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all_fields = "camelCase")]
@@ -56,75 +56,53 @@ pub enum ApiError {
 }
 
 impl ApiError {
-    pub fn not_created<E: ToString>(
-        msg: &str,
-        entity_type: EntityType,
-        error: Option<E>,
-    ) -> ApiError {
+    pub fn not_created(msg: &str, entity_type: EntityType) -> ApiError {
         ApiError::NotCreated {
             msg: msg.to_owned(),
             entity_type,
-            error: string_or_none(error),
+            error: None::<String>,
         }
     }
 
-    pub fn not_updated<E: ToString>(
-        msg: &str,
-        entity_type: EntityType,
-        error: Option<E>,
-    ) -> ApiError {
+    pub fn not_updated(msg: &str, entity_type: EntityType) -> ApiError {
         ApiError::NotUpdated {
             msg: msg.to_owned(),
             entity_type,
-            error: string_or_none(error),
+            error: None::<String>,
         }
     }
 
-    pub fn not_found<E: ToString>(
-        msg: &str,
-        entity_type: EntityType,
-        error: Option<E>,
-    ) -> ApiError {
+    pub fn not_found(msg: &str, entity_type: EntityType) -> ApiError {
         ApiError::NotFound {
             msg: msg.to_owned(),
             entity_type,
-            error: string_or_none(error),
+            error: None::<String>,
         }
     }
 
-    pub fn not_deleted<E: ToString>(
-        msg: &str,
-        entity_type: EntityType,
-        error: Option<E>,
-    ) -> ApiError {
+    pub fn not_deleted(msg: &str, entity_type: EntityType) -> ApiError {
         ApiError::NotDeleted {
             msg: msg.to_owned(),
             entity_type,
-            error: string_or_none(error),
+            error: None::<String>,
         }
     }
 
-    pub fn field_not_updated<E: ToString>(
-        msg: &str,
-        entity_type: EntityType,
-        key: String,
-        error: Option<E>,
-    ) -> ApiError {
+    pub fn field_not_updated(msg: &str, entity_type: EntityType, key: String) -> ApiError {
         ApiError::FieldNotUpdated {
             msg: msg.to_owned(),
             entity_type,
             key,
-            error: string_or_none(error),
+            error: None::<String>,
         }
     }
 
-    pub fn field_not_unique<V: ToString, E: ToString>(
+    pub fn field_not_unique<V: ToString>(
         msg: &str,
         entity_type: EntityType,
         id: Option<i32>,
         key: String,
         value: V,
-        error: Option<E>,
     ) -> ApiError {
         ApiError::FieldNotUnique {
             msg: msg.to_owned(),
@@ -132,17 +110,16 @@ impl ApiError {
             id,
             key,
             value: value.to_string(),
-            error: string_or_none(error),
+            error: None::<String>,
         }
     }
 
-    pub fn field_invalid<V: ToString, E: ToString>(
+    pub fn field_invalid<V: ToString>(
         msg: &str,
         entity_type: EntityType,
         id: Option<i32>,
         key: &str,
         value: V,
-        error: Option<E>,
     ) -> ApiError {
         ApiError::FieldInvalid {
             msg: msg.to_owned(),
@@ -150,19 +127,98 @@ impl ApiError {
             id,
             key: key.to_string(),
             value: value.to_string(),
-            error: string_or_none(error),
+            error: None::<String>,
         }
     }
 
-    pub fn internal<E: ToString>(msg: &str, error: Option<E>) -> ApiError {
+    pub fn internal(msg: &str) -> ApiError {
         ApiError::InternalError {
             msg: msg.to_owned(),
-            error: string_or_none(error),
+            error: None::<String>,
         }
     }
 
     pub fn db(msg: &str, error: DbErr) -> ApiError {
-        ApiError::internal(msg, Some(error))
+        ApiError::internal(msg).from_error(error)
+    }
+
+    pub fn from_error<E: ToString>(self, error: E) -> Self {
+        match self {
+            ApiError::ProjectNotLoaded => ApiError::ProjectNotLoaded,
+            ApiError::NotCreated {
+                msg, entity_type, ..
+            } => ApiError::NotCreated {
+                msg,
+                entity_type,
+                error: Some(error.to_string()),
+            },
+            ApiError::NotUpdated {
+                msg, entity_type, ..
+            } => ApiError::NotUpdated {
+                msg,
+                entity_type,
+                error: Some(error.to_string()),
+            },
+            ApiError::NotFound {
+                msg, entity_type, ..
+            } => ApiError::NotFound {
+                msg,
+                entity_type,
+                error: Some(error.to_string()),
+            },
+            ApiError::NotDeleted {
+                msg, entity_type, ..
+            } => ApiError::NotDeleted {
+                msg,
+                entity_type,
+                error: Some(error.to_string()),
+            },
+            ApiError::FieldNotUpdated {
+                msg,
+                entity_type,
+                key,
+                ..
+            } => ApiError::FieldNotUpdated {
+                msg,
+                entity_type,
+                key,
+                error: Some(error.to_string()),
+            },
+            ApiError::FieldNotUnique {
+                msg,
+                entity_type,
+                id,
+                key,
+                value,
+                ..
+            } => ApiError::FieldNotUnique {
+                msg,
+                entity_type,
+                id,
+                key,
+                value,
+                error: Some(error.to_string()),
+            },
+            ApiError::FieldInvalid {
+                msg,
+                entity_type,
+                id,
+                key,
+                value,
+                ..
+            } => ApiError::FieldInvalid {
+                msg,
+                entity_type,
+                id,
+                key,
+                value,
+                error: Some(error.to_string()),
+            },
+            ApiError::InternalError { msg, .. } => ApiError::InternalError {
+                msg,
+                error: Some(error.to_string()),
+            },
+        }
     }
 }
 

@@ -70,7 +70,6 @@ where
             None,
             "language_id",
             "None",
-            None::<String>,
         ));
     } else if word.word_type.is_none() {
         return Err(ApiError::field_invalid(
@@ -79,7 +78,6 @@ where
             None,
             "word_type",
             "None",
-            None::<String>,
         ));
     }
 
@@ -100,7 +98,7 @@ where
         translations,
     )
     .await
-    .map_err(|e| ApiError::not_created("Word not created", WORD, Some(e)));
+    .map_err(|e| ApiError::not_created("Word not created", WORD).from_error(e));
 }
 
 async fn _update<C>(
@@ -118,7 +116,6 @@ where
             None,
             "id",
             "None",
-            None::<String>,
         ));
     }
 
@@ -140,7 +137,7 @@ where
         translations,
     )
     .await
-    .map_err(|e| ApiError::not_updated("Word not updated", WORD, Some(e)))
+    .map_err(|e| ApiError::not_updated("Word not updated", WORD).from_error(e))
 }
 
 pub fn _serialize_translations(
@@ -153,8 +150,8 @@ pub fn _serialize_translations(
                 "Failed to serialize word translations",
                 WORD,
                 String::from("translations"),
-                Some(e),
-            )),
+            )
+            .from_error(e)),
         },
         None => Ok(None),
     }
@@ -169,7 +166,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<WordResponseS
     })?;
     return match word {
         Some(word) => Ok(generate_response(&word)?),
-        None => Err(ApiError::not_found("Word not found", WORD, None::<String>)),
+        None => Err(ApiError::not_found("Word not found", WORD)),
     };
 }
 
@@ -197,7 +194,7 @@ pub async fn get_all_for_language(
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
     word_manager::delete(database, id)
         .await
-        .map_err(|e| ApiError::not_deleted("Word not deleted", WORD, Some(e)))?;
+        .map_err(|e| ApiError::not_deleted("Word not deleted", WORD).from_error(e))?;
     return Ok(());
 }
 
@@ -225,7 +222,6 @@ fn _convert_translations_to_vec(
                 Some(id),
                 "translations",
                 translations.to_string(),
-                None::<String>,
             ));
         }
     };
@@ -241,7 +237,6 @@ fn _convert_translations_to_vec(
                     Some(id),
                     "translations",
                     value.to_string(),
-                    None::<String>,
                 ));
             }
         };
