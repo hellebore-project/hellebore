@@ -1,55 +1,45 @@
+use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 
-use crate::types::entity::EntityType;
+use crate::{types::entity::EntityType, utils::string_or_none};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all_fields = "camelCase")]
 pub enum ApiError {
-    // FIXME: not an API error
-    DatabaseConnectionFailed {
-        msg: String,
-        connection_string: String,
-    },
-    // FIXME: not an API error
-    DatabaseMigrationFailed {
-        msg: String,
-        connection_string: String,
-    },
-    // FIXME: not an API error
-    DatabaseTransactionFailed {
-        msg: String,
-    },
-    NotInserted {
+    ProjectNotLoaded,
+    NotCreated {
         msg: String,
         entity_type: EntityType,
+        error: Option<String>,
     },
     NotUpdated {
         msg: String,
         entity_type: EntityType,
+        error: Option<String>,
     },
     NotFound {
         msg: String,
         entity_type: EntityType,
+        error: Option<String>,
     },
     NotDeleted {
         msg: String,
         entity_type: EntityType,
-    },
-    // FIXME: not an API error
-    QueryFailed {
-        msg: String,
-        entity_type: EntityType,
+        error: Option<String>,
     },
     FieldNotUpdated {
         msg: String,
         entity_type: EntityType,
         key: String,
+        error: Option<String>,
     },
     FieldNotUnique {
+        msg: String,
         entity_type: EntityType,
         id: Option<i32>,
         key: String,
         value: String,
+        error: Option<String>,
     },
     FieldInvalid {
         msg: String,
@@ -57,164 +47,194 @@ pub enum ApiError {
         id: Option<i32>,
         key: String,
         value: String,
+        error: Option<String>,
     },
-    ProjectNotLoaded,
+    InternalError {
+        msg: String,
+        error: Option<String>,
+    },
 }
 
 impl ApiError {
-    pub fn db_connection_failed<M: ToString>(msg: M, connection_string: String) -> ApiError {
-        return ApiError::DatabaseConnectionFailed {
-            msg: msg.to_string(),
-            connection_string,
-        };
-    }
-
-    pub fn db_migration_failed<M: ToString>(msg: M, connection_string: String) -> ApiError {
-        return ApiError::DatabaseMigrationFailed {
-            msg: msg.to_string(),
-            connection_string,
-        };
-    }
-
-    pub fn db_transaction_failed<M: ToString>(msg: M) -> ApiError {
-        return ApiError::DatabaseTransactionFailed {
-            msg: msg.to_string(),
-        };
-    }
-
-    pub fn not_inserted<M: ToString>(msg: M, entity_type: EntityType) -> ApiError {
-        return ApiError::NotInserted {
-            msg: msg.to_string(),
+    pub fn not_created<E: ToString>(
+        msg: &str,
+        entity_type: EntityType,
+        error: Option<E>,
+    ) -> ApiError {
+        ApiError::NotCreated {
+            msg: msg.to_owned(),
             entity_type,
-        };
+            error: string_or_none(error),
+        }
     }
 
-    pub fn not_updated<M: ToString>(msg: M, entity_type: EntityType) -> ApiError {
-        return ApiError::NotUpdated {
-            msg: msg.to_string(),
+    pub fn not_updated<E: ToString>(
+        msg: &str,
+        entity_type: EntityType,
+        error: Option<E>,
+    ) -> ApiError {
+        ApiError::NotUpdated {
+            msg: msg.to_owned(),
             entity_type,
-        };
+            error: string_or_none(error),
+        }
     }
 
-    pub fn not_found<M: ToString>(msg: M, entity_type: EntityType) -> ApiError {
-        return ApiError::NotFound {
-            msg: msg.to_string(),
+    pub fn not_found<E: ToString>(
+        msg: &str,
+        entity_type: EntityType,
+        error: Option<E>,
+    ) -> ApiError {
+        ApiError::NotFound {
+            msg: msg.to_owned(),
             entity_type,
-        };
+            error: string_or_none(error),
+        }
     }
 
-    pub fn not_deleted<M: ToString>(msg: M, entity_type: EntityType) -> ApiError {
-        return ApiError::NotDeleted {
-            msg: msg.to_string(),
+    pub fn not_deleted<E: ToString>(
+        msg: &str,
+        entity_type: EntityType,
+        error: Option<E>,
+    ) -> ApiError {
+        ApiError::NotDeleted {
+            msg: msg.to_owned(),
             entity_type,
-        };
+            error: string_or_none(error),
+        }
     }
 
-    pub fn query_failed<M: ToString>(msg: M, entity_type: EntityType) -> ApiError {
-        return ApiError::QueryFailed {
-            msg: msg.to_string(),
-            entity_type,
-        };
-    }
-
-    pub fn field_not_updated<M: ToString>(
-        msg: M,
+    pub fn field_not_updated<E: ToString>(
+        msg: &str,
         entity_type: EntityType,
         key: String,
+        error: Option<E>,
     ) -> ApiError {
-        return ApiError::FieldNotUpdated {
-            msg: msg.to_string(),
+        ApiError::FieldNotUpdated {
+            msg: msg.to_owned(),
             entity_type,
             key,
-        };
+            error: string_or_none(error),
+        }
     }
 
-    pub fn field_not_unique<V: ToString>(
+    pub fn field_not_unique<V: ToString, E: ToString>(
+        msg: &str,
         entity_type: EntityType,
         id: Option<i32>,
         key: String,
         value: V,
+        error: Option<E>,
     ) -> ApiError {
-        return ApiError::FieldNotUnique {
+        ApiError::FieldNotUnique {
+            msg: msg.to_owned(),
             entity_type,
             id,
             key,
             value: value.to_string(),
-        };
+            error: string_or_none(error),
+        }
     }
 
-    pub fn field_invalid<M: ToString, V: ToString>(
-        msg: M,
+    pub fn field_invalid<V: ToString, E: ToString>(
+        msg: &str,
         entity_type: EntityType,
         id: Option<i32>,
         key: &str,
         value: V,
+        error: Option<E>,
     ) -> ApiError {
-        return ApiError::FieldInvalid {
-            msg: msg.to_string(),
+        ApiError::FieldInvalid {
+            msg: msg.to_owned(),
             entity_type,
             id,
             key: key.to_string(),
             value: value.to_string(),
-        };
+            error: string_or_none(error),
+        }
+    }
+
+    pub fn internal<E: ToString>(msg: &str, error: Option<E>) -> ApiError {
+        ApiError::InternalError {
+            msg: msg.to_owned(),
+            error: string_or_none(error),
+        }
+    }
+
+    pub fn db(msg: &str, error: DbErr) -> ApiError {
+        ApiError::internal(msg, Some(error))
     }
 }
 
 impl std::fmt::Display for ApiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ApiError::DatabaseConnectionFailed {
+            ApiError::ProjectNotLoaded => write!(f, "Project not loaded"),
+            ApiError::NotCreated {
                 msg,
-                connection_string,
-            } => write!(
-                f,
-                "Database connection failed: {} (connection string: {})",
-                msg, connection_string
-            ),
-            ApiError::DatabaseMigrationFailed {
+                entity_type,
+                error,
+            } => {
+                write!(
+                    f,
+                    "Not inserted: {}. Entity: {:?}. Error: {:?}",
+                    msg, entity_type, error
+                )
+            }
+            ApiError::NotUpdated {
                 msg,
-                connection_string,
-            } => write!(
-                f,
-                "Database migration failed: {} (connection string: {})",
-                msg, connection_string
-            ),
-            ApiError::DatabaseTransactionFailed { msg } => {
-                write!(f, "Database transaction failed: {}", msg)
+                entity_type,
+                error,
+            } => {
+                write!(
+                    f,
+                    "Not updated: {}. Entity: {:?}. Error: {:?}",
+                    msg, entity_type, error,
+                )
             }
-            ApiError::NotInserted { msg, entity_type } => {
-                write!(f, "Not inserted: {} (entity: {:?})", msg, entity_type)
+            ApiError::NotFound {
+                msg,
+                entity_type,
+                error,
+            } => {
+                write!(
+                    f,
+                    "Not found: {}. Entity: {:?}. Error: {:?}",
+                    msg, entity_type, error,
+                )
             }
-            ApiError::NotUpdated { msg, entity_type } => {
-                write!(f, "Not updated: {} (entity: {:?})", msg, entity_type)
-            }
-            ApiError::NotFound { msg, entity_type } => {
-                write!(f, "Not found: {} (entity: {:?})", msg, entity_type)
-            }
-            ApiError::NotDeleted { msg, entity_type } => {
-                write!(f, "Not deleted: {} (entity: {:?})", msg, entity_type)
-            }
-            ApiError::QueryFailed { msg, entity_type } => {
-                write!(f, "Query failed: {} (entity: {:?})", msg, entity_type)
+            ApiError::NotDeleted {
+                msg,
+                entity_type,
+                error,
+            } => {
+                write!(
+                    f,
+                    "Not deleted: {}. Entity: {:?}. Error: {:?}",
+                    msg, entity_type, error
+                )
             }
             ApiError::FieldNotUpdated {
                 msg,
                 entity_type,
                 key,
+                error,
             } => write!(
                 f,
-                "Field not updated: {} (entity: {:?}, key: {})",
-                msg, entity_type, key
+                "Field not updated: {}. Entity: {:?}; key: {}. Error: {:?}",
+                msg, entity_type, key, error
             ),
             ApiError::FieldNotUnique {
+                msg,
                 entity_type,
                 id,
                 key,
                 value,
+                error,
             } => write!(
                 f,
-                "Field not unique: (entity: {:?}, id: {:?}, key: {}, value: {})",
-                entity_type, id, key, value
+                "Field not unique: {}. Entity: {:?}; id: {:?}; key: {}; value: {}. Error: {:?}",
+                msg, entity_type, id, key, value, error
             ),
             ApiError::FieldInvalid {
                 msg,
@@ -222,12 +242,15 @@ impl std::fmt::Display for ApiError {
                 id,
                 key,
                 value,
+                error,
             } => write!(
                 f,
-                "Field invalid: {} (entity: {:?}, id: {:?}, key: {}, value: {})",
-                msg, entity_type, id, key, value
+                "Field invalid: {}. Entity: {:?}; id: {:?}; key: {}; value: {}. Error: {:?}",
+                msg, entity_type, id, key, value, error
             ),
-            ApiError::ProjectNotLoaded => write!(f, "Project not loaded"),
+            ApiError::InternalError { msg, error } => {
+                write!(f, "Internal error: {}. Error: {:?}", msg, error)
+            }
         }
     }
 }

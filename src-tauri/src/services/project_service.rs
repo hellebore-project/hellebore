@@ -21,13 +21,17 @@ pub async fn create(
 
     let db = setup::setup(&state.settings).await?;
 
-    // TODO: fall back to an error state in the UI if the query fails
-    let mut projects = _get_all_records(&db).await?;
+    let mut projects = get_all(&db).await?;
 
-    let project;
+    let project: ProjectResponseSchema;
     if projects.is_empty() {
         println!("No project found; creating new project '{name}'");
-        project = _create_record(&db, name).await?;
+        project = match project_manager::insert(&db, &name).await {
+            Ok(entity) => generate_response(&entity),
+            Err(e) => {
+                return Err(ApiError::not_created("", PROJECT, Some(e)));
+            }
+        };
     } else {
         project = projects.remove(0);
         let _name = project.name.to_owned();
@@ -49,8 +53,9 @@ pub async fn load(
         Some(project) => project,
         None => {
             return Err(ApiError::not_found(
-                "Project not found.".to_owned(),
+                "Project not found",
                 PROJECT,
+                None::<String>,
             ));
         }
     };
@@ -60,6 +65,7 @@ pub async fn load(
 pub async fn close(state: &mut MutexGuard<'_, StateData>) -> Result<(), ApiError> {
     state.settings.database.file_path = None;
     state.settings.write_config_file();
+    state.database = None;
     Ok(())
 }
 
@@ -71,42 +77,41 @@ pub async fn update(
         Some(project) => project,
         None => {
             return Err(ApiError::not_found(
-                "Project not found.".to_owned(),
+                "Project not found",
                 PROJECT,
+                None::<String>,
             ));
         }
     };
     return match project_manager::update(database, project.id, &name).await {
         Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_updated(e, PROJECT)),
+        Err(e) => Err(ApiError::not_updated(
+            "Project not updated",
+            PROJECT,
+            Some(e),
+        )),
     };
 }
 
 pub async fn get(database: &DatabaseConnection) -> Result<Option<ProjectResponseSchema>, ApiError> {
-    let mut projects = _get_all_records(&database).await?;
+    let mut projects = get_all(&database).await?;
     if projects.is_empty() {
         return Ok(None);
     }
+
     let project = projects.remove(0);
     Ok(Some(project))
 }
 
-pub async fn _create_record(
-    database: &DatabaseConnection,
-    name: &str,
-) -> Result<ProjectResponseSchema, ApiError> {
-    return match project_manager::insert(database, name).await {
-        Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_inserted(e, PROJECT)),
-    };
-}
-
-pub async fn _get_all_records(
+pub async fn get_all(
     database: &DatabaseConnection,
 ) -> Result<Vec<ProjectResponseSchema>, ApiError> {
-    let projects = project_manager::get_all(database)
-        .await
-        .map_err(|e| ApiError::not_found(e, PROJECT))?;
+    let projects = project_manager::get_all(database).await.map_err(|e| {
+        ApiError::db(
+            "Failed to query project table while fetching all projects",
+            e,
+        )
+    })?;
     let projects = projects.iter().map(generate_response).collect();
     return Ok(projects);
 }

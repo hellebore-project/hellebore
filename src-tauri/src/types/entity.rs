@@ -37,6 +37,12 @@ pub const LANGUAGE: EntityType = EntityType::Language;
 pub const WORD: EntityType = EntityType::Word;
 pub const PERSON: EntityType = EntityType::Person;
 
+impl std::fmt::Display for EntityType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 impl CodedEnum for EntityType {
     fn code(&self) -> i8 {
         *self as i8

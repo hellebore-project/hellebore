@@ -50,8 +50,9 @@ pub async fn get_project(
     match project_service::get(utils::get_database(&state)?).await? {
         Some(project) => Ok(project),
         None => Err(ApiError::not_found(
-            "Project not found.".to_owned(),
+            "Project not found",
             PROJECT,
+            None::<String>,
         )),
     }
 }

@@ -13,7 +13,7 @@ where
 {
     person_manager::insert(con, entry_id, &properties.name)
         .await
-        .map_err(|e| ApiError::not_inserted(e, PERSON))?;
+        .map_err(|e| ApiError::not_created("", PERSON, Some(e)))?;
     Ok(())
 }
 
@@ -24,16 +24,23 @@ where
     person_manager::update(con, id, &properties.name)
         .await
         .map(|_| ())
-        .map_err(|e| ApiError::not_updated(e, PERSON))
+        .map_err(|e| ApiError::not_updated("Person not updated", PERSON, Some(e)))
 }
 
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<PersonSchema, ApiError> {
-    let person = person_manager::get(database, id)
-        .await
-        .map_err(|e| ApiError::not_found(e, PERSON))?;
+    let person = person_manager::get(database, id).await.map_err(|e| {
+        ApiError::db(
+            "Failed to query the person table while fetching a person by ID",
+            e,
+        )
+    })?;
     return match person {
         Some(person) => Ok(generate_response(person)),
-        None => Err(ApiError::not_found("Person not found.", PERSON)),
+        None => Err(ApiError::not_found(
+            "Person not found",
+            PERSON,
+            None::<String>,
+        )),
     };
 }
 
