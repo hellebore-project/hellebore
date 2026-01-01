@@ -1,5 +1,6 @@
 use crate::api::utils;
 use crate::model::errors::api_error::ApiError;
+use crate::schema::entry::EntrySearchSchema;
 use crate::schema::{
     common::DiagnosticResponseSchema,
     entry::{
@@ -85,10 +86,10 @@ pub async fn get_entries(
 #[tauri::command]
 pub async fn search_entries(
     state: tauri::State<'_, State>,
-    keyword: &str,
+    query: EntrySearchSchema,
 ) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
     let state = state.lock().await;
-    entry_service::search(utils::get_database(&state)?, keyword).await
+    entry_service::search(utils::get_database(&state)?, query).await
 }
 
 #[tauri::command]

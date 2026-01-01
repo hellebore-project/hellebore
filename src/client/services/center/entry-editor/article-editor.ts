@@ -123,7 +123,10 @@ export class ArticleEditorService {
     async _queryByTitle(titleFragment: string): Promise<SuggestionData[]> {
         this.selectedRefIndex = 0;
 
-        const results = await this._domain.entries.search(titleFragment);
+        const results = await this._domain.entries.search({
+            keyword: titleFragment,
+            limit: 5,
+        });
         if (!results) return [];
 
         return results

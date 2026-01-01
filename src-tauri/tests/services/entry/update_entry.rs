@@ -2,7 +2,6 @@ use hellebore::{
     schema::{entry::EntryUpdateSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
     settings::Settings,
-    types::entity::ENTRY,
 };
 use rstest::*;
 
@@ -13,7 +12,10 @@ use crate::{
         folder::{folder_create_payload, folder_id},
         settings,
     },
-    utils::{query::get_entry, validation::validate_entry_model},
+    utils::{
+        db::{create_generic_entry, get_entry},
+        validation::validate_entry_model,
+    },
 };
 
 #[rstest]
@@ -26,15 +28,8 @@ async fn test_update_entry_title(
     mut update_entry_payload: EntryUpdateSchema,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_id,
-        entry_title,
-        entry_text.to_owned(),
-    )
-    .await
-    .unwrap();
+    let entry =
+        create_generic_entry(&database, folder_id, entry_title, entry_text.to_owned()).await;
 
     update_entry_payload.id = entry.id;
     update_entry_payload.title = Some("new title".to_owned());
@@ -65,15 +60,13 @@ async fn test_update_entry_folder(
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
-    let entry = entry_service::_create(
+    let entry = create_generic_entry(
         &database,
-        ENTRY,
         folder_id,
         entry_title.to_owned(),
         entry_text.to_owned(),
     )
-    .await
-    .unwrap();
+    .await;
 
     update_entry_payload.id = entry.id;
     update_entry_payload.folder_id = Some(folder.id);
@@ -99,15 +92,8 @@ async fn test_update_entry_text(
     mut update_entry_payload: EntryUpdateSchema,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_id,
-        entry_title.to_owned(),
-        entry_text,
-    )
-    .await
-    .unwrap();
+    let entry =
+        create_generic_entry(&database, folder_id, entry_title.to_owned(), entry_text).await;
 
     update_entry_payload.id = entry.id;
     update_entry_payload.text = Some("updated text".to_owned());
@@ -143,15 +129,8 @@ async fn test_update_entry(
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
-    let entry = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_id,
-        entry_title,
-        entry_text.to_owned(),
-    )
-    .await
-    .unwrap();
+    let entry =
+        create_generic_entry(&database, folder_id, entry_title, entry_text.to_owned()).await;
 
     update_entry_payload.id = entry.id;
     update_entry_payload.folder_id = Some(folder.id);
@@ -194,19 +173,16 @@ async fn test_error_on_updating_entry_with_duplicate_name(
     mut update_entry_payload: EntryUpdateSchema,
 ) {
     let database = database(settings).await;
-    let entry_1 = entry_service::_create(
+
+    let entry_1 = create_generic_entry(
         &database,
-        ENTRY,
         folder_id,
         "entry1".to_owned(),
         entry_text.to_owned(),
     )
-    .await
-    .unwrap();
-    let entry_2 =
-        entry_service::_create(&database, ENTRY, folder_id, "entry2".to_owned(), entry_text)
-            .await
-            .unwrap();
+    .await;
+
+    let entry_2 = create_generic_entry(&database, folder_id, "entry2".to_owned(), entry_text).await;
 
     update_entry_payload.id = entry_1.id;
     update_entry_payload.title = Some(entry_2.title);

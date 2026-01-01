@@ -1,6 +1,4 @@
-use hellebore::{
-    model::text::TextNode, services::entry_service, settings::Settings, types::entity::ENTRY,
-};
+use hellebore::{model::text::TextNode, services::entry_service, settings::Settings};
 use rstest::*;
 
 use crate::{
@@ -11,7 +9,7 @@ use crate::{
         settings,
     },
     utils::{
-        query::get_entry,
+        db::{create_generic_entry, get_entry},
         validation::{validate_entry_model, validate_generic_entry_info_response},
     },
 };
@@ -25,15 +23,13 @@ async fn test_get_entry(
     entry_text: String,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::_create(
+    let entry = create_generic_entry(
         &database,
-        ENTRY,
         folder_id,
         entry_title.to_owned(),
         entry_text.to_owned(),
     )
-    .await
-    .unwrap();
+    .await;
 
     let entry = get_entry(&database, entry.id).await;
     validate_entry_model(&entry.unwrap(), None, folder_id, &entry_title, &entry_text);
@@ -65,15 +61,13 @@ async fn test_get_entry_text(
     entry_text_json: String,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::_create(
+    let entry = create_generic_entry(
         &database,
-        ENTRY,
         folder_id,
         entry_title.to_owned(),
         entry_text_json.to_owned(),
     )
-    .await
-    .unwrap();
+    .await;
 
     let response = entry_service::get_text(&database, entry.id).await;
 
@@ -91,25 +85,10 @@ async fn test_get_entry_text(
 #[tokio::test]
 async fn test_get_all_entries(settings: &Settings, folder_id: i32, entry_title: String) {
     let database = database(settings).await;
-    let _ = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_id,
-        entry_title.to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+    create_generic_entry(&database, folder_id, entry_title.to_owned(), "".to_owned()).await;
+
     let title_2 = format!("{} 2", entry_title);
-    let _ = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_id,
-        title_2.to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+    create_generic_entry(&database, folder_id, title_2.to_owned(), "".to_owned()).await;
 
     let entries = entry_service::get_all(&database).await;
 

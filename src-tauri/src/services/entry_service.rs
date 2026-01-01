@@ -5,6 +5,7 @@ use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
 use crate::model::{errors::api_error::ApiError, text::TextNode};
+use crate::schema::entry::EntrySearchSchema;
 use crate::schema::{
     common::DiagnosticResponseSchema,
     entry::{
@@ -340,16 +341,22 @@ pub async fn get_all(
 
 pub async fn search(
     database: &DatabaseConnection,
-    keyword: &str,
+    query: EntrySearchSchema,
 ) -> Result<Vec<EntryInfoResponseSchema>, ApiError> {
-    let entries = entry_manager::search(database, keyword)
-        .await
-        .map_err(|e| {
-            ApiError::db(
-                "Failed to query the entry table while searching for entries.",
-                e,
-            )
-        })?;
+    let entries = entry_manager::search(
+        database,
+        query.keyword,
+        query.before,
+        query.after,
+        query.limit,
+    )
+    .await
+    .map_err(|e| {
+        ApiError::db(
+            "Failed to query the entry table while searching for entries.",
+            e,
+        )
+    })?;
     let entries = entries.iter().map(generate_info_response).collect();
 
     Ok(entries)

@@ -8,6 +8,7 @@ import {
     EntryUpdateResponse,
     DiagnosticResponse,
     WordUpsertResponse,
+    EntrySearch,
 } from "@/domain";
 import { compareStrings } from "@/utils/string";
 
@@ -110,9 +111,9 @@ export function mockSearchEntries(
     mockedInvoker: MockedInvoker,
     entries: EntryInfoResponse[],
 ) {
-    const search = async ({ keyword }: { keyword: string }) => {
+    const search = async ({ query }: { query: EntrySearch }) => {
         return entries
-            .filter((e) => e.title.includes(keyword))
+            .filter((e) => e.title.includes(query.keyword))
             .sort((a, b) => compareStrings(a.title, b.title));
     };
     mockedInvoker.mockCommand(CommandNames.Entry.Search, search);

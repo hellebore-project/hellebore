@@ -117,3 +117,12 @@ pub struct EntryArticleResponseSchema {
     pub info: EntryInfoResponseSchema,
     pub text: TextNode,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EntrySearchSchema {
+    pub keyword: String,
+    pub before: Option<String>,
+    pub after: Option<String>,
+    pub limit: u64,
+}

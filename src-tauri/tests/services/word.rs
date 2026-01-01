@@ -5,7 +5,7 @@ use crate::{
         settings,
         word::{create_word_payload, expected_word_response},
     },
-    utils::{query::upsert_word, validation::validate_word_response},
+    utils::{db::upsert_word, validation::validate_word_response},
 };
 
 use hellebore::{

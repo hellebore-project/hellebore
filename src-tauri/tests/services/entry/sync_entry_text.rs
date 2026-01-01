@@ -1,13 +1,15 @@
 use hellebore::{
     model::{errors::api_error::ApiError, text::TextNode},
-    services::{entry_service, entry_text_service},
+    services::entry_text_service,
     settings::Settings,
-    types::entity::ENTRY,
 };
 use rstest::*;
 use serde_json::Value;
 
-use crate::fixtures::{database, entry::entry_text_node, folder::folder_id, settings};
+use crate::{
+    fixtures::{database, entry::entry_text_node, folder::folder_id, settings},
+    utils::db::create_generic_entry,
+};
 
 #[rstest]
 #[tokio::test]
@@ -46,15 +48,10 @@ async fn test_sync_empty_text(settings: &Settings) {
 #[tokio::test]
 async fn test_sync_text_with_reference(settings: &Settings, folder_id: i32) {
     let database = database(settings).await;
-    let entry = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_id,
-        "new title".to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+
+    let entry =
+        create_generic_entry(&database, folder_id, "new title".to_owned(), "".to_owned()).await;
+
     let entry_text_node = TextNode::new_doc().with_child(
         TextNode::new_paragraph()
             .with_child(TextNode::new_reference(entry.id, "old title".to_owned())),
