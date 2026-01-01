@@ -1,10 +1,15 @@
+import { ComboboxItem } from "@mantine/core";
 import { makeAutoObservable } from "mobx";
 
 import { DomainManager } from "@/domain";
 import { DIVIDER_DATA, MenuDropdownElementData } from "@/shared/menu-dropdown";
 import { EventProducer } from "@/utils/event";
 
-type PrivateKeys = "_menuItems" | "_domain";
+type PrivateKeys =
+    | "_waitingForQuery"
+    | "_lastQueryRequestTime"
+    | "_menuItems"
+    | "_domain";
 
 interface MenuItems {
     project: {
@@ -21,9 +26,14 @@ interface MenuItems {
 export class HeaderManager {
     // CONSTANTS
     readonly DEFAULT_HEIGHT = 50;
+    /** Minimum amount of time to wait between queries to the backend in milliseconds */
+    readonly QUERY_PERIOD = 500;
 
     // STATE
     private _searchQuery = "";
+    private _searchData: ComboboxItem[];
+    private _waitingForQuery = false;
+    private _lastQueryRequestTime = 0;
     private _menuItems: MenuItems;
 
     // SERVICES
@@ -41,6 +51,8 @@ export class HeaderManager {
     onToggleLeftBar: EventProducer<void, unknown>;
 
     constructor(domain: DomainManager) {
+        this._searchData = [];
+
         this._domain = domain;
 
         this.fetchPortalSelector = new EventProducer();
@@ -81,6 +93,8 @@ export class HeaderManager {
         };
 
         makeAutoObservable<HeaderManager, PrivateKeys>(this, {
+            _waitingForQuery: false,
+            _lastQueryRequestTime: false,
             _menuItems: false,
             _domain: false,
             fetchPortalSelector: false,
@@ -105,6 +119,15 @@ export class HeaderManager {
 
     set searchQuery(value: string) {
         this._searchQuery = value;
+        this._requestEntryQuery();
+    }
+
+    get searchData() {
+        return this._searchData;
+    }
+
+    set searchData(value: ComboboxItem[]) {
+        this._searchData = value;
     }
 
     get fileMenuData() {
@@ -125,5 +148,39 @@ export class HeaderManager {
             DIVIDER_DATA,
             this._menuItems.settings,
         ];
+    }
+
+    private async _requestEntryQuery() {
+        this._lastQueryRequestTime = Date.now();
+
+        if (this._waitingForQuery) return;
+        this._waitingForQuery = true;
+
+        while (true) {
+            await new Promise((r) => setTimeout(r, this.QUERY_PERIOD));
+            if (Date.now() - this._lastQueryRequestTime < this.QUERY_PERIOD)
+                continue;
+            break;
+        }
+
+        return this._queryEntries(this._searchQuery)
+            .then((data) => (this.searchData = data))
+            .finally(() => (this._waitingForQuery = false));
+    }
+
+    private async _queryEntries(keyword: string): Promise<ComboboxItem[]> {
+        if (keyword === "") return [];
+
+        const entries = await this._domain.entries.search({
+            keyword: this._searchQuery,
+            limit: 10,
+        });
+        if (entries)
+            return entries.map((entry) => ({
+                label: entry.title,
+                value: entry.id.toString(),
+            }));
+
+        return [];
     }
 }

@@ -198,7 +198,7 @@ export class EntryManager {
         return true;
     }
 
-    async _createLanguage(
+    private async _createLanguage(
         name: string,
         folderId: number,
     ): Promise<EntryInfoResponse> {
@@ -210,7 +210,7 @@ export class EntryManager {
         });
     }
 
-    async _createPerson(
+    private async _createPerson(
         name: string,
         folderId: number,
     ): Promise<EntryInfoResponse> {
@@ -222,7 +222,7 @@ export class EntryManager {
         });
     }
 
-    async _create<E extends BaseEntity>({
+    private async _create<E extends BaseEntity>({
         entryType,
         folderId,
         title,
@@ -243,7 +243,7 @@ export class EntryManager {
         return invoke<EntryInfoResponse>(CommandNames.Entry.Create, payload);
     }
 
-    async _update<E extends BaseEntity>(entry: EntryUpdate<E>) {
+    private async _update<E extends BaseEntity>(entry: EntryUpdate<E>) {
         const entryPayload = this._createUpdateRequestPayload(entry);
         const payload = { entry: entryPayload };
         return invoke<DiagnosticResponse<EntryUpdateResponse>>(
@@ -252,7 +252,7 @@ export class EntryManager {
         );
     }
 
-    async _bulkUpdate<E extends BaseEntity>(entries: EntryUpdate<E>[]) {
+    private async _bulkUpdate<E extends BaseEntity>(entries: EntryUpdate<E>[]) {
         const entryPayloads = entries.map((entry) =>
             this._createUpdateRequestPayload(entry),
         );
@@ -294,18 +294,20 @@ export class EntryManager {
         };
     }
 
-    async _getInfo(id: Id): Promise<EntryInfoResponse> {
+    private async _getInfo(id: Id): Promise<EntryInfoResponse> {
         return invoke<EntryInfoResponse>(CommandNames.Entry.GetInfo, { id });
     }
 
-    async _getProperties(id: Id): Promise<BackendEntryPropertyResponse> {
+    private async _getProperties(
+        id: Id,
+    ): Promise<BackendEntryPropertyResponse> {
         return invoke<BackendEntryPropertyResponse>(
             CommandNames.Entry.GetProperties,
             { id },
         );
     }
 
-    async _getArticle(
+    private async _getArticle(
         id: Id,
     ): Promise<DiagnosticResponse<EntryArticleResponse>> {
         return invoke<DiagnosticResponse<EntryArticleResponse>>(
@@ -316,17 +318,17 @@ export class EntryManager {
         );
     }
 
-    async _getAll() {
+    private async _getAll() {
         return invoke<EntryInfoResponse[]>(CommandNames.Entry.GetAll);
     }
 
-    async _search(payload: EntrySearch) {
+    private async _search(payload: EntrySearch) {
         return invoke<EntryInfoResponse[]>(CommandNames.Entry.Search, {
             query: payload,
         });
     }
 
-    async _delete(id: Id): Promise<void> {
+    private async _delete(id: Id): Promise<void> {
         return invoke(CommandNames.Entry.Delete, { id });
     }
 }

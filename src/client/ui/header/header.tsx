@@ -44,6 +44,7 @@ function renderHeader({ service }: HeaderProps) {
             <SearchField
                 getSearch={() => service.searchQuery}
                 onSearchChange={(value) => (service.searchQuery = value)}
+                getData={() => service.searchData}
                 textProps={{ className: "header-search" }}
                 portalProps={{
                     target: service.fetchPortalSelector.produceOne(),
