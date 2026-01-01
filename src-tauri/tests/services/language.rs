@@ -21,7 +21,7 @@ use crate::{
         word::{create_word_payload, expected_word_response, update_word_payload},
     },
     utils::{
-        query::{get_entry, upsert_word},
+        db::{get_entry, upsert_word},
         validation::{
             validate_entry_info_response, validate_entry_model,
             validate_language_property_response, validate_word_response,

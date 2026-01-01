@@ -1,4 +1,4 @@
-use hellebore::{services::entry_service, settings::Settings, types::entity::ENTRY};
+use hellebore::{services::entry_service, settings::Settings};
 use rstest::*;
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
         folder::folder_id,
         settings,
     },
-    utils::query::get_entry,
+    utils::db::{create_generic_entry, get_entry},
 };
 
 #[rstest]
@@ -20,15 +20,13 @@ async fn test_delete_entry(
     entry_text: String,
 ) {
     let database = database(settings).await;
-    let entry = entry_service::_create(
+    let entry = create_generic_entry(
         &database,
-        ENTRY,
         folder_id,
         entry_title.to_owned(),
         entry_text.to_owned(),
     )
-    .await
-    .unwrap();
+    .await;
 
     let response = entry_service::delete(&database, entry.id).await;
 

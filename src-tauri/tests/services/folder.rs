@@ -4,7 +4,7 @@ use crate::{
         folder::{folder_create_payload, folder_name, parent_folder_id},
         settings,
     },
-    utils::query::get_entry,
+    utils::db::{create_generic_entry, get_entry},
 };
 
 use hellebore::{
@@ -506,25 +506,11 @@ async fn test_delete_folder_with_entries(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_1 = entry_service::_create(
-        &database,
-        ENTRY,
-        folder.id,
-        "entry_1".to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+    let entry_1 =
+        create_generic_entry(&database, folder.id, "entry_1".to_owned(), "".to_owned()).await;
 
-    let entry_2 = entry_service::_create(
-        &database,
-        ENTRY,
-        folder.id,
-        "entry_2".to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+    let entry_2 =
+        create_generic_entry(&database, folder.id, "entry_2".to_owned(), "".to_owned()).await;
 
     let response = folder_service::delete(&database, folder.id).await;
     assert!(response.is_ok());
@@ -553,15 +539,13 @@ async fn test_delete_folder_and_subfolder_with_entries(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_in_parent = entry_service::_create(
+    let entry_in_parent = create_generic_entry(
         &database,
-        ENTRY,
         parent_folder.id,
         "entry_parent".to_owned(),
         "".to_owned(),
     )
-    .await
-    .unwrap();
+    .await;
 
     let sub_folder = folder_service::create(
         &database,
@@ -573,15 +557,13 @@ async fn test_delete_folder_and_subfolder_with_entries(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_in_sub = entry_service::_create(
+    let entry_in_sub = create_generic_entry(
         &database,
-        ENTRY,
         sub_folder.id,
         "entry_sub".to_owned(),
         "".to_owned(),
     )
-    .await
-    .unwrap();
+    .await;
 
     let response = folder_service::delete(&database, parent_folder.id).await;
     assert!(response.is_ok());
@@ -655,55 +637,20 @@ async fn test_delete_deep_file_tree(settings: &Settings) {
     .await
     .unwrap();
 
-    let entry_1 = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_1.id,
-        "entry_1".to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+    let entry_1 =
+        create_generic_entry(&database, folder_1.id, "entry_1".to_owned(), "".to_owned()).await;
 
-    let entry_2 = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_2.id,
-        "entry_2".to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+    let entry_2 =
+        create_generic_entry(&database, folder_2.id, "entry_2".to_owned(), "".to_owned()).await;
 
-    let entry_3 = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_3.id,
-        "entry_3".to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+    let entry_3 =
+        create_generic_entry(&database, folder_3.id, "entry_3".to_owned(), "".to_owned()).await;
 
-    let entry_4 = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_4.id,
-        "entry_4".to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+    let entry_4 =
+        create_generic_entry(&database, folder_4.id, "entry_4".to_owned(), "".to_owned()).await;
 
-    let entry_5 = entry_service::_create(
-        &database,
-        ENTRY,
-        folder_5.id,
-        "entry_5".to_owned(),
-        "".to_owned(),
-    )
-    .await
-    .unwrap();
+    let entry_5 =
+        create_generic_entry(&database, folder_5.id, "entry_5".to_owned(), "".to_owned()).await;
 
     let response = folder_service::delete(&database, folder_2.id).await;
     assert!(response.is_ok());

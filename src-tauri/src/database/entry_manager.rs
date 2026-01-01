@@ -129,17 +129,29 @@ where
         .await
 }
 
-pub async fn search<C>(con: &C, keyword: &str) -> Result<Vec<EntityInfo>, DbErr>
+pub async fn search<C>(
+    con: &C,
+    keyword: String,
+    before: Option<String>,
+    after: Option<String>,
+    limit: u64,
+) -> Result<Vec<EntityInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
-    // TODO: add pagination and max result count
-    EntryModel::find()
+    let mut cursor = EntryModel::find()
         .filter(entry::Column::Title.like(format!("%{}%", keyword)))
-        .order_by_asc(entry::Column::Title)
-        .into_partial_model::<EntityInfo>()
-        .all(con)
-        .await
+        .cursor_by(entry::Column::Title);
+
+    if let Some(before_value) = before {
+        cursor.before(before_value);
+    }
+    if let Some(after_value) = after {
+        cursor.after(after_value);
+    }
+    cursor.first(limit);
+
+    cursor.into_partial_model::<EntityInfo>().all(con).await
 }
 
 pub async fn delete<C>(con: &C, id: i32) -> Result<DeleteResult, DbErr>
