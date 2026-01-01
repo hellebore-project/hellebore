@@ -6,6 +6,7 @@ import { observer } from "mobx-react-lite";
 import { HeaderManager } from "@/client/services";
 import { MenuButton } from "@/shared/menu-button";
 import { MenuDropdown } from "@/shared/menu-dropdown";
+import { SearchField } from "@/shared/search-field";
 
 interface HeaderProps {
     service: HeaderManager;
@@ -35,6 +36,15 @@ function renderHeader({ service }: HeaderProps) {
             <MenuDropdown
                 label="File"
                 data={service.fileMenuData}
+                portalProps={{
+                    target: service.fetchPortalSelector.produceOne(),
+                }}
+            />
+            <div className="grow" />
+            <SearchField
+                getSearch={() => service.searchQuery}
+                onSearchChange={(value) => (service.searchQuery = value)}
+                textProps={{ className: "header-search" }}
                 portalProps={{
                     target: service.fetchPortalSelector.produceOne(),
                 }}

@@ -1,4 +1,8 @@
 .header {
-    min-height: 30px;
-    padding-left: 8px;
+    min-height: 50px;
+    padding-inline: 8px;
+}
+
+.header-search {
+    width: 300px;
 }

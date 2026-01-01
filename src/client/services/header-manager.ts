@@ -19,12 +19,17 @@ interface MenuItems {
 }
 
 export class HeaderManager {
-    readonly DEFAULT_HEIGHT = 30;
+    // CONSTANTS
+    readonly DEFAULT_HEIGHT = 50;
 
+    // STATE
+    private _searchQuery = "";
     private _menuItems: MenuItems;
 
+    // SERVICES
     private _domain: DomainManager;
 
+    // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
     onCreateProject: EventProducer<void, unknown>;
     onLoadProject: EventProducer<void, unknown>;
@@ -92,6 +97,14 @@ export class HeaderManager {
 
     get height() {
         return this.DEFAULT_HEIGHT;
+    }
+
+    get searchQuery() {
+        return this._searchQuery;
+    }
+
+    set searchQuery(value: string) {
+        this._searchQuery = value;
     }
 
     get fileMenuData() {
