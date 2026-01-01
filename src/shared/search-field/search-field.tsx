@@ -73,8 +73,8 @@ function renderSearchField({
         <Combobox
             store={combobox}
             onOptionSubmit={(value, props) => {
-                onValueChange?.(value);
                 onSearchChange?.(props.children?.toString() ?? "");
+                onValueChange?.(value);
                 combobox.closeDropdown();
             }}
             {...rest}

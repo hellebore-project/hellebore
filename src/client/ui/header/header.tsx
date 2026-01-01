@@ -42,6 +42,9 @@ function renderHeader({ service }: HeaderProps) {
             />
             <div className="grow" />
             <SearchField
+                onValueChange={(value) =>
+                    service.selectEntrySearchResult(value)
+                }
                 getSearch={() => service.searchQuery}
                 onSearchChange={(value) => (service.searchQuery = value)}
                 getData={() => service.searchData}

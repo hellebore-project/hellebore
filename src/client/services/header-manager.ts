@@ -5,6 +5,8 @@ import { DomainManager } from "@/domain";
 import { DIVIDER_DATA, MenuDropdownElementData } from "@/shared/menu-dropdown";
 import { EventProducer } from "@/utils/event";
 
+import { OpenEntryEditorEvent } from "../interface";
+
 type PrivateKeys =
     | "_waitingForQuery"
     | "_lastQueryRequestTime"
@@ -44,9 +46,10 @@ export class HeaderManager {
     onCreateProject: EventProducer<void, unknown>;
     onLoadProject: EventProducer<void, unknown>;
     onCloseProject: EventProducer<void, unknown>;
-    onCreateEntry: EventProducer<void, unknown>;
     onOpenHome: EventProducer<void, unknown>;
     onOpenSettings: EventProducer<void, unknown>;
+    onCreateEntry: EventProducer<void, unknown>;
+    onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
     fetchLeftBarStatus: EventProducer<void, boolean>;
     onToggleLeftBar: EventProducer<void, unknown>;
 
@@ -59,9 +62,10 @@ export class HeaderManager {
         this.onCreateProject = new EventProducer();
         this.onLoadProject = new EventProducer();
         this.onCloseProject = new EventProducer();
-        this.onCreateEntry = new EventProducer();
         this.onOpenHome = new EventProducer();
         this.onOpenSettings = new EventProducer();
+        this.onCreateEntry = new EventProducer();
+        this.onOpenEntry = new EventProducer();
         this.fetchLeftBarStatus = new EventProducer();
         this.onToggleLeftBar = new EventProducer();
 
@@ -101,9 +105,10 @@ export class HeaderManager {
             onCreateProject: false,
             onLoadProject: false,
             onCloseProject: false,
-            onCreateEntry: false,
             onOpenHome: false,
             onOpenSettings: false,
+            onCreateEntry: false,
+            onOpenEntry: false,
             fetchLeftBarStatus: false,
             onToggleLeftBar: false,
         });
@@ -150,6 +155,12 @@ export class HeaderManager {
         ];
     }
 
+    selectEntrySearchResult(value: string | null) {
+        if (value === null || value === "") return;
+        this.onOpenEntry.produce({ id: Number(value) });
+        this.cleanUp();
+    }
+
     private async _requestEntryQuery() {
         this._lastQueryRequestTime = Date.now();
 
@@ -182,5 +193,10 @@ export class HeaderManager {
             }));
 
         return [];
+    }
+
+    cleanUp() {
+        this._searchQuery = "";
+        this._searchData = [];
     }
 }

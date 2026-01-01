@@ -143,11 +143,14 @@ export class ClientManager {
         );
         this.header.onLoadProject.subscribe(() => this.loadProject());
         this.header.onCloseProject.subscribe(() => this.closeProject());
+        this.header.onOpenHome.subscribe(() => this.central.openHome());
+        this.header.onOpenSettings.subscribe(() => this.central.openSettings());
         this.header.onCreateEntry.subscribe(() =>
             this.modal.openEntryCreator({}),
         );
-        this.header.onOpenHome.subscribe(() => this.central.openHome());
-        this.header.onOpenSettings.subscribe(() => this.central.openSettings());
+        this.header.onOpenEntry.subscribe((args) =>
+            this.central.openEntryEditor(args),
+        );
         this.header.fetchLeftBarStatus.subscribe(
             () => this.navigation.mobileOpen,
         );
