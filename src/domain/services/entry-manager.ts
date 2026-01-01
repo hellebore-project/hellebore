@@ -18,6 +18,7 @@ import {
     EntryCreate,
     DiagnosticResponse,
     BackendEntryUpdate,
+    EntrySearch,
 } from "@/domain";
 import { Id } from "@/interface";
 
@@ -167,20 +168,22 @@ export class EntryManager {
         return response;
     }
 
-    async search(
-        titleFragment: string,
-        maxResults = 5,
-    ): Promise<EntryInfoResponse[] | null> {
+    async search({
+        keyword,
+        before = null,
+        after = null,
+        limit = 5,
+    }: EntrySearch): Promise<EntryInfoResponse[] | null> {
         let response: EntryInfoResponse[];
         try {
-            response = await this._search(titleFragment);
+            response = await this._search({ keyword, before, after, limit });
         } catch (error) {
             console.error("Failed to search for entries.");
             console.error(error);
             return null;
         }
 
-        return response.slice(0, maxResults);
+        return response.slice(0, limit);
     }
 
     async delete(id: number): Promise<boolean> {
@@ -317,9 +320,9 @@ export class EntryManager {
         return invoke<EntryInfoResponse[]>(CommandNames.Entry.GetAll);
     }
 
-    async _search(keyword: string) {
+    async _search(payload: EntrySearch) {
         return invoke<EntryInfoResponse[]>(CommandNames.Entry.Search, {
-            keyword,
+            query: payload,
         });
     }
 

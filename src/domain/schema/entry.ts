@@ -79,3 +79,10 @@ export interface EntryArticleResponse {
     info: EntryInfoResponse;
     text: JSONContent;
 }
+
+export interface EntrySearch {
+    keyword: string;
+    before?: string | null;
+    after?: string | null;
+    limit?: number;
+}
