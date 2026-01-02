@@ -119,7 +119,11 @@ export interface OpenEntryCreatorEvent {
     folderId?: Id;
 }
 
-export interface OpenEntryEditorEvent {
+interface OpenCentralPanelEvent {
+    focus?: boolean;
+}
+
+export interface OpenEntryEditorEvent extends OpenCentralPanelEvent {
     id: Id;
     viewKey?: EntryViewType;
     wordType?: WordType;

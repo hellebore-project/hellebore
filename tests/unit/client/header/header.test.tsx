@@ -16,14 +16,14 @@ test("clicking the Home button opens the home view", async ({
     render(
         <>
             <Header service={clientManager.header} />
-            <Center service={clientManager.central.activePanel} />
+            <Center service={clientManager.central.activePanelService} />
         </>,
     );
 
     const homeBtn = screen.getByRole("button", { name: "Home" });
     await user.click(homeBtn);
 
-    render(<Center service={clientManager.central.activePanel} />);
+    render(<Center service={clientManager.central.activePanelService} />);
 
     screen.getByDisplayValue(project.name);
 });
@@ -106,7 +106,7 @@ test("clicking the Settings button opens the settings editor", async ({
     render(
         <>
             <Header service={clientManager.header} />
-            <Center service={clientManager.central.activePanel} />
+            <Center service={clientManager.central.activePanelService} />
         </>,
     );
 
@@ -116,7 +116,7 @@ test("clicking the Settings button opens the settings editor", async ({
     const settingsBtn = screen.getByRole("menuitem", { name: "Settings" });
     await user.click(settingsBtn);
 
-    render(<Center service={clientManager.central.activePanel} />);
+    render(<Center service={clientManager.central.activePanelService} />);
 
     screen.getByText("Settings");
 });

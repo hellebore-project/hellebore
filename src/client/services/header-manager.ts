@@ -157,7 +157,7 @@ export class HeaderManager {
 
     selectEntrySearchResult(value: string | null) {
         if (value === null || value === "") return;
-        this.onOpenEntry.produce({ id: Number(value) });
+        this.onOpenEntry.produce({ id: Number(value), focus: true });
         this.cleanUp();
     }
 

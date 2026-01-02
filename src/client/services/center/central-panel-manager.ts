@@ -105,9 +105,13 @@ export class CentralPanelManager {
         return this._panelKeys.length;
     }
 
-    get activePanel() {
+    get activePanelService() {
         if (this._activePanelIndex === null) return null;
         return this.getPanelByIndex(this._activePanelIndex);
+    }
+
+    get panelContainer() {
+        return document.querySelector<HTMLDivElement>(".main-panel");
     }
 
     // OPENING PANELS
@@ -145,6 +149,8 @@ export class CentralPanelManager {
     }
 
     async openEntryEditor(args: OpenEntryEditorEvent) {
+        if (args.focus ?? false) this.panelContainer?.focus();
+
         const key = EntryEditorService.generateKey(
             CentralViewType.EntryEditor,
             args.id,
