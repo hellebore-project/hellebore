@@ -52,8 +52,8 @@ function renderClient({ service }: ClientProps) {
                     <LeftSideBar service={service.navigation} />
                 </AppShell.Navbar>
 
-                <AppShell.Main className="main-panel">
-                    <Center service={service.central.activePanel} />
+                <AppShell.Main className="main-panel" tabIndex={-1}>
+                    <Center service={service.central.activePanelService} />
                 </AppShell.Main>
 
                 <AppShell.Footer className="footer-panel">

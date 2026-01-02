@@ -1,10 +1,12 @@
 import { cleanup } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
+import { JSONContent } from "@tiptap/core";
 import { test as baseTest } from "vitest";
 
 import { ClientManager, state } from "@/client";
 import {
     EntityType,
+    EntryArticleResponse,
     EntryInfoResponse,
     EntryType,
     FolderResponse,
@@ -13,11 +15,17 @@ import {
 } from "@/domain";
 import { Id } from "@/interface";
 import {
+    createDocNode,
+    createParagraphNode,
+    createTextNode,
     MockedInvoker,
     mockGetEntries,
+    mockGetEntryArticle,
+    mockGetEntryInfo,
     mockGetFolder,
     mockGetFolders,
     mockGetSession,
+    mockSearchEntries,
 } from "@tests/utils/mocks";
 
 export interface BaseUnitTestFixtures {
@@ -33,6 +41,8 @@ export interface BaseUnitTestFixtures {
     entryId: Id;
     entryType: EntityType;
     entryTitle: string;
+    entryArticleText: string;
+    entryArticle: JSONContent;
     entryInfo: EntryInfoResponse;
     otherEntries: EntryInfoResponse[];
     allEntries: EntryInfoResponse[];
@@ -40,7 +50,10 @@ export interface BaseUnitTestFixtures {
     mockedSession: SessionResponse;
     mockedFolder: FolderResponse;
     mockedFolders: FolderResponse[];
+    mockedEntryInfo: EntryInfoResponse;
+    mockedEntryArticle: EntryArticleResponse;
     mockedEntries: EntryInfoResponse[];
+    mockedSearchedEntries: EntryInfoResponse[];
     clientManager: ClientManager;
     user: UserEvent;
     setup: null;
@@ -80,6 +93,13 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     entryId: 1,
     entryType: EntityType.ENTRY,
     entryTitle: "mocked-title",
+    entryArticleText: "mocked article text",
+    entryArticle: async ({ entryArticleText }, use) => {
+        const articleContent = createDocNode([
+            createParagraphNode([createTextNode(entryArticleText)]),
+        ]);
+        use(articleContent);
+    },
     entryInfo: async ({ entryId, entryType, folderId, entryTitle }, use) => {
         const entry: EntryInfoResponse = {
             id: entryId,
@@ -119,9 +139,28 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         mockGetFolders(mockedInvoker, allFolders);
         await use(allFolders);
     },
+    mockedEntryInfo: async ({ mockedInvoker, entryInfo }, use) => {
+        mockGetEntryInfo(mockedInvoker, entryInfo);
+        use(entryInfo);
+    },
+    mockedEntryArticle: async (
+        { mockedInvoker, mockedEntryInfo, entryArticle },
+        use,
+    ) => {
+        const entryWithArticle: EntryArticleResponse = {
+            info: mockedEntryInfo,
+            text: entryArticle,
+        };
+        mockGetEntryArticle(mockedInvoker, entryWithArticle);
+        use(entryWithArticle);
+    },
     mockedEntries: async ({ mockedInvoker, allEntries }, use) => {
         mockGetEntries(mockedInvoker, allEntries);
         await use(allEntries);
+    },
+    mockedSearchedEntries: async ({ mockedInvoker, allEntries }, use) => {
+        mockSearchEntries(mockedInvoker, allEntries);
+        use(allEntries);
     },
 
     user: [

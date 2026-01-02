@@ -31,10 +31,6 @@
     margin-inline: 12px;
 }
 
-.entry-editor-header-col:last-child {
-    margin-left: auto;
-}
-
 .entry-editor-toc {
     width: 100%;
     flex-grow: 1;

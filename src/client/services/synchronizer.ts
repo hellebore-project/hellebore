@@ -10,6 +10,7 @@ import {
 } from "../interface";
 
 export class SynchronizationService {
+    /** Minimum amount of time to wait between full syncs in milliseconds */
     readonly DEFAULT_SYNC_PERIOD = 5000;
 
     private _waitingForSync = false;
@@ -30,6 +31,7 @@ export class SynchronizationService {
     }
 
     get syncPeriod() {
+        // TODO: make this configurable
         return this.DEFAULT_SYNC_PERIOD;
     }
 

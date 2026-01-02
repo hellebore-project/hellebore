@@ -13,7 +13,6 @@ const renderSelectField = forwardRef<HTMLInputElement, SelectFieldProps>(
             getValue,
             placeholder = "Select a value",
             clearable = true,
-            comboboxProps,
             ...rest
         },
         ref,
@@ -26,7 +25,6 @@ const renderSelectField = forwardRef<HTMLInputElement, SelectFieldProps>(
                 value={_value}
                 allowDeselect
                 clearable={clearable}
-                comboboxProps={comboboxProps}
                 {...rest}
             />
         );
