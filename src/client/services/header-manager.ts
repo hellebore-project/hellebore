@@ -28,8 +28,11 @@ interface MenuItems {
 export class HeaderManager {
     // CONSTANTS
     readonly DEFAULT_HEIGHT = 50;
+    readonly DEFAULT_QUERY_PERIOD = 500;
+
+    // CONFIG
     /** Minimum amount of time to wait between queries to the backend in milliseconds */
-    readonly QUERY_PERIOD = 500;
+    queryPeriod: number;
 
     // STATE
     private _searchQuery = "";
@@ -54,6 +57,8 @@ export class HeaderManager {
     onToggleLeftBar: EventProducer<void, unknown>;
 
     constructor(domain: DomainManager) {
+        this.queryPeriod = this.DEFAULT_QUERY_PERIOD;
+
         this._searchData = [];
 
         this._domain = domain;
@@ -97,6 +102,7 @@ export class HeaderManager {
         };
 
         makeAutoObservable<HeaderManager, PrivateKeys>(this, {
+            queryPeriod: false,
             _waitingForQuery: false,
             _lastQueryRequestTime: false,
             _menuItems: false,
@@ -168,8 +174,8 @@ export class HeaderManager {
         this._waitingForQuery = true;
 
         while (true) {
-            await new Promise((r) => setTimeout(r, this.QUERY_PERIOD));
-            if (Date.now() - this._lastQueryRequestTime < this.QUERY_PERIOD)
+            await new Promise((r) => setTimeout(r, this.queryPeriod));
+            if (Date.now() - this._lastQueryRequestTime < this.queryPeriod)
                 continue;
             break;
         }
