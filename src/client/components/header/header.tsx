@@ -5,9 +5,9 @@ import { observer } from "mobx-react-lite";
 
 import { MenuButton } from "@/shared/menu-button";
 import { MenuDropdown } from "@/shared/menu-dropdown";
-import { SearchField } from "@/shared/search-field";
 
 import { HeaderManager } from "./header.service";
+import { EntrySearchField } from "../shared/entry-search-field";
 
 interface HeaderProps {
     service: HeaderManager;
@@ -42,18 +42,7 @@ function renderHeader({ service }: HeaderProps) {
                 }}
             />
             <div className="grow" />
-            <SearchField
-                onValueChange={(value) =>
-                    service.selectEntrySearchResult(value)
-                }
-                getSearch={() => service.searchQuery}
-                onSearchChange={(value) => (service.searchQuery = value)}
-                getData={() => service.searchData}
-                textProps={{ className: "header-search" }}
-                portalProps={{
-                    target: service.fetchPortalSelector.produceOne(),
-                }}
-            />
+            <EntrySearchField service={service.entrySearch} />
         </Flex>
     );
 }

@@ -147,7 +147,7 @@ describe("search bar", () => {
         headerManager,
         entryTitle,
     }) => {
-        headerManager.queryPeriod = 0;
+        headerManager.entrySearch.queryPeriod = 0;
 
         render(<Header service={headerManager} />);
 
@@ -165,7 +165,7 @@ describe("search bar", () => {
         headerManager,
         entryTitle,
     }) => {
-        headerManager.queryPeriod = 0;
+        headerManager.entrySearch.queryPeriod = 0;
 
         render(<Header service={headerManager} />);
 
@@ -184,7 +184,7 @@ describe("search bar", () => {
         mockedEntryArticle,
         entryTitle,
     }) => {
-        headerManager.queryPeriod = 0;
+        headerManager.entrySearch.queryPeriod = 0;
 
         const { rerender } = render(<Header service={headerManager} />);
 
@@ -216,7 +216,7 @@ describe("search bar", () => {
         };
         mockGetEntryArticle(mockedInvoker, entryWithArticle);
 
-        headerManager.queryPeriod = 0;
+        headerManager.entrySearch.queryPeriod = 0;
 
         const { rerender } = render(<Header service={headerManager} />);
 
