@@ -1,4 +1,4 @@
-import { ClientManager } from "./client-manager";
+import { ClientManager } from "./client.service";
 
 export class AppState {
     private _manager: ClientManager | null = null;

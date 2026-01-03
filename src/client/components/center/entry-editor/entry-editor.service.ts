@@ -16,10 +16,10 @@ import { DomainManager, EntryType, WordType } from "@/domain";
 import { TableOfContentsItemData } from "@/shared/table-of-contents";
 import { EventProducer } from "@/utils/event";
 
-import { WordEditorService, WordEditorServiceArgs } from "./word-editor";
-import { EntryInfoService } from "./info-editor";
+import { EntryInfoService } from "./entry-info.service";
 import { ArticleEditorService } from "./article-editor";
 import { PropertyEditorService } from "./property-editor";
+import { WordEditorService, WordEditorServiceArgs } from "./word-editor";
 
 type PrivateKeys = "_domain";
 

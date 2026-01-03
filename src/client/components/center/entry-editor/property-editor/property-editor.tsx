@@ -1,9 +1,9 @@
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { PropertyEditorService } from "@/client/services";
 import { SPACE } from "@/shared/common";
 
+import { PropertyEditorService } from "./property-editor.service";
 import { PropertyTable } from "./property-table";
 import { TitleField } from "../title-field";
 

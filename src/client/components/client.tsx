@@ -1,17 +1,14 @@
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { ClientManager } from "@/client/services";
-
-import {
-    Center,
-    ContextMenu,
-    Footer,
-    Header,
-    LeftSideBar,
-    Modal,
-    PortalContainer,
-} from ".";
+import { ClientManager } from "./client.service";
+import { PortalContainer } from "./portal";
+import { Header } from "./header";
+import { LeftSideBar } from "./left-sidebar";
+import { Center } from "./center";
+import { Footer } from "./footer";
+import { Modal } from "./modal";
+import { ContextMenu } from "./context-menu";
 
 interface ClientProps {
     service: ClientManager;

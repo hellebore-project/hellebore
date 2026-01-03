@@ -3,17 +3,14 @@ import "./word-editor.css";
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import {
-    WordColumnKeys,
-    WordEditorService,
-    WordMetaData,
-    WordViewType,
-} from "@/client";
+import { WordViewType } from "@/client/constants";
+import { WordMetaData } from "@/client/interface";
 import { SPACE } from "@/shared/common";
 import { Spreadsheet, SpreadsheetService } from "@/shared/spreadsheet";
 import { TabData, Tabs } from "@/shared/tabs";
 
 import { TitleField } from "../title-field";
+import { WordEditorService, WordColumnKeys } from "./word-editor.service";
 
 const TAB_DATA: TabData[] = [
     { label: "Root Words", value: WordViewType.RootWords },

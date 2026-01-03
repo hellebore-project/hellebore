@@ -1,11 +1,10 @@
 import { ComboboxItem } from "@mantine/core";
 import { makeAutoObservable } from "mobx";
 
+import { OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
 import { DIVIDER_DATA, MenuDropdownElementData } from "@/shared/menu-dropdown";
 import { EventProducer } from "@/utils/event";
-
-import { OpenEntryEditorEvent } from "../interface";
 
 type PrivateKeys =
     | "_waitingForQuery"

@@ -4,12 +4,10 @@ import { Card, CardProps, Grid, Stack, StackProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { PropsWithChildren, ReactNode } from "react";
 
-import {
-    PropertyEditorService,
-    PropertyFieldType,
-    TextPropertyFieldData,
-} from "@/client";
+import { PropertyFieldType, TextPropertyFieldData } from "@/client/interface";
 import { TextField } from "@/shared/text-field";
+
+import { PropertyEditorService } from "../property-editor.service";
 
 interface PropertyRowProps extends PropsWithChildren {
     label: string;

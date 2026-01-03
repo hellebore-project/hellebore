@@ -1,7 +1,7 @@
 import { Group, Text } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { FooterManager } from "@/client/services";
+import { FooterManager } from "./footer.service";
 
 interface FooterProps {
     service: FooterManager;

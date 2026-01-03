@@ -19,7 +19,7 @@ import {
 import { Counter } from "@/utils/counter";
 import { EventProducer } from "@/utils/event";
 
-import { EntryInfoService } from "./info-editor";
+import { EntryInfoService } from "../entry-info.service";
 
 export type WordColumnKeys = "spelling" | "definition" | "translations";
 

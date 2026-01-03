@@ -20,11 +20,11 @@ import { Id } from "@/interface";
 
 import { CentralPanelManager } from "./center";
 import { ContextMenuManager } from "./context-menu";
-import { FooterManager } from "./footer-manager";
-import { HeaderManager } from "./header-manager";
+import { FooterManager } from "./footer";
+import { HeaderManager } from "./header";
 import { ModalManager } from "./modal";
-import { NavigationService } from "./navigation";
-import { PortalManager } from "./portal-manager";
+import { NavigationService } from "./left-sidebar";
+import { PortalManager } from "./portal";
 import { StyleManager } from "./style-manager";
 import { SynchronizationService } from "./synchronizer";
 

@@ -5,5 +5,4 @@ import "./components/client.css";
 
 export * from "./constants";
 export * from "./interface";
-export * from "./services";
 export * from "./components";

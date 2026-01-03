@@ -9,7 +9,7 @@ import {
 
 import { EntryEditor } from "./entry-editor";
 import { Home } from "./home";
-import { SettingsEditor } from "./settings-editor";
+import { SettingsEditor } from "./settings-editor/settings-editor";
 
 interface CenterProps {
     service: ICentralPanelContentService | null;

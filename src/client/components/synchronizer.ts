@@ -1,13 +1,12 @@
-import { DomainManager } from "@/domain";
-import { EventProducer } from "@/utils/event";
-
 import {
     PollEvent,
     PollResult,
     SyncEntryEvent,
     SyncEntryRequest,
     SyncEvent,
-} from "../interface";
+} from "@/client/interface";
+import { DomainManager } from "@/domain";
+import { EventProducer } from "@/utils/event";
 
 export class SynchronizationService {
     /** Minimum amount of time to wait between full syncs in milliseconds */

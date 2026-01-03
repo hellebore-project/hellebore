@@ -3,10 +3,11 @@ import "./header.css";
 import { Burger, Flex } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { HeaderManager } from "@/client/services";
 import { MenuButton } from "@/shared/menu-button";
 import { MenuDropdown } from "@/shared/menu-dropdown";
 import { SearchField } from "@/shared/search-field";
+
+import { HeaderManager } from "./header.service";
 
 interface HeaderProps {
     service: HeaderManager;

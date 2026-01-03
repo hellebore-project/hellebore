@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 
-import { PortalManager } from "@/client/services";
+import { PortalManager } from "./portal.service";
 
 interface PortalContainerProps {
     service: PortalManager;

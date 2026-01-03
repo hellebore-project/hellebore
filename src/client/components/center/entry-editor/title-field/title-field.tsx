@@ -4,8 +4,9 @@ import { Divider, Group, Popover, Text } from "@mantine/core";
 import { IconExclamationCircle } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { EntryInfoService } from "@/client";
 import { TextField } from "@/shared/text-field";
+
+import { EntryInfoService } from "../entry-info.service";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 

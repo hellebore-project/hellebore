@@ -13,13 +13,14 @@ import { DndProvider } from "react-dnd";
 
 import { BaseGroupProps } from "@/interface";
 import {
-    FileNavigatorErrorManager,
     FileNodeData,
     FileNodeModel,
     ROOT_FOLDER_NODE_ID,
-    SpotlightService,
-} from "@/client";
+} from "@/client/interface";
 import { NavItem, NavItemTextProps } from "@/shared/nav-item";
+
+import { FileNavigatorErrorManager } from "./file-navigator-error.service";
+import { SpotlightService } from "../spotlight.service";
 
 interface FileNavErrorProps {
     service: FileNavigatorErrorManager;

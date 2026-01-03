@@ -15,7 +15,7 @@ import { DomainManager } from "@/domain";
 import { SpreadsheetReferenceService } from "@/shared/spreadsheet";
 import { EventProducer } from "@/utils/event";
 
-import { HomeManager } from "./home-manager";
+import { HomeManager } from "./home/home.service";
 import { SettingsEditorService } from "./settings-editor";
 import { EntryEditorService, EntryEditorServiceArgs } from "./entry-editor";
 import { WordColumnKeys } from "./entry-editor/word-editor";

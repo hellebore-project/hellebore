@@ -3,7 +3,7 @@ import "./spotlight.css";
 import { Collapse } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { SpotlightService } from "@/client/services";
+import { SpotlightService } from "@/client/components";
 import { NavItem } from "@/shared/nav-item";
 import { OutsideEventHandler } from "@/shared/outside-event-handler";
 

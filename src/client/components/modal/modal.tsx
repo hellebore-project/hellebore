@@ -2,14 +2,10 @@ import { Modal as MantineModal } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { ModalType } from "@/client/constants";
-import {
-    EntryCreatorService,
-    ModalManager,
-    ProjectCreatorService,
-} from "@/client/services";
 
-import { ProjectCreator } from "./project-creator";
-import { EntryCreator } from "./entry-creator";
+import { ProjectCreator, ProjectCreatorService } from "./project-creator";
+import { EntryCreator, EntryCreatorService } from "./entry-creator";
+import { ModalManager } from "./modal.service";
 
 interface ModalManagerProps {
     service: ModalManager;

@@ -26,7 +26,7 @@ import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { Counter } from "@/utils/counter";
 import { EventProducer } from "@/utils/event";
 
-import { FileNavigatorErrorManager } from "./file-navigator-error-manager";
+import { FileNavigatorErrorManager } from "./file-navigator";
 
 type PrivateKeys = "_nodePositionCache" | "_tree" | "_domain";
 

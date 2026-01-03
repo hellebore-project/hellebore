@@ -3,11 +3,11 @@ import "./article-editor.css";
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { ArticleEditorService } from "@/client/services";
 import { SPACE } from "@/shared/common";
 import { RichTextEditor } from "@/shared/rich-text-editor";
 
 import { TitleField } from "../title-field";
+import { ArticleEditorService } from "./article-editor.service";
 
 const RICH_TEXT_EDITOR_STYLES = {
     root: { borderWidth: "0" },

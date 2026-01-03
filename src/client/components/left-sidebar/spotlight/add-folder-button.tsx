@@ -2,7 +2,7 @@ import { ActionIcon } from "@mantine/core";
 import { IconFolderPlus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { SpotlightService } from "@/client/services";
+import { SpotlightService } from "@/client/components";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
 interface AddFolderButtonProps {

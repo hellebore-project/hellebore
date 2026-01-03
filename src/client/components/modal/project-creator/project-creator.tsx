@@ -1,9 +1,10 @@
 import { Button, Container, Group } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { ProjectCreatorService } from "@/client/services";
 import { FileField } from "@/shared/file-field";
 import { TextField } from "@/shared/text-field";
+
+import { ProjectCreatorService } from "./project-creator.service";
 
 interface ProjectCreatorProps {
     service: ProjectCreatorService;

@@ -1,11 +1,12 @@
 import { Button, ComboboxItem, Container, Group, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntryCreatorService } from "@/client/services";
 import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "@/domain";
 import { SelectField } from "@/shared/select-field";
 import { TextField } from "@/shared/text-field";
 import { compareStrings } from "@/utils/string";
+
+import { EntryCreatorService } from "./entry-creator.service";
 
 const ENTITY_TYPE_DROPDOWN_DATA: ComboboxItem[] = FILE_ENTITY_TYPES.map(
     (entityType) => ({

@@ -13,7 +13,7 @@ import {
 } from "@/shared/rich-text-editor";
 import { EventProducer } from "@/utils/event";
 
-import { EntryInfoService } from "./info-editor";
+import { EntryInfoService } from "../entry-info.service";
 
 type PrivateKeys = "_changed" | "_domain";
 

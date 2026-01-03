@@ -3,7 +3,8 @@ import { observer } from "mobx-react-lite";
 
 import { DIVIDER, SPACE } from "@/shared/common";
 import { TextField } from "@/shared/text-field";
-import { HomeManager } from "@/client/services";
+
+import { HomeManager } from "./home.service";
 
 const TITLE_FIELD_STYLES = { input: { fontSize: 34, paddingBottom: 10 } };
 
