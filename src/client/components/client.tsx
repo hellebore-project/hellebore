@@ -25,12 +25,12 @@ function renderClient({ service }: ClientProps) {
             <AppShell
                 header={{ height: { base: service.header.height } }}
                 navbar={{
-                    width: service.navigation.width,
+                    width: service.leftSideBar.width,
                     breakpoint: "sm",
                     collapsed: {
                         desktop: !service.domain.hasProject,
                         mobile:
-                            !service.navigation.mobileOpen ||
+                            !service.leftSideBar.mobileOpen ||
                             !service.domain.hasProject,
                     },
                 }}
@@ -44,7 +44,7 @@ function renderClient({ service }: ClientProps) {
                 </AppShell.Header>
 
                 <AppShell.Navbar className="left-sidebar-panel">
-                    <LeftSideBar service={service.navigation} />
+                    <LeftSideBar service={service.leftSideBar} />
                 </AppShell.Navbar>
 
                 <AppShell.Main className="main-panel" tabIndex={-1}>

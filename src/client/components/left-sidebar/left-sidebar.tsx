@@ -3,11 +3,11 @@ import "./left-sidebar.css";
 import { Container } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { NavigationService } from "./left-sidebar.service";
+import { LeftSideBarService } from "./left-sidebar.service";
 import { Spotlight } from "./spotlight";
 
 interface LeftSideBarProps {
-    service: NavigationService;
+    service: LeftSideBarService;
 }
 
 function renderLeftSideBar({ service }: LeftSideBarProps) {

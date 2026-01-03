@@ -1,35 +1,36 @@
 import { ActionIcon } from "@mantine/core";
-import { IconFolderPlus } from "@tabler/icons-react";
+import { IconLibraryMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { SpotlightService } from "@/client/components";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
-interface AddFolderButtonProps {
+import { SpotlightService } from "../spotlight.service";
+
+interface CollapseFoldersButtonProps {
     service: SpotlightService;
 }
 
-function renderAddFolderButton({ service }: AddFolderButtonProps) {
+function renderCollapseFolderButton({ service }: CollapseFoldersButtonProps) {
     return (
         <ToolTipWrapper
             className="nav-sub-item compact"
-            label="New Folder"
+            label="Collapse All Folders"
             portalProps={{ target: service.fetchPortalSelector.produceOne() }}
         >
             <ActionIcon
-                key="add-folder"
+                key="collapse-folders"
                 variant="subtle"
                 color="gray"
                 size="sm"
                 onClick={(e) => {
                     e.stopPropagation(); // don't toggle the expanded status of the tab
-                    service.onClickAddFolderButton();
+                    service.collapseNodes();
                 }}
             >
-                <IconFolderPlus size={18} />
+                <IconLibraryMinus size={18} />
             </ActionIcon>
         </ToolTipWrapper>
     );
 }
 
-export const AddFolderButton = observer(renderAddFolderButton);
+export const CollapseFoldersButton = observer(renderCollapseFolderButton);

@@ -6,10 +6,10 @@ import { observer } from "mobx-react-lite";
 import { EntryEditorService, EntryViewType } from "@/client";
 import { TableOfContents } from "@/shared/table-of-contents";
 
-import { PropertyEditor } from "./property-editor";
-import { WordEditor } from "./word-editor/word-editor";
-import { DeleteEntryButton } from "./delete-entry-button";
 import { ArticleEditor } from "./article-editor";
+import { PropertyEditor } from "./property-editor";
+import { WordEditor } from "./word-editor";
+import { DeleteEntryButton } from "./buttons";
 
 interface EntryEditorProps {
     service: EntryEditorService;

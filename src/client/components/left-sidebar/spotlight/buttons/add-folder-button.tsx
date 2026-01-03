@@ -1,35 +1,36 @@
 import { ActionIcon } from "@mantine/core";
-import { IconFilePlus } from "@tabler/icons-react";
+import { IconFolderPlus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { SpotlightService } from "@/client/components";
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
-interface AddEntryButtonProps {
+import { SpotlightService } from "../spotlight.service";
+
+interface AddFolderButtonProps {
     service: SpotlightService;
 }
 
-function renderAddEntryButton({ service }: AddEntryButtonProps) {
+function renderAddFolderButton({ service }: AddFolderButtonProps) {
     return (
         <ToolTipWrapper
             className="nav-sub-item compact"
-            label="New Entry"
+            label="New Folder"
             portalProps={{ target: service.fetchPortalSelector.produceOne() }}
         >
             <ActionIcon
-                key="add-entry"
+                key="add-folder"
                 variant="subtle"
                 color="gray"
                 size="sm"
                 onClick={(e) => {
                     e.stopPropagation(); // don't toggle the expanded status of the tab
-                    service.onClickAddEntryButton();
+                    service.onClickAddFolderButton();
                 }}
             >
-                <IconFilePlus size={18} />
+                <IconFolderPlus size={18} />
             </ActionIcon>
         </ToolTipWrapper>
     );
 }
 
-export const AddEntryButton = observer(renderAddEntryButton);
+export const AddFolderButton = observer(renderAddFolderButton);

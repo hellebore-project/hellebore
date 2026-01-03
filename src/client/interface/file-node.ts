@@ -1,7 +1,5 @@
 import { NodeModel } from "@minoru/react-dnd-treeview";
 
-export const ROOT_FOLDER_NODE_ID = "R"; // TODO: move this to constants
-
 export type NodeId = number | string;
 
 export interface FileNodeData {

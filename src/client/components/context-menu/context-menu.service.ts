@@ -10,11 +10,11 @@ import { Point } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { EventProducer } from "@/utils/event";
 
-import { BaseContextMenuService } from "./base-context-menu.model";
 import {
+    BaseContextMenuService,
     EntryFileContextMenuService,
     FolderContextMenuService,
-} from "./file-context-menu.model";
+} from "./model";
 
 export class ContextMenuManager {
     readonly DEFAULT_POSITION: Point = { x: 0, y: 0 };

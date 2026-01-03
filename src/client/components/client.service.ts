@@ -23,7 +23,7 @@ import { ContextMenuManager } from "./context-menu";
 import { FooterManager } from "./footer";
 import { HeaderManager } from "./header";
 import { ModalManager } from "./modal";
-import { NavigationService } from "./left-sidebar";
+import { LeftSideBarService } from "./left-sidebar";
 import { PortalManager } from "./portal";
 import { StyleManager } from "./style-manager";
 import { SynchronizationService } from "./synchronizer";
@@ -41,7 +41,7 @@ export class ClientManager {
     portal: PortalManager;
     central: CentralPanelManager;
     header: HeaderManager;
-    navigation: NavigationService;
+    leftSideBar: LeftSideBarService;
     footer: FooterManager;
     modal: ModalManager;
     contextMenu: ContextMenuManager;
@@ -66,7 +66,7 @@ export class ClientManager {
         // peripheral panels
         this.header = new HeaderManager(this.domain);
         this.footer = new FooterManager(this.domain);
-        this.navigation = new NavigationService({
+        this.leftSideBar = new LeftSideBarService({
             domain: this.domain,
         });
 
@@ -83,7 +83,7 @@ export class ClientManager {
             entryEditor: false,
             header: false,
             footer: false,
-            navigation: false,
+            leftSideBar: false,
             modal: false,
             contextMenu: false,
         };
@@ -112,12 +112,12 @@ export class ClientManager {
                 if (details.entry === undefined) return;
 
                 if (action === ViewAction.Show)
-                    this.navigation.spotlight.setEntryNodeDisplayedStatus(
+                    this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
                         details.entry.id,
                         true,
                     );
                 if (action === ViewAction.Hide) {
-                    this.navigation.spotlight.setEntryNodeDisplayedStatus(
+                    this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
                         details.entry.id,
                         false,
                     );
@@ -152,13 +152,13 @@ export class ClientManager {
             this.central.openEntryEditor(args),
         );
         this.header.fetchLeftBarStatus.subscribe(
-            () => this.navigation.mobileOpen,
+            () => this.leftSideBar.mobileOpen,
         );
         this.header.onToggleLeftBar.subscribe(() =>
-            this.navigation.toggleMobileOpen(),
+            this.leftSideBar.toggleMobileOpen(),
         );
 
-        const spotlight = this.navigation.spotlight;
+        const spotlight = this.leftSideBar.spotlight;
         spotlight.fetchPortalSelector.subscribe(() => this.portal.selector);
         spotlight.onCreateEntry.subscribe((args) =>
             this.modal.openEntryCreator(args),
@@ -244,7 +244,7 @@ export class ClientManager {
         const folders = await this.domain.folders.getAll();
 
         if (entries !== null && folders !== null)
-            this.navigation.load(entries, folders);
+            this.leftSideBar.load(entries, folders);
     }
 
     // PROJECT HANDLING
@@ -286,7 +286,7 @@ export class ClientManager {
 
         const success = await this.domain.session.closeProject();
         if (success) {
-            this.navigation.reset();
+            this.leftSideBar.reset();
             this.central.openHome();
         }
         return success;
@@ -295,7 +295,7 @@ export class ClientManager {
     // FOLDER HANDLING
 
     editFolderName(id: number) {
-        this.navigation.spotlight.toggleFolderAsEditable(id);
+        this.leftSideBar.spotlight.toggleFolderAsEditable(id);
     }
 
     async moveFolder({
@@ -378,7 +378,7 @@ export class ClientManager {
         const fileIds = await this.domain.folders.delete(id);
         if (!fileIds) return null;
 
-        this.navigation.spotlight.deleteManyNodes(
+        this.leftSideBar.spotlight.deleteManyNodes(
             fileIds.entries,
             fileIds.folders,
         );
@@ -411,7 +411,7 @@ export class ClientManager {
         );
 
         if (entry) {
-            this.navigation.spotlight.addNodeForCreatedEntry(entry);
+            this.leftSideBar.spotlight.addNodeForCreatedEntry(entry);
             this.central.openEntryEditor({ id: entry.id });
         }
 
@@ -442,7 +442,7 @@ export class ClientManager {
             // failed to delete the entry; aborting
             return false;
 
-        this.navigation.spotlight.deleteEntityNode(id);
+        this.leftSideBar.spotlight.deleteEntityNode(id);
 
         let panelIndex = 0;
         for (const panelService of this.central.iterateOpenPanels()) {
@@ -477,7 +477,7 @@ export class ClientManager {
                 response.entry.title.updated &&
                 response.entry.title.isUnique
             )
-                this.navigation.spotlight.updateEntityNodeText(
+                this.leftSideBar.spotlight.updateEntityNodeText(
                     request.id,
                     request.title,
                 );
@@ -488,7 +488,7 @@ export class ClientManager {
 
     hook() {
         this.contextMenu.hook();
-        this.navigation.spotlight.hook();
+        this.leftSideBar.spotlight.hook();
         this.central.hook();
     }
 

@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 
 import { ToolTipWrapper } from "@/shared/tool-tip";
 
-import { EntryEditorService } from "./entry-editor.service";
+import { EntryEditorService } from "../entry-editor.service";
 
 interface DeleteEntryButtonProps {
     service: EntryEditorService;

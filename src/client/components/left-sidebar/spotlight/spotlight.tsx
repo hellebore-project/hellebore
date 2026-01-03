@@ -7,10 +7,12 @@ import { SpotlightService } from "@/client/components";
 import { NavItem } from "@/shared/nav-item";
 import { OutsideEventHandler } from "@/shared/outside-event-handler";
 
-import { AddEntryButton } from "./add-entry-button";
-import { CollapseFoldersButton } from "./collapse-folders-button";
-import { AddFolderButton } from "./add-folder-button";
 import { FileNavigator } from "./file-navigator";
+import {
+    AddEntryButton,
+    AddFolderButton,
+    CollapseFoldersButton,
+} from "./buttons";
 
 interface SpotlightProps {
     service: SpotlightService;

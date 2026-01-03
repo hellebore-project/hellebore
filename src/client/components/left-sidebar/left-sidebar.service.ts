@@ -4,18 +4,18 @@ import { DomainManager, EntryInfoResponse, FolderResponse } from "@/domain";
 
 import { SpotlightService } from "./spotlight";
 
-export interface NavigationServiceArgs {
+export interface LeftSideBarServiceArgs {
     domain: DomainManager;
 }
 
-export class NavigationService {
+export class LeftSideBarService {
     readonly NAVBAR_WIDTH = 300;
 
     private _mobileOpen = true;
 
     spotlight: SpotlightService;
 
-    constructor({ domain }: NavigationServiceArgs) {
+    constructor({ domain }: LeftSideBarServiceArgs) {
         this.spotlight = new SpotlightService({ domain });
         makeAutoObservable(this, { spotlight: false });
     }

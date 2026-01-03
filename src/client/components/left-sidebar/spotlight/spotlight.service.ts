@@ -3,6 +3,7 @@ import { makeAutoObservable, toJS } from "mobx";
 import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
 import { Id } from "@/interface";
+import { ROOT_FOLDER_NODE_ID } from "@/client/constants";
 import {
     DeleteFolderEvent,
     FileNodeData,
@@ -13,7 +14,6 @@ import {
     OpenEntryCreatorEvent,
     OpenEntryEditorEvent,
     OpenFileContextMenuEvent,
-    ROOT_FOLDER_NODE_ID,
 } from "@/client/interface";
 import {
     ROOT_FOLDER_ID,
