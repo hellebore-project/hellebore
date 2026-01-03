@@ -10,9 +10,8 @@ use crate::{
 use hellebore::{
     database::file_manager::ROOT_FOLDER_ID,
     schema::folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
-    services::{entry_service, folder_service},
+    services::folder_service,
     settings::Settings,
-    types::entity::ENTRY,
 };
 use rstest::*;
 
