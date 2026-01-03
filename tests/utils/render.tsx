@@ -3,11 +3,12 @@ import { render as baseRender } from "@testing-library/react";
 import { PropsWithChildren, ReactNode } from "react";
 import { observer } from "mobx-react-lite";
 
-import { getClientManager, PortalContainer } from "@/client";
+import { getState, PortalContainer } from "@/client";
 
 function renderTestApp({ children }: PropsWithChildren) {
-    const service = getClientManager();
+    const service = getState().manager;
     service.hook();
+
     return (
         <MantineProvider theme={DEFAULT_THEME} env="test">
             {children}

@@ -188,7 +188,6 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
             state.manager = clientManager;
 
             await use(clientManager);
-            state.manager = null;
         },
         { auto: true },
     ],
