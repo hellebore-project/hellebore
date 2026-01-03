@@ -1,23 +1,21 @@
 import { AppShell, MantineProvider } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { ClientManager, PortalManager } from "@/client/services";
+import { ClientManager } from "@/client/services";
 
-import { Center, ContextMenu, Footer, Header, LeftSideBar, Modal } from ".";
-
-interface PortalContainerProps {
-    service: PortalManager;
-}
+import {
+    Center,
+    ContextMenu,
+    Footer,
+    Header,
+    LeftSideBar,
+    Modal,
+    PortalContainer,
+} from ".";
 
 interface ClientProps {
     service: ClientManager;
 }
-
-function renderPortalContainer({ service }: PortalContainerProps) {
-    return <div id={service.id} />;
-}
-
-export const PortalContainer = observer(renderPortalContainer);
 
 function renderClient({ service }: ClientProps) {
     service.hook();
