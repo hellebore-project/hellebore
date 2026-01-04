@@ -24,7 +24,7 @@ import {
 } from "@/domain";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
 import { Counter } from "@/utils/counter";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { FileNavigatorErrorManager } from "./file-navigator";
 
@@ -71,15 +71,15 @@ export class SpotlightService {
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
-    onCreateEntry: EventProducer<OpenEntryCreatorEvent, unknown>;
-    onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
+    onCreateEntry: MultiEventProducer<OpenEntryCreatorEvent, unknown>;
+    onOpenEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
     onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
-    onDeleteFolder: EventProducer<
+    onDeleteFolder: MultiEventProducer<
         DeleteFolderEvent,
         Promise<BulkFileResponse | null>
     >;
-    onOpenFolderContext: EventProducer<OpenFileContextMenuEvent, unknown>;
-    onOpenEntryContext: EventProducer<OpenFileContextMenuEvent, unknown>;
+    onOpenFolderContext: MultiEventProducer<OpenFileContextMenuEvent, unknown>;
+    onOpenEntryContext: MultiEventProducer<OpenFileContextMenuEvent, unknown>;
 
     constructor({ domain }: SpotlightServiceArgs) {
         this._nodes = [];
@@ -99,12 +99,12 @@ export class SpotlightService {
         this._domain = domain;
 
         this.fetchPortalSelector = new EventProducer();
-        this.onCreateEntry = new EventProducer();
-        this.onOpenEntry = new EventProducer();
+        this.onCreateEntry = new MultiEventProducer();
+        this.onOpenEntry = new MultiEventProducer();
         this.onMoveFolder = new EventProducer();
-        this.onDeleteFolder = new EventProducer();
-        this.onOpenFolderContext = new EventProducer();
-        this.onOpenEntryContext = new EventProducer();
+        this.onDeleteFolder = new MultiEventProducer();
+        this.onOpenFolderContext = new MultiEventProducer();
+        this.onOpenEntryContext = new MultiEventProducer();
 
         makeAutoObservable<SpotlightService, PrivateKeys>(this, {
             _nodePositionCache: false,
@@ -719,7 +719,7 @@ export class SpotlightService {
         let moved: boolean;
         let cancelled = false;
         if (this.isFolderNode(node)) {
-            const response = await this.onMoveFolder.produceOne({
+            const response = await this.onMoveFolder.produce({
                 id,
                 title: node.text,
                 sourceParentId,

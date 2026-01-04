@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 import { ChangeEntryEvent } from "@/client/interface";
 import { ENTITY_TYPE_LABELS, ENTRY_ID_SENTINEL, EntryType } from "@/domain";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 type PrivateKeys = "_titleChanged";
 
@@ -17,11 +17,11 @@ export class EntryInfoService {
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
-    onChangeTitle: EventProducer<ChangeEntryEvent, unknown>;
+    onChangeTitle: MultiEventProducer<ChangeEntryEvent, unknown>;
 
     constructor() {
         this.fetchPortalSelector = new EventProducer();
-        this.onChangeTitle = new EventProducer();
+        this.onChangeTitle = new MultiEventProducer();
 
         makeAutoObservable<EntryInfoService, PrivateKeys>(this, {
             _titleChanged: false,

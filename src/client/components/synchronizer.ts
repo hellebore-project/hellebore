@@ -6,7 +6,7 @@ import {
     SyncEvent,
 } from "@/client/interface";
 import { DomainManager } from "@/domain";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 export class SynchronizationService {
     /** Minimum amount of time to wait between full syncs in milliseconds */
@@ -20,13 +20,13 @@ export class SynchronizationService {
     private _domain: DomainManager;
 
     onPoll: EventProducer<PollEvent, PollResult>;
-    onSync: EventProducer<SyncEvent, void>;
+    onSync: MultiEventProducer<SyncEvent, void>;
 
     constructor(domain: DomainManager) {
         this._domain = domain;
 
         this.onPoll = new EventProducer();
-        this.onSync = new EventProducer();
+        this.onSync = new MultiEventProducer();
     }
 
     get syncPeriod() {
@@ -87,7 +87,7 @@ export class SynchronizationService {
         if (!syncTitle && !syncProperties && !syncText && !syncLexicon)
             return new Promise(() => null);
 
-        const result = this.onPoll.produceOne({
+        const result = this.onPoll.produce({
             id,
             syncTitle,
             syncProperties,

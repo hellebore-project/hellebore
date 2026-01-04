@@ -11,7 +11,7 @@ import {
     SuggestionData,
     useReferenceExtension,
 } from "@/shared/rich-text-editor";
-import { EventProducer } from "@/utils/event";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info.service";
 
@@ -30,15 +30,15 @@ export class ArticleEditorService {
     private _domain: DomainManager;
     info: EntryInfoService;
 
-    onChange: EventProducer<ChangeEntryEvent, unknown>;
-    onSelectReference: EventProducer<OpenEntryEditorEvent, unknown>;
+    onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onSelectReference: MultiEventProducer<OpenEntryEditorEvent, unknown>;
 
     constructor({ domain, info }: ArticleEditorServiceArgs) {
         this._domain = domain;
         this.info = info;
 
-        this.onChange = new EventProducer();
-        this.onSelectReference = new EventProducer();
+        this.onChange = new MultiEventProducer();
+        this.onSelectReference = new MultiEventProducer();
 
         this.editor = this._buildEditor();
 

@@ -2,7 +2,7 @@ import { addEventListener } from "consolidated-events";
 import { makeAutoObservable } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
-import { EventProducer } from "@/utils/event";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent
 const MOUSE_DOWN_EVENT = "mousedown";
@@ -22,7 +22,7 @@ export class OutsideEventHandlerService {
     /** Set by the handler itself, so passing a null reference is acceptable. */
     private _ref: RefObject<HTMLDivElement>;
 
-    onTrigger: EventProducer<Event, void>;
+    onTrigger: MultiEventProducer<Event, void>;
     private _removeMouseDown: RemoveEventListener | null = null;
     private _removeMouseUp: RemoveEventListener | null = null;
 
@@ -31,7 +31,7 @@ export class OutsideEventHandlerService {
 
         this._ref = ref ?? createRef();
 
-        this.onTrigger = new EventProducer();
+        this.onTrigger = new MultiEventProducer();
         this._onMouseDown = this._onMouseDown.bind(this);
         this._onMouseUp = this._onMouseUp.bind(this);
 

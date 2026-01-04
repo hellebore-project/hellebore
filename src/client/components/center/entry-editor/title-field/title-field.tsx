@@ -31,7 +31,7 @@ function renderTitleField({ service }: TitleFieldProps) {
                 position="right"
                 withArrow
                 portalProps={{
-                    target: service.fetchPortalSelector.produceOne(),
+                    target: service.fetchPortalSelector.produce(),
                 }}
             >
                 <Popover.Target>

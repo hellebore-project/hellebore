@@ -15,7 +15,7 @@ function renderAddFolderButton({ service }: AddFolderButtonProps) {
         <ToolTipWrapper
             className="nav-sub-item compact"
             label="New Folder"
-            portalProps={{ target: service.fetchPortalSelector.produceOne() }}
+            portalProps={{ target: service.fetchPortalSelector.produce() }}
         >
             <ActionIcon
                 key="add-folder"

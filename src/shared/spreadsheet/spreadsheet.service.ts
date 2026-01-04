@@ -273,8 +273,8 @@ export class SpreadsheetService<K extends string, M> {
         // This method may not necessarily be called within a react component,
         // so we need to avoid creating hooks here.
 
-        this.reference.getEditableColumn.clear();
-        this.reference.getEditableColumn.subscribe(
+        this.reference.fetchEditableColumn.clear();
+        this.reference.fetchEditableColumn.subscribe(
             () => this.data.editableColumn,
         );
 

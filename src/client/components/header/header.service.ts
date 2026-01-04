@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 import { OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
 import { DIVIDER_DATA, MenuDropdownElementData } from "@/shared/menu-dropdown";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntrySearchService } from "../shared/entry-search-field";
 
@@ -34,30 +34,30 @@ export class HeaderManager {
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
-    onCreateProject: EventProducer<void, unknown>;
-    onLoadProject: EventProducer<void, unknown>;
-    onCloseProject: EventProducer<void, unknown>;
-    onOpenHome: EventProducer<void, unknown>;
-    onOpenSettings: EventProducer<void, unknown>;
-    onCreateEntry: EventProducer<void, unknown>;
-    onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
+    onCreateProject: MultiEventProducer<void, unknown>;
+    onLoadProject: MultiEventProducer<void, unknown>;
+    onCloseProject: MultiEventProducer<void, unknown>;
+    onOpenHome: MultiEventProducer<void, unknown>;
+    onOpenSettings: MultiEventProducer<void, unknown>;
+    onCreateEntry: MultiEventProducer<void, unknown>;
+    onOpenEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
     fetchLeftBarStatus: EventProducer<void, boolean>;
-    onToggleLeftBar: EventProducer<void, unknown>;
+    onToggleLeftBar: MultiEventProducer<void, unknown>;
 
     constructor(domain: DomainManager) {
         this._domain = domain;
         this.entrySearch = new EntrySearchService(domain);
 
         this.fetchPortalSelector = new EventProducer();
-        this.onCreateProject = new EventProducer();
-        this.onLoadProject = new EventProducer();
-        this.onCloseProject = new EventProducer();
-        this.onOpenHome = new EventProducer();
-        this.onOpenSettings = new EventProducer();
-        this.onCreateEntry = new EventProducer();
-        this.onOpenEntry = new EventProducer();
+        this.onCreateProject = new MultiEventProducer();
+        this.onLoadProject = new MultiEventProducer();
+        this.onCloseProject = new MultiEventProducer();
+        this.onOpenHome = new MultiEventProducer();
+        this.onOpenSettings = new MultiEventProducer();
+        this.onCreateEntry = new MultiEventProducer();
+        this.onOpenEntry = new MultiEventProducer();
         this.fetchLeftBarStatus = new EventProducer();
-        this.onToggleLeftBar = new EventProducer();
+        this.onToggleLeftBar = new MultiEventProducer();
 
         this._menuItems = {
             project: {

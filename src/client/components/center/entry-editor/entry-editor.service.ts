@@ -14,7 +14,7 @@ import {
 } from "@/client/interface";
 import { DomainManager, EntryType, WordType } from "@/domain";
 import { TableOfContentsItemData } from "@/shared/table-of-contents";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "./entry-info.service";
 import { ArticleEditorService } from "./article-editor";
@@ -47,11 +47,11 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
-    onOpenReferencedEntry: EventProducer<OpenEntryEditorEvent, unknown>;
-    onChange: EventProducer<ChangeEntryEvent, unknown>;
-    onPartialChange: EventProducer<ChangeEntryEvent, unknown>;
-    onPeriodicChange: EventProducer<ChangeEntryEvent, unknown>;
-    onDelete: EventProducer<DeleteEntryEvent, unknown>;
+    onOpenReferencedEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
+    onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onPartialChange: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onPeriodicChange: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onDelete: MultiEventProducer<DeleteEntryEvent, unknown>;
 
     constructor({ domain, wordEditor }: EntryEditorServiceArgs) {
         this._tabData = new Map();
@@ -73,11 +73,11 @@ export class EntryEditorService implements ICentralPanelContentService {
         });
 
         this.fetchPortalSelector = new EventProducer();
-        this.onOpenReferencedEntry = new EventProducer();
-        this.onChange = new EventProducer();
-        this.onPartialChange = new EventProducer();
-        this.onPeriodicChange = new EventProducer();
-        this.onDelete = new EventProducer();
+        this.onOpenReferencedEntry = new MultiEventProducer();
+        this.onChange = new MultiEventProducer();
+        this.onPartialChange = new MultiEventProducer();
+        this.onPeriodicChange = new MultiEventProducer();
+        this.onDelete = new MultiEventProducer();
 
         makeAutoObservable<EntryEditorService, PrivateKeys>(this, {
             _domain: false,

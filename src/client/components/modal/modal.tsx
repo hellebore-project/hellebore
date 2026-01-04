@@ -37,7 +37,7 @@ function renderModal({ service }: ModalManagerProps) {
             title={service.content.TITLE}
             opened={service.modalKey !== null}
             onClose={() => service.close()}
-            portalProps={{ target: service.fetchPortalSelector.produceOne() }}
+            portalProps={{ target: service.fetchPortalSelector.produce() }}
         >
             <ModalContent service={service} />
         </MantineModal>

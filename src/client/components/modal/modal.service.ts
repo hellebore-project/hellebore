@@ -8,7 +8,7 @@ import {
     OpenEntryCreatorEvent,
 } from "@/client/interface";
 import { EntryInfoResponse, ROOT_FOLDER_ID } from "@/domain";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryCreatorService } from "./entry-creator";
 import { ProjectCreatorService } from "./project-creator";
@@ -19,7 +19,7 @@ export class ModalManager {
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
-    onCreateProject: EventProducer<CreateProjectEvent, unknown>;
+    onCreateProject: MultiEventProducer<CreateProjectEvent, unknown>;
     onCreateEntry: EventProducer<
         CreateEntryEvent,
         Promise<EntryInfoResponse | null>
@@ -29,7 +29,7 @@ export class ModalManager {
         this._modalKey = null;
 
         this.fetchPortalSelector = new EventProducer();
-        this.onCreateProject = new EventProducer();
+        this.onCreateProject = new MultiEventProducer();
         this.onCreateEntry = new EventProducer();
 
         makeAutoObservable(this, {
@@ -46,8 +46,7 @@ export class ModalManager {
 
     openProjectCreator() {
         const modal = new ProjectCreatorService();
-        modal.onCreateProject.subscriptions =
-            this.onCreateProject.subscriptions;
+        modal.onCreateProject.broker = this.onCreateProject;
         modal.initialize();
         this._open(modal);
     }
@@ -56,7 +55,7 @@ export class ModalManager {
         const modal = new EntryCreatorService();
 
         modal.fetchPortalSelector.broker = this.fetchPortalSelector;
-        modal.onCreateEntry.subscriptions = this.onCreateEntry.subscriptions;
+        modal.onCreateEntry.broker = this.onCreateEntry;
 
         modal.initialize(entryType, folderId ?? ROOT_FOLDER_ID);
 
