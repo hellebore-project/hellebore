@@ -33,7 +33,7 @@ function renderEntryCreator({ service }: EntryCreatorProps) {
                     }
                     comboboxProps={{
                         portalProps: {
-                            target: service.fetchPortalSelector.produceOne(),
+                            target: service.fetchPortalSelector.produce(),
                         },
                     }}
                 />

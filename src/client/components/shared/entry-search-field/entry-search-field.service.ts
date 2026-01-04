@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 
 import { OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 type PrivateKeys = "_waitingForQuery" | "_lastQueryRequestTime" | "_domain";
 
@@ -27,7 +27,7 @@ export class EntrySearchService {
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
-    onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
+    onOpenEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
 
     constructor(domain: DomainManager) {
         this.queryPeriod = this.DEFAULT_QUERY_PERIOD;
@@ -37,7 +37,7 @@ export class EntrySearchService {
         this._domain = domain;
 
         this.fetchPortalSelector = new EventProducer();
-        this.onOpenEntry = new EventProducer();
+        this.onOpenEntry = new MultiEventProducer();
 
         makeAutoObservable<EntrySearchService, PrivateKeys>(this, {
             queryPeriod: false,

@@ -24,7 +24,7 @@ function renderHeader({ service }: HeaderProps) {
             wrap="nowrap"
         >
             <Burger
-                opened={service.fetchLeftBarStatus.produceOne()}
+                opened={service.fetchLeftBarStatus.produce()}
                 onClick={() => service.onToggleLeftBar.produce()}
                 hiddenFrom="sm"
                 size="sm"
@@ -38,7 +38,7 @@ function renderHeader({ service }: HeaderProps) {
                 label="File"
                 data={service.fileMenuData}
                 portalProps={{
-                    target: service.fetchPortalSelector.produceOne(),
+                    target: service.fetchPortalSelector.produce(),
                 }}
             />
             <div className="grow" />

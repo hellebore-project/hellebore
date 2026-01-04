@@ -8,7 +8,7 @@ import {
 } from "@/client/interface";
 import { Point } from "@/interface";
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
-import { EventProducer } from "@/utils/event";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import {
     BaseContextMenuService,
@@ -27,9 +27,9 @@ export class ContextMenuManager {
 
     outsideEvent: OutsideEventHandlerService;
 
-    onEditFolderName: EventProducer<EditFolderNameEvent, unknown>;
-    onDeleteFolder: EventProducer<DeleteFolderEvent, unknown>;
-    onDeleteEntry: EventProducer<DeleteEntryEvent, unknown>;
+    onEditFolderName: MultiEventProducer<EditFolderNameEvent, unknown>;
+    onDeleteFolder: MultiEventProducer<DeleteFolderEvent, unknown>;
+    onDeleteEntry: MultiEventProducer<DeleteEntryEvent, unknown>;
 
     constructor() {
         this._position = this.DEFAULT_POSITION;
@@ -39,9 +39,9 @@ export class ContextMenuManager {
         });
         this.outsideEvent.onTrigger.subscribe(() => this.close());
 
-        this.onEditFolderName = new EventProducer();
-        this.onDeleteFolder = new EventProducer();
-        this.onDeleteEntry = new EventProducer();
+        this.onEditFolderName = new MultiEventProducer();
+        this.onDeleteFolder = new MultiEventProducer();
+        this.onDeleteEntry = new MultiEventProducer();
 
         makeAutoObservable(this, {
             menu: false,
@@ -78,14 +78,14 @@ export class ContextMenuManager {
 
     openForNavBarFolderNode({ id, text, position }: OpenFileContextMenuEvent) {
         const menu = new FolderContextMenuService(id, text);
-        menu.onRename.subscriptions = this.onEditFolderName.subscriptions;
-        menu.onDelete.subscriptions = this.onDeleteFolder.subscriptions;
+        menu.onRename.broker = this.onEditFolderName;
+        menu.onDelete.broker = this.onDeleteFolder;
         this._open(menu, position);
     }
 
     openForNavBarEntryNode({ id, text, position }: OpenFileContextMenuEvent) {
         const menu = new EntryFileContextMenuService(id, text);
-        menu.onDelete.subscriptions = this.onDeleteEntry.subscriptions;
+        menu.onDelete.broker = this.onDeleteEntry;
         this._open(menu, position);
     }
 

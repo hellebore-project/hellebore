@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 import { CreateProjectEvent, IModalContentManager } from "@/client/interface";
 import { ModalType } from "@/client/constants";
-import { EventProducer } from "@/utils/event";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 export class ProjectCreatorService implements IModalContentManager {
     readonly TITLE = "Create a new project";
@@ -10,12 +10,12 @@ export class ProjectCreatorService implements IModalContentManager {
     private _name = "";
     private _dbFilePath = "";
 
-    onCreateProject: EventProducer<CreateProjectEvent, unknown>;
-    onClose: EventProducer<void, unknown>;
+    onCreateProject: MultiEventProducer<CreateProjectEvent, unknown>;
+    onClose: MultiEventProducer<void, unknown>;
 
     constructor() {
-        this.onCreateProject = new EventProducer();
-        this.onClose = new EventProducer();
+        this.onCreateProject = new MultiEventProducer();
+        this.onClose = new MultiEventProducer();
         makeAutoObservable(this, { onCreateProject: false, onClose: false });
     }
 

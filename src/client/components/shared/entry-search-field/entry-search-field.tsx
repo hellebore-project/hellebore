@@ -19,7 +19,7 @@ function renderEntrySearchField({ service }: EntrySearchProps) {
             getData={() => service.searchData}
             textProps={{ className: "entry-search" }}
             portalProps={{
-                target: service.fetchPortalSelector.produceOne(),
+                target: service.fetchPortalSelector.produce(),
             }}
         />
     );

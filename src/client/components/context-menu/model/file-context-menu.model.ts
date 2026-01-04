@@ -4,7 +4,7 @@ import {
     EditFolderNameEvent,
 } from "@/client/interface";
 import { Id } from "@/interface";
-import { EventProducer } from "@/utils/event";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import { BaseContextMenuService } from "./base-context-menu.model";
 
@@ -20,13 +20,13 @@ abstract class BaseFileContextMenuService extends BaseContextMenuService {
 }
 
 export class FolderContextMenuService extends BaseFileContextMenuService {
-    onRename: EventProducer<EditFolderNameEvent, unknown>;
-    onDelete: EventProducer<DeleteFolderEvent, unknown>;
+    onRename: MultiEventProducer<EditFolderNameEvent, unknown>;
+    onDelete: MultiEventProducer<DeleteFolderEvent, unknown>;
 
     constructor(id: Id, text: string) {
         super(id, text);
-        this.onRename = new EventProducer();
-        this.onDelete = new EventProducer();
+        this.onRename = new MultiEventProducer();
+        this.onDelete = new MultiEventProducer();
     }
 
     protected _generateMenuData() {
@@ -45,11 +45,11 @@ export class FolderContextMenuService extends BaseFileContextMenuService {
 }
 
 export class EntryFileContextMenuService extends BaseFileContextMenuService {
-    onDelete: EventProducer<DeleteEntryEvent, unknown>;
+    onDelete: MultiEventProducer<DeleteEntryEvent, unknown>;
 
     constructor(id: Id, text: string) {
         super(id, text);
-        this.onDelete = new EventProducer();
+        this.onDelete = new MultiEventProducer();
     }
 
     protected _generateMenuData() {

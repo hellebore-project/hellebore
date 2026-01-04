@@ -14,7 +14,7 @@ import {
     TextPropertyFieldData,
     ChangeEntryEvent,
 } from "@/client";
-import { EventProducer } from "@/utils/event";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info.service";
 
@@ -31,14 +31,14 @@ export class PropertyEditorService {
 
     info: EntryInfoService;
 
-    onChange: EventProducer<ChangeEntryEvent, unknown>;
+    onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
 
     constructor({ info }: PropertyEditorServiceArgs) {
         this._fieldData = [];
 
         this.info = info;
 
-        this.onChange = new EventProducer();
+        this.onChange = new MultiEventProducer();
 
         makeAutoObservable<PropertyEditorService, PrivateKeys>(this, {
             _changed: false,

@@ -40,7 +40,7 @@ export const WordTable = observer(renderWordTable);
 
 function renderWordEditor({ service }: WordEditorProps) {
     const portalProps = {
-        target: service.fetchPortalSelector.produceOne(),
+        target: service.fetchPortalSelector.produce(),
     };
 
     return (

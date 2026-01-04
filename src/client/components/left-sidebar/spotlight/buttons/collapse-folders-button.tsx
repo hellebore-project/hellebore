@@ -15,7 +15,7 @@ function renderCollapseFolderButton({ service }: CollapseFoldersButtonProps) {
         <ToolTipWrapper
             className="nav-sub-item compact"
             label="Collapse All Folders"
-            portalProps={{ target: service.fetchPortalSelector.produceOne() }}
+            portalProps={{ target: service.fetchPortalSelector.produce() }}
         >
             <ActionIcon
                 key="collapse-folders"

@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
 import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
-import { EventProducer } from "@/utils/event";
+import { EventProducer } from "@/utils/event-producer";
 
 import {
     SpreadsheetColumnData,
@@ -24,7 +24,7 @@ export class SpreadsheetReferenceService<K extends string, M> {
     editableCellRef: RefObject<HTMLInputElement> | null;
 
     outsideEvent: OutsideEventHandlerService;
-    getEditableColumn: EventProducer<void, SpreadsheetColumnData<K> | null>;
+    fetchEditableColumn: EventProducer<void, SpreadsheetColumnData<K> | null>;
 
     constructor() {
         this._sheetRef = createRef();
@@ -34,7 +34,7 @@ export class SpreadsheetReferenceService<K extends string, M> {
             enabled: true,
             ref: this._sheetRef,
         });
-        this.getEditableColumn = new EventProducer();
+        this.fetchEditableColumn = new EventProducer();
 
         makeAutoObservable<SpreadsheetReferenceService<K, M>, PrivateKeys>(
             this,
@@ -43,7 +43,7 @@ export class SpreadsheetReferenceService<K extends string, M> {
                 // it from getting set by outside-event handler
                 _sheetRef: false,
                 outsideEvent: false,
-                getEditableColumn: false,
+                fetchEditableColumn: false,
             },
         );
     }
@@ -64,7 +64,7 @@ export class SpreadsheetReferenceService<K extends string, M> {
                 // so that the user can immediately start editing it
                 ref.current.focus();
 
-                const col = this.getEditableColumn.produceOne();
+                const col = this.fetchEditableColumn.produce();
                 if (col?.type === SpreadsheetFieldType.SELECT)
                     ref.current.click(); // expand the dropdown
             }

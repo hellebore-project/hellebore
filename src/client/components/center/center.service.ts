@@ -13,7 +13,7 @@ import {
 } from "@/client/interface";
 import { DomainManager } from "@/domain";
 import { SpreadsheetReferenceService } from "@/shared/spreadsheet";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home/home.service";
 import { SettingsEditorService } from "./settings-editor";
@@ -54,11 +54,11 @@ export class CentralPanelManager {
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
-    onChangePanel: EventProducer<ChangeCentralPanelEvent, unknown>;
-    onChangeData: EventProducer<ChangeEntryEvent, unknown>;
-    onPartialChangeData: EventProducer<ChangeEntryEvent, unknown>;
-    onPeriodicChangeData: EventProducer<ChangeEntryEvent, unknown>;
-    onDeleteEntry: EventProducer<DeleteEntryEvent, unknown>;
+    onChangePanel: MultiEventProducer<ChangeCentralPanelEvent, unknown>;
+    onChangeData: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onPartialChangeData: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onPeriodicChangeData: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onDeleteEntry: MultiEventProducer<DeleteEntryEvent, unknown>;
 
     constructor({ domain }: CentralPanelManagerArgs) {
         this._panelKeys = [];
@@ -77,11 +77,11 @@ export class CentralPanelManager {
         this._domain = domain;
 
         this.fetchPortalSelector = new EventProducer();
-        this.onChangePanel = new EventProducer();
-        this.onChangeData = new EventProducer();
-        this.onPartialChangeData = new EventProducer();
-        this.onPeriodicChangeData = new EventProducer();
-        this.onDeleteEntry = new EventProducer();
+        this.onChangePanel = new MultiEventProducer();
+        this.onChangeData = new MultiEventProducer();
+        this.onPartialChangeData = new MultiEventProducer();
+        this.onPeriodicChangeData = new MultiEventProducer();
+        this.onDeleteEntry = new MultiEventProducer();
 
         makeAutoObservable<CentralPanelManager, PrivateKeys>(this, {
             _panelServices: false,

@@ -5,7 +5,7 @@ import { ModalType } from "@/client/constants";
 import { CreateEntryEvent, IModalContentManager } from "@/client/interface";
 import { EntryInfoResponse, ROOT_FOLDER_ID, EntryType } from "@/domain";
 import { Id } from "@/interface";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 export class EntryCreatorService implements IModalContentManager {
     // CONSTANTS
@@ -23,12 +23,12 @@ export class EntryCreatorService implements IModalContentManager {
         CreateEntryEvent,
         Promise<EntryInfoResponse | null>
     >;
-    onClose: EventProducer<void, unknown>;
+    onClose: MultiEventProducer<void, unknown>;
 
     constructor() {
         this.fetchPortalSelector = new EventProducer();
         this.onCreateEntry = new EventProducer();
-        this.onClose = new EventProducer();
+        this.onClose = new MultiEventProducer();
         makeAutoObservable(this, {
             fetchPortalSelector: false,
             onCreateEntry: false,
@@ -74,7 +74,7 @@ export class EntryCreatorService implements IModalContentManager {
     async submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const entry = await this.onCreateEntry.produceOne({
+        const entry = await this.onCreateEntry.produce({
             // HACK: assume that the user has entered an entity type
             // TODO: when entity type is null, we need to default to some sort of generic entity
             // without any properties

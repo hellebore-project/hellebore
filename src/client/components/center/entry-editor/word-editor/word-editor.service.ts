@@ -17,7 +17,7 @@ import {
     SpreadsheetServiceArgs,
 } from "@/shared/spreadsheet";
 import { Counter } from "@/utils/counter";
-import { EventProducer } from "@/utils/event";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info.service";
 
@@ -103,8 +103,8 @@ export class WordEditorService {
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
-    onChange: EventProducer<ChangeEntryEvent, unknown>;
-    onChangeWordType: EventProducer<ChangeWordTypeEvent, void>;
+    onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onChangeWordType: MultiEventProducer<ChangeWordTypeEvent, void>;
 
     // CONSTRUCTION
     constructor({ domain, info, spreadsheet }: WordEditorServiceArgs) {
@@ -112,8 +112,8 @@ export class WordEditorService {
         this._wordKeyGenerator = new Counter();
 
         this.fetchPortalSelector = new EventProducer();
-        this.onChange = new EventProducer();
-        this.onChangeWordType = new EventProducer();
+        this.onChange = new MultiEventProducer();
+        this.onChangeWordType = new MultiEventProducer();
 
         this._domain = domain;
         this.info = info;
