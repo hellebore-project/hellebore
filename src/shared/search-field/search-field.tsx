@@ -26,6 +26,7 @@ export interface SearchFieldProps extends ComboboxProps {
 
 function renderSearchField({
     placeholder = "Search",
+    disabled = false,
     value,
     getValue,
     search,
@@ -72,6 +73,7 @@ function renderSearchField({
     return (
         <Combobox
             store={combobox}
+            disabled={disabled}
             onOptionSubmit={(value, props) => {
                 onSearchChange?.(props.children?.toString() ?? "");
                 onValueChange?.(value);
@@ -81,6 +83,7 @@ function renderSearchField({
         >
             <Combobox.Target>
                 <InputBase
+                    disabled={disabled}
                     placeholder={placeholder}
                     value={_search}
                     onChange={(event) => {
