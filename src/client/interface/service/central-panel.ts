@@ -1,6 +1,6 @@
+import { CentralViewType } from "@/client/constants";
 import { Id } from "@/interface";
 
-import { CentralViewType } from "../constants";
 import { IViewManager } from "./view";
 
 export interface CentralPanelInfo {

@@ -8,9 +8,9 @@ import {
 } from "@/domain";
 import { Id, Point } from "@/interface";
 
-import { Word } from "./word";
 import { EntryViewType, ViewAction } from "../constants";
-import { CentralPanelInfo } from "./central-panel";
+import { Word } from "./word";
+import { CentralPanelInfo } from "./service";
 
 // PROJECT EVENTS
 
