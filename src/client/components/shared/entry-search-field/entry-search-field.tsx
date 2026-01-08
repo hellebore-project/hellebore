@@ -13,6 +13,7 @@ interface EntrySearchProps {
 function renderEntrySearchField({ service }: EntrySearchProps) {
     return (
         <SearchField
+            disabled={!service.enabled}
             onValueChange={(value) => service.selectEntrySearchResult(value)}
             getSearch={() => service.searchQuery}
             onSearchChange={(value) => (service.searchQuery = value)}

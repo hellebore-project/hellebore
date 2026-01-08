@@ -10,6 +10,7 @@ export enum ViewAction {
 export enum CentralViewType {
     Home = "HOME",
     Settings = "SETTINGS",
+    Search = "SEARCH",
     EntryEditor = "ENTRY_EDITOR",
 }
 

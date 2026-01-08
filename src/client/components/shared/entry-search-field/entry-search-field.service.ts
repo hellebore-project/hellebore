@@ -49,6 +49,10 @@ export class EntrySearchService {
         });
     }
 
+    get enabled() {
+        return this._domain.hasProject;
+    }
+
     get searchQuery() {
         return this._searchQuery;
     }
