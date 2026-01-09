@@ -1,4 +1,4 @@
-import { ClientManager } from "./client.service";
+import { ClientManager } from "../components/client.service";
 
 export class AppState {
     private _manager: ClientManager | null = null;
@@ -17,8 +17,8 @@ export class AppState {
     }
 }
 
-export const state: AppState = new AppState();
+export const STATE = new AppState();
 
 export function getState(): AppState {
-    return state;
+    return STATE;
 }

@@ -25,8 +25,7 @@ import { HeaderManager } from "./header";
 import { ModalManager } from "./modal";
 import { LeftSideBarService } from "./left-sidebar";
 import { PortalManager } from "./portal";
-import { StyleManager } from "./style-manager";
-import { SynchronizationService } from "./synchronizer";
+import { StyleManager, SynchronizationService } from "../services";
 
 export class ClientManager {
     // CONSTANTS

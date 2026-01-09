@@ -7,5 +7,4 @@ export * from "./modal";
 export * from "./context-menu";
 
 export * from "./client.service";
-export * from "./state";
 export * from "./client";
