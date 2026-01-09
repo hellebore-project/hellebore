@@ -2,7 +2,10 @@ import { makeAutoObservable } from "mobx";
 
 import { OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
-import { DIVIDER_DATA, MenuDropdownElementData } from "@/shared/menu-dropdown";
+import {
+    DIVIDER_DATA,
+    MenuDropdownElementData,
+} from "@/components/menu-dropdown";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntrySearchService } from "../shared/entry-search-field";

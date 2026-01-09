@@ -7,7 +7,7 @@ import {
     OpenFileContextMenuEvent,
 } from "@/client/interface";
 import { Point } from "@/interface";
-import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
+import { OutsideEventHandlerService } from "@/components/outside-event-handler";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import {

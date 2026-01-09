@@ -1,4 +1,4 @@
-import { VerticalSelectionData } from "@/shared/vertical-selection";
+import { VerticalSelectionData } from "@/components/vertical-selection";
 
 export abstract class BaseContextMenuService {
     itemData: VerticalSelectionData[];

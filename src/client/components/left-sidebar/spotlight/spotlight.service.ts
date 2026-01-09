@@ -22,7 +22,7 @@ import {
     BulkFileResponse,
     DomainManager,
 } from "@/domain";
-import { OutsideEventHandlerService } from "@/shared/outside-event-handler";
+import { OutsideEventHandlerService } from "@/components/outside-event-handler";
 import { Counter } from "@/utils/counter";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 

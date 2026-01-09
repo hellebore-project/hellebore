@@ -3,11 +3,11 @@ import "./context-menu.css";
 import { observer } from "mobx-react-lite";
 import { SyntheticEvent } from "react";
 
-import { OutsideEventHandler } from "@/shared/outside-event-handler";
+import { OutsideEventHandler } from "@/components/outside-event-handler";
 import {
     VerticalSelection,
     VerticalSelectionData,
-} from "@/shared/vertical-selection";
+} from "@/components/vertical-selection";
 
 import { ContextMenuManager } from "./context-menu.service";
 

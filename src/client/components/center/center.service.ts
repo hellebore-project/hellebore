@@ -12,7 +12,7 @@ import {
     WordMetaData,
 } from "@/client/interface";
 import { DomainManager } from "@/domain";
-import { SpreadsheetReferenceService } from "@/shared/spreadsheet";
+import { SpreadsheetReferenceService } from "@/components/spreadsheet";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home/home.service";

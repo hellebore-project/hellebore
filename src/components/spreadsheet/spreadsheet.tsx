@@ -5,10 +5,10 @@ import { IconCircleMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 import { HTMLAttributes, ReactNode } from "react";
 
-import { OutsideEventHandler } from "@/shared/outside-event-handler";
-import { SelectField, SelectFieldProps } from "@/shared/select-field";
-import { TextField } from "@/shared/text-field";
-import { ToolTipWrapper } from "@/shared/tool-tip";
+import { OutsideEventHandler } from "@/components/outside-event-handler";
+import { SelectField, SelectFieldProps } from "@/components/select-field";
+import { TextField } from "@/components/text-field";
+import { ToolTipWrapper } from "@/components/tool-tip";
 
 import { SpreadsheetFieldType } from "./spreadsheet.interface";
 import { SpreadsheetService } from "./spreadsheet.service";

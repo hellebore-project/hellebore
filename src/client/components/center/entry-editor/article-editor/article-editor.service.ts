@@ -10,7 +10,7 @@ import { DomainManager } from "@/domain";
 import {
     SuggestionData,
     useReferenceExtension,
-} from "@/shared/rich-text-editor";
+} from "@/components/rich-text-editor";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info.service";

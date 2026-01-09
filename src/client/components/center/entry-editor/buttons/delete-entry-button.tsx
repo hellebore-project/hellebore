@@ -2,7 +2,7 @@ import { ActionIcon } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { ToolTipWrapper } from "@/shared/tool-tip";
+import { ToolTipWrapper } from "@/components/tool-tip";
 
 import { EntryEditorService } from "../entry-editor.service";
 
