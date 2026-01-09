@@ -2,7 +2,7 @@ import { ActionIcon } from "@mantine/core";
 import { IconLibraryMinus } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { ToolTipWrapper } from "@/shared/tool-tip";
+import { ToolTipWrapper } from "@/components/tool-tip";
 
 import { SpotlightService } from "../spotlight.service";
 

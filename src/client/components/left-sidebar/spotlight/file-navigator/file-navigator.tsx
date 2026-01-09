@@ -14,7 +14,7 @@ import { DndProvider } from "react-dnd";
 import { BaseGroupProps } from "@/interface";
 import { ROOT_FOLDER_NODE_ID } from "@/client/constants";
 import { FileNodeData, FileNodeModel } from "@/client/interface";
-import { NavItem, NavItemTextProps } from "@/shared/nav-item";
+import { NavItem, NavItemTextProps } from "@/components/nav-item";
 
 import { FileNavigatorErrorManager } from "./file-navigator-error.service";
 import { SpotlightService } from "../spotlight.service";

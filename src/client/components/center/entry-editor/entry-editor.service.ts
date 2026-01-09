@@ -13,7 +13,7 @@ import {
     Word,
 } from "@/client/interface";
 import { DomainManager, EntryType, WordType } from "@/domain";
-import { TableOfContentsItemData } from "@/shared/table-of-contents";
+import { TableOfContentsItemData } from "@/components/table-of-contents";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "./entry-info.service";

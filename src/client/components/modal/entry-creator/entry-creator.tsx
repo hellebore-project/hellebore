@@ -2,8 +2,8 @@ import { Button, ComboboxItem, Container, Group, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "@/domain";
-import { SelectField } from "@/shared/select-field";
-import { TextField } from "@/shared/text-field";
+import { SelectField } from "@/components/select-field";
+import { TextField } from "@/components/text-field";
 import { compareStrings } from "@/utils/string";
 
 import { EntryCreatorService } from "./entry-creator.service";

@@ -15,7 +15,7 @@ import {
     SpreadsheetService,
     SpreadsheetFieldType,
     SpreadsheetServiceArgs,
-} from "@/shared/spreadsheet";
+} from "@/components/spreadsheet";
 import { Counter } from "@/utils/counter";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 

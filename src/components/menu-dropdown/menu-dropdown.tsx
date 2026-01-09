@@ -2,7 +2,7 @@ import { Menu, MenuProps } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { BaseButtonProps } from "@/interface";
-import { MenuButton } from "@/shared/menu-button";
+import { MenuButton } from "@/components/menu-button";
 
 import {
     DIVIDER_DATA,

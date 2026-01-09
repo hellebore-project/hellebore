@@ -4,8 +4,8 @@ import { Collapse } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { SpotlightService } from "@/client/components";
-import { NavItem } from "@/shared/nav-item";
-import { OutsideEventHandler } from "@/shared/outside-event-handler";
+import { NavItem } from "@/components/nav-item";
+import { OutsideEventHandler } from "@/components/outside-event-handler";
 
 import { FileNavigator } from "./file-navigator";
 import {
