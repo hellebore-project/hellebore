@@ -14,6 +14,7 @@ import {
     TextPropertyFieldData,
     ChangeEntryEvent,
 } from "@/client";
+import { IComponentService } from "@/interface";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info.service";
@@ -24,7 +25,7 @@ interface PropertyEditorServiceArgs {
     info: EntryInfoService;
 }
 
-export class PropertyEditorService {
+export class PropertyEditorService implements IComponentService {
     private _entity: BaseEntity | null = null;
     private _fieldData: PropertyFieldData[];
     private _changed = false;
@@ -48,6 +49,10 @@ export class PropertyEditorService {
     }
 
     // PROPERTIES
+
+    get key() {
+        return `PROPERTY_EDITOR_${this.info.id}`;
+    }
 
     get data() {
         return toJS(this._entity);

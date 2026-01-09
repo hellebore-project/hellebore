@@ -6,8 +6,8 @@ import {
     EditFolderNameEvent,
     OpenFileContextMenuEvent,
 } from "@/client/interface";
-import { Point } from "@/interface";
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
+import { IComponentService, Point } from "@/interface";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import {
@@ -16,7 +16,8 @@ import {
     FolderContextMenuService,
 } from "./model";
 
-export class ContextMenuManager {
+export class ContextMenuManager implements IComponentService {
+    readonly key = "CONTEXT_MENU";
     readonly DEFAULT_POSITION: Point = { x: 0, y: 0 };
 
     private _visible = false;

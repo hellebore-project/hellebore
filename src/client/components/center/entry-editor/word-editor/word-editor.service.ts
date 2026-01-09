@@ -8,7 +8,7 @@ import {
     ChangeEntryEvent,
 } from "@/client/interface";
 import { DomainManager, WordResponse, WordType } from "@/domain";
-import { Id } from "@/interface";
+import { IComponentService, Id } from "@/interface";
 import {
     SpreadsheetRowData,
     SpreadsheetColumnData,
@@ -87,7 +87,7 @@ interface ChangeWordTypeEvent {
     wordType: WordType;
 }
 
-export class WordEditorService {
+export class WordEditorService implements IComponentService {
     // STATE VARIABLES
     private _wordType: WordType = WordType.RootWord;
     private _modifiedWordKeys: Set<WordKey>;
@@ -139,6 +139,10 @@ export class WordEditorService {
     }
 
     // PROPERTIES
+
+    get key() {
+        return `WORD_EDITOR_${this.info.id}`;
+    }
 
     get languageId() {
         return this.info.id;

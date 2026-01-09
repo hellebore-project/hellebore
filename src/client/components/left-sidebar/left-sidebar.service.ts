@@ -1,6 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { DomainManager, EntryInfoResponse, FolderResponse } from "@/domain";
+import { IComponentService } from "@/interface";
 
 import { SpotlightService } from "./spotlight";
 
@@ -8,7 +9,8 @@ export interface LeftSideBarServiceArgs {
     domain: DomainManager;
 }
 
-export class LeftSideBarService {
+export class LeftSideBarService implements IComponentService {
+    readonly key = "LEFT_SIDE_BAR";
     readonly NAVBAR_WIDTH = 300;
 
     private _mobileOpen = true;

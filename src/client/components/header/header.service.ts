@@ -1,11 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
 import { OpenEntryEditorEvent } from "@/client/interface";
-import { DomainManager } from "@/domain";
 import {
     DIVIDER_DATA,
     MenuDropdownElementData,
 } from "@/components/menu-dropdown";
+import { DomainManager } from "@/domain";
+import { IComponentService } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntrySearchService } from "../shared/entry-search-field";
@@ -24,8 +25,9 @@ interface MenuItems {
     settings: MenuDropdownElementData;
 }
 
-export class HeaderManager {
+export class HeaderManager implements IComponentService {
     // CONSTANTS
+    readonly key = "HEADER";
     readonly DEFAULT_HEIGHT = 50;
 
     // STATE
