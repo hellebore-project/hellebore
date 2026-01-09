@@ -1,6 +1,8 @@
 import { DomainManager } from "@/domain";
+import { IComponentService } from "@/interface";
 
-export class FooterManager {
+export class FooterManager implements IComponentService {
+    readonly key = "FOOTER";
     readonly DEFAULT_HEIGHT = 25;
 
     private _domain: DomainManager;

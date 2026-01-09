@@ -9,7 +9,7 @@ import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 export class EntryCreatorService implements IModalContentManager {
     // CONSTANTS
-    readonly TITLE = "Create a new entry";
+    readonly title = "Create a new entry";
 
     // STATE
     private _entryTitle = "";

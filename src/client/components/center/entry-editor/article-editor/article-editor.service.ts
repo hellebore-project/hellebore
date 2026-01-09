@@ -11,6 +11,7 @@ import {
     SuggestionData,
     useReferenceExtension,
 } from "@/components/rich-text-editor";
+import { IComponentService } from "@/interface";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info.service";
@@ -22,7 +23,7 @@ interface ArticleEditorServiceArgs {
     info: EntryInfoService;
 }
 
-export class ArticleEditorService {
+export class ArticleEditorService implements IComponentService {
     editor: Editor;
     private _changed = false;
     private _selectedRefIndex: number | null = null;
@@ -49,6 +50,10 @@ export class ArticleEditorService {
             onChange: false,
             onSelectReference: false,
         });
+    }
+
+    get key() {
+        return `ARTICLE_EDITOR_${this.info.id}`;
     }
 
     get content(): JSONContent {

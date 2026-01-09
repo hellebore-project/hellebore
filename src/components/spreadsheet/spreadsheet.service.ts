@@ -1,6 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import { MouseEvent } from "react";
 
+import { IComponentService } from "@/interface";
 import { isFullyContained } from "@/utils/math-utils";
 
 import {
@@ -21,7 +22,11 @@ export interface SpreadsheetServiceArgs<K extends string, M> {
     data: Omit<SpreadsheetDataServiceArgs<K, M>, "reference">;
 }
 
-export class SpreadsheetService<K extends string, M> {
+export class SpreadsheetService<K extends string, M>
+    implements IComponentService
+{
+    readonly key = "SPREADSHEET";
+
     data: SpreadsheetDataService<K, M>;
     selection: SpreadsheetSelectionService<K, M>;
     reference: SpreadsheetReferenceService<K, M>;

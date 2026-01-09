@@ -8,12 +8,14 @@ import {
     OpenEntryCreatorEvent,
 } from "@/client/interface";
 import { EntryInfoResponse, ROOT_FOLDER_ID } from "@/domain";
+import { IComponentService } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryCreatorService } from "./entry-creator";
 import { ProjectCreatorService } from "./project-creator";
 
-export class ModalManager {
+export class ModalManager implements IComponentService {
+    readonly key = "MODAL";
     private _modalKey: ModalType | null = null;
     content: IModalContentManager | null = null;
 

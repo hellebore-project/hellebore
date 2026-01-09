@@ -2,7 +2,6 @@ import { TreeMethods } from "@minoru/react-dnd-treeview";
 import { makeAutoObservable, toJS } from "mobx";
 import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
-import { Id } from "@/interface";
 import { ROOT_FOLDER_NODE_ID } from "@/client/constants";
 import {
     DeleteFolderEvent,
@@ -15,6 +14,7 @@ import {
     OpenEntryEditorEvent,
     OpenFileContextMenuEvent,
 } from "@/client/interface";
+import { OutsideEventHandlerService } from "@/components/outside-event-handler";
 import {
     ROOT_FOLDER_ID,
     EntryInfoResponse,
@@ -22,7 +22,7 @@ import {
     BulkFileResponse,
     DomainManager,
 } from "@/domain";
-import { OutsideEventHandlerService } from "@/components/outside-event-handler";
+import { IComponentService, Id } from "@/interface";
 import { Counter } from "@/utils/counter";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
@@ -35,10 +35,11 @@ export interface SpotlightServiceArgs {
 }
 
 // TODO: spin off the file tree logic into a separate FileNavigator class
-export class SpotlightService {
+export class SpotlightService implements IComponentService {
     // CONSTANTS
-    NODE_DOM_ID_PREFIX = "file-nav-node-";
-    NODE_TEXT_DOM_ID_PREFIX = "file-nav-node-text-";
+    readonly key = "SPOTLIGHT";
+    readonly NODE_DOM_ID_PREFIX = "file-nav-node-";
+    readonly NODE_TEXT_DOM_ID_PREFIX = "file-nav-node-text-";
 
     // STATE
     private _nodes: FileNodeModel[];

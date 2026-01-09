@@ -1,4 +1,8 @@
-export class PortalManager {
+import { IComponentService } from "@/interface";
+
+export class PortalManager implements IComponentService {
+    readonly key = "PORTAL";
+
     private _id: string;
 
     constructor(id: string) {

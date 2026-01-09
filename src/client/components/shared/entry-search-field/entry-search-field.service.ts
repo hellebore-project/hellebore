@@ -3,12 +3,14 @@ import { makeAutoObservable } from "mobx";
 
 import { OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
+import { IComponentService } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 type PrivateKeys = "_waitingForQuery" | "_lastQueryRequestTime" | "_domain";
 
-export class EntrySearchService {
+export class EntrySearchService implements IComponentService {
     // CONSTANTS
+    readonly key = "ENTRY_SEARCH";
     readonly DEFAULT_HEIGHT = 50;
     readonly DEFAULT_QUERY_PERIOD = 500;
 

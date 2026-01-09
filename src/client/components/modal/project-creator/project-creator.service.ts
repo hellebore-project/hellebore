@@ -5,7 +5,7 @@ import { ModalType } from "@/client/constants";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 export class ProjectCreatorService implements IModalContentManager {
-    readonly TITLE = "Create a new project";
+    readonly title = "Create a new project";
 
     private _name = "";
     private _dbFilePath = "";

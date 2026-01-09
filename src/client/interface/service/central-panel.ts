@@ -1,14 +1,12 @@
 import { CentralViewType } from "@/client/constants";
-import { Id } from "@/interface";
-
-import { IViewManager } from "./view";
+import { IComponentService, Id } from "@/interface";
 
 export interface CentralPanelInfo {
     type: CentralViewType;
     entry?: { id: Id };
 }
 
-export interface ICentralPanelContentService extends IViewManager {
+export interface ICentralPanelContentService extends IComponentService {
     type: CentralViewType;
     details: CentralPanelInfo;
     activate(): void;

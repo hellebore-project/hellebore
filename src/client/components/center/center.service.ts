@@ -11,14 +11,18 @@ import {
     SyncEvent,
     WordMetaData,
 } from "@/client/interface";
-import { DomainManager } from "@/domain";
 import { SpreadsheetReferenceService } from "@/components/spreadsheet";
+import { DomainManager } from "@/domain";
+import { IComponentService } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
-import { HomeManager } from "./home/home.service";
+import { HomeManager } from "./home";
 import { SettingsEditorService } from "./settings-editor";
-import { EntryEditorService, EntryEditorServiceArgs } from "./entry-editor";
-import { WordColumnKeys } from "./entry-editor/word-editor";
+import {
+    EntryEditorService,
+    EntryEditorServiceArgs,
+    WordColumnKeys,
+} from "./entry-editor";
 
 type PrivateKeys =
     | "_panelServices"
@@ -35,7 +39,10 @@ export interface LoadEntryEditorResult {
     loading: Promise<void> | null;
 }
 
-export class CentralPanelManager {
+export class CentralPanelManager implements IComponentService {
+    // CONSTANTS
+    readonly key = "CENTRAL_PANEL";
+
     // STATE VARIABLES
     private _activePanelIndex: number | null = null;
     private _panelKeys: string[];
