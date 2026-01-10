@@ -10,7 +10,7 @@ type PrivateKeys = "_waitingForQuery" | "_lastQueryRequestTime" | "_domain";
 
 export class EntrySearchService implements IComponentService {
     // CONSTANTS
-    readonly key = "ENTRY_SEARCH";
+    readonly key = "entry-search";
     readonly DEFAULT_HEIGHT = 50;
     readonly DEFAULT_QUERY_PERIOD = 500;
 

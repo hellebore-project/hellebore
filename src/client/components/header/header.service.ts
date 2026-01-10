@@ -27,7 +27,7 @@ interface MenuItems {
 
 export class HeaderManager implements IComponentService {
     // CONSTANTS
-    readonly key = "HEADER";
+    readonly key = "header";
     readonly DEFAULT_HEIGHT = 50;
 
     // STATE

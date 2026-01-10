@@ -15,7 +15,7 @@ interface ClientProps {
 }
 
 function renderClient({ service }: ClientProps) {
-    service.hook();
+    service.callHooks();
 
     return (
         <MantineProvider

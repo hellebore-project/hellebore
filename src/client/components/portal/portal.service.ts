@@ -1,7 +1,7 @@
 import { IComponentService } from "@/interface";
 
 export class PortalManager implements IComponentService {
-    readonly key = "PORTAL";
+    readonly key = "portal";
 
     private _id: string;
 

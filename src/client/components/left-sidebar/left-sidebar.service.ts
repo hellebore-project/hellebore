@@ -10,7 +10,7 @@ export interface LeftSideBarServiceArgs {
 }
 
 export class LeftSideBarService implements IComponentService {
-    readonly key = "LEFT_SIDE_BAR";
+    readonly key = "left-side-bar";
     readonly NAVBAR_WIDTH = 300;
 
     private _mobileOpen = true;

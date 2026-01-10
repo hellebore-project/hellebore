@@ -3,21 +3,24 @@ import { makeAutoObservable } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
 import { MultiEventProducer } from "@/utils/event-producer";
+import { Hookable, IComponentService } from "@/interface";
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent
 const MOUSE_DOWN_EVENT = "mousedown";
 const MOUSE_UP_EVENT = "mouseup";
 
-type PrivateKeys = "_ref" | "_removeMouseDown" | "_removeMouseUp";
+type PrivateKeys = "_key" | "_ref" | "_removeMouseDown" | "_removeMouseUp";
 
 type RemoveEventListener = () => void;
 
 interface OutsideEventHandlerServiceArgs {
+    key: string;
     enabled?: boolean;
     ref?: RefObject<HTMLDivElement>;
 }
 
-export class OutsideEventHandlerService {
+export class OutsideEventHandlerService implements IComponentService, Hookable {
+    private _key: string;
     private _enabled: boolean;
     /** Set by the handler itself, so passing a null reference is acceptable. */
     private _ref: RefObject<HTMLDivElement>;
@@ -26,7 +29,8 @@ export class OutsideEventHandlerService {
     private _removeMouseDown: RemoveEventListener | null = null;
     private _removeMouseUp: RemoveEventListener | null = null;
 
-    constructor({ ref, enabled = true }: OutsideEventHandlerServiceArgs) {
+    constructor({ key, ref, enabled = true }: OutsideEventHandlerServiceArgs) {
+        this._key = key;
         this._enabled = enabled;
 
         this._ref = ref ?? createRef();
@@ -36,11 +40,17 @@ export class OutsideEventHandlerService {
         this._onMouseUp = this._onMouseUp.bind(this);
 
         makeAutoObservable<OutsideEventHandlerService, PrivateKeys>(this, {
+            _key: false,
             _ref: false,
             onTrigger: false,
             _removeMouseDown: false,
             _removeMouseUp: false,
+            hooks: false, // don't convert to a flow
         });
+    }
+
+    get key() {
+        return this._key;
     }
 
     get enabled() {
@@ -105,7 +115,15 @@ export class OutsideEventHandlerService {
         if (this._removeMouseUp) this._removeMouseUp();
     }
 
-    hook() {
+    *hooks() {
+        yield {
+            name: "toggle-listeners",
+            componentKey: this.key,
+            call: this._toggleListenersOnRender.bind(this),
+        };
+    }
+
+    private _toggleListenersOnRender() {
         useEffect(() => {
             if (this._enabled) {
                 this._addMouseDownEventListener();

@@ -7,7 +7,7 @@ import {
     OpenFileContextMenuEvent,
 } from "@/client/interface";
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
-import { IComponentService, Point } from "@/interface";
+import { Hookable, IComponentService, Point } from "@/interface";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import {
@@ -16,8 +16,8 @@ import {
     FolderContextMenuService,
 } from "./model";
 
-export class ContextMenuManager implements IComponentService {
-    readonly key = "CONTEXT_MENU";
+export class ContextMenuManager implements IComponentService, Hookable {
+    readonly key = "context-menu";
     readonly DEFAULT_POSITION: Point = { x: 0, y: 0 };
 
     private _visible = false;
@@ -36,6 +36,7 @@ export class ContextMenuManager implements IComponentService {
         this._position = this.DEFAULT_POSITION;
 
         this.outsideEvent = new OutsideEventHandlerService({
+            key: `${this.key}-outside-event-handler`,
             enabled: false,
         });
         this.outsideEvent.onTrigger.subscribe(() => this.close());
@@ -50,6 +51,7 @@ export class ContextMenuManager implements IComponentService {
             onDeleteEntry: false,
             onEditFolderName: false,
             onDeleteFolder: false,
+            hooks: false, // don't convert to a flow
         });
     }
 
@@ -73,8 +75,8 @@ export class ContextMenuManager implements IComponentService {
         this._selectedIndex = index;
     }
 
-    hook() {
-        this.outsideEvent.hook();
+    *hooks() {
+        yield* this.outsideEvent.hooks();
     }
 
     openForNavBarFolderNode({ id, text, position }: OpenFileContextMenuEvent) {

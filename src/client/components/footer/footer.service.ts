@@ -2,7 +2,7 @@ import { DomainManager } from "@/domain";
 import { IComponentService } from "@/interface";
 
 export class FooterManager implements IComponentService {
-    readonly key = "FOOTER";
+    readonly key = "footer";
     readonly DEFAULT_HEIGHT = 25;
 
     private _domain: DomainManager;
