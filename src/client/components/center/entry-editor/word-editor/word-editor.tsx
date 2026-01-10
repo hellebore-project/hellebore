@@ -3,7 +3,7 @@ import "./word-editor.css";
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { WordViewType } from "@/client/constants";
+import { WordViewType } from "@/constants";
 import { WordMetaData } from "@/client/interface";
 import { SPACE } from "@/components/common";
 import { Spreadsheet, SpreadsheetService } from "@/components/spreadsheet";

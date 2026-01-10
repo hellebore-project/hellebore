@@ -1,11 +1,11 @@
 import { observer } from "mobx-react-lite";
 
 import {
-    CentralViewType,
     HomeManager,
     EntryEditorService,
     ICentralPanelContentService,
 } from "@/client";
+import { CentralViewType } from "@/constants";
 
 import { EntryEditor } from "./entry-editor";
 import { Home } from "./home";

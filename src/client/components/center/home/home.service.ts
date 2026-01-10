@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { CentralViewType } from "@/client/constants";
+import { CentralViewType } from "@/constants";
 import { ICentralPanelContentService } from "@/client/interface";
 import { DomainManager } from "@/domain";
 

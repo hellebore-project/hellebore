@@ -2,7 +2,7 @@ import { TreeMethods } from "@minoru/react-dnd-treeview";
 import { makeAutoObservable, toJS } from "mobx";
 import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
-import { ROOT_FOLDER_NODE_ID } from "@/client/constants";
+import { ROOT_FOLDER_ID, ROOT_FOLDER_NODE_ID } from "@/constants";
 import {
     DeleteFolderEvent,
     FileNodeData,
@@ -15,7 +15,6 @@ import {
     OpenFileContextMenuEvent,
 } from "@/client/interface";
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
-import { ROOT_FOLDER_ID } from "@/constants";
 import {
     EntryInfoResponse,
     FolderResponse,

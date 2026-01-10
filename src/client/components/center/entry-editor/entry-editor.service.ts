@@ -1,7 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
 import { Id } from "@/interface";
-import { EntryViewType, CentralViewType } from "@/client/constants";
+import {
+    CentralViewType,
+    EntryType,
+    EntryViewType,
+    WordType,
+} from "@/constants";
 import {
     ChangeEntryEvent,
     DeleteEntryEvent,
@@ -12,7 +17,6 @@ import {
     SyncEntryEvent,
     Word,
 } from "@/client/interface";
-import { EntryType, WordType } from "@/constants";
 import { DomainManager } from "@/domain";
 import { TableOfContentsItemData } from "@/components/table-of-contents";
 import { EventProducer, MultiEventProducer } from "@/model";

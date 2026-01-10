@@ -4,7 +4,7 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
-import { ARTICLE_REFERENCE_PREFIX } from "@/client/constants";
+import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
 import { ChangeEntryEvent, OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
 import {

@@ -1,13 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
-import { WordViewType } from "@/client/constants";
+import { WordType, WordViewType } from "@/constants";
 import {
     WordKey,
     Word,
     WordMetaData,
     ChangeEntryEvent,
 } from "@/client/interface";
-import { WordType } from "@/constants";
 import { DomainManager, WordResponse } from "@/domain";
 import { IComponentService, Id } from "@/interface";
 import {

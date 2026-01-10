@@ -1,13 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
-import { ModalType } from "@/client/constants";
+import { ModalType, ROOT_FOLDER_ID } from "@/constants";
 import {
     CreateEntryEvent,
     CreateProjectEvent,
     IModalContentManager,
     OpenEntryCreatorEvent,
 } from "@/client/interface";
-import { ROOT_FOLDER_ID } from "@/constants";
 import { EntryInfoResponse } from "@/domain";
 import { IComponentService } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/model";

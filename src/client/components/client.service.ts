@@ -8,8 +8,7 @@ import {
     PollEvent,
     SyncEvent,
 } from "@/client/interface";
-import { CentralViewType, ViewAction } from "@/client/constants";
-import { EntryType } from "@/constants";
+import { CentralViewType, EntryType, ViewAction } from "@/constants";
 import {
     DomainManager,
     ProjectResponse,

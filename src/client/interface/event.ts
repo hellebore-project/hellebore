@@ -1,4 +1,4 @@
-import { EntryType, WordType } from "@/constants";
+import { EntryType, EntryViewType, ViewAction, WordType } from "@/constants";
 import {
     BaseEntity,
     BulkFileResponse,
@@ -7,7 +7,6 @@ import {
 } from "@/domain";
 import { Id, Point } from "@/interface";
 
-import { EntryViewType, ViewAction } from "../constants";
 import { Word } from "./word";
 import { CentralPanelInfo } from "./service";
 

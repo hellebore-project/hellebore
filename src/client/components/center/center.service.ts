@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { CentralViewType, ViewAction } from "@/client/constants";
+import { CentralViewType, ViewAction } from "@/constants";
 import {
     ChangeCentralPanelEvent,
     ChangeEntryEvent,

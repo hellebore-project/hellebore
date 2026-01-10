@@ -1,4 +1,4 @@
-import { CentralViewType } from "@/client/constants";
+import { CentralViewType } from "@/constants";
 import { IComponentService, Id } from "@/interface";
 
 export interface CentralPanelInfo {
