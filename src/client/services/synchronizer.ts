@@ -4,7 +4,7 @@ import {
     SyncEntryEvent,
     SyncEntryRequest,
     SyncEvent,
-} from "@/client/interface";
+} from "@/interface";
 import { DomainManager } from "@/domain";
 import { EventProducer, MultiEventProducer } from "@/model";
 

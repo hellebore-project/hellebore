@@ -2,8 +2,12 @@ import { makeAutoObservable } from "mobx";
 import { FormEvent } from "react";
 
 import { EntryType, ModalType, ROOT_FOLDER_ID } from "@/constants";
-import { CreateEntryEvent, IModalContentManager } from "@/client/interface";
-import { EntryInfoResponse, Id } from "@/interface";
+import {
+    CreateEntryEvent,
+    EntryInfoResponse,
+    Id,
+    IModalContentManager,
+} from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/model";
 
 export class EntryCreatorService implements IModalContentManager {

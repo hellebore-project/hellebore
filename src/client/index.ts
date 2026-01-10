@@ -3,6 +3,5 @@ import "@mantine/core/styles.css";
 import "@mantine/tiptap/styles.css";
 import "./components/client.css";
 
-export * from "./interface";
 export * from "./components";
 export * from "./state";

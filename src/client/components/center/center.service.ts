@@ -5,15 +5,16 @@ import {
     ChangeCentralPanelEvent,
     ChangeEntryEvent,
     DeleteEntryEvent,
+    Hookable,
     ICentralPanelContentService,
+    IComponentService,
     OpenEntryEditorEvent,
     PollEvent,
     SyncEvent,
     WordMetaData,
-} from "@/client/interface";
+} from "@/interface";
 import { SpreadsheetReferenceService } from "@/components/spreadsheet";
 import { DomainManager } from "@/domain";
-import { Hookable, IComponentService } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/model";
 
 import { HomeManager } from "./home";

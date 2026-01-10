@@ -5,13 +5,16 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
-import { ChangeEntryEvent, OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
 import {
     SuggestionData,
     useReferenceExtension,
 } from "@/components/rich-text-editor";
-import { IComponentService } from "@/interface";
+import {
+    ChangeEntryEvent,
+    IComponentService,
+    OpenEntryEditorEvent,
+} from "@/interface";
 import { MultiEventProducer } from "@/model";
 
 import { EntryInfoService } from "../entry-info.service";

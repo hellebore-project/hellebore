@@ -2,13 +2,15 @@ import { makeAutoObservable } from "mobx";
 
 import { WordType, WordViewType } from "@/constants";
 import {
-    WordKey,
-    Word,
-    WordMetaData,
     ChangeEntryEvent,
-} from "@/client/interface";
+    IComponentService,
+    Id,
+    Word,
+    WordKey,
+    WordMetaData,
+    WordResponse,
+} from "@/interface";
 import { DomainManager } from "@/domain";
-import { IComponentService, Id, WordResponse } from "@/interface";
 import {
     SpreadsheetRowData,
     SpreadsheetColumnData,

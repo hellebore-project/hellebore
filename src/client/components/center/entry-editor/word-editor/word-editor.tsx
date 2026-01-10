@@ -4,7 +4,7 @@ import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { WordViewType } from "@/constants";
-import { WordMetaData } from "@/client/interface";
+import { WordMetaData } from "@/interface";
 import { SPACE } from "@/components/common";
 import { Spreadsheet, SpreadsheetService } from "@/components/spreadsheet";
 import { TabData, Tabs } from "@/components/tabs";

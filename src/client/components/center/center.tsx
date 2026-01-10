@@ -1,15 +1,11 @@
 import { observer } from "mobx-react-lite";
 
-import {
-    HomeManager,
-    EntryEditorService,
-    ICentralPanelContentService,
-} from "@/client";
 import { CentralViewType } from "@/constants";
+import { ICentralPanelContentService } from "@/interface";
 
-import { EntryEditor } from "./entry-editor";
-import { Home } from "./home";
-import { SettingsEditor } from "./settings-editor/settings-editor";
+import { EntryEditor, EntryEditorService } from "./entry-editor";
+import { Home, HomeManager } from "./home";
+import { SettingsEditor } from "./settings-editor";
 
 interface CenterProps {
     service: ICentralPanelContentService | null;

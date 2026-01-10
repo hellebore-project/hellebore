@@ -4,26 +4,24 @@ import { createRef, MouseEvent, RefObject, useEffect } from "react";
 
 import { ROOT_FOLDER_ID, ROOT_FOLDER_NODE_ID } from "@/constants";
 import {
+    BulkFileResponse,
     DeleteFolderEvent,
+    EntryInfoResponse,
+    FolderResponse,
     FileNodeData,
     FileNodeModel,
+    Hookable,
+    IComponentService,
+    Id,
     MoveFolderEvent,
     MoveFolderResult,
     NodeId,
     OpenEntryCreatorEvent,
     OpenEntryEditorEvent,
     OpenFileContextMenuEvent,
-} from "@/client/interface";
+} from "@/interface";
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
 import { DomainManager } from "@/domain";
-import {
-    BulkFileResponse,
-    EntryInfoResponse,
-    FolderResponse,
-    Hookable,
-    IComponentService,
-    Id,
-} from "@/interface";
 import { Counter } from "@/utils/counter";
 import { EventProducer, MultiEventProducer } from "@/model";
 

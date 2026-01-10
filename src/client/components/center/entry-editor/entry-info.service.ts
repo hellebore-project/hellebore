@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { ChangeEntryEvent } from "@/client/interface";
+import { ChangeEntryEvent } from "@/interface";
 import { ENTITY_TYPE_LABELS, ENTRY_ID_SENTINEL, EntryType } from "@/constants";
 import { EventProducer, MultiEventProducer } from "@/model";
 

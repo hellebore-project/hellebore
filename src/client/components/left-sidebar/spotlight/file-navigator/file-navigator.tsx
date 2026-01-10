@@ -11,9 +11,8 @@ import {
 import { observer } from "mobx-react-lite";
 import { DndProvider } from "react-dnd";
 
-import { BaseGroupProps } from "@/interface";
 import { ROOT_FOLDER_NODE_ID } from "@/constants";
-import { FileNodeData, FileNodeModel } from "@/client/interface";
+import { BaseGroupProps, FileNodeData, FileNodeModel } from "@/interface";
 import { NavItem, NavItemTextProps } from "@/components/nav-item";
 
 import { FileNavigatorErrorManager } from "./file-navigator-error.service";

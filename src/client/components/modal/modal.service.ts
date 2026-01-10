@@ -4,10 +4,11 @@ import { ModalType, ROOT_FOLDER_ID } from "@/constants";
 import {
     CreateEntryEvent,
     CreateProjectEvent,
+    EntryInfoResponse,
+    IComponentService,
     IModalContentManager,
     OpenEntryCreatorEvent,
-} from "@/client/interface";
-import { EntryInfoResponse, IComponentService } from "@/interface";
+} from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/model";
 
 import { EntryCreatorService } from "./entry-creator";

@@ -3,19 +3,17 @@ import { ask, open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import {
-    MoveFolderEvent,
-    MoveFolderResult,
-    PollEvent,
-    SyncEvent,
-} from "@/client/interface";
-import { CentralViewType, EntryType, ViewAction } from "@/constants";
-import { DomainManager } from "@/domain";
-import {
-    ProjectResponse,
     BulkFileResponse,
     FolderUpdateResponse,
     Id,
+    MoveFolderEvent,
+    MoveFolderResult,
+    SyncEvent,
+    PollEvent,
+    ProjectResponse,
 } from "@/interface";
+import { CentralViewType, EntryType, ViewAction } from "@/constants";
+import { DomainManager } from "@/domain";
 
 import { CentralPanelManager } from "./center";
 import { ContextMenuManager } from "./context-menu";

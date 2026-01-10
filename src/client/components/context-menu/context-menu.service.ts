@@ -4,10 +4,12 @@ import {
     DeleteEntryEvent,
     DeleteFolderEvent,
     EditFolderNameEvent,
+    Hookable,
+    IComponentService,
     OpenFileContextMenuEvent,
-} from "@/client/interface";
+    Point,
+} from "@/interface";
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
-import { Hookable, IComponentService, Point } from "@/interface";
 import { MultiEventProducer } from "@/model";
 
 import {

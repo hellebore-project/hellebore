@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { ICentralPanelContentService } from "@/client/interface";
+import { ICentralPanelContentService } from "@/interface";
 import { CentralViewType } from "@/constants";
 
 export class SettingsEditorService implements ICentralPanelContentService {

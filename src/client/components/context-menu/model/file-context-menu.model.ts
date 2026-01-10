@@ -2,8 +2,8 @@ import {
     DeleteEntryEvent,
     DeleteFolderEvent,
     EditFolderNameEvent,
-} from "@/client/interface";
-import { Id } from "@/interface";
+    Id,
+} from "@/interface";
 import { MultiEventProducer } from "@/model";
 
 import { BaseContextMenuService } from "./base-context-menu.model";

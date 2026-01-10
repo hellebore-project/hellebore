@@ -1,6 +1,5 @@
 import { makeAutoObservable } from "mobx";
 
-import { Id } from "@/interface";
 import {
     CentralViewType,
     EntryType,
@@ -11,12 +10,13 @@ import {
     ChangeEntryEvent,
     DeleteEntryEvent,
     ICentralPanelContentService,
+    Id,
     OpenEntryEditorEvent,
     PollEvent,
     PollResultEntryData,
     SyncEntryEvent,
     Word,
-} from "@/client/interface";
+} from "@/interface";
 import { DomainManager } from "@/domain";
 import { TableOfContentsItemData } from "@/components/table-of-contents";
 import { EventProducer, MultiEventProducer } from "@/model";
