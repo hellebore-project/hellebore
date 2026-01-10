@@ -15,7 +15,7 @@ import {
     ChangeEntryEvent,
 } from "@/client";
 import { IComponentService } from "@/interface";
-import { MultiEventProducer } from "@/utils/event-producer";
+import { MultiEventProducer } from "@/model";
 
 import { EntryInfoService } from "../entry-info.service";
 

@@ -14,7 +14,7 @@ import {
 import { SpreadsheetReferenceService } from "@/components/spreadsheet";
 import { DomainManager } from "@/domain";
 import { Hookable, IComponentService } from "@/interface";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 import { HomeManager } from "./home";
 import { SettingsEditorService } from "./settings-editor";

@@ -24,7 +24,7 @@ import {
 } from "@/domain";
 import { Hookable, IComponentService, Id } from "@/interface";
 import { Counter } from "@/utils/counter";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 import { FileNavigatorErrorManager } from "./file-navigator";
 

@@ -6,7 +6,7 @@ import {
     SyncEvent,
 } from "@/client/interface";
 import { DomainManager } from "@/domain";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 export class SynchronizationService {
     /** Minimum amount of time to wait between full syncs in milliseconds */

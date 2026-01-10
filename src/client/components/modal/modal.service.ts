@@ -9,7 +9,7 @@ import {
 } from "@/client/interface";
 import { EntryInfoResponse, ROOT_FOLDER_ID } from "@/domain";
 import { IComponentService } from "@/interface";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 import { EntryCreatorService } from "./entry-creator";
 import { ProjectCreatorService } from "./project-creator";

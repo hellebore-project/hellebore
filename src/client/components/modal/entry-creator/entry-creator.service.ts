@@ -5,7 +5,7 @@ import { ModalType } from "@/client/constants";
 import { CreateEntryEvent, IModalContentManager } from "@/client/interface";
 import { EntryInfoResponse, ROOT_FOLDER_ID, EntryType } from "@/domain";
 import { Id } from "@/interface";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 export class EntryCreatorService implements IModalContentManager {
     // CONSTANTS

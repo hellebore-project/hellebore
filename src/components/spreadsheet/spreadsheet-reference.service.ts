@@ -3,7 +3,7 @@ import { createRef, RefObject, useEffect } from "react";
 
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
 import { Hookable, IComponentService } from "@/interface";
-import { EventProducer } from "@/utils/event-producer";
+import { EventProducer } from "@/model";
 
 import {
     SpreadsheetColumnData,
