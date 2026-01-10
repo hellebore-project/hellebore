@@ -1,9 +1,9 @@
 import { JSONContent } from "@tiptap/core";
 
 import { EntryType, EntryTypeLabel } from "@/constants";
-import { BaseEntity } from "@/domain/interface";
 import { Id, IdentifiedObject } from "@/interface";
 
+import { BaseEntity } from "./base-entity";
 import { WordUpsert, WordUpsertResponse } from "./word";
 
 export type EntryPropertyMapping = Partial<Record<EntryTypeLabel, BaseEntity>>;
