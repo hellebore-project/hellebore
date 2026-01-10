@@ -1,4 +1,4 @@
-import { ClientManager } from "../components/client.service";
+import { ClientManager } from "./components/client.service";
 
 export class AppState {
     private _manager: ClientManager | null = null;
