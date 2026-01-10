@@ -1,20 +1,22 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import {
-    BackendEntryPropertyResponse,
-    BaseEntity,
     CommandNames,
     ENTRY_TYPE_LABEL_MAPPING,
+    EntryType,
+    EntryTypeLabel,
+    ROOT_FOLDER_ID,
+} from "@/constants";
+import {
+    BackendEntryPropertyResponse,
+    BaseEntity,
     EntryArticleResponse,
     EntryInfoResponse,
     EntryPropertyResponse,
     EntryUpdate,
     EntryUpdateResponse,
-    EntryType,
-    EntryTypeLabel,
     LanguageProperties,
     PersonProperties,
-    ROOT_FOLDER_ID,
     EntryCreate,
     DiagnosticResponse,
     BackendEntryUpdate,

@@ -15,8 +15,8 @@ import {
     OpenFileContextMenuEvent,
 } from "@/client/interface";
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
+import { ROOT_FOLDER_ID } from "@/constants";
 import {
-    ROOT_FOLDER_ID,
     EntryInfoResponse,
     FolderResponse,
     BulkFileResponse,

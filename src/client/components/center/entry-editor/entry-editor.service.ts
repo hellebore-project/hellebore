@@ -12,7 +12,8 @@ import {
     SyncEntryEvent,
     Word,
 } from "@/client/interface";
-import { DomainManager, EntryType, WordType } from "@/domain";
+import { EntryType, WordType } from "@/constants";
+import { DomainManager } from "@/domain";
 import { TableOfContentsItemData } from "@/components/table-of-contents";
 import { EventProducer, MultiEventProducer } from "@/model";
 

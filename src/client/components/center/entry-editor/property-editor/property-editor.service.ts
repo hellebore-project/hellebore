@@ -2,12 +2,8 @@
 
 import { makeAutoObservable, toJS } from "mobx";
 
-import {
-    BaseEntity,
-    EntryType,
-    PersonProperties,
-    PersonProperty,
-} from "@/domain";
+import { EntryType, PersonProperty } from "@/constants";
+import { BaseEntity, PersonProperties } from "@/domain";
 import {
     PropertyFieldType,
     PropertyFieldData,

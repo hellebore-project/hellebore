@@ -1,12 +1,26 @@
 // Interfaces for creating and updating words
 
-import { Id } from "@/interface";
-import {
-    IdentifiedWordInfo,
-    OptionalWordProperties,
-    WordInfo,
-    WordProperties,
-} from "@/domain/interface";
+import { WordType } from "@/constants";
+import { Id, IdentifiedObject } from "@/interface";
+
+export interface WordInfo {
+    languageId: number;
+    wordType: WordType;
+}
+
+export interface WordProperties {
+    spelling: string;
+    definition: string;
+    translations: string[];
+}
+
+export interface OptionalWordProperties {
+    spelling: string | null;
+    definition: string | null;
+    translations: string[] | null;
+}
+
+export type IdentifiedWordInfo = IdentifiedObject & WordInfo;
 
 export type WordCreate = WordInfo & OptionalWordProperties;
 

@@ -1,10 +1,9 @@
+import { EntryType, WordType } from "@/constants";
 import {
     BaseEntity,
     BulkFileResponse,
-    EntryType,
     EntryUpdateResponse,
     FolderUpdateResponse,
-    WordType,
 } from "@/domain";
 import { Id, Point } from "@/interface";
 

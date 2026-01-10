@@ -9,12 +9,12 @@ import {
     SyncEvent,
 } from "@/client/interface";
 import { CentralViewType, ViewAction } from "@/client/constants";
+import { EntryType } from "@/constants";
 import {
     DomainManager,
     ProjectResponse,
     BulkFileResponse,
     FolderUpdateResponse,
-    EntryType,
 } from "@/domain";
 import { Id } from "@/interface";
 
