@@ -106,6 +106,10 @@ export class OutsideEventHandlerService {
     }
 
     hook() {
+        this._updateListenersOnRender();
+    }
+
+    private _updateListenersOnRender() {
         useEffect(() => {
             if (this._enabled) {
                 this._addMouseDownEventListener();

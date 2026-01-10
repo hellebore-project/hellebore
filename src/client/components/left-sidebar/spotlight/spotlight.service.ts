@@ -807,6 +807,11 @@ export class SpotlightService implements IComponentService {
     // HOOKS
 
     hook() {
+        this._focusEditableTextOnRender();
+        this.outsideEvent.hook();
+    }
+
+    _focusEditableTextOnRender() {
         const ref = this.editableTextRef;
         useEffect(() => {
             if (ref?.current) {
@@ -814,8 +819,6 @@ export class SpotlightService implements IComponentService {
                 ref.current.focus();
             }
         }, [ref]);
-
-        this.outsideEvent.hook();
     }
 }
 

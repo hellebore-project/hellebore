@@ -55,6 +55,11 @@ export class SpreadsheetReferenceService<K extends string, M> {
     // HOOKS
 
     hook() {
+        this._focusEditableCellOnRender();
+        this.outsideEvent.hook();
+    }
+
+    private _focusEditableCellOnRender() {
         const ref = this.editableCellRef;
         useEffect(() => {
             if (ref?.current) {
@@ -69,7 +74,5 @@ export class SpreadsheetReferenceService<K extends string, M> {
                     ref.current.click(); // expand the dropdown
             }
         }, [ref]);
-
-        this.outsideEvent.hook();
     }
 }
