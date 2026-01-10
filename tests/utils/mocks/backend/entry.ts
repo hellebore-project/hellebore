@@ -1,5 +1,5 @@
+import { CommandNames } from "@/constants";
 import {
-    CommandNames,
     EntryArticleResponse,
     EntryInfoResponse,
     EntryPropertyResponse,
@@ -9,7 +9,7 @@ import {
     DiagnosticResponse,
     WordUpsertResponse,
     EntrySearch,
-} from "@/domain";
+} from "@/interface";
 import { compareStrings } from "@/utils/string";
 
 import { MockedCommand, MockedInvoker } from "./invoker";

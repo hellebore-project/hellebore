@@ -1,6 +1,5 @@
-import { CommandNames, WordType } from "@/domain/constants";
-import { Id } from "@/interface";
-import { WordResponse, WordUpsert, BackendApiError } from "@/domain/schema";
+import { CommandNames, WordType } from "@/constants";
+import { BackendApiError, WordResponse, WordUpsert, Id } from "@/interface";
 
 import { MockedCommand, MockedInvoker } from "./invoker";
 

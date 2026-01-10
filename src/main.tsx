@@ -2,7 +2,8 @@ import { observer } from "mobx-react-lite";
 import React from "react";
 import ReactDOM from "react-dom/client";
 
-import { Client, getState } from "./client";
+import { Client } from "@/components";
+import { getState } from "@/state";
 
 function renderApp() {
     const service = getState().manager;
