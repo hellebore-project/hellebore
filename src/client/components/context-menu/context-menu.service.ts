@@ -51,6 +51,7 @@ export class ContextMenuManager implements IComponentService, Hookable {
             onDeleteEntry: false,
             onEditFolderName: false,
             onDeleteFolder: false,
+            hooks: false, // don't convert to a flow
         });
     }
 

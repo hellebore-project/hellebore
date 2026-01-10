@@ -103,8 +103,8 @@ export class CentralPanelManager implements IComponentService, Hookable {
             onPartialChangeData: false,
             onPeriodicChangeData: false,
             onDeleteEntry: false,
-            // NOTE: mobx's makeAutoObserable infers generator methods as flows
-            iterateOpenPanels: false,
+            iterateOpenPanels: false, // don't convert to a flow
+            hooks: false, // don't convert to a flow
         });
     }
 

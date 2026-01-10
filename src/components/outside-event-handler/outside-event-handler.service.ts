@@ -45,6 +45,7 @@ export class OutsideEventHandlerService implements IComponentService, Hookable {
             onTrigger: false,
             _removeMouseDown: false,
             _removeMouseUp: false,
+            hooks: false, // don't convert to a flow
         });
     }
 

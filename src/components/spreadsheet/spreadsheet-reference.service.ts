@@ -51,6 +51,7 @@ export class SpreadsheetReferenceService<K extends string, M>
                 _sheetRef: false,
                 outsideEvent: false,
                 fetchEditableColumn: false,
+                hooks: false, // don't convert to a flow
             },
         );
     }

@@ -122,6 +122,7 @@ export class SpotlightService implements IComponentService, Hookable {
             onDeleteFolder: false,
             onOpenFolderContext: false,
             onOpenEntryContext: false,
+            hooks: false, // don't convert to a flow
         });
     }
 
