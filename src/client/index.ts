@@ -4,4 +4,3 @@ import "@mantine/tiptap/styles.css";
 import "./components/client.css";
 
 export * from "./components";
-export * from "./state";

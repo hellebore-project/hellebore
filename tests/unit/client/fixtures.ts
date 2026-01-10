@@ -3,7 +3,7 @@ import userEvent, { UserEvent } from "@testing-library/user-event";
 import { JSONContent } from "@tiptap/core";
 import { test as baseTest } from "vitest";
 
-import { ClientManager, STATE } from "@/client";
+import { ClientManager } from "@/client";
 import { EntityType, EntryType } from "@/constants";
 import {
     EntryArticleResponse,
@@ -13,6 +13,7 @@ import {
     ProjectResponse,
     SessionResponse,
 } from "@/interface";
+import { STATE } from "@/state";
 import {
     createDocNode,
     createParagraphNode,

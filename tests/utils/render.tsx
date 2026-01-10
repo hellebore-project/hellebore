@@ -3,7 +3,8 @@ import { render as baseRender } from "@testing-library/react";
 import { PropsWithChildren, ReactNode } from "react";
 import { observer } from "mobx-react-lite";
 
-import { getState, PortalContainer } from "@/client";
+import { PortalContainer } from "@/client";
+import { getState } from "@/state";
 
 function renderTestApp({ children }: PropsWithChildren) {
     const service = getState().manager;
