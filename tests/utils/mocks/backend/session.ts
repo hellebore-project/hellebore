@@ -1,5 +1,5 @@
 import { ProjectResponse, SessionResponse } from "@/domain/schema";
-import { CommandNames } from "@/domain/constants";
+import { CommandNames } from "@/constants";
 
 import { MockedInvoker } from "./invoker";
 

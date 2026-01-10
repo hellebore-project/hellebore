@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import { CommandNames, WordType } from "@/domain/constants";
+import { CommandNames, WordType } from "@/constants";
 import {
     DiagnosticResponse,
     WordResponse,

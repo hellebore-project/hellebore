@@ -1,6 +1,6 @@
 import { JSONContent } from "@tiptap/core";
 
-import { EntryType, EntryTypeLabel } from "@/domain/constants";
+import { EntryType, EntryTypeLabel } from "@/constants";
 import { BaseEntity } from "@/domain/interface";
 import { Id, IdentifiedObject } from "@/interface";
 

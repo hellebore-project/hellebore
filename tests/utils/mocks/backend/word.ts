@@ -1,4 +1,4 @@
-import { CommandNames, WordType } from "@/domain/constants";
+import { CommandNames, WordType } from "@/constants";
 import { Id } from "@/interface";
 import { WordResponse, WordUpsert, BackendApiError } from "@/domain/schema";
 
