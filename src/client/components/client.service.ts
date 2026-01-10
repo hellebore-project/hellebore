@@ -13,7 +13,12 @@ import {
     ProjectResponse,
 } from "@/interface";
 import { CentralViewType, EntryType, ViewAction } from "@/constants";
-import { DomainManager } from "@/services";
+import {
+    DomainManager,
+    HookManager,
+    StyleManager,
+    SynchronizationService,
+} from "@/services";
 
 import { CentralPanelManager } from "./center";
 import { ContextMenuManager } from "./context-menu";
@@ -22,7 +27,6 @@ import { HeaderManager } from "./header";
 import { ModalManager } from "./modal";
 import { LeftSideBarService } from "./left-sidebar";
 import { PortalManager } from "./portal";
-import { HookManager, StyleManager, SynchronizationService } from "../services";
 
 export class ClientManager {
     // CONSTANTS
