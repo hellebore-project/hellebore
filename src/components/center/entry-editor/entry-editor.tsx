@@ -3,7 +3,6 @@ import "./entry-editor.css";
 import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { EntryEditorService } from "@/client";
 import { TableOfContents } from "@/components/lib/table-of-contents";
 import { EntryViewType } from "@/constants";
 
@@ -11,6 +10,7 @@ import { ArticleEditor } from "./article-editor";
 import { PropertyEditor } from "./property-editor";
 import { WordEditor } from "./word-editor";
 import { DeleteEntryButton } from "./buttons";
+import { EntryEditorService } from "./entry-editor.service";
 
 interface EntryEditorProps {
     service: EntryEditorService;

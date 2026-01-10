@@ -3,7 +3,6 @@ import "./spotlight.css";
 import { Collapse } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { SpotlightService } from "@/client/components";
 import { NavItem } from "@/components/lib/nav-item";
 import { OutsideEventHandler } from "@/components/lib/outside-event-handler";
 
@@ -13,6 +12,7 @@ import {
     AddFolderButton,
     CollapseFoldersButton,
 } from "./buttons";
+import { SpotlightService } from "./spotlight.service";
 
 interface SpotlightProps {
     service: SpotlightService;
