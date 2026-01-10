@@ -9,20 +9,20 @@ import {
 } from "@/constants";
 import {
     BackendEntryPropertyResponse,
+    BackendEntryUpdate,
     BaseEntity,
     EntryArticleResponse,
+    EntryCreate,
     EntryInfoResponse,
     EntryPropertyResponse,
+    EntrySearch,
     EntryUpdate,
     EntryUpdateResponse,
+    DiagnosticResponse,
+    Id,
     LanguageProperties,
     PersonProperties,
-    EntryCreate,
-    DiagnosticResponse,
-    BackendEntryUpdate,
-    EntrySearch,
-} from "@/domain";
-import { Id } from "@/interface";
+} from "@/interface";
 
 export class EntryManager {
     async create(

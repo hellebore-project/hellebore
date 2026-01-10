@@ -15,13 +15,15 @@ import {
     OpenFileContextMenuEvent,
 } from "@/client/interface";
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
+import { DomainManager } from "@/domain";
 import {
+    BulkFileResponse,
     EntryInfoResponse,
     FolderResponse,
-    BulkFileResponse,
-    DomainManager,
-} from "@/domain";
-import { Hookable, IComponentService, Id } from "@/interface";
+    Hookable,
+    IComponentService,
+    Id,
+} from "@/interface";
 import { Counter } from "@/utils/counter";
 import { EventProducer, MultiEventProducer } from "@/model";
 

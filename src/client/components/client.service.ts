@@ -9,13 +9,13 @@ import {
     SyncEvent,
 } from "@/client/interface";
 import { CentralViewType, EntryType, ViewAction } from "@/constants";
+import { DomainManager } from "@/domain";
 import {
-    DomainManager,
     ProjectResponse,
     BulkFileResponse,
     FolderUpdateResponse,
-} from "@/domain";
-import { Id } from "@/interface";
+    Id,
+} from "@/interface";
 
 import { CentralPanelManager } from "./center";
 import { ContextMenuManager } from "./context-menu";

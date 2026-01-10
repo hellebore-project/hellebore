@@ -1,7 +1,8 @@
 // Interfaces for creating and updating words
 
 import { WordType } from "@/constants";
-import { Id, IdentifiedObject } from "@/interface";
+
+import { Id, IdentifiedObject } from "../common";
 
 export interface WordInfo {
     languageId: number;

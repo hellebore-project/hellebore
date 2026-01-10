@@ -7,8 +7,7 @@ import {
     IModalContentManager,
     OpenEntryCreatorEvent,
 } from "@/client/interface";
-import { EntryInfoResponse } from "@/domain";
-import { IComponentService } from "@/interface";
+import { EntryInfoResponse, IComponentService } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/model";
 
 import { EntryCreatorService } from "./entry-creator";

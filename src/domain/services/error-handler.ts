@@ -3,7 +3,7 @@ import {
     BaseDomainError,
     DomainErrorType,
     DomainMessageError,
-} from "@/domain/schema";
+} from "@/interface";
 
 export function process_backend_api_error(
     api_error: BackendApiError,

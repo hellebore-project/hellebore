@@ -1,7 +1,11 @@
 import { makeAutoObservable } from "mobx";
 
-import { DomainManager, EntryInfoResponse, FolderResponse } from "@/domain";
-import { IComponentService } from "@/interface";
+import { DomainManager } from "@/domain";
+import {
+    EntryInfoResponse,
+    FolderResponse,
+    IComponentService,
+} from "@/interface";
 
 import { SpotlightService } from "./spotlight";
 

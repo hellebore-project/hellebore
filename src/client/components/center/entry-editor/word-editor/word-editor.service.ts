@@ -7,8 +7,8 @@ import {
     WordMetaData,
     ChangeEntryEvent,
 } from "@/client/interface";
-import { DomainManager, WordResponse } from "@/domain";
-import { IComponentService, Id } from "@/interface";
+import { DomainManager } from "@/domain";
+import { IComponentService, Id, WordResponse } from "@/interface";
 import {
     SpreadsheetRowData,
     SpreadsheetColumnData,

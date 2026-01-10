@@ -4,8 +4,9 @@ import {
     BulkFileResponse,
     EntryUpdateResponse,
     FolderUpdateResponse,
-} from "@/domain";
-import { Id, Point } from "@/interface";
+    Id,
+    Point,
+} from "@/interface";
 
 import { Word } from "./word";
 import { CentralPanelInfo } from "./service";

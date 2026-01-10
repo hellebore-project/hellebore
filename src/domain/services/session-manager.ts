@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { makeAutoObservable } from "mobx";
 
 import { CommandNames } from "@/constants";
-import { ProjectResponse, SessionResponse } from "@/domain";
+import { ProjectResponse, SessionResponse } from "@/interface";
 
 export class SessionManager {
     private _dbFilePath: string | null = null;

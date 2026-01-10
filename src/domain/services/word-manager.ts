@@ -6,7 +6,7 @@ import {
     WordResponse,
     WordUpsert,
     WordUpsertResponse,
-} from "@/domain";
+} from "@/interface";
 
 type _WordBulkUpsertResponse = DiagnosticResponse<WordUpsertResponse>[];
 

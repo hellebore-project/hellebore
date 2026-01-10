@@ -3,14 +3,13 @@
 import { makeAutoObservable, toJS } from "mobx";
 
 import { EntryType, PersonProperty } from "@/constants";
-import { BaseEntity, PersonProperties } from "@/domain";
 import {
     PropertyFieldType,
     PropertyFieldData,
     TextPropertyFieldData,
     ChangeEntryEvent,
 } from "@/client";
-import { IComponentService } from "@/interface";
+import { BaseEntity, PersonProperties, IComponentService } from "@/interface";
 import { MultiEventProducer } from "@/model";
 
 import { EntryInfoService } from "../entry-info.service";
