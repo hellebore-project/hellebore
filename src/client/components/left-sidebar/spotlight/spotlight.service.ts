@@ -22,7 +22,7 @@ import {
     BulkFileResponse,
     DomainManager,
 } from "@/domain";
-import { IComponentService, Id } from "@/interface";
+import { Hookable, IComponentService, Id } from "@/interface";
 import { Counter } from "@/utils/counter";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
@@ -35,9 +35,9 @@ export interface SpotlightServiceArgs {
 }
 
 // TODO: spin off the file tree logic into a separate FileNavigator class
-export class SpotlightService implements IComponentService {
+export class SpotlightService implements IComponentService, Hookable {
     // CONSTANTS
-    readonly key = "SPOTLIGHT";
+    readonly key = "spotlight";
     readonly NODE_DOM_ID_PREFIX = "file-nav-node-";
     readonly NODE_TEXT_DOM_ID_PREFIX = "file-nav-node-text-";
 
@@ -90,6 +90,7 @@ export class SpotlightService implements IComponentService {
 
         this._placeholderIdGenerator = new Counter();
         this.outsideEvent = new OutsideEventHandlerService({
+            key: "spotlight-outside-event-handler",
             enabled: true,
         });
         this.outsideEvent.onTrigger.subscribe(() => {
@@ -806,9 +807,13 @@ export class SpotlightService implements IComponentService {
 
     // HOOKS
 
-    hook() {
-        this._focusEditableTextOnRender();
-        this.outsideEvent.hook();
+    *hooks() {
+        yield {
+            name: "FOCUS_EDITABLE_TEXT",
+            componentKey: this.key,
+            call: this._focusEditableTextOnRender.bind(this),
+        };
+        yield* this.outsideEvent.hooks();
     }
 
     _focusEditableTextOnRender() {

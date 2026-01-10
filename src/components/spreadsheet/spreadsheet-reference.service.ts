@@ -2,6 +2,7 @@ import { makeAutoObservable } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
+import { Hookable, IComponentService } from "@/interface";
 import { EventProducer } from "@/utils/event-producer";
 
 import {
@@ -9,9 +10,12 @@ import {
     SpreadsheetFieldType,
 } from "./spreadsheet.interface";
 
-type PrivateKeys = "_sheetRef";
+type PrivateKeys = "_key" | "_sheetRef";
 
-export class SpreadsheetReferenceService<K extends string, M> {
+export class SpreadsheetReferenceService<K extends string, M>
+    implements IComponentService, Hookable
+{
+    private _key: string;
     /**
      * Reference to the parent of the the table element.
      * Set at render-time by the outside-event handler.
@@ -26,11 +30,13 @@ export class SpreadsheetReferenceService<K extends string, M> {
     outsideEvent: OutsideEventHandlerService;
     fetchEditableColumn: EventProducer<void, SpreadsheetColumnData<K> | null>;
 
-    constructor() {
+    constructor(key: string) {
+        this._key = key;
         this._sheetRef = createRef();
         this.editableCellRef = null;
 
         this.outsideEvent = new OutsideEventHandlerService({
+            key: `${this._key}-outside-event-handler`,
             enabled: true,
             ref: this._sheetRef,
         });
@@ -39,6 +45,7 @@ export class SpreadsheetReferenceService<K extends string, M> {
         makeAutoObservable<SpreadsheetReferenceService<K, M>, PrivateKeys>(
             this,
             {
+                _key: false,
                 // NOTE: making the sheet reference observable prevents
                 // it from getting set by outside-event handler
                 _sheetRef: false,
@@ -48,15 +55,23 @@ export class SpreadsheetReferenceService<K extends string, M> {
         );
     }
 
+    get key() {
+        return this._key;
+    }
+
     get sheetRef() {
         return this._sheetRef;
     }
 
     // HOOKS
 
-    hook() {
-        this._focusEditableCellOnRender();
-        this.outsideEvent.hook();
+    *hooks() {
+        yield {
+            name: "focus-editable-cell",
+            componentKey: this.key,
+            call: this._focusEditableCellOnRender.bind(this),
+        };
+        yield* this.outsideEvent.hooks();
     }
 
     private _focusEditableCellOnRender() {

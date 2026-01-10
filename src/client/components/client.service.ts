@@ -26,6 +26,7 @@ import { ModalManager } from "./modal";
 import { LeftSideBarService } from "./left-sidebar";
 import { PortalManager } from "./portal";
 import { StyleManager, SynchronizationService } from "../services";
+import { HookManager } from "../services/hook-manager";
 
 export class ClientManager {
     // CONSTANTS
@@ -37,6 +38,8 @@ export class ClientManager {
     // SERVICES
     domain: DomainManager;
     synchronizer: SynchronizationService;
+    hooks: HookManager;
+    style: StyleManager;
     portal: PortalManager;
     central: CentralPanelManager;
     header: HeaderManager;
@@ -44,16 +47,15 @@ export class ClientManager {
     footer: FooterManager;
     modal: ModalManager;
     contextMenu: ContextMenuManager;
-    style: StyleManager;
 
     // CONSTRUCTION
 
     constructor() {
         this.domain = new DomainManager();
-
         this.synchronizer = new SynchronizationService(this.domain);
 
         // miscellaneous
+        this.hooks = new HookManager();
         this.style = new StyleManager();
         this.portal = new PortalManager(this.SHARED_PORTAL_ID);
 
@@ -75,6 +77,8 @@ export class ClientManager {
 
         const overrides = {
             domain: false,
+            synchronizer: false,
+            hooks: false,
             style: false,
             portal: false,
             home: false,
@@ -89,6 +93,7 @@ export class ClientManager {
         makeAutoObservable(this, overrides);
 
         this._createSubscriptions();
+        this._registerDefaultHooks();
     }
 
     // PROPERTIES
@@ -102,7 +107,7 @@ export class ClientManager {
         return window.innerSize();
     }
 
-    // STARTUP
+    // SUBSCRIPTIONS
 
     private _createSubscriptions() {
         this.central.fetchPortalSelector.subscribe(() => this.portal.selector);
@@ -485,10 +490,18 @@ export class ClientManager {
 
     // HOOKS
 
-    hook() {
-        this.contextMenu.hook();
-        this.leftSideBar.spotlight.hook();
-        this.central.hook();
+    private _registerDefaultHooks() {
+        const hooks = [
+            ...this.contextMenu.hooks(),
+            ...this.leftSideBar.spotlight.hooks(),
+            ...this.central.hooks(),
+        ];
+
+        hooks.forEach((h) => this.hooks.register(h));
+    }
+
+    callHooks() {
+        this.hooks.call();
     }
 
     // CLEAN UP

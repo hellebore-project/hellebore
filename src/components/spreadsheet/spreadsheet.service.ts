@@ -17,7 +17,10 @@ import {
 import { SpreadsheetSelectionService } from "./spreadsheet-selection.service";
 import { SpreadsheetReferenceService } from "./spreadsheet-reference.service";
 
+type PrivateKeys = "_key";
+
 export interface SpreadsheetServiceArgs<K extends string, M> {
+    key: string;
     reference: SpreadsheetReferenceService<K, M>;
     data: Omit<SpreadsheetDataServiceArgs<K, M>, "reference">;
 }
@@ -25,18 +28,19 @@ export interface SpreadsheetServiceArgs<K extends string, M> {
 export class SpreadsheetService<K extends string, M>
     implements IComponentService
 {
-    readonly key = "SPREADSHEET";
-
+    private _key: string;
     data: SpreadsheetDataService<K, M>;
     selection: SpreadsheetSelectionService<K, M>;
     reference: SpreadsheetReferenceService<K, M>;
 
-    constructor({ data, reference }: SpreadsheetServiceArgs<K, M>) {
+    constructor({ key, data, reference }: SpreadsheetServiceArgs<K, M>) {
+        this._key = key;
         this.data = new SpreadsheetDataService({ reference, ...data });
         this.selection = new SpreadsheetSelectionService(this.data);
         this.reference = reference;
 
-        makeAutoObservable(this, {
+        makeAutoObservable<SpreadsheetService<K, M>, PrivateKeys>(this, {
+            _key: false,
             data: false,
             selection: false,
             reference: false,
@@ -44,6 +48,10 @@ export class SpreadsheetService<K extends string, M>
     }
 
     // PROPERTIES
+
+    get key() {
+        return this._key;
+    }
 
     // LOADING
 

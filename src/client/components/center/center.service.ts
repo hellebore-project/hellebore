@@ -13,7 +13,7 @@ import {
 } from "@/client/interface";
 import { SpreadsheetReferenceService } from "@/components/spreadsheet";
 import { DomainManager } from "@/domain";
-import { IComponentService } from "@/interface";
+import { Hookable, IComponentService } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home";
@@ -39,9 +39,9 @@ export interface LoadEntryEditorResult {
     loading: Promise<void> | null;
 }
 
-export class CentralPanelManager implements IComponentService {
+export class CentralPanelManager implements IComponentService, Hookable {
     // CONSTANTS
-    readonly key = "CENTRAL_PANEL";
+    readonly key = "central-panel";
 
     // STATE VARIABLES
     private _activePanelIndex: number | null = null;
@@ -71,7 +71,9 @@ export class CentralPanelManager implements IComponentService {
         this._panelKeys = [];
         this._panelServices = new Map();
 
-        this._spreadsheetReference = new SpreadsheetReferenceService();
+        this._spreadsheetReference = new SpreadsheetReferenceService(
+            "word-editor-spreadsheet-reference",
+        );
         this._entryEditorArgs = {
             domain,
             wordEditor: {
@@ -337,7 +339,7 @@ export class CentralPanelManager implements IComponentService {
 
     // HOOKS
 
-    hook() {
-        this._spreadsheetReference.hook();
+    *hooks() {
+        yield* this._spreadsheetReference.hooks();
     }
 }

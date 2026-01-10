@@ -15,7 +15,7 @@ import { EntryCreatorService } from "./entry-creator";
 import { ProjectCreatorService } from "./project-creator";
 
 export class ModalManager implements IComponentService {
-    readonly key = "MODAL";
+    readonly key = "modal";
     private _modalKey: ModalType | null = null;
     content: IModalContentManager | null = null;
 

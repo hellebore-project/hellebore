@@ -78,7 +78,7 @@ export interface WordEditorServiceArgs {
     info: EntryInfoService;
     spreadsheet: Omit<
         SpreadsheetServiceArgs<WordColumnKeys, WordMetaData>,
-        "data"
+        "key" | "data"
     >;
 }
 
@@ -118,6 +118,7 @@ export class WordEditorService implements IComponentService {
         this._domain = domain;
         this.info = info;
         this.spreadsheet = new SpreadsheetService({
+            key: "word-editor-spreadsheet",
             data: {
                 onEditCell: (r) => this.editWord(r),
                 onDeleteRow: (r) => this.deleteWord(r),
