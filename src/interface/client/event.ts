@@ -1,15 +1,14 @@
 import { EntryType, EntryViewType, ViewAction, WordType } from "@/constants";
+
+import { Id, Point } from "../common";
 import {
     BaseEntity,
     BulkFileResponse,
     EntryUpdateResponse,
     FolderUpdateResponse,
-    Id,
-    Point,
-} from "@/interface";
-
-import { Word } from "./word";
+} from "../domain";
 import { CentralPanelInfo } from "./service";
+import { Word } from "./word";
 
 // PROJECT EVENTS
 
