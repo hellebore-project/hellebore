@@ -1,5 +1,6 @@
-import { EntryViewType, PropertyEditorService } from "@/client";
-import { EntryPropertyResponse } from "@/domain";
+import { PropertyEditorService } from "@/client";
+import { EntryViewType } from "@/constants";
+import { EntryPropertyResponse } from "@/interface";
 import { mockGetEntryProperties } from "@tests/utils/mocks";
 
 import { test as baseTest } from "../fixtures";

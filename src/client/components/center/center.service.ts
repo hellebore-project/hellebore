@@ -14,7 +14,7 @@ import {
     WordMetaData,
 } from "@/interface";
 import { SpreadsheetReferenceService } from "@/components/spreadsheet";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import { EventProducer, MultiEventProducer } from "@/model";
 
 import { HomeManager } from "./home";

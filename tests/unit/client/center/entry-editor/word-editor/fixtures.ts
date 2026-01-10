@@ -1,6 +1,6 @@
-import { EntryViewType, WordEditorService } from "@/client";
-import { EntityType, WordResponse, WordType } from "@/domain";
-import { Id } from "@/interface";
+import { WordEditorService } from "@/client";
+import { EntryViewType, EntityType, WordType } from "@/constants";
+import { Id, WordResponse } from "@/interface";
 import { mockGetWords } from "@tests/utils/mocks";
 
 import { test as baseTest } from "../fixtures";

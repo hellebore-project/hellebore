@@ -2,7 +2,7 @@ import { ComboboxItem } from "@mantine/core";
 import { makeAutoObservable } from "mobx";
 
 import { IComponentService, OpenEntryEditorEvent } from "@/interface";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import { EventProducer, MultiEventProducer } from "@/model";
 
 type PrivateKeys = "_waitingForQuery" | "_lastQueryRequestTime" | "_domain";

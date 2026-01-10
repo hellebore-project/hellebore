@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react";
 import { expect } from "vitest";
 
 import { PropertyTable } from "@/client";
-import { EntityType } from "@/domain";
+import { EntityType } from "@/constants";
 import { render } from "@tests/utils/render";
 
 import { test } from "./fixtures";

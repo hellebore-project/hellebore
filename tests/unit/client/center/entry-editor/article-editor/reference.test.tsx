@@ -2,12 +2,8 @@ import { screen } from "@testing-library/react";
 import { beforeAll, describe, expect } from "vitest";
 
 import { ArticleEditor } from "@/client";
-import {
-    EntityType,
-    EntryInfoResponse,
-    EntryType,
-    ROOT_FOLDER_ID,
-} from "@/domain";
+import { EntityType, EntryType, ROOT_FOLDER_ID } from "@/constants";
+import { EntryInfoResponse } from "@/interface";
 import {
     createDocNode,
     createParagraphNode,

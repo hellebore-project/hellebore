@@ -13,7 +13,7 @@ import {
     ProjectResponse,
 } from "@/interface";
 import { CentralViewType, EntryType, ViewAction } from "@/constants";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 
 import { CentralPanelManager } from "./center";
 import { ContextMenuManager } from "./context-menu";

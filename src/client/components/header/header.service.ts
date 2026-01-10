@@ -4,7 +4,7 @@ import {
     DIVIDER_DATA,
     MenuDropdownElementData,
 } from "@/components/menu-dropdown";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import { IComponentService, OpenEntryEditorEvent } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/model";
 

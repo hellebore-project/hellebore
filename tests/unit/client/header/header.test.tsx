@@ -2,7 +2,8 @@ import { screen } from "@testing-library/react";
 import { describe, expect } from "vitest";
 
 import { Center, Header, Modal } from "@/client";
-import { EntityType, EntryArticleResponse, EntryType } from "@/domain";
+import { EntityType, EntryType } from "@/constants";
+import { EntryArticleResponse } from "@/interface";
 import { mockCloseProject, mockGetEntryArticle } from "@tests/utils/mocks";
 import { render } from "@tests/utils/render";
 

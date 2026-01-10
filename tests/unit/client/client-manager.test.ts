@@ -1,7 +1,6 @@
 import { describe, expect, vi } from "vitest";
 
-import { FolderResponse, FolderValidateResponse } from "@/domain";
-import { Id } from "@/interface";
+import { FolderResponse, FolderValidateResponse, Id } from "@/interface";
 import { test as baseTest } from "@tests/unit/client/fixtures";
 import {
     mockDeleteFolder,

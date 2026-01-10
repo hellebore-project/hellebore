@@ -17,7 +17,7 @@ import {
     SyncEntryEvent,
     Word,
 } from "@/interface";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import { TableOfContentsItemData } from "@/components/table-of-contents";
 import { EventProducer, MultiEventProducer } from "@/model";
 

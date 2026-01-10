@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 import { CentralViewType } from "@/constants";
 import { ICentralPanelContentService } from "@/interface";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 
 export class HomeManager implements ICentralPanelContentService {
     _projectName = "";

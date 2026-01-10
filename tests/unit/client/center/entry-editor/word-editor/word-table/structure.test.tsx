@@ -1,8 +1,8 @@
 import { screen } from "@testing-library/react";
 import { describe } from "vitest";
 
-import { WordType } from "@/domain";
 import { WordTable } from "@/client";
+import { WordType } from "@/constants";
 import { render } from "@tests/utils/render";
 
 import { test } from "../fixtures";

@@ -21,7 +21,7 @@ import {
     OpenFileContextMenuEvent,
 } from "@/interface";
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import { Counter } from "@/utils/counter";
 import { EventProducer, MultiEventProducer } from "@/model";
 

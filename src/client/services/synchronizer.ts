@@ -5,7 +5,7 @@ import {
     SyncEntryRequest,
     SyncEvent,
 } from "@/interface";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import { EventProducer, MultiEventProducer } from "@/model";
 
 export class SynchronizationService {

@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import {
     EntryInfoResponse,
     FolderResponse,

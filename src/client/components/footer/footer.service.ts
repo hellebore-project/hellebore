@@ -1,4 +1,4 @@
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import { IComponentService } from "@/interface";
 
 export class FooterManager implements IComponentService {

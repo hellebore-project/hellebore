@@ -5,7 +5,7 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { makeAutoObservable } from "mobx";
 
 import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import {
     SuggestionData,
     useReferenceExtension,

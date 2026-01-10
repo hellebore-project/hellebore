@@ -1,6 +1,6 @@
 import { JSONContent } from "@tiptap/core";
 
-import { ARTICLE_REFERENCE_PREFIX } from "@/client";
+import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
 import { Id } from "@/interface";
 
 export function createDocNode(content: JSONContent[]): JSONContent {

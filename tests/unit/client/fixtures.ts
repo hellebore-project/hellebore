@@ -4,16 +4,15 @@ import { JSONContent } from "@tiptap/core";
 import { test as baseTest } from "vitest";
 
 import { ClientManager, STATE } from "@/client";
+import { EntityType, EntryType } from "@/constants";
 import {
-    EntityType,
     EntryArticleResponse,
     EntryInfoResponse,
-    EntryType,
     FolderResponse,
+    Id,
     ProjectResponse,
     SessionResponse,
-} from "@/domain";
-import { Id } from "@/interface";
+} from "@/interface";
 import {
     createDocNode,
     createParagraphNode,

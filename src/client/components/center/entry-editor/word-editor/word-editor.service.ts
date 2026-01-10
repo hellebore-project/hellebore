@@ -10,7 +10,7 @@ import {
     WordMetaData,
     WordResponse,
 } from "@/interface";
-import { DomainManager } from "@/domain";
+import { DomainManager } from "@/services";
 import {
     SpreadsheetRowData,
     SpreadsheetColumnData,

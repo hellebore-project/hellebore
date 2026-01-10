@@ -1,10 +1,10 @@
+import { CommandNames } from "@/constants";
 import {
     BulkFileResponse,
-    CommandNames,
     FolderResponse,
     FolderValidateResponse,
-} from "@/domain";
-import { Id } from "@/interface";
+    Id,
+} from "@/interface";
 
 import { MockedInvoker } from "./invoker";
 
