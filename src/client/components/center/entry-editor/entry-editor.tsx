@@ -4,7 +4,7 @@ import { Badge, Grid, Group, Space, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { EntryEditorService } from "@/client";
-import { TableOfContents } from "@/components/table-of-contents";
+import { TableOfContents } from "@/components/lib/table-of-contents";
 import { EntryViewType } from "@/constants";
 
 import { ArticleEditor } from "./article-editor";

@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
-import { OutsideEventHandlerService } from "@/components/outside-event-handler";
+import { OutsideEventHandlerService } from "@/components/lib/outside-event-handler";
 import { Hookable, IComponentService } from "@/interface";
 import { EventProducer } from "@/model";
 

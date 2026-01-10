@@ -1,8 +1,8 @@
 import { Box } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { DIVIDER, SPACE } from "@/components/common";
-import { TextField } from "@/components/text-field";
+import { DIVIDER, SPACE } from "@/components/lib/common";
+import { TextField } from "@/components/lib/text-field";
 
 import { HomeManager } from "./home.service";
 

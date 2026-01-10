@@ -1,6 +1,7 @@
 import { useLayoutEffect, MutableRefObject } from "react";
 import useResizeObserver from "@react-hook/resize-observer";
 
+// TODO: move to utils
 export function getSize<T extends Element>(
     target: MutableRefObject<T>,
     getSize: () => DOMRect,

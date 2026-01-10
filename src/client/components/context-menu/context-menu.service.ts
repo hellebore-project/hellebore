@@ -9,7 +9,7 @@ import {
     OpenFileContextMenuEvent,
     Point,
 } from "@/interface";
-import { OutsideEventHandlerService } from "@/components/outside-event-handler";
+import { OutsideEventHandlerService } from "@/components/lib/outside-event-handler";
 import { MultiEventProducer } from "@/model";
 
 import {

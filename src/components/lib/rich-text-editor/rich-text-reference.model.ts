@@ -11,7 +11,7 @@ import {
     VerticalSelection,
     VerticalSelectionData,
     VerticalSelectionProps,
-} from "@/components/vertical-selection";
+} from "@/components/lib/vertical-selection";
 
 export type ReferenceId = number | string;
 

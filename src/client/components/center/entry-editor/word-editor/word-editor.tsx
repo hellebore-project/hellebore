@@ -5,9 +5,9 @@ import { observer } from "mobx-react-lite";
 
 import { WordViewType } from "@/constants";
 import { WordMetaData } from "@/interface";
-import { SPACE } from "@/components/common";
-import { Spreadsheet, SpreadsheetService } from "@/components/spreadsheet";
-import { TabData, Tabs } from "@/components/tabs";
+import { SPACE } from "@/components/lib/common";
+import { Spreadsheet, SpreadsheetService } from "@/components/lib/spreadsheet";
+import { TabData, Tabs } from "@/components/lib/tabs";
 
 import { TitleField } from "../title-field";
 import { WordEditorService, WordColumnKeys } from "./word-editor.service";

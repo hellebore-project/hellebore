@@ -3,8 +3,8 @@ import "./article-editor.css";
 import { Container, Stack } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { SPACE } from "@/components/common";
-import { RichTextEditor } from "@/components/rich-text-editor";
+import { SPACE } from "@/components/lib/common";
+import { RichTextEditor } from "@/components/lib/rich-text-editor";
 
 import { TitleField } from "../title-field";
 import { ArticleEditorService } from "./article-editor.service";

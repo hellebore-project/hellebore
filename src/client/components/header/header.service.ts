@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 import {
     DIVIDER_DATA,
     MenuDropdownElementData,
-} from "@/components/menu-dropdown";
+} from "@/components/lib/menu-dropdown";
 import { DomainManager } from "@/services";
 import { IComponentService, OpenEntryEditorEvent } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/model";

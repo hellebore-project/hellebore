@@ -5,7 +5,7 @@ import { observer } from "mobx-react-lite";
 import { PropsWithChildren, ReactNode } from "react";
 
 import { PropertyFieldType, TextPropertyFieldData } from "@/interface";
-import { TextField } from "@/components/text-field";
+import { TextField } from "@/components/lib/text-field";
 
 import { PropertyEditorService } from "../property-editor.service";
 

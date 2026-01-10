@@ -18,7 +18,7 @@ import {
     Word,
 } from "@/interface";
 import { DomainManager } from "@/services";
-import { TableOfContentsItemData } from "@/components/table-of-contents";
+import { TableOfContentsItemData } from "@/components/lib/table-of-contents";
 import { EventProducer, MultiEventProducer } from "@/model";
 
 import { EntryInfoService } from "./entry-info.service";

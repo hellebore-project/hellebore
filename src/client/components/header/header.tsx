@@ -3,8 +3,8 @@ import "./header.css";
 import { Burger, Flex } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { MenuButton } from "@/components/menu-button";
-import { MenuDropdown } from "@/components/menu-dropdown";
+import { MenuButton } from "@/components/lib/menu-button";
+import { MenuDropdown } from "@/components/lib/menu-dropdown";
 
 import { HeaderManager } from "./header.service";
 import { EntrySearchField } from "../shared/entry-search-field";

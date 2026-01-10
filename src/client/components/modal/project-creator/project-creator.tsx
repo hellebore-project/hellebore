@@ -1,8 +1,8 @@
 import { Button, Container, Group } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import { FileField } from "@/components/file-field";
-import { TextField } from "@/components/text-field";
+import { FileField } from "@/components/lib/file-field";
+import { TextField } from "@/components/lib/text-field";
 
 import { ProjectCreatorService } from "./project-creator.service";
 

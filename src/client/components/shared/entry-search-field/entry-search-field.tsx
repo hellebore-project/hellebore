@@ -2,7 +2,7 @@ import "./entry-search-field.css";
 
 import { observer } from "mobx-react-lite";
 
-import { SearchField } from "@/components/search-field";
+import { SearchField } from "@/components/lib/search-field";
 
 import { EntrySearchService } from "./entry-search-field.service";
 

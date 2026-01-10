@@ -9,7 +9,7 @@ import { DomainManager } from "@/services";
 import {
     SuggestionData,
     useReferenceExtension,
-} from "@/components/rich-text-editor";
+} from "@/components/lib/rich-text-editor";
 import {
     ChangeEntryEvent,
     IComponentService,

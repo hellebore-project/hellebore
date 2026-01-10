@@ -4,7 +4,7 @@ import { Divider, Group, Popover, Text } from "@mantine/core";
 import { IconExclamationCircle } from "@tabler/icons-react";
 import { observer } from "mobx-react-lite";
 
-import { TextField } from "@/components/text-field";
+import { TextField } from "@/components/lib/text-field";
 
 import { EntryInfoService } from "../entry-info.service";
 

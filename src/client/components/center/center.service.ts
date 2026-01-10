@@ -13,7 +13,7 @@ import {
     SyncEvent,
     WordMetaData,
 } from "@/interface";
-import { SpreadsheetReferenceService } from "@/components/spreadsheet";
+import { SpreadsheetReferenceService } from "@/components/lib/spreadsheet";
 import { DomainManager } from "@/services";
 import { EventProducer, MultiEventProducer } from "@/model";
 
