@@ -1,5 +1,5 @@
-import { HeaderManager } from "@/client";
-import { test as baseTest } from "@tests/unit/client/fixtures";
+import { HeaderManager } from "@/components";
+import { test as baseTest } from "@tests/unit/components/fixtures";
 
 interface HeaderFixtures {
     headerManager: HeaderManager;

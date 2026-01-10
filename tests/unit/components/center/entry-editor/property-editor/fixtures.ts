@@ -1,4 +1,4 @@
-import { PropertyEditorService } from "@/client";
+import { PropertyEditorService } from "@/components";
 import { EntryViewType } from "@/constants";
 import { EntryPropertyResponse } from "@/interface";
 import { mockGetEntryProperties } from "@tests/utils/mocks";
