@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { expect, describe } from "vitest";
 
-import { WordTable } from "@/client";
+import { WordTable } from "@/components";
 import { render } from "@tests/utils/render";
 
 import { test } from "../fixtures";

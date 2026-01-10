@@ -1,4 +1,5 @@
-import { EntryViewType, ArticleEditorService } from "@/client";
+import { ArticleEditorService } from "@/components";
+import { EntryViewType } from "@/constants";
 
 import { test as baseTest } from "../fixtures";
 

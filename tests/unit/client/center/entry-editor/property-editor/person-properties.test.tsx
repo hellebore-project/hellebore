@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { expect } from "vitest";
 
-import { PropertyTable } from "@/client";
+import { PropertyTable } from "@/components";
 import { EntityType } from "@/constants";
 import { render } from "@tests/utils/render";
 

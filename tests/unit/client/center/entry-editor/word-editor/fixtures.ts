@@ -1,4 +1,4 @@
-import { WordEditorService } from "@/client";
+import { WordEditorService } from "@/components";
 import { EntryViewType, EntityType, WordType } from "@/constants";
 import { Id, WordResponse } from "@/interface";
 import { mockGetWords } from "@tests/utils/mocks";

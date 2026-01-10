@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { describe } from "vitest";
 
-import { WordTable } from "@/client";
+import { WordTable } from "@/components";
 import { WordType } from "@/constants";
 import { render } from "@tests/utils/render";
 

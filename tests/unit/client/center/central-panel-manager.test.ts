@@ -1,6 +1,6 @@
 import { expect } from "vitest";
 
-import { CentralViewType } from "@/client";
+import { CentralViewType } from "@/constants";
 import { test } from "@tests/unit/client/fixtures";
 
 test("can iterate over open panel services", async ({ clientManager }) => {

@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
-import { beforeAll, describe, expect } from "vitest";
+import { beforeAll, expect } from "vitest";
 
-import { ArticleEditor } from "@/client";
+import { ArticleEditor } from "@/components";
 import {
     createDocNode,
     createParagraphNode,

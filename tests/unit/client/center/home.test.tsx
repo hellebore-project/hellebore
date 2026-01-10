@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { expect } from "vitest";
 
-import { HomeManager, Home } from "@/client";
+import { HomeManager, Home } from "@/components";
 import { test as baseTest } from "@tests/unit/client/fixtures";
 import { render } from "@tests/utils/render";
 import { mockUpdateProject } from "@tests/utils/mocks";

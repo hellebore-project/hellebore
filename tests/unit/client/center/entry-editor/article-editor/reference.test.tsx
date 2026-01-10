@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { beforeAll, describe, expect } from "vitest";
 
-import { ArticleEditor } from "@/client";
+import { ArticleEditor } from "@/components";
 import { EntityType, EntryType, ROOT_FOLDER_ID } from "@/constants";
 import { EntryInfoResponse } from "@/interface";
 import {
