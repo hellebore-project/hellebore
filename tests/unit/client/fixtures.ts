@@ -3,7 +3,7 @@ import userEvent, { UserEvent } from "@testing-library/user-event";
 import { JSONContent } from "@tiptap/core";
 import { test as baseTest } from "vitest";
 
-import { ClientManager, state } from "@/client";
+import { ClientManager, STATE } from "@/client";
 import {
     EntityType,
     EntryArticleResponse,
@@ -185,7 +185,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         ) => {
             const clientManager = new ClientManager();
             await clientManager.load();
-            state.manager = clientManager;
+            STATE.manager = clientManager;
 
             await use(clientManager);
         },

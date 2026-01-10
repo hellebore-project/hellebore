@@ -4,7 +4,7 @@ import {
     EditFolderNameEvent,
 } from "@/client/interface";
 import { Id } from "@/interface";
-import { MultiEventProducer } from "@/utils/event-producer";
+import { MultiEventProducer } from "@/model";
 
 import { BaseContextMenuService } from "./base-context-menu.model";
 

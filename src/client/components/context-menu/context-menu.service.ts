@@ -8,7 +8,7 @@ import {
 } from "@/client/interface";
 import { OutsideEventHandlerService } from "@/components/outside-event-handler";
 import { Hookable, IComponentService, Point } from "@/interface";
-import { MultiEventProducer } from "@/utils/event-producer";
+import { MultiEventProducer } from "@/model";
 
 import {
     BaseContextMenuService,

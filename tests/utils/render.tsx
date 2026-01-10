@@ -7,7 +7,7 @@ import { getState, PortalContainer } from "@/client";
 
 function renderTestApp({ children }: PropsWithChildren) {
     const service = getState().manager;
-    service.hook();
+    service.callHooks();
 
     return (
         <MantineProvider theme={DEFAULT_THEME} env="test">

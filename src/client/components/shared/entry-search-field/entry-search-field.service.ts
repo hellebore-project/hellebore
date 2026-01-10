@@ -4,7 +4,7 @@ import { makeAutoObservable } from "mobx";
 import { OpenEntryEditorEvent } from "@/client/interface";
 import { DomainManager } from "@/domain";
 import { IComponentService } from "@/interface";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 type PrivateKeys = "_waitingForQuery" | "_lastQueryRequestTime" | "_domain";
 

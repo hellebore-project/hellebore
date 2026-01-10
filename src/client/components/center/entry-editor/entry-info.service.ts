@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 import { ChangeEntryEvent } from "@/client/interface";
 import { ENTITY_TYPE_LABELS, ENTRY_ID_SENTINEL, EntryType } from "@/domain";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 type PrivateKeys = "_titleChanged";
 

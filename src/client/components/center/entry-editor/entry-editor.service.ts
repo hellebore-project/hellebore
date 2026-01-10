@@ -14,7 +14,7 @@ import {
 } from "@/client/interface";
 import { DomainManager, EntryType, WordType } from "@/domain";
 import { TableOfContentsItemData } from "@/components/table-of-contents";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 import { EntryInfoService } from "./entry-info.service";
 import { ArticleEditorService } from "./article-editor";

@@ -7,7 +7,7 @@ import {
 } from "@/components/menu-dropdown";
 import { DomainManager } from "@/domain";
 import { IComponentService } from "@/interface";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 import { EntrySearchService } from "../shared/entry-search-field";
 

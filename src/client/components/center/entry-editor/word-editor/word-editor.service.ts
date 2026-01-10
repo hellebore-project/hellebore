@@ -17,7 +17,7 @@ import {
     SpreadsheetServiceArgs,
 } from "@/components/spreadsheet";
 import { Counter } from "@/utils/counter";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer, MultiEventProducer } from "@/model";
 
 import { EntryInfoService } from "../entry-info.service";
 
