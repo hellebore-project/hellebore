@@ -1,6 +1,8 @@
 # Hellebore
 
-Hellebore is a self-hosted desktop app that helps creatives track their fictional settings. Great for DMs and writers.
+Hellebore is a self-hosted desktop app that helps creatives track their fictional settings in the form of a digital encyclopedia. The main motivation behind this project is twofold. Firstly, I want an out-of-the-box solution for documenting the world-building process; i.e., interlinked notes, event timelines, maps, dictionaries, etc. Secondly, I want full control over where the data is stored. The Hellebore project is my attempt at solving these two problems.
+
+This is just a hobby project, so I don't plan on ever distributing this. However, if the concept of this project interests you, I suggest checking out [Obsidian](https://obsidian.md/); it covers a lot of the use cases that I have in mind for Hellebore. If you wish to contribute to Hellebore, refer to the [contributing](./CONTRIBUTING.md) page.
 
 ## Local Development
 
