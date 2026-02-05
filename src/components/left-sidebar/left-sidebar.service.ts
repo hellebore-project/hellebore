@@ -4,6 +4,7 @@ import { DomainManager } from "@/services";
 import {
     EntryInfoResponse,
     FolderResponse,
+    Hookable,
     IComponentService,
 } from "@/interface";
 
@@ -13,7 +14,7 @@ export interface LeftSideBarServiceArgs {
     domain: DomainManager;
 }
 
-export class LeftSideBarService implements IComponentService {
+export class LeftSideBarService implements IComponentService, Hookable {
     readonly key = "left-side-bar";
     readonly NAVBAR_WIDTH = 300;
 
@@ -23,7 +24,10 @@ export class LeftSideBarService implements IComponentService {
 
     constructor({ domain }: LeftSideBarServiceArgs) {
         this.spotlight = new SpotlightService({ domain });
-        makeAutoObservable(this, { spotlight: false });
+        makeAutoObservable(this, {
+            spotlight: false,
+            hooks: false,
+        });
     }
 
     get width() {
@@ -48,5 +52,9 @@ export class LeftSideBarService implements IComponentService {
 
     toggleMobileOpen() {
         this._mobileOpen = !this._mobileOpen;
+    }
+
+    *hooks() {
+        yield* this.spotlight.hooks();
     }
 }

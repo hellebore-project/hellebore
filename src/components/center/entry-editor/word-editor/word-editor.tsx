@@ -33,16 +33,26 @@ interface WordEditorProps {
 }
 
 function renderWordTable({ service }: WordTableProps) {
-    return <Spreadsheet service={service} />;
+    const portalProps = {
+        target: service.reference.fetchPortalSelector.produce(),
+    };
+
+    return (
+        <Spreadsheet
+            service={service}
+            cellProps={{
+                selectProps: {
+                    dropdownProps: { portalProps },
+                },
+            }}
+            tooltipProps={{ portalProps }}
+        />
+    );
 }
 
 export const WordTable = observer(renderWordTable);
 
 function renderWordEditor({ service }: WordEditorProps) {
-    const portalProps = {
-        target: service.fetchPortalSelector.produce(),
-    };
-
     return (
         <Container className="word-editor">
             <Stack className="word-editor-stack" justify="flex-start" gap={0}>
@@ -61,15 +71,7 @@ function renderWordEditor({ service }: WordEditorProps) {
                     }}
                 />
 
-                <Spreadsheet
-                    service={service.spreadsheet}
-                    cellProps={{
-                        selectProps: {
-                            comboboxProps: { portalProps },
-                        },
-                    }}
-                    tooltipProps={{ portalProps }}
-                />
+                <WordTable service={service.spreadsheet} />
             </Stack>
         </Container>
     );

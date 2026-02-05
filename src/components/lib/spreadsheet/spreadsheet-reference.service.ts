@@ -5,6 +5,7 @@ import { OutsideEventHandlerService } from "@/components/lib/outside-event-handl
 import { Hookable, IComponentService } from "@/interface";
 import { EventProducer } from "@/model";
 
+import { ComboFieldService } from "../combo-field";
 import {
     SpreadsheetColumnData,
     SpreadsheetFieldType,
@@ -27,13 +28,20 @@ export class SpreadsheetReferenceService<K extends string, M>
      */
     editableCellRef: RefObject<HTMLInputElement> | null;
 
+    editableCellSelect: ComboFieldService;
+
     outsideEvent: OutsideEventHandlerService;
     fetchEditableColumn: EventProducer<void, SpreadsheetColumnData<K> | null>;
+    fetchPortalSelector: EventProducer<void, string>;
 
     constructor(key: string) {
         this._key = key;
         this._sheetRef = createRef();
         this.editableCellRef = null;
+
+        this.editableCellSelect = new ComboFieldService(
+            `${key}-editable-cell-select`,
+        );
 
         this.outsideEvent = new OutsideEventHandlerService({
             key: `${this._key}-outside-event-handler`,
@@ -41,6 +49,7 @@ export class SpreadsheetReferenceService<K extends string, M>
             ref: this._sheetRef,
         });
         this.fetchEditableColumn = new EventProducer();
+        this.fetchPortalSelector = new EventProducer();
 
         makeAutoObservable<SpreadsheetReferenceService<K, M>, PrivateKeys>(
             this,
@@ -51,6 +60,7 @@ export class SpreadsheetReferenceService<K extends string, M>
                 _sheetRef: false,
                 outsideEvent: false,
                 fetchEditableColumn: false,
+                fetchPortalSelector: false,
                 hooks: false, // don't convert to a flow
             },
         );
@@ -72,6 +82,7 @@ export class SpreadsheetReferenceService<K extends string, M>
             componentKey: this.key,
             call: this._focusEditableCellOnRender.bind(this),
         };
+        yield* this.editableCellSelect.hooks();
         yield* this.outsideEvent.hooks();
     }
 

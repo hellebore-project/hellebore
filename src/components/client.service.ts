@@ -492,9 +492,11 @@ export class ClientManager {
 
     private _registerDefaultHooks() {
         const hooks = [
-            ...this.contextMenu.hooks(),
-            ...this.leftSideBar.spotlight.hooks(),
+            ...this.header.hooks(),
+            ...this.leftSideBar.hooks(),
             ...this.central.hooks(),
+            ...this.modal.hooks(),
+            ...this.contextMenu.hooks(),
         ];
 
         hooks.forEach((h) => this.hooks.register(h));

@@ -10,6 +10,8 @@ import {
 } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/model";
 
+import { EntryCreatorReferenceService } from "./entry-creator-reference.service";
+
 export class EntryCreatorService implements IModalContentManager {
     // CONSTANTS
     readonly title = "Create a new entry";
@@ -20,6 +22,9 @@ export class EntryCreatorService implements IModalContentManager {
     private _entryType: EntryType | null = null;
     private _isTitleUnique = true;
 
+    // SERVICES
+    reference: EntryCreatorReferenceService;
+
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
     onCreateEntry: EventProducer<
@@ -28,11 +33,15 @@ export class EntryCreatorService implements IModalContentManager {
     >;
     onClose: MultiEventProducer<void, unknown>;
 
-    constructor() {
+    constructor(reference: EntryCreatorReferenceService) {
+        this.reference = reference;
+
         this.fetchPortalSelector = new EventProducer();
         this.onCreateEntry = new EventProducer();
         this.onClose = new MultiEventProducer();
+
         makeAutoObservable(this, {
+            reference: false,
             fetchPortalSelector: false,
             onCreateEntry: false,
             onClose: false,

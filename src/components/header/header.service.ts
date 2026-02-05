@@ -5,7 +5,7 @@ import {
     MenuDropdownElementData,
 } from "@/components/lib/menu-dropdown";
 import { DomainManager } from "@/services";
-import { IComponentService, OpenEntryEditorEvent } from "@/interface";
+import { Hookable, IComponentService, OpenEntryEditorEvent } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/model";
 
 import { EntrySearchService } from "../shared/entry-search-field";
@@ -24,7 +24,7 @@ interface MenuItems {
     settings: MenuDropdownElementData;
 }
 
-export class HeaderManager implements IComponentService {
+export class HeaderManager implements IComponentService, Hookable {
     // CONSTANTS
     readonly key = "header";
     readonly DEFAULT_HEIGHT = 50;
@@ -50,7 +50,10 @@ export class HeaderManager implements IComponentService {
 
     constructor(domain: DomainManager) {
         this._domain = domain;
-        this.entrySearch = new EntrySearchService(domain);
+        this.entrySearch = new EntrySearchService({
+            key: `${this.key}-entry-search`,
+            domain,
+        });
 
         this.fetchPortalSelector = new EventProducer();
         this.onCreateProject = new MultiEventProducer();
@@ -103,6 +106,7 @@ export class HeaderManager implements IComponentService {
             onOpenEntry: false,
             fetchLeftBarStatus: false,
             onToggleLeftBar: false,
+            hooks: false,
         });
 
         this._linkSubscribables();
@@ -135,5 +139,11 @@ export class HeaderManager implements IComponentService {
     private _linkSubscribables() {
         this.entrySearch.fetchPortalSelector.broker = this.fetchPortalSelector;
         this.entrySearch.onOpenEntry.broker = this.onOpenEntry;
+    }
+
+    // HOOKS
+
+    *hooks() {
+        yield* this.entrySearch.search.hooks();
     }
 }

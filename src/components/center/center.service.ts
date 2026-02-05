@@ -93,6 +93,9 @@ export class CentralPanelManager implements IComponentService, Hookable {
         this.onPeriodicChangeData = new MultiEventProducer();
         this.onDeleteEntry = new MultiEventProducer();
 
+        this._spreadsheetReference.fetchPortalSelector.broker =
+            this.fetchPortalSelector;
+
         makeAutoObservable<CentralPanelManager, PrivateKeys>(this, {
             _panelServices: false,
             _entryEditorArgs: false,

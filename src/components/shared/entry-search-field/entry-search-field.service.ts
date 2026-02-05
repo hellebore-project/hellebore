@@ -4,12 +4,22 @@ import { makeAutoObservable } from "mobx";
 import { IComponentService, OpenEntryEditorEvent } from "@/interface";
 import { DomainManager } from "@/services";
 import { EventProducer, MultiEventProducer } from "@/model";
+import { ComboFieldService } from "@/components/lib/combo-field";
 
-type PrivateKeys = "_waitingForQuery" | "_lastQueryRequestTime" | "_domain";
+type PrivateKeys =
+    | "_key"
+    | "_waitingForQuery"
+    | "_lastQueryRequestTime"
+    | "_domain";
+
+interface EntrySearchServiceArgs {
+    key: string;
+    domain: DomainManager;
+    search?: ComboFieldService;
+}
 
 export class EntrySearchService implements IComponentService {
     // CONSTANTS
-    readonly key = "entry-search";
     readonly DEFAULT_HEIGHT = 50;
     readonly DEFAULT_QUERY_PERIOD = 500;
 
@@ -18,6 +28,7 @@ export class EntrySearchService implements IComponentService {
     queryPeriod: number;
 
     // STATE
+    private _key: string;
     private _searchQuery = "";
     private _searchData: ComboboxItem[];
     private _waitingForQuery = false;
@@ -25,22 +36,26 @@ export class EntrySearchService implements IComponentService {
 
     // SERVICES
     private _domain: DomainManager;
+    search: ComboFieldService;
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
     onOpenEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
 
-    constructor(domain: DomainManager) {
+    constructor({ key, domain, search }: EntrySearchServiceArgs) {
         this.queryPeriod = this.DEFAULT_QUERY_PERIOD;
 
+        this._key = key;
         this._searchData = [];
 
         this._domain = domain;
+        this.search = search ?? new ComboFieldService(`${key}-input`);
 
         this.fetchPortalSelector = new EventProducer();
         this.onOpenEntry = new MultiEventProducer();
 
         makeAutoObservable<EntrySearchService, PrivateKeys>(this, {
+            _key: false,
             queryPeriod: false,
             _waitingForQuery: false,
             _lastQueryRequestTime: false,
@@ -48,6 +63,10 @@ export class EntrySearchService implements IComponentService {
             fetchPortalSelector: false,
             onOpenEntry: false,
         });
+    }
+
+    get key() {
+        return this._key;
     }
 
     get searchQuery() {
