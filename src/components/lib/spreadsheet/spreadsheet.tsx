@@ -6,7 +6,7 @@ import { observer } from "mobx-react-lite";
 import { HTMLAttributes, ReactNode } from "react";
 
 import { OutsideEventHandler } from "@/components/lib/outside-event-handler";
-import { SelectField, SelectFieldProps } from "@/components/lib/select-field";
+import { SelectField, ComboFieldProps } from "@/components/lib/combo-field";
 import { TextField } from "@/components/lib/text-field";
 import { ToolTipWrapper } from "@/components/lib/tool-tip";
 
@@ -14,7 +14,7 @@ import { SpreadsheetFieldType } from "./spreadsheet.interface";
 import { SpreadsheetService } from "./spreadsheet.service";
 
 interface SpreadsheetCellCommonProps {
-    selectProps?: SelectFieldProps;
+    selectProps?: Omit<ComboFieldProps, "service">;
 }
 
 interface SpreadsheetCellProps<K extends string, M>
@@ -34,14 +34,14 @@ interface DeleteSpreadsheetRowButton {
 interface SpreadsheetRowProps<K extends string, M> {
     index: number;
     service: SpreadsheetService<K, M>;
-    cellProps?: SpreadsheetCellCommonProps;
+    cellProps: SpreadsheetCellCommonProps;
     tooltipProps?: Omit<TooltipProps, "label">;
 }
 
 interface SpreadsheetProps<K extends string, M>
     extends HTMLAttributes<HTMLDivElement> {
     service: SpreadsheetService<K, M>;
-    cellProps?: SpreadsheetCellCommonProps;
+    cellProps: SpreadsheetCellCommonProps;
     tooltipProps?: Omit<TooltipProps, "label">;
 }
 
@@ -114,20 +114,25 @@ function renderSpreadsheetCell<K extends string, M>({
                 />
             );
         } else if (colData.type === SpreadsheetFieldType.SELECT) {
+            const { inputProps, dropdownProps, ...restSelect } =
+                selectProps ?? {};
             field = (
                 <SelectField
                     ref={service.reference.editableCellRef}
-                    placeholder=""
-                    clearable={false}
-                    allowDeselect={false}
-                    data={colData.options}
-                    value={data.value}
-                    defaultValue={colData.defaultValue}
-                    onChange={(v) =>
-                        service.data.editCell(rowIndex, colIndex, v)
-                    }
-                    variant="unstyled"
-                    {...selectProps}
+                    service={service.reference.editableCellSelect}
+                    inputProps={{
+                        clearable: false,
+                        variant: "unstyled",
+                        ...inputProps,
+                    }}
+                    dropdownProps={{
+                        data: colData.options,
+                        value: data.value,
+                        onValueChange: (v) =>
+                            service.data.editCell(rowIndex, colIndex, v),
+                        ...dropdownProps,
+                    }}
+                    {...restSelect}
                 />
             );
         }

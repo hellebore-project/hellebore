@@ -101,11 +101,12 @@ export class SpreadsheetDataService<K extends string, M> {
         rowData: SpreadsheetRowData<K, M>[],
         columnData: SpreadsheetColumnData<K>[],
     ) {
-        this._rows = rowData.map((row) => this._createRow(row));
-        this._rowCache.clear();
-        this._columns = columnData;
         this._editableCell = null;
 
+        this._columns = columnData;
+
+        this._rowCache.clear();
+        this._rows = rowData.map((row) => this._createRow(row));
         this._cacheRows();
     }
 
@@ -118,6 +119,20 @@ export class SpreadsheetDataService<K extends string, M> {
         this._rowCache.set(row.key, this._rows[length - 1]);
 
         if (this._onAddRow) this._onAddRow();
+    }
+
+    private _createRow(
+        row: SpreadsheetRowData<K, M>,
+    ): SpreadsheetRowData<K, M> {
+        const entries = Object.entries(row.cells) as [K, SpreadsheetCellData][];
+
+        entries.forEach(([colKey, cell], colIndex) => {
+            cell.key = cell.key ?? `${row.key}-${colKey}`;
+            cell.value = cell.value ?? this.columnData[colIndex].defaultValue;
+            cell.label = cell.label ?? cell.value;
+        });
+
+        return row;
     }
 
     deleteRow(key: string) {
@@ -138,17 +153,6 @@ export class SpreadsheetDataService<K extends string, M> {
     unhighlightRow(key: string) {
         const row = this.findRow(key);
         if (row) row.highlighted = false;
-    }
-
-    private _createRow(
-        row: SpreadsheetRowData<K, M>,
-    ): SpreadsheetRowData<K, M> {
-        const entries = Object.entries(row.cells) as [K, SpreadsheetCellData][];
-        for (const [colKey, cell] of entries) {
-            cell.key = cell.key ?? `${row.key}-${colKey}`;
-            cell.label = cell.label ?? cell.value;
-        }
-        return row;
     }
 
     findRow(key: string) {
@@ -244,7 +248,7 @@ export class SpreadsheetDataService<K extends string, M> {
         cell.value = value;
 
         // the label is what actually gets rendered when the cell is read-only,
-        // so it needs to be update for all field types
+        // so it needs to be updated for all field types
         if (col.type == SpreadsheetFieldType.TEXT) cell.label = value;
         else if (col.type == SpreadsheetFieldType.SELECT && col.options) {
             // TODO: cache this

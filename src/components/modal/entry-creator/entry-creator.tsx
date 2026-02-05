@@ -2,7 +2,7 @@ import { Button, ComboboxItem, Container, Group, Space } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "@/constants";
-import { SelectField } from "@/components/lib/select-field";
+import { SelectField } from "@/components/lib/combo-field";
 import { TextField } from "@/components/lib/text-field";
 import { compareStrings } from "@/utils/string";
 
@@ -24,14 +24,16 @@ function renderEntryCreator({ service }: EntryCreatorProps) {
         <Container size="xs">
             <form onSubmit={(event) => service.submit(event)}>
                 <SelectField
-                    label="Entity"
-                    placeholder="Select an entity type"
-                    data={ENTITY_TYPE_DROPDOWN_DATA}
-                    getValue={() => service.entryType?.toString() ?? null}
-                    onChange={(entityType) =>
-                        (service.entryType = Number(entityType))
-                    }
-                    comboboxProps={{
+                    service={service.reference.entryTypeSelect}
+                    inputProps={{
+                        label: "Type",
+                        placeholder: "Select an entry type",
+                    }}
+                    dropdownProps={{
+                        data: ENTITY_TYPE_DROPDOWN_DATA,
+                        getValue: () => service.entryType?.toString() ?? null,
+                        onValueChange: (entityType) =>
+                            (service.entryType = Number(entityType)),
                         portalProps: {
                             target: service.fetchPortalSelector.produce(),
                         },
