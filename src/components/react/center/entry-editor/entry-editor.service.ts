@@ -19,7 +19,7 @@ import {
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { TableOfContentsItemData } from "@/components/react/lib/table-of-contents";
-import { EventProducer, MultiEventProducer } from "@/model";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "./entry-info.service";
 import { ArticleEditorService } from "./article-editor";

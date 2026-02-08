@@ -15,7 +15,7 @@ import {
 } from "@/interface";
 import { SpreadsheetReferenceService } from "@/components/react/lib/spreadsheet";
 import { DomainManager } from "@/services";
-import { EventProducer, MultiEventProducer } from "@/model";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home";
 import { SettingsEditorService } from "./settings-editor";

@@ -1,4 +1,4 @@
-import { MultiEventProducer } from "@/model";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import { IComponentService } from "./component";
 

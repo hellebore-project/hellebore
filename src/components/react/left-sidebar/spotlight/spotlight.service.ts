@@ -23,7 +23,7 @@ import {
 import { OutsideEventHandlerService } from "@/components/react/lib/outside-event-handler";
 import { DomainManager } from "@/services";
 import { Counter } from "@/utils/counter";
-import { EventProducer, MultiEventProducer } from "@/model";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { FileNavigatorErrorManager } from "./file-navigator";
 

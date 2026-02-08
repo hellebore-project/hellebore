@@ -9,7 +9,7 @@ import {
     IModalContentManager,
     OpenEntryCreatorEvent,
 } from "@/interface";
-import { EventProducer, MultiEventProducer } from "@/model";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryCreatorService } from "./entry-creator";
 import { ProjectCreatorService } from "./project-creator";

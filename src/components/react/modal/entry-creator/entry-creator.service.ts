@@ -8,7 +8,7 @@ import {
     Id,
     IModalContentManager,
 } from "@/interface";
-import { EventProducer, MultiEventProducer } from "@/model";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 export class EntryCreatorService implements IModalContentManager {
     // CONSTANTS
