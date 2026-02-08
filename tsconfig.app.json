@@ -1,0 +1,43 @@
+{
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "compilerOptions": {
+    // LINTING
+    
+
+    // MODULES
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "$lib": ["./src/lib"],
+      "$lib/*": ["./src/lib/*"],
+    },
+    "types": ["svelte", "vite/client"],
+
+    // EMIT
+    "noEmit": true,
+    
+    // JAVASCRIPT
+    /**
+     * Typecheck JS in `.svelte` and `.js` files by default.
+     * Disable checkJs if you'd like to use dynamic types in JS.
+     * Note that setting allowJs false does not prevent the use
+     * of JS in `.svelte` files.
+     */
+    "allowJs": true,
+    "checkJs": true,
+
+    // INTEROP
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+
+    // LANGUAGE & ENVIRONMENT
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    
+    // PROJECTS
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",    
+  },
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]
+}
