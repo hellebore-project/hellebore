@@ -1,0 +1,70 @@
+.dynamic-div {
+    color: var(--dynamic-text-color, unset);
+    background-color: var(--dynamic-background-color, unset);
+    border-color: var(--dynamic-border, unset);
+}
+
+.dynamic-div:hover {
+    color: var(--dynamic-hover-text-color, unset);
+    background-color: var(--dynamic-hover-background-color, unset);
+}
+
+.header-panel {
+    background-color: var(--header-bg-color);
+
+    --default-bg-color: var(--header-bg-color);
+
+    grid-area: header;
+    overflow: hidden;
+}
+
+.left-sidebar-panel {
+    background-color: var(--sidebar-bg-color);
+
+    --default-bg-color: var(--sidebar-bg-color);
+
+    grid-area: sidebar;
+    overflow: auto;
+}
+
+.main-panel {
+    background-color: var(--main-bg-color);
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    padding: var(--main-padding);
+
+    --default-bg-color: var(--main-bg-color);
+
+    grid-area: main;
+}
+
+.footer-panel {
+    background-color: var(--footer-bg-color);
+
+    --default-bg-color: var(--footer-bg-color);
+
+    grid-area: footer;
+    overflow: hidden;
+}
+
+.divider {
+    border-top: 0.8px solid var(--default-bd-color);
+    margin-block: 12px;
+}
+
+.compact {
+    flex-grow: 0;
+}
+
+.grow {
+    flex-grow: 1;
+}
+
+.app-shell {
+    display: grid;
+    grid-template: "header header" var(--header-height) "sidebar main" 1fr "footer footer" var(--footer-height) / var(--sidebar-width) 1fr;
+    width: 100%;
+    height: 100vh;
+    gap: 0;
+}
