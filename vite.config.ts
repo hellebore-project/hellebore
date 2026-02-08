@@ -12,7 +12,7 @@ export default defineConfig(async () => ({
         manifest: true,
         rollupOptions: { input: { main: resolve(__dirname, "index.html") } },
     },
-    resolve: { alias: { "@": "/src", $lib: "/src/lib", "@tests": "/tests" } },
+    resolve: { alias: { "@": "/src", "@tests": "/tests" } },
     test: {
         environment: "jsdom",
         setupFiles: "./vitest.setup.mjs",

@@ -12,9 +12,8 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "paths": {
+      "@": ["./src"],
       "@/*": ["./src/*"],
-      "$lib": ["./src/lib"],
-      "$lib/*": ["./src/lib/*"],
       "@tests/*": ["./tests/*"],
     },
 

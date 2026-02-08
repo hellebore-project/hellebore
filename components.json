@@ -5,11 +5,11 @@
 		"baseColor": "slate"
 	},
 	"aliases": {
-		"components": "$lib/components",
-		"utils": "$lib/utils",
-		"ui": "$lib/components/ui",
-		"hooks": "$lib/hooks",
-		"lib": "$lib"
+		"lib": "@/lib",
+		"components": "@/lib/components",
+		"ui": "@/lib/components",
+		"hooks": "@/lib/services",
+		"utils": "@/lib/utils"
 	},
 	"typescript": true,
 	"registry": "https://shadcn-svelte.com/registry"

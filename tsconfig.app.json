@@ -9,9 +9,8 @@
     "moduleDetection": "force",
     "baseUrl": ".",
     "paths": {
+      "@": ["./src"],
       "@/*": ["./src/*"],
-      "$lib": ["./src/lib"],
-      "$lib/*": ["./src/lib/*"],
     },
     "types": ["svelte", "vite/client"],
 
