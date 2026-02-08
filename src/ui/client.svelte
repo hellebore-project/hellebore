@@ -1,8 +1,8 @@
 <script lang="ts">
-	import "./app.css";
+	import "./client.css";
 </script>
 
-<div class="app-shell">
+<div class="client-shell">
 	<header class="header-panel">
 		<!-- Header content -->
 	</header>
@@ -26,4 +26,8 @@
 
 <div>
 	<!-- Context Menu -->
+</div>
+
+<div>
+	<!-- Portal -->
 </div>

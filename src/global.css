@@ -151,3 +151,27 @@
         @apply bg-background text-foreground;
     }
 }
+
+.dynamic-div {
+    color: var(--dynamic-text-color, unset);
+    background-color: var(--dynamic-background-color, unset);
+    border-color: var(--dynamic-border, unset);
+}
+
+.dynamic-div:hover {
+    color: var(--dynamic-hover-text-color, unset);
+    background-color: var(--dynamic-hover-background-color, unset);
+}
+
+.divider {
+    border-top: 0.8px solid var(--default-bd-color);
+    margin-block: 12px;
+}
+
+.compact {
+    flex-grow: 0;
+}
+
+.grow {
+    flex-grow: 1;
+}
