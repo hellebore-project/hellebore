@@ -1,9 +1,6 @@
 {
   "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
-    // LINTING
-    
-
     // MODULES
     "module": "ESNext",
     "moduleDetection": "force",
@@ -38,5 +35,7 @@
     // PROJECTS
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",    
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
+  // ignore the legacy react components
+  "exclude": ["src/components/react/**/*"],
 }

@@ -1,12 +1,16 @@
-import eslint from '@eslint/js';
+import eslint from "@eslint/js";
 import { defineConfig } from "eslint/config";
+import globals from "globals";
 import prettier from "eslint-config-prettier";
-import importPlugin from 'eslint-plugin-import';
-import tseslint from 'typescript-eslint';
+import imports from "eslint-plugin-import";
+import svelte from "eslint-plugin-svelte";
+import ts from "typescript-eslint";
+
+import svelteConfig from "./svelte.config.js";
 
 // global ignores config
 // don't add any other keys to this config, otherwise it will stop applying globally
-const ignores = {
+const ignoresLintConfig = {
     ignores: [
         "src-tauri/",
         "dist/",
@@ -15,10 +19,16 @@ const ignores = {
     ],
 };
 
-const importConfig = {
-    extends: [importPlugin.flatConfigs.recommended, importPlugin.flatConfigs.typescript],
+const globalsLintConfig = {
+    languageOptions: {
+        globals: { ...globals.browser },
+    },
+};
+
+const importLintConfig = {
+    extends: [imports.flatConfigs.recommended, imports.flatConfigs.typescript],
     plugins: {
-        importPlugin,
+        importPlugin: imports,
     },
     rules: {
         "import/order": ["error", {
@@ -45,7 +55,22 @@ const importConfig = {
     },
 }
 
-const testConfig = {
+const svelteLintConfigs = [
+    ...svelte.configs.recommended,
+    {
+        files: ["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"],
+        languageOptions: {
+            parserOptions: {
+                projectService: true,
+                extraFileExtensions: ['.svelte'], // Add support for additional file extensions, such as .svelte
+                parser: ts.parser,
+                svelteConfig,
+            },
+        },
+    },
+];
+
+const testLintConfig = {
     files: ["tests/**"],
     rules: {
         "no-empty-pattern": "off",
@@ -55,12 +80,14 @@ const testConfig = {
 }
 
 export default defineConfig([
-    ignores,
+    ignoresLintConfig,
     eslint.configs.recommended,
-    tseslint.configs.recommended,
-    tseslint.configs.stylistic,
-    importConfig,
-    testConfig,
+    ts.configs.recommended,
+    ts.configs.stylistic,
+    globalsLintConfig,
+    importLintConfig,
+    ...svelteLintConfigs,
+    testLintConfig,
     // the prettier config has to be applied last because
     // it turns off any rules that conflict with prettier
     prettier,
