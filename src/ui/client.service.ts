@@ -10,6 +10,7 @@ import type {
     SyncEvent,
     PollEvent,
     ProjectResponse,
+    IComponentService,
 } from "@/interface";
 import { EntryType } from "@/constants";
 import { DomainManager, SynchronizationService } from "@/services";
@@ -22,9 +23,9 @@ import { DomainManager, SynchronizationService } from "@/services";
 // import { LeftSideBarService } from "./left-sidebar";
 // import { PortalManager } from "./portal";
 
-export class ClientManager {
+export class ClientManager implements IComponentService {
     // CONSTANTS
-    readonly SHARED_PORTAL_ID = "shared-portal";
+    readonly key = "client";
 
     // SERVICES
     domain: DomainManager;

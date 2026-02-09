@@ -1,5 +1,8 @@
 <script lang="ts">
 	import "./client.css";
+	import { ClientManager } from "./client.service";
+
+	const service = new ClientManager();
 </script>
 
 <div class="client-shell">
@@ -13,6 +16,7 @@
 
 	<main class="main-panel">
 		<!-- Center content -->
+		{service.key}
 	</main>
 
 	<footer class="footer-panel">
