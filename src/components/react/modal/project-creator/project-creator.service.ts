@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 
 import { ModalType } from "@/constants";
 import { CreateProjectEvent, IModalContentManager } from "@/interface";
-import { MultiEventProducer } from "@/model";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 export class ProjectCreatorService implements IModalContentManager {
     readonly title = "Create a new project";

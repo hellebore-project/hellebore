@@ -1,8 +1,11 @@
 <script lang="ts">
-	import "./app.css";
+	import "./client.css";
+	import { ClientManager } from "./client.service";
+
+	const service = new ClientManager();
 </script>
 
-<div class="app-shell">
+<div class="client-shell">
 	<header class="header-panel">
 		<!-- Header content -->
 	</header>
@@ -13,6 +16,7 @@
 
 	<main class="main-panel">
 		<!-- Center content -->
+		{service.key}
 	</main>
 
 	<footer class="footer-panel">
@@ -26,4 +30,8 @@
 
 <div>
 	<!-- Context Menu -->
+</div>
+
+<div>
+	<!-- Portal -->
 </div>

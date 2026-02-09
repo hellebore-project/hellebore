@@ -2,9 +2,9 @@ import { mount } from "svelte";
 
 import "./global.css";
 
-import App from "@/components/App.svelte";
+import Client from "@/ui/client.svelte";
 
-const app = mount(App, {
+const app = mount(Client, {
     target: document.getElementById("app")!,
 });
 

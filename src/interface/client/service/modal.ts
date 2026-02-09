@@ -1,6 +1,6 @@
-import { MultiEventProducer } from "@/model";
+import { MultiEventProducer } from "@/utils/event-producer";
 
-import { IComponentService } from "./component";
+import type { IComponentService } from "./component";
 
 export interface IModalContentManager extends IComponentService {
     title: string;

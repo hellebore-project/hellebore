@@ -1,11 +1,11 @@
-import {
+import type {
     PollEvent,
     PollResult,
     SyncEntryEvent,
     SyncEntryRequest,
     SyncEvent,
 } from "@/interface";
-import { EventProducer, MultiEventProducer } from "@/model";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { DomainManager } from "../domain";
 

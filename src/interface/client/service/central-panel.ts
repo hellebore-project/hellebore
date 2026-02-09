@@ -1,7 +1,7 @@
 import { CentralViewType } from "@/constants";
 
-import { Id } from "../../common";
-import { IComponentService } from "./component";
+import type { Id } from "../../common";
+import type { IComponentService } from "./component";
 
 export interface CentralPanelInfo {
     type: CentralViewType;

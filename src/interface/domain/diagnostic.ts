@@ -1,4 +1,4 @@
-import { BackendApiError } from "./error";
+import type { BackendApiError } from "./error";
 
 export interface DiagnosticResponse<T> {
     data: T;

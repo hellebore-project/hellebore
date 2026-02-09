@@ -6,7 +6,7 @@ import {
 } from "@/components/react/lib/menu-dropdown";
 import { DomainManager } from "@/services";
 import { IComponentService, OpenEntryEditorEvent } from "@/interface";
-import { EventProducer, MultiEventProducer } from "@/model";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntrySearchService } from "../shared/entry-search-field";
 

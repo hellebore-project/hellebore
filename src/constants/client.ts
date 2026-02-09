@@ -1,8 +1,20 @@
+// IDENTIFIERS
+
+export const ARTICLE_REFERENCE_PREFIX = "@";
+
+export const ROOT_FOLDER_NODE_ID = "R";
+
+export const SHARED_PORTAL_ID = "shared-portal";
+export const SHARED_PORTAL_SELECTOR = `#${SHARED_PORTAL_ID}`;
+
+// VIEWS
+
 export enum ViewAction {
     Create = "CREATE",
     Show = "SHOW",
     // Open is a combination of Create and Show;
-    // since both of those actions are already enumerated, we don't one for Open.
+    // since both of those actions are already enumerated,
+    // we don't need one for Open.
     Hide = "HIDE",
     Close = "CLOSE",
 }

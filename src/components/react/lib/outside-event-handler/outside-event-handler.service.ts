@@ -2,7 +2,7 @@ import { addEventListener } from "consolidated-events";
 import { makeAutoObservable } from "mobx";
 import { createRef, RefObject, useEffect } from "react";
 
-import { MultiEventProducer } from "@/model";
+import { MultiEventProducer } from "@/utils/event-producer";
 import { Hookable, IComponentService } from "@/interface";
 
 // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent

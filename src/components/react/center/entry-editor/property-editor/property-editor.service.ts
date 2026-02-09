@@ -12,7 +12,7 @@ import {
     PropertyFieldData,
     TextPropertyFieldData,
 } from "@/interface";
-import { MultiEventProducer } from "@/model";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info.service";
 

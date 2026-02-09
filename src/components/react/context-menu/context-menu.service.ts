@@ -10,7 +10,7 @@ import {
     Point,
 } from "@/interface";
 import { OutsideEventHandlerService } from "@/components/react/lib/outside-event-handler";
-import { MultiEventProducer } from "@/model";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import {
     BaseContextMenuService,

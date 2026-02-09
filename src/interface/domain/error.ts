@@ -1,6 +1,4 @@
-export enum DomainErrorType {
-    UNKNOWN_ERROR = "UnknownError",
-}
+import type { DomainErrorType } from "@/constants";
 
 export type BackendApiError = Record<DomainErrorType, object>;
 
