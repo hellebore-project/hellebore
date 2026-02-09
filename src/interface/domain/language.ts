@@ -1,3 +1,3 @@
-import { BaseEntity } from "./base-entity";
+import type { BaseEntity } from "./base-entity";
 
 export type LanguageProperties = BaseEntity;

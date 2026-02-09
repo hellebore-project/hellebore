@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import { CommandNames, ROOT_FOLDER_ID } from "@/constants";
-import {
+import type {
     BulkFileResponse,
     DiagnosticResponse,
     FolderResponse,

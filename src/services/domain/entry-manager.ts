@@ -7,7 +7,7 @@ import {
     EntryTypeLabel,
     ROOT_FOLDER_ID,
 } from "@/constants";
-import {
+import type {
     BackendEntryPropertyResponse,
     BackendEntryUpdate,
     BaseEntity,

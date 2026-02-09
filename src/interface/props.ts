@@ -1,4 +1,4 @@
-import {
+import type {
     BoxProps,
     ButtonProps,
     ComboboxItem,
@@ -11,7 +11,7 @@ import {
     TextInputProps,
     TextProps,
 } from "@mantine/core";
-import { ButtonHTMLAttributes, HTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, HTMLAttributes } from "react";
 
 // divs
 export type BaseBoxProps = BoxProps;

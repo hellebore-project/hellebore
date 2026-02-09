@@ -1,4 +1,4 @@
-import { IdentifiedObject } from "../common";
+import type { IdentifiedObject } from "../common";
 
 interface FolderProperties {
     parentId: number;

@@ -1,7 +1,7 @@
-import {
+import { DomainErrorType } from "@/constants";
+import type {
     BackendApiError,
     BaseDomainError,
-    DomainErrorType,
     DomainMessageError,
 } from "@/interface";
 
