@@ -1,6 +1,7 @@
 <script lang="ts">
 	import "./client.css";
 	import { ClientManager } from "./client.service";
+	import Footer from "./footer/footer.svelte";
 
 	const service = new ClientManager();
 </script>
@@ -16,11 +17,10 @@
 
 	<main class="main-panel">
 		<!-- Center content -->
-		{service.key}
 	</main>
 
 	<footer class="footer-panel">
-		<!-- Footer content -->
+		<Footer service={service.footer}/>
 	</footer>
 </div>
 

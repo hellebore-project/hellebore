@@ -17,7 +17,7 @@ import { DomainManager, SynchronizationService } from "@/services";
 
 // import { CentralPanelManager } from "./center";
 // import { ContextMenuManager } from "./context-menu";
-// import { FooterManager } from "./footer";
+import { FooterManager } from "./footer";
 // import { HeaderManager } from "./header";
 // import { ModalManager } from "./modal";
 // import { LeftSideBarService } from "./left-sidebar";
@@ -34,7 +34,7 @@ export class ClientManager implements IComponentService {
     // central: CentralPanelManager;
     // header: HeaderManager;
     // leftSideBar: LeftSideBarService;
-    // footer: FooterManager;
+    footer: FooterManager;
     // modal: ModalManager;
     // contextMenu: ContextMenuManager;
 
@@ -54,7 +54,7 @@ export class ClientManager implements IComponentService {
 
         // peripheral panels
         // this.header = new HeaderManager(this.domain);
-        // this.footer = new FooterManager(this.domain);
+        this.footer = new FooterManager(this.domain);
         // this.leftSideBar = new LeftSideBarService({
         //     domain: this.domain,
         // });
@@ -64,6 +64,7 @@ export class ClientManager implements IComponentService {
         // this.contextMenu = new ContextMenuManager();
 
         this._createSubscriptions();
+        this.load();
     }
 
     // PROPERTIES

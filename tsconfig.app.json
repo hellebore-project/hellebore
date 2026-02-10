@@ -33,7 +33,10 @@
     "useDefineForClassFields": true,
     
     // PROJECTS
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",    
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+
+    // COMPLETENESS
+    "skipLibCheck": true,
   },
   "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
   // ignore the legacy react components

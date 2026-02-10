@@ -4,6 +4,7 @@ import globals from "globals";
 import prettier from "eslint-config-prettier";
 import imports from "eslint-plugin-import";
 import svelte from "eslint-plugin-svelte";
+import * as espree from "espree";
 import ts from "typescript-eslint";
 
 import svelteConfig from "./svelte.config.js";
@@ -62,8 +63,12 @@ const svelteLintConfigs = [
         languageOptions: {
             parserOptions: {
                 projectService: true,
-                extraFileExtensions: ['.svelte'], // Add support for additional file extensions, such as .svelte
-                parser: ts.parser,
+                extraFileExtensions: [".svelte"], // Add support for additional file extensions, such as .svelte
+                parser: {
+                  ts: ts.parser,
+                  js: espree,
+                  typescript: ts.parser
+                },
                 svelteConfig,
             },
         },
