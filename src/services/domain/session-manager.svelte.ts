@@ -1,17 +1,12 @@
+// eslint-disable-next-line import/namespace
 import { invoke } from "@tauri-apps/api/core";
-import { makeAutoObservable } from "mobx";
 
 import { CommandNames } from "@/constants";
 import type { ProjectResponse, SessionResponse } from "@/interface";
 
 export class SessionManager {
-    private _dbFilePath: string | null = null;
-    private _project: ProjectResponse | null = null;
-
-    constructor() {
-        // the UI depends on the project info, so it needs to be observable
-        makeAutoObservable(this);
-    }
+    private _dbFilePath: string | null = $state(null);
+    private _project: ProjectResponse | null = $state(null);
 
     get project() {
         return this._project;

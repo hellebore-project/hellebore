@@ -1,7 +1,7 @@
-import { FolderManager } from "./folder-manager";
-import { EntryManager } from "./entry-manager";
-import { SessionManager } from "./session-manager";
-import { WordManager } from "./word-manager";
+import { FolderManager } from "./folder-manager.svelte";
+import { EntryManager } from "./entry-manager.svelte";
+import { SessionManager } from "./session-manager.svelte";
+import { WordManager } from "./word-manager.svelte";
 
 export class DomainManager {
     session: SessionManager;

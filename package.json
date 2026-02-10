@@ -86,6 +86,7 @@
     "eslint-import-resolver-vite": "^2.1.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-svelte": "^3.14.0",
+    "espree": "^11.1.0",
     "global-jsdom": "^26.0.0",
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
@@ -108,8 +109,8 @@
   },
   "lint-staged": {
     "*.rs": "rustfmt --edition 2024",
-    "*.{ts,tsx,svelte}": "eslint --cache --fix",
+    "*.{ts,svelte}": "eslint --cache --fix",
     "*.css": "stylelint --fix",
-    "*.{ts,tsx,css,md}": "prettier --write"
+    "*.{ts,css,md}": "prettier --write"
   }
 }
