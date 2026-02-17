@@ -3,14 +3,14 @@
 }
 
 .tab {
-    background-color: var(--default-bg-color);
+    background-color: var(--background);
     border-radius: 5px 5px 0 0;
 }
 
 .tab:hover {
     background-color: color-mix(
         in oklab,
-        var(--button-bg, var(--default-bg-color)),
+        var(--button-bg, var(--background)),
         white 5%
     );
 }

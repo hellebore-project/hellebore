@@ -1,27 +1,23 @@
-import { makeAutoObservable } from "mobx";
-
+import { DomainManager } from "@/services";
+import type { IComponentService, OpenEntryEditorEvent } from "@/interface";
 import {
     DIVIDER_DATA,
-    MenuDropdownElementData,
-} from "@/components/react/lib/menu-dropdown";
-import { DomainManager } from "@/services";
-import { IComponentService, OpenEntryEditorEvent } from "@/interface";
+    type DropdownMenuItemData,
+} from "@/lib/components/dropdown-menu";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
-import { EntrySearchService } from "../shared/entry-search-field";
-
-type PrivateKeys = "_menuItems" | "_domain";
+import { EntrySearchService } from "../shared/entry-search";
 
 interface MenuItems {
     project: {
-        create: MenuDropdownElementData;
-        open: MenuDropdownElementData;
-        close: MenuDropdownElementData;
+        create: DropdownMenuItemData;
+        open: DropdownMenuItemData;
+        close: DropdownMenuItemData;
     };
     entry: {
-        create: MenuDropdownElementData;
+        create: DropdownMenuItemData;
     };
-    settings: MenuDropdownElementData;
+    settings: DropdownMenuItemData;
 }
 
 export class HeaderManager implements IComponentService {
@@ -33,11 +29,10 @@ export class HeaderManager implements IComponentService {
     private _menuItems: MenuItems;
 
     // SERVICES
-    private _domain: DomainManager;
+    domain: DomainManager;
     entrySearch: EntrySearchService;
 
     // EVENTS
-    fetchPortalSelector: EventProducer<void, string>;
     onCreateProject: MultiEventProducer<void, unknown>;
     onLoadProject: MultiEventProducer<void, unknown>;
     onCloseProject: MultiEventProducer<void, unknown>;
@@ -49,10 +44,9 @@ export class HeaderManager implements IComponentService {
     onToggleLeftBar: MultiEventProducer<void, unknown>;
 
     constructor(domain: DomainManager) {
-        this._domain = domain;
+        this.domain = domain;
         this.entrySearch = new EntrySearchService(domain);
 
-        this.fetchPortalSelector = new EventProducer();
         this.onCreateProject = new MultiEventProducer();
         this.onLoadProject = new MultiEventProducer();
         this.onCloseProject = new MultiEventProducer();
@@ -90,21 +84,6 @@ export class HeaderManager implements IComponentService {
             },
         };
 
-        makeAutoObservable<HeaderManager, PrivateKeys>(this, {
-            _menuItems: false,
-            _domain: false,
-            fetchPortalSelector: false,
-            onCreateProject: false,
-            onLoadProject: false,
-            onCloseProject: false,
-            onOpenHome: false,
-            onOpenSettings: false,
-            onCreateEntry: false,
-            onOpenEntry: false,
-            fetchLeftBarStatus: false,
-            onToggleLeftBar: false,
-        });
-
         this._linkSubscribables();
     }
 
@@ -113,7 +92,7 @@ export class HeaderManager implements IComponentService {
     }
 
     get fileMenuData() {
-        if (this._domain.hasProject)
+        if (this.domain.hasProject)
             return [
                 this._menuItems.project.create,
                 this._menuItems.project.open,
@@ -133,7 +112,6 @@ export class HeaderManager implements IComponentService {
     }
 
     private _linkSubscribables() {
-        this.entrySearch.fetchPortalSelector.broker = this.fetchPortalSelector;
         this.entrySearch.onOpenEntry.broker = this.onOpenEntry;
     }
 }

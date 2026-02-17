@@ -3,5 +3,5 @@
     padding-inline: 0;
     padding-block: 4px;
     height: 100%;
-    background-color: var(--default-bg-color);
+    background-color: var(--background);
 }

@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/namespace
+// eslint-disable-next-line
 import { invoke } from "@tauri-apps/api/core";
 
 import { CommandNames, ROOT_FOLDER_ID } from "@/constants";

@@ -1,7 +1,7 @@
 .nav-item {
     padding-inline: 4px;
     color: var(--default-text-color);
-    background-color: var(--default-bg-color);
+    background-color: var(--background);
     cursor: pointer;
 }
 
@@ -9,7 +9,7 @@
     color: var(--default-text-color);
     background-color: color-mix(
         in oklab,
-        var(--dynamic-background-color, var(--default-bg-color)),
+        var(--dynamic-background-color, var(--background)),
         white 5%
     );
 }
@@ -25,7 +25,7 @@
 .nav-item.active {
     background-color: color-mix(
         in oklab,
-        var(--dynamic-background-color, var(--default-bg-color)),
+        var(--dynamic-background-color, var(--background)),
         white 10%
     );
 }

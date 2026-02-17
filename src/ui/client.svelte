@@ -1,37 +1,40 @@
 <script lang="ts">
 	import "./client.css";
-	import { ClientManager } from "./client.service";
-	import Footer from "./footer/footer.svelte";
+	import { ClientManager } from "./client.service.svelte";
+	import { Footer } from "./footer";
+	import { Header } from "./header";
 
 	const service = new ClientManager();
 </script>
 
-<div class="client-shell">
-	<header class="header-panel">
-		<!-- Header content -->
-	</header>
+<div class="hellebore">
+	<div class="client-shell">
+		<header class="header-panel">
+			<Header service={service.header} />
+		</header>
 
-	<aside class="left-sidebar-panel">
-		<!-- LeftSidebar content -->
-	</aside>
+		<aside class="left-sidebar-panel">
+			<!-- LeftSidebar content -->
+		</aside>
 
-	<main class="main-panel">
-		<!-- Center content -->
-	</main>
+		<main class="main-panel">
+			<!-- Center content -->
+		</main>
 
-	<footer class="footer-panel">
-		<Footer service={service.footer}/>
-	</footer>
-</div>
+		<footer class="footer-panel">
+			<Footer service={service.footer}/>
+		</footer>
+	</div>
 
-<div>
-	<!-- Modals -->
-</div>
+	<div>
+		<!-- Modals -->
+	</div>
 
-<div>
-	<!-- Context Menu -->
-</div>
+	<div>
+		<!-- Context Menu -->
+	</div>
 
-<div>
-	<!-- Portal -->
+	<div>
+		<!-- Portal -->
+	</div>
 </div>

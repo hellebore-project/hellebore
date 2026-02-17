@@ -49,7 +49,7 @@ function renderNavItem({
 
     // Grid
 
-    let className = "nav-item dynamic-div";
+    let className = "nav-item";
     if (active) className += " active";
     if (!editable) {
         // only change the colour of the item if it's read-only

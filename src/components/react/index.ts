@@ -2,10 +2,7 @@
 import "@mantine/core/styles.css";
 import "@mantine/tiptap/styles.css";
 
-export * from "./portal";
-export * from "./header";
 export * from "./center";
 export * from "./left-sidebar";
-export * from "./footer";
 export * from "./modal";
 export * from "./context-menu";

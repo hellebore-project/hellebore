@@ -1,4 +1,6 @@
+// eslint-disable-next-line
 import { ask } from "@tauri-apps/plugin-dialog";
+// eslint-disable-next-line
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import type {
@@ -18,7 +20,7 @@ import { DomainManager, SynchronizationService } from "@/services";
 // import { CentralPanelManager } from "./center";
 // import { ContextMenuManager } from "./context-menu";
 import { FooterManager } from "./footer";
-// import { HeaderManager } from "./header";
+import { HeaderManager } from "./header";
 // import { ModalManager } from "./modal";
 // import { LeftSideBarService } from "./left-sidebar";
 // import { PortalManager } from "./portal";
@@ -32,7 +34,7 @@ export class ClientManager implements IComponentService {
     synchronizer: SynchronizationService;
     // portal: PortalManager;
     // central: CentralPanelManager;
-    // header: HeaderManager;
+    header: HeaderManager;
     // leftSideBar: LeftSideBarService;
     footer: FooterManager;
     // modal: ModalManager;
@@ -53,7 +55,7 @@ export class ClientManager implements IComponentService {
         // });
 
         // peripheral panels
-        // this.header = new HeaderManager(this.domain);
+        this.header = new HeaderManager(this.domain);
         this.footer = new FooterManager(this.domain);
         // this.leftSideBar = new LeftSideBarService({
         //     domain: this.domain,
@@ -77,7 +79,6 @@ export class ClientManager implements IComponentService {
     // SUBSCRIPTIONS
 
     private _createSubscriptions() {
-        // this.central.fetchPortalSelector.subscribe(() => this.portal.selector);
         // this.central.onChangePanel.subscribe(({ action, details }) => {
         //     if (details.type === CentralViewType.EntryEditor) {
         //         if (details.entry === undefined) return;
@@ -108,7 +109,6 @@ export class ClientManager implements IComponentService {
         //     this.deleteEntry(id, title),
         // );
 
-        // this.header.fetchPortalSelector.subscribe(() => this.portal.selector);
         // this.header.onCreateProject.subscribe(() =>
         //     this.modal.openProjectCreator(),
         // );
@@ -130,7 +130,6 @@ export class ClientManager implements IComponentService {
         // );
 
         // const spotlight = this.leftSideBar.spotlight;
-        // spotlight.fetchPortalSelector.subscribe(() => this.portal.selector);
         // spotlight.onCreateEntry.subscribe((args) =>
         //     this.modal.openEntryCreator(args),
         // );
@@ -148,7 +147,6 @@ export class ClientManager implements IComponentService {
         //     this.contextMenu.openForNavBarEntryNode(args),
         // );
 
-        // this.modal.fetchPortalSelector.subscribe(() => this.portal.selector);
         // this.modal.onCreateProject.subscribe(({ name, dbFilePath }) =>
         //     this.createProject(name, dbFilePath),
         // );

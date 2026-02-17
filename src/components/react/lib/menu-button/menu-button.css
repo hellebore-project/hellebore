@@ -1,13 +1,13 @@
 .menu-button {
     color: white;
-    background-color: var(--button-bg, var(--default-bg-color));
+    background-color: var(--button-bg, var(--background));
 }
 
 .menu-button:hover {
     color: white;
     background-color: color-mix(
         in oklab,
-        var(--button-bg, var(--default-bg-color)),
+        var(--button-bg, var(--background)),
         white 10%
     );
 }

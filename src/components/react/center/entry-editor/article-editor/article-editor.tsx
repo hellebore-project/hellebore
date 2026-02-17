@@ -11,7 +11,7 @@ import { ArticleEditorService } from "./article-editor.service";
 
 const RICH_TEXT_EDITOR_STYLES = {
     root: { borderWidth: "0" },
-    content: { backgroundColor: "var(--default-bg-color)" },
+    content: { backgroundColor: "var(--background)" },
 };
 
 interface ArticleEditorProps {
