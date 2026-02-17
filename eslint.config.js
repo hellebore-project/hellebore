@@ -28,6 +28,7 @@ const globalsLintConfig = {
 
 const importLintConfig = {
     extends: [imports.flatConfigs.recommended, imports.flatConfigs.typescript],
+    files: ["**/*.ts"],
     plugins: {
         importPlugin: imports,
     },
@@ -65,9 +66,9 @@ const svelteLintConfigs = [
                 projectService: true,
                 extraFileExtensions: [".svelte"], // Add support for additional file extensions, such as .svelte
                 parser: {
-                  ts: ts.parser,
-                  js: espree,
-                  typescript: ts.parser
+                    ts: ts.parser,
+                    js: espree,
+                    typescript: ts.parser
                 },
                 svelteConfig,
             },
@@ -86,13 +87,13 @@ const testLintConfig = {
 
 export default defineConfig([
     ignoresLintConfig,
+    globalsLintConfig,
     eslint.configs.recommended,
     ts.configs.recommended,
     ts.configs.stylistic,
-    globalsLintConfig,
-    importLintConfig,
     ...svelteLintConfigs,
     testLintConfig,
+    importLintConfig,
     // the prettier config has to be applied last because
     // it turns off any rules that conflict with prettier
     prettier,

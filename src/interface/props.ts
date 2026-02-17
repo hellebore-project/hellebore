@@ -1,7 +1,6 @@
 import type {
     BoxProps,
     ButtonProps,
-    ComboboxItem,
     ContainerProps,
     GridColProps,
     GridProps,
@@ -29,4 +28,3 @@ export type BaseTextProps = TextProps & HTMLAttributes<HTMLParagraphElement>;
 export type BaseButtonProps = ButtonProps &
     ButtonHTMLAttributes<HTMLButtonElement>;
 export type BaseTextInputProps = TextInputProps;
-export type OptionData = ComboboxItem;

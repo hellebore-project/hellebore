@@ -1,7 +1,7 @@
 .table-of-contents-item {
     width: 100%;
     color: var(--button-color);
-    background-color: var(--button-bg, var(--default-bg-color));
+    background-color: var(--button-bg, var(--background));
     border: var(--button-bd);
     border-radius: 5px 0 0 5px;
     border-top: 0;
@@ -21,7 +21,7 @@
     color: var(--button-color);
     background-color: color-mix(
         in oklab,
-        var(--button-bg, var(--default-bg-color)),
+        var(--button-bg, var(--background)),
         white 5%
     );
 }

@@ -1,50 +1,66 @@
+.hellebore {
+    /* COLOURS */
+
+    --default-text-color: white;
+    --background: #1f1f1f;
+    --default-bd-color: #424242;
+    --selected-text-color: white;
+    --selected-bg-color: rgb(34 139 230 / 15%);
+    --selected-bd-color: #74c0fc;
+    --selected-bd: 1px solid var(--selected-bd-color);
+    --error-bg-color: #61050b;
+    --error-bd-color: #c92a2a;
+    --error-bd: 1px solid var(--error-bd-color);
+
+    /* COMPONENTS */
+
+    --dropdown-menu-bg-color: #0a0a0a;
+
+    /* CLIENT */
+
+    --header-height: 50px;
+    --header-bg-color: #282828;
+    --sidebar-width: 300px;
+    --sidebar-bg-color: #161616;
+    --main-padding: 20px;
+    --main-bg-color: #0a0a0a;
+    --footer-height: 25px;
+    --footer-bg-color: #141414;
+}
+
+.client-shell {
+    display: grid;
+    grid-template:
+        "header header" var(--header-height)
+        "sidebar main" 1fr "footer footer" var(--footer-height) / var(
+            --sidebar-width
+        )
+        1fr;
+    width: 100%;
+    height: 100vh;
+    gap: 0;
+    overflow: hidden;
+}
+
 .header-panel {
-    background-color: var(--header-bg-color);
-
-    --default-bg-color: var(--header-bg-color);
-
     grid-area: header;
     overflow: hidden;
 }
 
 .left-sidebar-panel {
-    background-color: var(--sidebar-bg-color);
-
-    --default-bg-color: var(--sidebar-bg-color);
-
     grid-area: sidebar;
     overflow: auto;
 }
 
 .main-panel {
-    background-color: var(--main-bg-color);
     display: flex;
     flex-direction: column;
     overflow: auto;
     padding: var(--main-padding);
-
-    --default-bg-color: var(--main-bg-color);
-
     grid-area: main;
 }
 
 .footer-panel {
-    background-color: var(--footer-bg-color);
-
-    --default-bg-color: var(--footer-bg-color);
-
     grid-area: footer;
     overflow: hidden;
-}
-
-.client-shell {
-    display: grid;
-    grid-template: "header header" var(
-            --header-height
-        ) "sidebar main" 1fr "footer footer" var(--footer-height) / var(
-            --sidebar-width
-        ) 1fr;
-    width: 100%;
-    height: 100vh;
-    gap: 0;
 }

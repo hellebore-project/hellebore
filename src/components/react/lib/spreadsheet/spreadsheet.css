@@ -37,6 +37,6 @@
 }
 
 .spreadsheet-cell-action {
-    background-color: var(--default-bg-color);
+    background-color: var(--background);
     border: none;
 }

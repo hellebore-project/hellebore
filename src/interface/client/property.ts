@@ -1,4 +1,4 @@
-import type { OptionData } from "../props";
+import type { OptionData } from "./option";
 
 export enum PropertyFieldType {
     TEXT,
