@@ -9,10 +9,10 @@
     display: flex;
     height: calc(
         100vh - var(--header-height) - var(--footer-height) - 2 *
-            var(--main-padding) - var(--space-below-header-height) -
+            var(--central-padding) - var(--space-below-header-height) -
             var(--title-field-height)
     );
-    flex-direction: column nowrap;
+    flex-direction: column;
     flex-grow: 1;
 }
 

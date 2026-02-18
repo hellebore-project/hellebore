@@ -13,7 +13,7 @@ interface AddFolderButtonProps {
 function renderAddFolderButton({ service }: AddFolderButtonProps) {
     return (
         <ToolTipWrapper
-            className="nav-sub-item compact"
+            className="nav-sub-item grow-0"
             label="New Folder"
             portalProps={{ target: service.fetchPortalSelector.produce() }}
         >

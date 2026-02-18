@@ -13,7 +13,7 @@ interface AddEntryButtonProps {
 function renderAddEntryButton({ service }: AddEntryButtonProps) {
     return (
         <ToolTipWrapper
-            className="nav-sub-item compact"
+            className="nav-sub-item grow-0"
             label="New Entry"
             portalProps={{ target: service.fetchPortalSelector.produce() }}
         >

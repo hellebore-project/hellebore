@@ -1,4 +1,4 @@
-.hellebore {
+.client {
     /* COLOURS */
 
     --default-text-color: white;
@@ -16,14 +16,14 @@
 
     --dropdown-menu-bg-color: #0a0a0a;
 
-    /* CLIENT */
+    /* PANELS */
 
     --header-height: 50px;
     --header-bg-color: #282828;
     --sidebar-width: 300px;
     --sidebar-bg-color: #161616;
-    --main-padding: 20px;
-    --main-bg-color: #0a0a0a;
+    --central-padding: 20px;
+    --central-bg-color: #0a0a0a;
     --footer-height: 25px;
     --footer-bg-color: #141414;
 }
@@ -32,35 +32,23 @@
     display: grid;
     grid-template:
         "header header" var(--header-height)
-        "sidebar main" 1fr "footer footer" var(--footer-height) / var(
-            --sidebar-width
-        )
-        1fr;
-    width: 100%;
-    height: 100vh;
-    gap: 0;
-    overflow: hidden;
+        "sidebar central" 1fr
+        "footer footer" var(--footer-height)
+        / var(--sidebar-width) 1fr;
 }
 
 .header-panel {
     grid-area: header;
-    overflow: hidden;
 }
 
 .left-sidebar-panel {
     grid-area: sidebar;
-    overflow: auto;
 }
 
-.main-panel {
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-    padding: var(--main-padding);
-    grid-area: main;
+.central-panel {
+    grid-area: central;
 }
 
 .footer-panel {
     grid-area: footer;
-    overflow: hidden;
 }

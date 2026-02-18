@@ -13,7 +13,7 @@ interface CollapseFoldersButtonProps {
 function renderCollapseFolderButton({ service }: CollapseFoldersButtonProps) {
     return (
         <ToolTipWrapper
-            className="nav-sub-item compact"
+            className="nav-sub-item grow-0"
             label="Collapse All Folders"
             portalProps={{ target: service.fetchPortalSelector.produce() }}
         >

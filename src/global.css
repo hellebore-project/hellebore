@@ -122,16 +122,3 @@
         @apply bg-background text-foreground;
     }
 }
-
-.divider {
-    border-top: 0.8px solid var(--default-bd-color);
-    margin-block: 12px;
-}
-
-.compact {
-    flex-grow: 0;
-}
-
-.grow {
-    flex-grow: 1;
-}

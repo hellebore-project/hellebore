@@ -12,7 +12,7 @@ function renderNavItemIndents({ itemKey, rank }: NavItemIndentProps) {
     const indents: ReactNode[] = [
         <div
             key={`${itemKey}-indent-${0}`}
-            className="nav-item-indent nav-sub-item compact"
+            className="nav-item-indent nav-sub-item grow-0"
         />,
     ];
     if (rank > 1) {
@@ -20,7 +20,7 @@ function renderNavItemIndents({ itemKey, rank }: NavItemIndentProps) {
             indents.push(
                 <div
                     key={`${itemKey}-indent-${i}`}
-                    className="nav-item-indent nav-sub-item compact scaffold"
+                    className="nav-item-indent nav-sub-item grow-0 scaffold"
                 />,
             );
     }

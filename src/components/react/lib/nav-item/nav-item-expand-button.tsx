@@ -20,7 +20,7 @@ function renderExpandButton({
     return (
         <Center>
             <IconChevronRight
-                className="nav-sub-item compact"
+                className="nav-sub-item grow-0"
                 size={18}
                 style={{
                     paddingBlock: "0px",

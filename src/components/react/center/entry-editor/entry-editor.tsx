@@ -22,7 +22,7 @@ function renderEntryEditorHeader({ service }: EntryEditorProps) {
             <Badge variant="outline" color="blue">
                 {service.info.entryTypeLabel}
             </Badge>
-            <div className="grow" />
+            <div className="flex-1" />
             <DeleteEntryButton service={service} />
         </Group>
     );

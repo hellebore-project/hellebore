@@ -56,7 +56,12 @@ function renderTitleField({ service }: TitleFieldProps) {
                 </Popover.Dropdown>
             </Popover>
 
-            <Divider className="divider" />
+            <Divider 
+                style={{
+                    borderTop: "0.8px solid var(--default-bd-color)",
+                    marginBlock: "12px",
+                }}
+            />
         </>
     );
 }
