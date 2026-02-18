@@ -92,7 +92,7 @@ function renderSpreadsheetCell<K extends string, M>({
     let field: ReactNode = data.label;
 
     if (data.editable) {
-        className += " compact";
+        className += " grow-0";
 
         if (colData.type === SpreadsheetFieldType.TEXT) {
             field = (

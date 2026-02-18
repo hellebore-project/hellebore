@@ -13,7 +13,7 @@ interface DeleteEntryButtonProps {
 function renderDeleteEntryButton({ service }: DeleteEntryButtonProps) {
     return (
         <ToolTipWrapper
-            className="compact"
+            className="grow-0"
             label="Delete Entity"
             portalProps={{ target: service.fetchPortalSelector.produce() }}
         >
