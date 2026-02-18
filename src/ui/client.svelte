@@ -1,8 +1,9 @@
 <script lang="ts">
 	import "./client.css";
 	import { ClientManager } from "./client.service.svelte";
-	import { Footer } from "./footer";
 	import { Header } from "./header";
+	import { Footer } from "./footer";
+	import { Centre } from "./centre";
 
 	const service = new ClientManager();
 </script>
@@ -18,7 +19,7 @@
 		</aside>
 
 		<main class="central-panel flex flex-col overflow-auto p-(--central-padding)">
-			<!-- Center content -->
+			<Centre service={service.central}/>
 		</main>
 
 		<footer class="footer-panel overflow-hidden">

@@ -1,5 +1,5 @@
 // eslint-disable-next-line
-import { ask } from "@tauri-apps/plugin-dialog";
+import { ask, open } from "@tauri-apps/plugin-dialog";
 // eslint-disable-next-line
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
@@ -14,10 +14,10 @@ import type {
     ProjectResponse,
     IComponentService,
 } from "@/interface";
-import { EntryType } from "@/constants";
+import { CentralViewType, EntryType } from "@/constants";
 import { DomainManager, SynchronizationService } from "@/services";
 
-// import { CentralPanelManager } from "./center";
+import { CentralPanelManager } from "./centre";
 // import { ContextMenuManager } from "./context-menu";
 import { FooterManager } from "./footer";
 import { HeaderManager } from "./header";
@@ -32,8 +32,7 @@ export class ClientManager implements IComponentService {
     // SERVICES
     domain: DomainManager;
     synchronizer: SynchronizationService;
-    // portal: PortalManager;
-    // central: CentralPanelManager;
+    central: CentralPanelManager;
     header: HeaderManager;
     // leftSideBar: LeftSideBarService;
     footer: FooterManager;
@@ -46,13 +45,10 @@ export class ClientManager implements IComponentService {
         this.domain = new DomainManager();
         this.synchronizer = new SynchronizationService(this.domain);
 
-        // miscellaneous
-        // this.portal = new PortalManager(this.SHARED_PORTAL_ID);
-
         // central panel
-        // this.central = new CentralPanelManager({
-        //     domain: this.domain,
-        // });
+        this.central = new CentralPanelManager({
+            domain: this.domain,
+        });
 
         // peripheral panels
         this.header = new HeaderManager(this.domain);
@@ -114,7 +110,7 @@ export class ClientManager implements IComponentService {
         // );
         // this.header.onLoadProject.subscribe(() => this.loadProject());
         // this.header.onCloseProject.subscribe(() => this.closeProject());
-        // this.header.onOpenHome.subscribe(() => this.central.openHome());
+        this.header.onOpenHome.subscribe(() => this.central.openHome());
         // this.header.onOpenSettings.subscribe(() => this.central.openSettings());
         // this.header.onCreateEntry.subscribe(() =>
         //     this.modal.openEntryCreator({}),
@@ -195,16 +191,15 @@ export class ClientManager implements IComponentService {
     }
 
     private async _loadHome(project: ProjectResponse) {
-        // if (this.central.panelCount === 0) {
-        //     this.central.openHome();
-        //     return;
-        // }
+        if (this.central.panelCount === 0) {
+            this.central.openHome();
+            return;
+        }
 
-        // const service = this.central.getHomePanel();
-        // if (!service) return;
+        const service = this.central.getHomePanel();
+        if (!service) return;
 
-        // service.load(project.name);
-        console.log(project);
+        service.load(project.name);
     }
 
     private async _loadNavigator() {
@@ -218,45 +213,48 @@ export class ClientManager implements IComponentService {
 
     // PROJECT HANDLING
 
-    // async createProject(name: string, dbFilePath: string) {
-    // save any unsynced data before loading a new project
-    // this.central.clear();
+    async createProject(name: string, dbFilePath: string) {
+        // save any unsynced data before loading a new project
+        this.central.clear();
 
-    // const response = await this.domain.session.createProject(
-    //     name,
-    //     dbFilePath,
-    // );
+        const response = await this.domain.session.createProject(
+            name,
+            dbFilePath,
+        );
 
-    // if (response) {
-    //     this._loadClientForProject(response);
-    //     this.central.openHome();
-    // }
+        if (response) {
+            this._loadClientForProject(response);
+            this.central.openHome();
+        }
 
-    // return response;
-    // }
+        return response;
+    }
 
     async loadProject() {
-        // const path = await open();
-        // if (!path) return null;
-        // // save any unsynced data before loading another project
-        // this.central.clear();
-        // const response = await this.domain.session.loadProject(path);
-        // if (response) {
-        //     this._loadClientForProject(response);
-        //     this.central.openHome();
-        // }
-        // return response;
+        const path = await open();
+        if (!path) return null;
+
+        // save any unsynced data before loading another project
+        this.central.clear();
+
+        const response = await this.domain.session.loadProject(path);
+        if (response) {
+            this._loadClientForProject(response);
+            this.central.openHome();
+        }
+
+        return response;
     }
 
     async closeProject() {
-        // // save any unsynced data before closing the project
-        // this.central.clear();
-        // const success = await this.domain.session.closeProject();
-        // if (success) {
-        //     this.leftSideBar.reset();
-        //     this.central.openHome();
-        // }
-        // return success;
+        // save any unsynced data before closing the project
+        this.central.clear();
+        const success = await this.domain.session.closeProject();
+        if (success) {
+            // this.leftSideBar.reset();
+            this.central.openHome();
+        }
+        return success;
     }
 
     // FOLDER HANDLING
@@ -351,20 +349,20 @@ export class ClientManager implements IComponentService {
         //     fileIds.folders,
         // );
 
-        // let panelIndex = 0;
-        // for (const panelService of this.central.iterateOpenPanels()) {
-        //     if (panelService.type !== CentralViewType.EntryEditor) continue;
+        let panelIndex = 0;
+        for (const panelService of this.central.iterateOpenPanels()) {
+            if (panelService.type !== CentralViewType.EntryEditor) continue;
 
-        //     const entryId = panelService.details.entry?.id;
-        //     if (entryId === undefined) continue;
+            const entryId = panelService.details.entry?.id;
+            if (entryId === undefined) continue;
 
-        //     if (fileIds.entries.includes(entryId))
-        //         this.central.closePanel(panelIndex);
+            if (fileIds.entries.includes(entryId))
+                this.central.closePanel(panelIndex);
 
-        //     panelIndex++;
-        // }
+            panelIndex++;
+        }
 
-        // if (this.central.panelCount == 0) this.central.openHome();
+        if (this.central.panelCount == 0) this.central.openHome();
 
         return fileIds;
     }
@@ -378,10 +376,10 @@ export class ClientManager implements IComponentService {
             folderId,
         );
 
-        // if (entry) {
-        //     this.leftSideBar.spotlight.addNodeForCreatedEntry(entry);
-        //     this.central.openEntryEditor({ id: entry.id });
-        // }
+        if (entry) {
+            // this.leftSideBar.spotlight.addNodeForCreatedEntry(entry);
+            // this.central.openEntryEditor({ id: entry.id });
+        }
 
         return entry;
     }
@@ -412,19 +410,19 @@ export class ClientManager implements IComponentService {
 
         // this.leftSideBar.spotlight.deleteEntityNode(id);
 
-        // let panelIndex = 0;
-        // for (const panelService of this.central.iterateOpenPanels()) {
-        //     if (panelService.type !== CentralViewType.EntryEditor) continue;
+        let panelIndex = 0;
+        for (const panelService of this.central.iterateOpenPanels()) {
+            if (panelService.type !== CentralViewType.EntryEditor) continue;
 
-        //     const entryId = panelService.details.entry?.id;
-        //     if (entryId === undefined) continue;
+            const entryId = panelService.details.entry?.id;
+            if (entryId === undefined) continue;
 
-        //     if (entryId == id) this.central.closePanel(panelIndex);
+            if (entryId == id) this.central.closePanel(panelIndex);
 
-        //     panelIndex++;
-        // }
+            panelIndex++;
+        }
 
-        // if (this.central.panelCount == 0) this.central.openHome();
+        if (this.central.panelCount == 0) this.central.openHome();
 
         return true;
     }
@@ -432,13 +430,11 @@ export class ClientManager implements IComponentService {
     // SYNCHRONIZATION
 
     private _fetchChanges(event: PollEvent) {
-        console.log(event);
-        // return { entries: this.central.fetchChanges(event) };
+        return { entries: this.central.fetchChanges(event) };
     }
 
     private _handleEntrySynchronization(event: SyncEvent) {
-        console.log(event);
-        // this.central.handleEntrySynchronization(event);
+        this.central.handleEntrySynchronization(event);
 
         // for (const { request, response } of event.entries) {
         //     if (
@@ -454,12 +450,10 @@ export class ClientManager implements IComponentService {
         // }
     }
 
-    // HOOKS
-
     // CLEAN UP
 
     cleanUp() {
         // this.modal.close();
-        // this.central.clear();
+        this.central.clear();
     }
 }

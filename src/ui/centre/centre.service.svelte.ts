@@ -1,64 +1,42 @@
-import { makeAutoObservable } from "mobx";
+import { SvelteMap } from "svelte/reactivity";
 
 import { CentralViewType, ViewAction } from "@/constants";
-import {
+import type {
     ChangeCentralPanelEvent,
     ChangeEntryEvent,
     DeleteEntryEvent,
-    Hookable,
     ICentralPanelContentService,
     IComponentService,
-    OpenEntryEditorEvent,
     PollEvent,
+    PollResultEntryData,
     SyncEvent,
-    WordMetaData,
 } from "@/interface";
-import { SpreadsheetReferenceService } from "@/components/react/lib/spreadsheet";
 import { DomainManager } from "@/services";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home";
-import { SettingsEditorService } from "./settings-editor";
-import {
-    EntryEditorService,
-    EntryEditorServiceArgs,
-    WordColumnKeys,
-} from "./entry-editor";
-
-type PrivateKeys =
-    | "_panelServices"
-    | "_entryEditorArgs"
-    | "_domain"
-    | "_spreadsheetReference";
+// import { SettingsEditorService } from "./settings-editor";
+// import {
+//     EntryEditorService,
+//     type EntryEditorServiceArgs,
+//     type WordColumnKeys,
+// } from "./entry-editor";
 
 export interface CentralPanelManagerArgs {
     domain: DomainManager;
 }
 
-export interface LoadEntryEditorResult {
-    service: EntryEditorService;
-    loading: Promise<void> | null;
-}
-
-export class CentralPanelManager implements IComponentService, Hookable {
+export class CentralPanelManager implements IComponentService {
     // CONSTANTS
     readonly key = "central-panel";
 
     // STATE VARIABLES
-    private _activePanelIndex: number | null = null;
-    private _panelKeys: string[];
+    private _activePanelIndex: number | null = $state(null);
+    private _panelKeys: string[] = $state([]);
     private _panelServices: Map<string, ICentralPanelContentService>;
-    private _entryEditorArgs: EntryEditorServiceArgs;
 
     // SERVICES
     private _domain: DomainManager;
-    // When there are multiple entry-editor tabs that exist concurrently,
-    // they all share the same spreadsheet reference, but only a single one
-    // of them is hooked to it at a time.
-    private _spreadsheetReference: SpreadsheetReferenceService<
-        WordColumnKeys,
-        WordMetaData
-    >;
 
     // EVENTS
     fetchPortalSelector: EventProducer<void, string>;
@@ -70,19 +48,7 @@ export class CentralPanelManager implements IComponentService, Hookable {
 
     constructor({ domain }: CentralPanelManagerArgs) {
         this._panelKeys = [];
-        this._panelServices = new Map();
-
-        this._spreadsheetReference = new SpreadsheetReferenceService(
-            "word-editor-spreadsheet-reference",
-        );
-        this._entryEditorArgs = {
-            domain,
-            wordEditor: {
-                spreadsheet: {
-                    reference: this._spreadsheetReference,
-                },
-            },
-        };
+        this._panelServices = new SvelteMap();
 
         this._domain = domain;
 
@@ -92,21 +58,6 @@ export class CentralPanelManager implements IComponentService, Hookable {
         this.onPartialChangeData = new MultiEventProducer();
         this.onPeriodicChangeData = new MultiEventProducer();
         this.onDeleteEntry = new MultiEventProducer();
-
-        makeAutoObservable<CentralPanelManager, PrivateKeys>(this, {
-            _panelServices: false,
-            _entryEditorArgs: false,
-            _domain: false,
-            _spreadsheetReference: false,
-            fetchPortalSelector: false,
-            onChangePanel: false,
-            onChangeData: false,
-            onPartialChangeData: false,
-            onPeriodicChangeData: false,
-            onDeleteEntry: false,
-            iterateOpenPanels: false, // don't convert to a flow
-            hooks: false, // don't convert to a flow
-        });
     }
 
     // PROPERTIES
@@ -121,7 +72,7 @@ export class CentralPanelManager implements IComponentService, Hookable {
     }
 
     get panelContainer() {
-        return document.querySelector<HTMLDivElement>(".main-panel");
+        return document.querySelector<HTMLDivElement>(".central-panel");
     }
 
     // OPENING PANELS
@@ -143,56 +94,56 @@ export class CentralPanelManager implements IComponentService, Hookable {
         return service;
     }
 
-    openSettings() {
-        const currentIndex = this.findPanelIndex(CentralViewType.Settings);
-        if (currentIndex !== null) {
-            this._showPanel(currentIndex);
-            return this.getPanelByIndex(currentIndex) as SettingsEditorService;
-        }
+    // openSettings() {
+    //     const currentIndex = this.findPanelIndex(CentralViewType.Settings);
+    //     if (currentIndex !== null) {
+    //         this._showPanel(currentIndex);
+    //         return this.getPanelByIndex(currentIndex) as SettingsEditorService;
+    //     }
 
-        const service = new SettingsEditorService();
+    //     const service = new SettingsEditorService();
 
-        // only one panel can be open at a time
-        this._clearAndAddPanel(service, true);
+    //     // only one panel can be open at a time
+    //     this._clearAndAddPanel(service, true);
 
-        return service;
-    }
+    //     return service;
+    // }
 
-    async openEntryEditor(args: OpenEntryEditorEvent) {
-        if (args.focus ?? false) this.panelContainer?.focus();
+    // async openEntryEditor(args: OpenEntryEditorEvent) {
+    //     if (args.focus ?? false) this.panelContainer?.focus();
 
-        const key = EntryEditorService.generateKey(
-            CentralViewType.EntryEditor,
-            args.id,
-        );
+    //     const key = EntryEditorService.generateKey(
+    //         CentralViewType.EntryEditor,
+    //         args.id,
+    //     );
 
-        const currentIndex = this.findPanelIndex(key);
-        if (currentIndex !== null) {
-            this._showPanel(currentIndex);
-            return this.getPanelByIndex(currentIndex) as EntryEditorService;
-        }
+    //     const currentIndex = this.findPanelIndex(key);
+    //     if (currentIndex !== null) {
+    //         this._showPanel(currentIndex);
+    //         return this.getPanelByIndex(currentIndex) as EntryEditorService;
+    //     }
 
-        const service = new EntryEditorService(this._entryEditorArgs);
+    //     const service = new EntryEditorService(this._entryEditorArgs);
 
-        service.fetchPortalSelector.broker = this.fetchPortalSelector;
-        service.onOpenReferencedEntry.subscribe((args) =>
-            this.openEntryEditor(args),
-        );
-        service.onChange.broker = this.onChangeData;
-        service.onPartialChange.broker = this.onPartialChangeData;
-        service.onPeriodicChange.broker = this.onPeriodicChangeData;
-        service.onDelete.broker = this.onDeleteEntry;
+    //     service.fetchPortalSelector.broker = this.fetchPortalSelector;
+    //     service.onOpenReferencedEntry.subscribe((args) =>
+    //         this.openEntryEditor(args),
+    //     );
+    //     service.onChange.broker = this.onChangeData;
+    //     service.onPartialChange.broker = this.onPartialChangeData;
+    //     service.onPeriodicChange.broker = this.onPeriodicChangeData;
+    //     service.onDelete.broker = this.onDeleteEntry;
 
-        // NOTE: the entry-editor service needs to finish loading before we can proceed with
-        // firing the event producers. The event payloads require the entry ID, which is
-        // fetched during the loading sequence.
-        await service.load(args);
+    //     // NOTE: the entry-editor service needs to finish loading before we can proceed with
+    //     // firing the event producers. The event payloads require the entry ID, which is
+    //     // fetched during the loading sequence.
+    //     await service.load(args);
 
-        // only one panel can be open at a time
-        this._clearAndAddPanel(service, true);
+    //     // only one panel can be open at a time
+    //     this._clearAndAddPanel(service, true);
 
-        return service;
-    }
+    //     return service;
+    // }
 
     private _addPanel(service: ICentralPanelContentService, show = true) {
         this._panelServices.set(service.key, service);
@@ -314,16 +265,17 @@ export class CentralPanelManager implements IComponentService, Hookable {
     // SYNC
 
     fetchChanges(event: PollEvent) {
-        const results = [];
+        const results: PollResultEntryData[] = [];
 
         for (const service of this._panelServices.values()) {
             if (service.type !== CentralViewType.EntryEditor) continue;
 
-            const entryEditor = service as EntryEditorService;
-            const result = entryEditor.fetchChanges(event);
-            if (result === null) continue;
+            console.log(event);
+            // const entryEditor = service as EntryEditorService;
+            // const result = entryEditor.fetchChanges(event);
+            // if (result === null) continue;
 
-            results.push(result);
+            // results.push(result);
         }
 
         return results;
@@ -333,14 +285,9 @@ export class CentralPanelManager implements IComponentService, Hookable {
         for (const service of this._panelServices.values()) {
             if (service.type !== CentralViewType.EntryEditor) continue;
 
-            const entryEditor = service as EntryEditorService;
-            entryEditor.handleSynchronization(event.entries);
+            console.log(event);
+            // const entryEditor = service as EntryEditorService;
+            // entryEditor.handleSynchronization(event.entries);
         }
-    }
-
-    // HOOKS
-
-    *hooks() {
-        yield* this._spreadsheetReference.hooks();
     }
 }

@@ -1,17 +1,14 @@
-import { makeAutoObservable } from "mobx";
-
 import { CentralViewType } from "@/constants";
-import { ICentralPanelContentService } from "@/interface";
+import type { ICentralPanelContentService } from "@/interface";
 import { DomainManager } from "@/services";
 
 export class HomeManager implements ICentralPanelContentService {
-    _projectName = "";
+    _projectName: string = $state("");
 
     domain: DomainManager;
 
     constructor(domain: DomainManager) {
         this.domain = domain;
-        makeAutoObservable(this, { domain: false });
     }
 
     get key() {
