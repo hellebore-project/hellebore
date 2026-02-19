@@ -111,7 +111,7 @@ export class ClientManager implements IComponentService {
         // this.header.onLoadProject.subscribe(() => this.loadProject());
         // this.header.onCloseProject.subscribe(() => this.closeProject());
         this.header.onOpenHome.subscribe(() => this.central.openHome());
-        // this.header.onOpenSettings.subscribe(() => this.central.openSettings());
+        this.header.onOpenSettings.subscribe(() => this.central.openSettings());
         // this.header.onCreateEntry.subscribe(() =>
         //     this.modal.openEntryCreator({}),
         // );
