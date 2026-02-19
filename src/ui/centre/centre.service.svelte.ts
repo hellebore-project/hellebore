@@ -15,7 +15,7 @@ import { DomainManager } from "@/services";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home";
-// import { SettingsEditorService } from "./settings-editor";
+import { SettingsEditorService } from "./settings-editor";
 // import {
 //     EntryEditorService,
 //     type EntryEditorServiceArgs,
@@ -94,20 +94,20 @@ export class CentralPanelManager implements IComponentService {
         return service;
     }
 
-    // openSettings() {
-    //     const currentIndex = this.findPanelIndex(CentralViewType.Settings);
-    //     if (currentIndex !== null) {
-    //         this._showPanel(currentIndex);
-    //         return this.getPanelByIndex(currentIndex) as SettingsEditorService;
-    //     }
+    openSettings() {
+        const currentIndex = this.findPanelIndex(CentralViewType.Settings);
+        if (currentIndex !== null) {
+            this._showPanel(currentIndex);
+            return this.getPanelByIndex(currentIndex) as SettingsEditorService;
+        }
 
-    //     const service = new SettingsEditorService();
+        const service = new SettingsEditorService();
 
-    //     // only one panel can be open at a time
-    //     this._clearAndAddPanel(service, true);
+        // only one panel can be open at a time
+        this._clearAndAddPanel(service, true);
 
-    //     return service;
-    // }
+        return service;
+    }
 
     // async openEntryEditor(args: OpenEntryEditorEvent) {
     //     if (args.focus ?? false) this.panelContainer?.focus();

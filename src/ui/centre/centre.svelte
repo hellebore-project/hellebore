@@ -2,6 +2,7 @@
     import { CentralViewType } from "@/constants";
     import type { CentreProps } from "./centre.interface";
     import { Home, HomeManager } from "./home";
+    import { SettingsEditor, SettingsEditorService } from "./settings-editor";
 
     let { service }: CentreProps = $props();
     let contentService = $derived(service.activePanelService);
@@ -11,7 +12,7 @@
     {#if contentService.type === CentralViewType.Home}
         <Home service={contentService as HomeManager}/>
     {:else if contentService.type === CentralViewType.Settings}
-        {null}
+        <SettingsEditor service={contentService as SettingsEditorService}/>
     {:else if contentService.type === CentralViewType.EntryEditor}
         {null}
     {:else}

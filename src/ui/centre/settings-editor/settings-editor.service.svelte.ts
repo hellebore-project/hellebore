@@ -1,13 +1,7 @@
-import { makeAutoObservable } from "mobx";
-
-import { ICentralPanelContentService } from "@/interface";
+import type { ICentralPanelContentService } from "@/interface";
 import { CentralViewType } from "@/constants";
 
 export class SettingsEditorService implements ICentralPanelContentService {
-    constructor() {
-        makeAutoObservable(this);
-    }
-
     get key() {
         return this.type;
     }
