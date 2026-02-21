@@ -46,9 +46,7 @@ export class ClientManager implements IComponentService {
         this.synchronizer = new SynchronizationService(this.domain);
 
         // central panel
-        this.central = new CentralPanelManager({
-            domain: this.domain,
-        });
+        this.central = new CentralPanelManager(this.domain);
 
         // peripheral panels
         this.header = new HeaderManager(this.domain);
@@ -92,18 +90,18 @@ export class ClientManager implements IComponentService {
         //         }
         //     }
         // });
-        // this.central.onChangeData.subscribe(() =>
-        //     this.synchronizer.requestFullSynchronization(),
-        // );
-        // this.central.onPartialChangeData.subscribe(({ poll }) =>
-        //     this.synchronizer.requestSynchronization(poll ?? {}),
-        // );
-        // this.central.onPeriodicChangeData.subscribe(() =>
-        //     this.synchronizer.requestPeriodicSynchronization(),
-        // );
-        // this.central.onDeleteEntry.subscribe(({ id, title }) =>
-        //     this.deleteEntry(id, title),
-        // );
+        this.central.onChangeData.subscribe(() =>
+            this.synchronizer.requestFullSynchronization(),
+        );
+        this.central.onPartialChangeData.subscribe(({ poll }) =>
+            this.synchronizer.requestSynchronization(poll ?? {}),
+        );
+        this.central.onPeriodicChangeData.subscribe(() =>
+            this.synchronizer.requestPeriodicSynchronization(),
+        );
+        this.central.onDeleteEntry.subscribe(({ id, title }) =>
+            this.deleteEntry(id, title),
+        );
 
         // this.header.onCreateProject.subscribe(() =>
         //     this.modal.openProjectCreator(),
@@ -115,9 +113,9 @@ export class ClientManager implements IComponentService {
         // this.header.onCreateEntry.subscribe(() =>
         //     this.modal.openEntryCreator({}),
         // );
-        // this.header.onOpenEntry.subscribe((args) =>
-        //     this.central.openEntryEditor(args),
-        // );
+        this.header.onOpenEntry.subscribe((args) =>
+            this.central.openEntryEditor(args),
+        );
         // this.header.fetchLeftBarStatus.subscribe(
         //     () => this.leftSideBar.mobileOpen,
         // );
@@ -161,9 +159,9 @@ export class ClientManager implements IComponentService {
         //     this.deleteEntry(id, title),
         // );
 
-        // this.synchronizer.onPoll.subscribe((event) =>
-        //     this._fetchChanges(event),
-        // );
+        this.synchronizer.onPoll.subscribe((event) =>
+            this._fetchChanges(event),
+        );
         this.synchronizer.onSync.subscribe((event) =>
             this._handleEntrySynchronization(event),
         );
@@ -378,7 +376,7 @@ export class ClientManager implements IComponentService {
 
         if (entry) {
             // this.leftSideBar.spotlight.addNodeForCreatedEntry(entry);
-            // this.central.openEntryEditor({ id: entry.id });
+            this.central.openEntryEditor({ id: entry.id });
         }
 
         return entry;

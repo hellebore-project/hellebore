@@ -29,7 +29,7 @@
     <div class="flex-1"></div>
 
     <div class="">
-        <EntrySearchField domain={service.domain} />
+        <EntrySearchField service={service.entrySearch} />
     </div>
     
 </div>

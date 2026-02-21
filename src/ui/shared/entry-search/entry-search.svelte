@@ -16,11 +16,9 @@
         ComboboxScrollDownButton,
     } from "@/lib/components/combobox";
 
-    import { EntrySearchService } from "./entry-search.service.svelte";
     import type { EntrySearchProps } from "./entry-search.interface";
 
-    const { domain, ...rest }: EntrySearchProps = $props();
-    const service = new EntrySearchService(domain);
+    const { service, ...rest }: EntrySearchProps = $props();
 </script>
 
 <Combobox
@@ -29,6 +27,7 @@
 	onOpenChangeComplete={(o) => {
 		if (!o) service.queryString = "";
 	}}
+	onValueChange={(v) => service.selectEntry(v)}
 	{...rest}
 >
 	<div class="relative">

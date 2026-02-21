@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { SvelteMap } from "svelte/reactivity";
 
 import {
     CentralViewType,
@@ -6,7 +6,7 @@ import {
     EntryViewType,
     WordType,
 } from "@/constants";
-import {
+import type {
     ChangeEntryEvent,
     DeleteEntryEvent,
     ICentralPanelContentService,
@@ -15,23 +15,16 @@ import {
     PollEvent,
     PollResultEntryData,
     SyncEntryEvent,
-    Word,
+    // Word,
 } from "@/interface";
 import { DomainManager } from "@/services";
-import { TableOfContentsItemData } from "@/components/react/lib/table-of-contents";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import type { VerticalTabsItemData } from "@/lib/components/vertical-tabs";
+import { MultiEventProducer } from "@/utils/event-producer";
 
-import { EntryInfoService } from "./entry-info.service";
-import { ArticleEditorService } from "./article-editor";
-import { PropertyEditorService } from "./property-editor";
-import { WordEditorService, WordEditorServiceArgs } from "./word-editor";
-
-type PrivateKeys = "_domain";
-
-export interface EntryEditorServiceArgs {
-    domain: DomainManager;
-    wordEditor: Omit<WordEditorServiceArgs, "domain" | "info">;
-}
+import { EntryInfoService } from "./entry-info.service.svelte";
+// import { ArticleEditorService } from "./article-editor";
+// import { PropertyEditorService } from "./property-editor";
+// import { WordEditorService, WordEditorServiceArgs } from "./word-editor";
 
 export class EntryEditorService implements ICentralPanelContentService {
     // CONSTANTS
@@ -40,63 +33,47 @@ export class EntryEditorService implements ICentralPanelContentService {
     TITLE_FIELD_HEIGHT = 36;
 
     // STATE
-    private _tabData: Map<EntryViewType, TableOfContentsItemData>;
-    private _viewKey: EntryViewType = EntryViewType.ArticleEditor;
+    private _tabData: Map<EntryViewType, VerticalTabsItemData> = $state(
+        new SvelteMap(),
+    );
+    private _viewKey: EntryViewType = $state(EntryViewType.ArticleEditor);
 
     // SERVICES
     private _domain: DomainManager;
     info: EntryInfoService;
-    properties: PropertyEditorService;
-    article: ArticleEditorService;
-    lexicon: WordEditorService;
+    // properties: PropertyEditorService;
+    // article: ArticleEditorService;
+    // lexicon: WordEditorService;
 
     // EVENTS
-    fetchPortalSelector: EventProducer<void, string>;
     onOpenReferencedEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
     onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
     onPartialChange: MultiEventProducer<ChangeEntryEvent, unknown>;
     onPeriodicChange: MultiEventProducer<ChangeEntryEvent, unknown>;
     onDelete: MultiEventProducer<DeleteEntryEvent, unknown>;
 
-    constructor({ domain, wordEditor }: EntryEditorServiceArgs) {
-        this._tabData = new Map();
-
+    constructor(domain: DomainManager) {
         this._domain = domain;
 
         this.info = new EntryInfoService();
-        this.article = new ArticleEditorService({
-            domain,
-            info: this.info,
-        });
-        this.properties = new PropertyEditorService({
-            info: this.info,
-        });
-        this.lexicon = new WordEditorService({
-            domain,
-            info: this.info,
-            ...wordEditor,
-        });
+        // this.article = new ArticleEditorService({
+        //     domain,
+        //     info: this.info,
+        // });
+        // this.properties = new PropertyEditorService({
+        //     info: this.info,
+        // });
+        // this.lexicon = new WordEditorService({
+        //     domain,
+        //     info: this.info,
+        //     ...wordEditor,
+        // });
 
-        this.fetchPortalSelector = new EventProducer();
         this.onOpenReferencedEntry = new MultiEventProducer();
         this.onChange = new MultiEventProducer();
         this.onPartialChange = new MultiEventProducer();
         this.onPeriodicChange = new MultiEventProducer();
         this.onDelete = new MultiEventProducer();
-
-        makeAutoObservable<EntryEditorService, PrivateKeys>(this, {
-            _domain: false,
-            info: false,
-            properties: false,
-            article: false,
-            lexicon: false,
-            fetchPortalSelector: false,
-            onOpenReferencedEntry: false,
-            onChange: false,
-            onPartialChange: false,
-            onPeriodicChange: false,
-            onDelete: false,
-        });
 
         this._buildTabData();
         this._linkSubscribables();
@@ -149,19 +126,19 @@ export class EntryEditorService implements ICentralPanelContentService {
     get tabData() {
         const entryType = this.info.entryType;
 
-        const tabData: TableOfContentsItemData[] = [
+        const tabData: VerticalTabsItemData[] = [
             this._tabData.get(
                 EntryViewType.ArticleEditor,
-            ) as TableOfContentsItemData,
+            ) as VerticalTabsItemData,
             this._tabData.get(
                 EntryViewType.PropertyEditor,
-            ) as TableOfContentsItemData,
+            ) as VerticalTabsItemData,
         ];
         if (entryType === EntryType.Language)
             tabData.push(
                 this._tabData.get(
                     EntryViewType.WordEditor,
-                ) as TableOfContentsItemData,
+                ) as VerticalTabsItemData,
             );
 
         return tabData;
@@ -173,48 +150,35 @@ export class EntryEditorService implements ICentralPanelContentService {
         this._tabData.set(EntryViewType.ArticleEditor, {
             label: "Article",
             value: EntryViewType.ArticleEditor,
-            rank: 1,
-            onClick: () => {
-                this.changeView(EntryViewType.ArticleEditor);
-            },
         });
 
         this._tabData.set(EntryViewType.PropertyEditor, {
             label: "Properties",
             value: EntryViewType.PropertyEditor,
-            rank: 1,
-            onClick: () => {
-                this.changeView(EntryViewType.PropertyEditor);
-            },
         });
 
         this._tabData.set(EntryViewType.WordEditor, {
             label: "Lexicon",
             value: EntryViewType.WordEditor,
-            rank: 1,
-            onClick: () => {
-                this.changeView(EntryViewType.WordEditor);
-            },
         });
     }
 
     private _linkSubscribables() {
-        this.info.fetchPortalSelector.broker = this.fetchPortalSelector;
         this.info.onChangeTitle.broker = this.onPartialChange;
 
-        this.article.onChange.broker = this.onPeriodicChange;
-        this.article.onSelectReference.broker = this.onOpenReferencedEntry;
+        // this.article.onChange.broker = this.onPeriodicChange;
+        // this.article.onSelectReference.broker = this.onOpenReferencedEntry;
 
-        this.properties.onChange.broker = this.onPeriodicChange;
+        // this.properties.onChange.broker = this.onPeriodicChange;
 
-        this.lexicon.fetchPortalSelector.broker = this.fetchPortalSelector;
-        this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) => {
-            // the word-editor is switching to a different view,
-            // so any pending edits need to be pushed to the BE
-            this.onChange.produce({ id: languageId });
-            this.loadLexicon(languageId, wordType);
-        });
-        this.lexicon.onChange.broker = this.onPeriodicChange;
+        // this.lexicon.fetchPortalSelector.broker = this.fetchPortalSelector;
+        // this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) => {
+        //     // the word-editor is switching to a different view,
+        //     // so any pending edits need to be pushed to the BE
+        //     this.onChange.produce({ id: languageId });
+        //     this.loadLexicon(languageId, wordType);
+        // });
+        // this.lexicon.onChange.broker = this.onPeriodicChange;
     }
 
     // LOADING
@@ -239,7 +203,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (response) {
             this.currentView = EntryViewType.ArticleEditor;
             this.info.load(id, response.info.entityType, response.info.title);
-            this.article.initialize(response.text);
+            // this.article.initialize(response.text);
         }
     }
 
@@ -251,7 +215,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (response !== null) {
             this.currentView = EntryViewType.PropertyEditor;
             this.info.load(id, response.info.entityType, response.info.title);
-            this.properties.load(response.properties);
+            // this.properties.load(response.properties);
         }
     }
 
@@ -261,9 +225,9 @@ export class EntryEditorService implements ICentralPanelContentService {
                 // don't care about which word type is displayed;
                 // since the word editor is already open for this language, don't reload it
                 return;
-            else if (wordType === this.lexicon.wordType)
-                // the word editor is already open for this language and word type
-                return;
+            // else if (wordType === this.lexicon.wordType)
+            //     // the word editor is already open for this language and word type
+            //     return;
         }
 
         const info = await this._domain.entries.get(languageId);
@@ -272,7 +236,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             this.currentView = EntryViewType.WordEditor;
             this.info.load(languageId, EntryType.Language, info.title);
             // FIXME: should we be awaiting on this?
-            this.lexicon.load(languageId, wordType);
+            // this.lexicon.load(languageId, wordType);
         }
     }
 
@@ -289,18 +253,14 @@ export class EntryEditorService implements ICentralPanelContentService {
     // VISIBILITY
 
     activate() {
-        // Every time the entry-editor is activated (e.g., becomes visible),
-        // the spreadsheet service needs to be rehooked onto the reference. That's because
-        // multiple spreadsheet services can share the same spreadsheet reference,
-        // but only a single one of them can be hooked to it at a single time.
-        this.lexicon.spreadsheet.hookToReference();
+        // no-op
     }
 
     // CLEAN UP
 
     cleanUp() {
         this.onChange.produce({ id: this.info.id });
-        this.lexicon.cleanUp();
+        // this.lexicon.cleanUp();
 
         this.onOpenReferencedEntry.broker = null;
         this.onChange.broker = null;
@@ -314,9 +274,9 @@ export class EntryEditorService implements ICentralPanelContentService {
     fetchChanges({
         id = null,
         syncTitle = false,
-        syncProperties = false,
-        syncText = false,
-        syncLexicon = false,
+        // syncProperties = false,
+        // syncText = false,
+        // syncLexicon = false,
     }: PollEvent): PollResultEntryData | null {
         if (this.info.id === null || this.info.entryType === null) return null;
 
@@ -330,18 +290,18 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (syncTitle && this.info.titleChanged && this.info.isTitleValid)
             entry.title = this.info.title;
 
-        if (syncProperties && this.properties.changed) {
-            const properties = this.properties.data;
-            if (properties) entry.properties = properties;
-        }
+        // if (syncProperties && this.properties.changed) {
+        //     const properties = this.properties.data;
+        //     if (properties) entry.properties = properties;
+        // }
 
-        if (syncText && this.article.changed)
-            entry.text = this.article.serialized;
+        // if (syncText && this.article.changed)
+        //     entry.text = this.article.serialized;
 
-        if (syncLexicon) {
-            const words = this.lexicon.claimModifiedWords();
-            if (words.length > 0) entry.words = words;
-        }
+        // if (syncLexicon) {
+        //     const words = this.lexicon.claimModifiedWords();
+        //     if (words.length > 0) entry.words = words;
+        // }
 
         return entry;
     }
@@ -355,25 +315,23 @@ export class EntryEditorService implements ICentralPanelContentService {
                 if (response.entry.title.updated)
                     this.info.titleChanged = false;
 
-                if (response.entry.properties.updated)
-                    this.properties.changed = false;
+                // if (response.entry.properties.updated)
+                //     this.properties.changed = false;
 
-                if (response.entry.text.updated) this.article.changed = false;
+                // if (response.entry.text.updated) this.article.changed = false;
 
                 if (request.words) {
-                    const wordResponses = response.entry.words;
-
-                    const words: Word[] = request.words.map((word, i) => {
-                        const wordResponse = wordResponses[i];
-                        return {
-                            ...word,
-                            id: wordResponse.id,
-                            created: wordResponse.status.created,
-                            updated: wordResponse.status.updated,
-                        };
-                    });
-
-                    this.lexicon.handleSynchronization(words);
+                    // const wordResponses = response.entry.words;
+                    // const words: Word[] = request.words.map((word, i) => {
+                    //     const wordResponse = wordResponses[i];
+                    //     return {
+                    //         ...word,
+                    //         id: wordResponse.id,
+                    //         created: wordResponse.status.created,
+                    //         updated: wordResponse.status.updated,
+                    //     };
+                    // });
+                    // this.lexicon.handleSynchronization(words);
                 }
             }
         }

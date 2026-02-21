@@ -50,6 +50,7 @@ export class EntrySearchService implements IComponentService {
 
     selectEntry(entryId?: string | null) {
         if (entryId === null || entryId === undefined) return;
+        console.log(this.onOpenEntry.broker);
         this.onOpenEntry.produce({ id: Number(entryId), focus: true });
         this.cleanUp();
     }

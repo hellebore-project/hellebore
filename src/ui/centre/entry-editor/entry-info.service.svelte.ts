@@ -1,33 +1,21 @@
-import { makeAutoObservable } from "mobx";
-
-import { ChangeEntryEvent } from "@/interface";
+import type { ChangeEntryEvent } from "@/interface";
 import { ENTITY_TYPE_LABELS, ENTRY_ID_SENTINEL, EntryType } from "@/constants";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
-
-type PrivateKeys = "_titleChanged";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 export class EntryInfoService {
     // STATE
-    private _id: number = ENTRY_ID_SENTINEL;
-    private _entryType: EntryType | null = null;
-    private _title = "";
+    private _id: number = $state(ENTRY_ID_SENTINEL);
+    private _entryType: EntryType | null = $state(null);
+    private _title = $state("");
     private _isTitleUnique = true;
     private _titleChanged = false;
-    private _loaded = false;
+    private _loaded = $state(false);
 
     // EVENTS
-    fetchPortalSelector: EventProducer<void, string>;
     onChangeTitle: MultiEventProducer<ChangeEntryEvent, unknown>;
 
     constructor() {
-        this.fetchPortalSelector = new EventProducer();
         this.onChangeTitle = new MultiEventProducer();
-
-        makeAutoObservable<EntryInfoService, PrivateKeys>(this, {
-            _titleChanged: false,
-            fetchPortalSelector: false,
-            onChangeTitle: false,
-        });
     }
 
     get id() {
