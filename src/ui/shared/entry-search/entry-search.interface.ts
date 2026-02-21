@@ -3,7 +3,7 @@ import type {
     ComboboxSingleRootPropsWithoutHTML,
 } from "bits-ui";
 
-import type { DomainManager } from "@/services";
+import type { EntrySearchService } from "./entry-search.service.svelte";
 
 // the bits-ui ComboboxProps can't be extended;
 // need to define a narrower type alias as a stand-in
@@ -14,5 +14,5 @@ export interface EntrySearchProps extends Omit<
     ComboboxRootPropsWithoutHTML,
     "type"
 > {
-    domain: DomainManager;
+    service: EntrySearchService;
 }

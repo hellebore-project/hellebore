@@ -7,6 +7,7 @@ import type {
     DeleteEntryEvent,
     ICentralPanelContentService,
     IComponentService,
+    OpenEntryEditorEvent,
     PollEvent,
     PollResultEntryData,
     SyncEvent,
@@ -16,15 +17,10 @@ import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home";
 import { SettingsEditorService } from "./settings-editor";
-// import {
-//     EntryEditorService,
-//     type EntryEditorServiceArgs,
-//     type WordColumnKeys,
-// } from "./entry-editor";
-
-export interface CentralPanelManagerArgs {
-    domain: DomainManager;
-}
+import {
+    EntryEditorService,
+    // type WordColumnKeys,
+} from "./entry-editor";
 
 export class CentralPanelManager implements IComponentService {
     // CONSTANTS
@@ -46,7 +42,7 @@ export class CentralPanelManager implements IComponentService {
     onPeriodicChangeData: MultiEventProducer<ChangeEntryEvent, unknown>;
     onDeleteEntry: MultiEventProducer<DeleteEntryEvent, unknown>;
 
-    constructor({ domain }: CentralPanelManagerArgs) {
+    constructor(domain: DomainManager) {
         this._panelKeys = [];
         this._panelServices = new SvelteMap();
 
@@ -109,41 +105,41 @@ export class CentralPanelManager implements IComponentService {
         return service;
     }
 
-    // async openEntryEditor(args: OpenEntryEditorEvent) {
-    //     if (args.focus ?? false) this.panelContainer?.focus();
+    async openEntryEditor(args: OpenEntryEditorEvent) {
+        console.log(args);
+        if (args.focus ?? false) this.panelContainer?.focus();
 
-    //     const key = EntryEditorService.generateKey(
-    //         CentralViewType.EntryEditor,
-    //         args.id,
-    //     );
+        const key = EntryEditorService.generateKey(
+            CentralViewType.EntryEditor,
+            args.id,
+        );
 
-    //     const currentIndex = this.findPanelIndex(key);
-    //     if (currentIndex !== null) {
-    //         this._showPanel(currentIndex);
-    //         return this.getPanelByIndex(currentIndex) as EntryEditorService;
-    //     }
+        const currentIndex = this.findPanelIndex(key);
+        if (currentIndex !== null) {
+            this._showPanel(currentIndex);
+            return this.getPanelByIndex(currentIndex) as EntryEditorService;
+        }
 
-    //     const service = new EntryEditorService(this._entryEditorArgs);
+        const service = new EntryEditorService(this._domain);
 
-    //     service.fetchPortalSelector.broker = this.fetchPortalSelector;
-    //     service.onOpenReferencedEntry.subscribe((args) =>
-    //         this.openEntryEditor(args),
-    //     );
-    //     service.onChange.broker = this.onChangeData;
-    //     service.onPartialChange.broker = this.onPartialChangeData;
-    //     service.onPeriodicChange.broker = this.onPeriodicChangeData;
-    //     service.onDelete.broker = this.onDeleteEntry;
+        service.onOpenReferencedEntry.subscribe((args) =>
+            this.openEntryEditor(args),
+        );
+        service.onChange.broker = this.onChangeData;
+        service.onPartialChange.broker = this.onPartialChangeData;
+        service.onPeriodicChange.broker = this.onPeriodicChangeData;
+        service.onDelete.broker = this.onDeleteEntry;
 
-    //     // NOTE: the entry-editor service needs to finish loading before we can proceed with
-    //     // firing the event producers. The event payloads require the entry ID, which is
-    //     // fetched during the loading sequence.
-    //     await service.load(args);
+        // NOTE: the entry-editor service needs to finish loading before we can proceed with
+        // firing the event producers. The event payloads require the entry ID, which is
+        // fetched during the loading sequence.
+        await service.load(args);
 
-    //     // only one panel can be open at a time
-    //     this._clearAndAddPanel(service, true);
+        // only one panel can be open at a time
+        this._clearAndAddPanel(service, true);
 
-    //     return service;
-    // }
+        return service;
+    }
 
     private _addPanel(service: ICentralPanelContentService, show = true) {
         this._panelServices.set(service.key, service);
@@ -270,12 +266,11 @@ export class CentralPanelManager implements IComponentService {
         for (const service of this._panelServices.values()) {
             if (service.type !== CentralViewType.EntryEditor) continue;
 
-            console.log(event);
-            // const entryEditor = service as EntryEditorService;
-            // const result = entryEditor.fetchChanges(event);
-            // if (result === null) continue;
+            const entryEditor = service as EntryEditorService;
+            const result = entryEditor.fetchChanges(event);
+            if (result === null) continue;
 
-            // results.push(result);
+            results.push(result);
         }
 
         return results;
@@ -285,9 +280,8 @@ export class CentralPanelManager implements IComponentService {
         for (const service of this._panelServices.values()) {
             if (service.type !== CentralViewType.EntryEditor) continue;
 
-            console.log(event);
-            // const entryEditor = service as EntryEditorService;
-            // entryEditor.handleSynchronization(event.entries);
+            const entryEditor = service as EntryEditorService;
+            entryEditor.handleSynchronization(event.entries);
         }
     }
 }
