@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cn } from "@/lib/utils.js";
 
-    import type { VerticalTabsItemProps } from "./vertical-tabs.interface";
+    import type { VerticalTabsItemProps } from "./vertical-tabs-interface";
 
 	let { label, value, active = false, onclick, class: className }: VerticalTabsItemProps = $props();
 </script>

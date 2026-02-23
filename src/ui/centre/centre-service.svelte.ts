@@ -106,7 +106,6 @@ export class CentralPanelManager implements IComponentService {
     }
 
     async openEntryEditor(args: OpenEntryEditorEvent) {
-        console.log(args);
         if (args.focus ?? false) this.panelContainer?.focus();
 
         const key = EntryEditorService.generateKey(

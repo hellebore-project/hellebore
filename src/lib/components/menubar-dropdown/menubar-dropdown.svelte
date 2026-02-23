@@ -6,7 +6,7 @@
         DropdownMenuAutoContent,
     } from "@/lib/components/dropdown-menu";
 
-    import type { MenuBarDropdownProps } from "./menubar-dropdown.interface";
+    import type { MenuBarDropdownProps } from "./menubar-dropdown-interface";
     
     const {
         label,

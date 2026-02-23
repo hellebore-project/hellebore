@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Input } from "@/lib/components/input";
-    import type { HomeProps } from "./home.interface";
+    import { Separator } from "@/lib/components/separator";
+    import type { HomeProps } from "./home-interface";
 
     let { service }: HomeProps = $props(); 
 </script>
@@ -15,6 +16,6 @@
             value={service.projectName}
             oninput={(e) => service.projectName = e.currentTarget.value}
         />
-        <hr class="mt-3 border-border" />
+        <Separator class="mt-3 border"/>
     </div>
 </div>

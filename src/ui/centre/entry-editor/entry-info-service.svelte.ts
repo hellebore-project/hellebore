@@ -6,10 +6,9 @@ export class EntryInfoService {
     // STATE
     private _id: number = $state(ENTRY_ID_SENTINEL);
     private _entryType: EntryType | null = $state(null);
-    private _title = $state("");
-    private _isTitleUnique = true;
+    private _title: string | null = $state(null);
+    private _isTitleUnique = $state(true);
     private _titleChanged = false;
-    private _loaded = $state(false);
 
     // EVENTS
     onChangeTitle: MultiEventProducer<ChangeEntryEvent, unknown>;
@@ -39,7 +38,7 @@ export class EntryInfoService {
     }
 
     get title() {
-        return this._title;
+        return this._title ?? "";
     }
 
     set title(title: string) {
@@ -76,16 +75,11 @@ export class EntryInfoService {
         this._titleChanged = changed;
     }
 
-    get loaded() {
-        return this._loaded;
-    }
-
     load(id: number, type: EntryType, title: string) {
         this.id = id;
         this.entryType = type;
         // mutate the private title variable directly to avoid an unnecessary sync
         this._title = title;
         this.isTitleUnique = true;
-        this._loaded = true;
     }
 }

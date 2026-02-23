@@ -1,4 +1,4 @@
-import type { HomeManager } from "./home.service.svelte";
+import type { HomeManager } from "./home-service.svelte";
 
 export interface HomeProps {
     service: HomeManager;

@@ -21,8 +21,8 @@ import { DomainManager } from "@/services";
 import type { VerticalTabsItemData } from "@/lib/components/vertical-tabs";
 import { MultiEventProducer } from "@/utils/event-producer";
 
-import { EntryInfoService } from "./entry-info.service.svelte";
-// import { ArticleEditorService } from "./article-editor";
+import { EntryInfoService } from "./entry-info-service.svelte";
+import { ArticleEditorService } from "./article-editor";
 // import { PropertyEditorService } from "./property-editor";
 // import { WordEditorService, WordEditorServiceArgs } from "./word-editor";
 
@@ -42,7 +42,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     private _domain: DomainManager;
     info: EntryInfoService;
     // properties: PropertyEditorService;
-    // article: ArticleEditorService;
+    article: ArticleEditorService;
     // lexicon: WordEditorService;
 
     // EVENTS
@@ -56,10 +56,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         this._domain = domain;
 
         this.info = new EntryInfoService();
-        // this.article = new ArticleEditorService({
-        //     domain,
-        //     info: this.info,
-        // });
+        this.article = new ArticleEditorService(domain, this.info);
         // this.properties = new PropertyEditorService({
         //     info: this.info,
         // });
@@ -166,8 +163,8 @@ export class EntryEditorService implements ICentralPanelContentService {
     private _linkSubscribables() {
         this.info.onChangeTitle.broker = this.onPartialChange;
 
-        // this.article.onChange.broker = this.onPeriodicChange;
-        // this.article.onSelectReference.broker = this.onOpenReferencedEntry;
+        this.article.onChange.broker = this.onPeriodicChange;
+        this.article.onSelectReference.broker = this.onOpenReferencedEntry;
 
         // this.properties.onChange.broker = this.onPeriodicChange;
 
@@ -318,7 +315,7 @@ export class EntryEditorService implements ICentralPanelContentService {
                 // if (response.entry.properties.updated)
                 //     this.properties.changed = false;
 
-                // if (response.entry.text.updated) this.article.changed = false;
+                if (response.entry.text.updated) this.article.changed = false;
 
                 if (request.words) {
                     // const wordResponses = response.entry.words;

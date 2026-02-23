@@ -39,11 +39,11 @@
 }
 
 .nav-item.error {
-    border: 1px solid var(--error-bd-color);
+    border: 1px solid var(--error-border);
 }
 
 .nav-item.error.focused {
-    background-color: 1px solid var(--error-bg-color);
+    background-color: 1px solid var(--error);
 }
 
 .nav-item-indent {
@@ -76,5 +76,5 @@
 }
 
 .nav-item-text.error {
-    border: var(--error-bd);
+    border: 1px solid var(--error-border);
 }

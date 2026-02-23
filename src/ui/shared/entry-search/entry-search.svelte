@@ -16,7 +16,7 @@
         ComboboxScrollDownButton,
     } from "@/lib/components/combobox";
 
-    import type { EntrySearchProps } from "./entry-search.interface";
+    import type { EntrySearchProps } from "./entry-search-interface";
 
     const { service, ...rest }: EntrySearchProps = $props();
 </script>
@@ -35,6 +35,7 @@
 		<!-- input can't be inside the trigger, otherwise you lose text selection -->
 		<ComboboxInput
 			class="ps-10 pe-7"
+			clearOnDeselect
 			oninput={(e) => (service.queryString = e.currentTarget.value)}
 		/>
 		<ComboboxTrigger class="absolute end-1 top-1/2 size-6 -translate-y-1/2 touch-none">

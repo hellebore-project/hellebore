@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { SettingsEditorProps } from "./settings-editor.interface";
+    import type { SettingsEditorProps } from "./settings-editor-interface";
 
     let { service }: SettingsEditorProps = $props();
 </script>

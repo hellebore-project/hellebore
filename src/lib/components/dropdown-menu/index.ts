@@ -1,4 +1,4 @@
-export * from "./dropdown-menu.interface";
+export * from "./dropdown-menu-interface";
 
 import Root from "./dropdown-menu.svelte";
 import Sub from "./dropdown-menu-sub.svelte";

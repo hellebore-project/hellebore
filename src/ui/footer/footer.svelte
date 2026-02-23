@@ -1,11 +1,7 @@
 <script lang="ts">
-	import { FooterManager } from './footer.service.svelte';
+    import type { FooterProps } from './footer-interface';
 
-	interface Props {
-		service: FooterManager;
-	}
-
-	let { service }: Props = $props();
+	let { service }: FooterProps = $props();
 </script>
 
 <div class="flex items-center pl-2 h-[25px] bg-neutral-950">

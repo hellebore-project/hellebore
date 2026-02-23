@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cn } from "@/lib/utils.js";
 	import VerticalTabsItem from "./vertical-tabs-item.svelte";
-	import type { VerticalTabsProps } from "./vertical-tabs.interface";
+	import type { VerticalTabsProps } from "./vertical-tabs-interface";
 
 	let { items, activeValue, onSelect, class: className }: VerticalTabsProps = $props();
 </script>
