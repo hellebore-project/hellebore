@@ -11,11 +11,11 @@
 
 {#if contentService !== null}
     {#if contentService.type === CentralViewType.Home}
-        <Home service={contentService as HomeManager}/>
+        <Home service={contentService as HomeManager} />
     {:else if contentService.type === CentralViewType.Settings}
-        <SettingsEditor service={contentService as SettingsEditorService}/>
+        <SettingsEditor service={contentService as SettingsEditorService} />
     {:else if contentService.type === CentralViewType.EntryEditor}
-        <EntryEditor service={contentService as EntryEditorService}/>
+        <EntryEditor service={contentService as EntryEditorService} />
     {:else}
         {null}
     {/if}

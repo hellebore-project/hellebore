@@ -1,18 +1,16 @@
 <script lang="ts">
-	import { Tooltip as TooltipPrimitive } from "bits-ui";
+    import { Tooltip as TooltipPrimitive } from "bits-ui";
 
-	import { cn } from "@/lib/utils.js";
+    import { cn } from "@/lib/utils.js";
 
-	let {
-		class: className,
-		children,
-		...restProps
-	}: TooltipPrimitive.ArrowProps = $props();
+    let {
+        class: className,
+        children,
+        ...restProps
+    }: TooltipPrimitive.ArrowProps = $props();
 </script>
 
-<TooltipPrimitive.Arrow
-    {...restProps}
->
+<TooltipPrimitive.Arrow {...restProps}>
     {#snippet child({ props })}
         <div
             class={cn(
@@ -21,7 +19,7 @@
                 "data-[side=bottom]:-translate-x-1/2 data-[side=bottom]:-translate-y-[calc(-50%_+_1px)]",
                 "data-[side=right]:translate-x-[calc(50%_+_2px)] data-[side=right]:translate-y-1/2",
                 "data-[side=left]:-translate-y-[calc(50%_-_3px)]",
-                className
+                className,
             )}
             {...props}
         ></div>

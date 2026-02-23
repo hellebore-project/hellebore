@@ -5,4 +5,4 @@
     const { service }: ArticleEditorProps = $props();
 </script>
 
-<EntryTitle service={service.info}/>
+<EntryTitle service={service.info} />

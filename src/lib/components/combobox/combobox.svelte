@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Combobox as ComboboxPrimitive } from "bits-ui";
+    import { Combobox as ComboboxPrimitive } from "bits-ui";
 
-	let {
+    let {
         value = $bindable(undefined),
         open = $bindable(false),
         ...restProps
