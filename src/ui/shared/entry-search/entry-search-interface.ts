@@ -3,7 +3,7 @@ import type {
     ComboboxSingleRootPropsWithoutHTML,
 } from "bits-ui";
 
-import type { EntrySearchService } from "./entry-search.service.svelte";
+import type { EntrySearchService } from "./entry-search-service.svelte";
 
 // the bits-ui ComboboxProps can't be extended;
 // need to define a narrower type alias as a stand-in

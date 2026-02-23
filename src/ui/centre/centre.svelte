@@ -1,6 +1,6 @@
 <script lang="ts">
     import { CentralViewType } from "@/constants";
-    import type { CentreProps } from "./centre.interface";
+    import type { CentreProps } from "./centre-interface";
     import { Home, HomeManager } from "./home";
     import { SettingsEditor, SettingsEditorService } from "./settings-editor";
     import { EntryEditor, EntryEditorService } from "./entry-editor";

@@ -1,13 +1,11 @@
 <script lang="ts">
     import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
 
-    import { DIVIDER_DATA, type DropdownMenuItemData } from "./dropdown-menu.interface";
-    import {
-        DropdownMenuContent,
-        DropdownMenuItem,
-        DropdownMenuLabel,
-        DropdownMenuSeparator,
-    } from ".";
+    import { DIVIDER_DATA, type DropdownMenuItemData } from "./dropdown-menu-interface";
+    import DropdownMenuContent from "./dropdown-menu-content.svelte";
+    import DropdownMenuItem from "./dropdown-menu-item.svelte";
+    import DropdownMenuLabel from "./dropdown-menu-label.svelte";
+    import DropdownMenuSeparator from "./dropdown-menu-separator.svelte";
 
     interface AutoDropdownContentProps extends DropdownMenuPrimitive.ContentProps {
         items: DropdownMenuItemData[];

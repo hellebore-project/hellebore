@@ -1,1 +1,1 @@
-export * from "./client.service.svelte";
+export * from "./client-service.svelte";

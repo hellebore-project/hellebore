@@ -2,19 +2,11 @@
     /* COLOURS */
 
     --default-text-color: white;
-    --background: #1f1f1f;
     --default-bd-color: #424242;
     --selected-text-color: white;
     --selected-bg-color: rgb(34 139 230 / 15%);
     --selected-bd-color: #74c0fc;
     --selected-bd: 1px solid var(--selected-bd-color);
-    --error-bg-color: #61050b;
-    --error-bd-color: #c92a2a;
-    --error-bd: 1px solid var(--error-bd-color);
-
-    /* COMPONENTS */
-
-    --dropdown-menu-bg-color: #0a0a0a;
 
     /* PANELS */
 

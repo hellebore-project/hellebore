@@ -1,22 +1,18 @@
 .entry-editor-root {
-    display: grid;
-    height: 100%;
-    width: 100%;
     grid-template:
-        "editor-header editor-header" 40px
-        "editor-tabs editor-panel" 1fr
-        / minmax(0, 100px) 1fr;
+        "entry-editor-header entry-editor-header entry-editor-header" 40px
+        "entry-editor-tabs entry-editor-panel entry-editor-sidebar" 1fr
+        / minmax(0, 100px) 1fr minmax(0, 100px);
 }
 
 .entry-editor-header {
-    grid-area: editor-header;
+    grid-area: entry-editor-header;
 }
 
 .entry-editor-tabs {
-    grid-area: editor-tabs;
-    overflow: hidden;
+    grid-area: entry-editor-tabs;
 }
 
 .entry-editor-panel {
-    grid-area: editor-panel;
+    grid-area: entry-editor-panel;
 }

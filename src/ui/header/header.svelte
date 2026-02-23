@@ -3,7 +3,7 @@
     import { MenuBarDropdown } from "@/lib/components/menubar-dropdown";
 
     import { EntrySearchField } from "../shared/entry-search";
-    import type { HeaderProps } from "./header.interface";
+    import type { HeaderProps } from "./header-interface";
     
     const { service }: HeaderProps = $props();
 </script>
