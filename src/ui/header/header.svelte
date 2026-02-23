@@ -4,11 +4,13 @@
 
     import { EntrySearchField } from "../shared/entry-search";
     import type { HeaderProps } from "./header-interface";
-    
+
     const { service }: HeaderProps = $props();
 </script>
 
-<div class="flex items-center w-full h-(--header-height) gap-0 px-3 bg-neutral-700">
+<div
+    class="flex items-center w-full h-(--header-height) gap-0 px-3 bg-neutral-700"
+>
     <Button
         class="h-8"
         variant="ghost"
@@ -31,5 +33,4 @@
     <div class="">
         <EntrySearchField service={service.entrySearch} />
     </div>
-    
 </div>

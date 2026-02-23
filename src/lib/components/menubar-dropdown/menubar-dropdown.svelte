@@ -7,7 +7,7 @@
     } from "@/lib/components/dropdown-menu";
 
     import type { MenuBarDropdownProps } from "./menubar-dropdown-interface";
-    
+
     const {
         label,
         items,
@@ -19,11 +19,7 @@
     let isOpen = $state(false);
 
     function _transformButtonProps(buttonProps?: ButtonProps) {
-        let { 
-            size = "sm",
-            class: className = "",
-            ...rest
-        } = buttonProps ?? {};
+        let { size = "sm", class: className = "", ...rest } = buttonProps ?? {};
 
         if (isOpen)
             // button stays highlighted when the dropdown is open
@@ -32,23 +28,17 @@
         return {
             class: className,
             size,
-            ...rest
-        }
+            ...rest,
+        };
     }
 </script>
 
 <DropdownMenu bind:open={isOpen}>
     <DropdownMenuTrigger>
-        <Button
-            {..._transformButtonProps(buttonProps)}
-        >
+        <Button {..._transformButtonProps(buttonProps)}>
             {label}
         </Button>
     </DropdownMenuTrigger>
 
-    <DropdownMenuAutoContent
-        items={items}
-        itemProps={itemProps}
-        {...contentProps}
-    />
+    <DropdownMenuAutoContent {items} {itemProps} {...contentProps} />
 </DropdownMenu>

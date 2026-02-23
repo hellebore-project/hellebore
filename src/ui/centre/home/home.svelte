@@ -3,7 +3,7 @@
     import { Separator } from "@/lib/components/separator";
     import type { HomeProps } from "./home-interface";
 
-    let { service }: HomeProps = $props(); 
+    let { service }: HomeProps = $props();
 </script>
 
 <div class="flex flex-row justify-center py-6">
@@ -14,8 +14,8 @@
             size="h1"
             placeholder="Project name"
             value={service.projectName}
-            oninput={(e) => service.projectName = e.currentTarget.value}
+            oninput={(e) => (service.projectName = e.currentTarget.value)}
         />
-        <Separator class="mt-3 border"/>
+        <Separator class="mt-3 border" />
     </div>
 </div>
