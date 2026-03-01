@@ -13,8 +13,6 @@ import { MultiEventProducer } from "@/utils/event-producer";
 import { EntryInfoService } from "../entry-info-service.svelte";
 
 export class ArticleEditorService implements IComponentService {
-    private _changed = false;
-
     private _domain: DomainManager;
     info: EntryInfoService;
     richText: RichTextEditorService;
@@ -25,10 +23,14 @@ export class ArticleEditorService implements IComponentService {
     constructor(domain: DomainManager, info: EntryInfoService) {
         this._domain = domain;
         this.info = info;
-        this.richText = new RichTextEditorService();
+        this.richText = new RichTextEditorService({
+            placeholder: "Enter a description ...",
+        });
 
         this.onChange = new MultiEventProducer();
         this.onSelectReference = new MultiEventProducer();
+
+        this._createSubscriptions();
     }
 
     get key() {
@@ -36,11 +38,17 @@ export class ArticleEditorService implements IComponentService {
     }
 
     get changed() {
-        return this._changed;
+        return this.richText.changed;
     }
 
     set changed(changed: boolean) {
-        this._changed = changed;
+        this.richText.changed = changed;
+    }
+
+    private _createSubscriptions() {
+        this.richText.onChange.subscribe(() =>
+            this.onChange.produce({ id: this.info.id }),
+        );
     }
 
     initialize(text: JSONContent) {

@@ -1,7 +1,7 @@
 <script lang="ts">
     import "./rich-text-editor.css";
 
-    import { onMount, onDestroy } from "svelte";
+    import { onMount } from "svelte";
 
     import type { RichTextEditorProps } from "./rich-text-editor-interface";
 
@@ -10,12 +10,8 @@
     let element: HTMLDivElement | null = $state(null);
 
     onMount(() => {
-        service.editor.mount(element as HTMLDivElement);
-        service.editor.setOptions({ editorProps });
-    });
-
-    onDestroy(() => {
-        service.editor.destroy();
+        service.editor?.mount(element as HTMLDivElement);
+        service.editor?.setOptions({ editorProps });
     });
 </script>
 

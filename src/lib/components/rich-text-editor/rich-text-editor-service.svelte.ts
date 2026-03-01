@@ -12,6 +12,9 @@ import { MultiEventProducer } from "@/utils/event-producer";
 
 // import { useReferenceExtension, type SuggestionData } from "./mention-service";
 
+interface RichTextEditorServiceArgs {
+    placeholder: string;
+}
 export class RichTextEditorService implements IComponentService {
     readonly key = "rich-text-editor";
 
@@ -21,19 +24,19 @@ export class RichTextEditorService implements IComponentService {
     onChange: MultiEventProducer<void, unknown>;
     onSelectReference: MultiEventProducer<OpenEntryEditorEvent, unknown>;
 
-    constructor() {
-        this.editor = $state(this._buildEditor());
+    constructor({ placeholder }: RichTextEditorServiceArgs) {
+        this.editor = $state(this._buildEditor(placeholder));
 
         this.onChange = new MultiEventProducer();
         this.onSelectReference = new MultiEventProducer();
     }
 
     get content(): JSONContent {
-        return this.editor?.getJSON() ?? {};
+        return this.editor.getJSON() ?? {};
     }
 
     set content(content: JSONContent) {
-        if (this.editor) this.editor.commands.setContent(content);
+        this.editor.commands.setContent(content);
     }
 
     get serialized(): string {
@@ -53,11 +56,11 @@ export class RichTextEditorService implements IComponentService {
     }
 
     reset() {
-        this.editor?.commands.clearContent();
+        this.editor.commands.clearContent();
         this._changed = false;
     }
 
-    _buildEditor() {
+    _buildEditor(placeholder: string) {
         // const Reference = useReferenceExtension({
         //     // TODO: need to decide what character to use;
         //     // currently the default is '@', but '[[' might also work
@@ -72,7 +75,7 @@ export class RichTextEditorService implements IComponentService {
             element: null,
             extensions: [
                 StarterKit,
-                Placeholder.configure({ placeholder: "Description ..." }),
+                Placeholder.configure({ placeholder }),
                 // Reference,
             ],
             onTransaction: ({ editor }) => {
