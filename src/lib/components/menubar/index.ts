@@ -15,26 +15,14 @@ import Trigger from "./menubar-trigger.svelte";
 import Label from "./menubar-label.svelte";
 import GroupHeading from "./menubar-group-heading.svelte";
 import Portal from "./menubar-portal.svelte";
+import AutoContent, {
+    type AutoContentProps,
+    type ItemData,
+    type TextItemData,
+    DIVIDER_DATA,
+} from "./menubar-auto-content.svelte";
 
 export {
-    Root,
-    CheckboxItem,
-    Content,
-    Item,
-    RadioItem,
-    Separator,
-    Shortcut,
-    SubContent,
-    SubTrigger,
-    Trigger,
-    Menu,
-    Group,
-    Sub,
-    RadioGroup,
-    Label,
-    GroupHeading,
-    Portal,
-    //
     Root as Menubar,
     CheckboxItem as MenubarCheckboxItem,
     Content as MenubarContent,
@@ -52,4 +40,9 @@ export {
     Label as MenubarLabel,
     GroupHeading as MenubarGroupHeading,
     Portal as MenubarPortal,
+    AutoContent as MenubarAutoContent,
+    type AutoContentProps as MenubarAutoContentProps,
+    type ItemData as MenubarItemData,
+    type TextItemData as MenubarTextItemData,
+    DIVIDER_DATA,
 };

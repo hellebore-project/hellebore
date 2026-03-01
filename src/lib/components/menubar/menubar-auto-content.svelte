@@ -3,15 +3,14 @@
 
     export interface TextItemData {
         label: string;
-        onClick?: () => void;
+        onSelect?: () => void;
     }
 
     export type ItemData = TextItemData | string;
 
-    export interface AutoContentProps
-        extends DropdownMenuPrimitive.ContentProps {
+    export interface AutoContentProps extends MenubarPrimitive.ContentProps {
         items: ItemData[];
-        itemProps?: DropdownMenuPrimitive.ItemProps;
+        itemProps?: MenubarPrimitive.ItemProps;
     }
 
     function _generateItemKey(item: ItemData, index: number) {
@@ -23,12 +22,12 @@
 </script>
 
 <script lang="ts">
-    import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
+    import { Menubar as MenubarPrimitive } from "bits-ui";
 
-    import DropdownMenuContent from "./dropdown-menu-content.svelte";
-    import DropdownMenuItem from "./dropdown-menu-item.svelte";
-    import DropdownMenuLabel from "./dropdown-menu-label.svelte";
-    import DropdownMenuSeparator from "./dropdown-menu-separator.svelte";
+    import MenubarContent from "./menubar-content.svelte";
+    import MenubarItem from "./menubar-item.svelte";
+    import MenubarLabel from "./menubar-label.svelte";
+    import MenubarSeparator from "./menubar-separator.svelte";
 
     let {
         items,
@@ -38,16 +37,16 @@
     }: AutoContentProps = $props();
 </script>
 
-<DropdownMenuContent {side} {...rest}>
+<MenubarContent {side} {...rest}>
     {#each items as item, i (_generateItemKey(item, i))}
         {#if item === DIVIDER_DATA}
-            <DropdownMenuSeparator />
+            <MenubarSeparator />
         {:else if typeof item === "string"}
-            <DropdownMenuLabel>{item}</DropdownMenuLabel>
+            <MenubarLabel>{item}</MenubarLabel>
         {:else}
-            <DropdownMenuItem onclick={() => item.onClick?.()} {...itemProps}>
+            <MenubarItem onSelect={() => item.onSelect?.()} {...itemProps}>
                 {item.label}
-            </DropdownMenuItem>
+            </MenubarItem>
         {/if}
     {/each}
-</DropdownMenuContent>
+</MenubarContent>

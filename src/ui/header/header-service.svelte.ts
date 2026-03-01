@@ -1,23 +1,20 @@
 import { DomainManager } from "@/services";
 import type { IComponentService, OpenEntryEditorEvent } from "@/interface";
-import {
-    DIVIDER_DATA,
-    type DropdownMenuItemData,
-} from "@/lib/components/dropdown-menu";
+import { DIVIDER_DATA, type MenubarItemData } from "@/lib/components/menubar";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntrySearchService } from "../shared/entry-search";
 
 interface MenuItems {
     project: {
-        create: DropdownMenuItemData;
-        open: DropdownMenuItemData;
-        close: DropdownMenuItemData;
+        create: MenubarItemData;
+        open: MenubarItemData;
+        close: MenubarItemData;
     };
     entry: {
-        create: DropdownMenuItemData;
+        create: MenubarItemData;
     };
-    settings: DropdownMenuItemData;
+    settings: MenubarItemData;
 }
 
 export class HeaderManager implements IComponentService {
@@ -61,26 +58,26 @@ export class HeaderManager implements IComponentService {
             project: {
                 create: {
                     label: "New Project",
-                    onClick: () => this.onCreateProject.produce(),
+                    onSelect: () => this.onCreateProject.produce(),
                 },
                 open: {
                     label: "Open Project",
-                    onClick: () => this.onLoadProject.produce(),
+                    onSelect: () => this.onLoadProject.produce(),
                 },
                 close: {
                     label: "Close Project",
-                    onClick: () => this.onCloseProject.produce(),
+                    onSelect: () => this.onCloseProject.produce(),
                 },
             },
             entry: {
                 create: {
                     label: "New Entry",
-                    onClick: () => this.onCreateEntry.produce(),
+                    onSelect: () => this.onCreateEntry.produce(),
                 },
             },
             settings: {
                 label: "Settings",
-                onClick: () => this.onOpenSettings.produce(),
+                onSelect: () => this.onOpenSettings.produce(),
             },
         };
 
