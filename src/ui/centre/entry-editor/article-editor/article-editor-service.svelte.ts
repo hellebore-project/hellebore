@@ -1,25 +1,21 @@
 // eslint-disable-next-line
-import { Node as PMNode } from "prosemirror-model";
-// import { StarterKit } from "@tiptap/starter-kit";
-// import { Placeholder } from "@tiptap/extension-placeholder";
+import type { JSONContent } from "@tiptap/core";
 
-// import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
 import { DomainManager } from "@/services";
 import type {
     ChangeEntryEvent,
     IComponentService,
     OpenEntryEditorEvent,
 } from "@/interface";
+import { RichTextEditorService } from "@/lib/components/rich-text-editor";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info-service.svelte";
 
 export class ArticleEditorService implements IComponentService {
-    // editor: Editor;
-    private _changed = false;
-
     private _domain: DomainManager;
     info: EntryInfoService;
+    richText: RichTextEditorService;
 
     onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
     onSelectReference: MultiEventProducer<OpenEntryEditorEvent, unknown>;
@@ -27,77 +23,41 @@ export class ArticleEditorService implements IComponentService {
     constructor(domain: DomainManager, info: EntryInfoService) {
         this._domain = domain;
         this.info = info;
+        this.richText = new RichTextEditorService({
+            placeholder: "Enter a description ...",
+        });
 
         this.onChange = new MultiEventProducer();
         this.onSelectReference = new MultiEventProducer();
 
-        // this.editor = this._buildEditor();
+        this._createSubscriptions();
     }
 
     get key() {
-        return `ARTICLE_EDITOR_${this.info.id}`;
+        return `article-editor-${this.info.id}`;
     }
 
-    // get content(): JSONContent {
-    //     return this.editor.getJSON();
-    // }
-
-    // set content(content: JSONContent) {
-    //     this.editor.commands.setContent(content);
-    // }
-
-    // get serialized(): string {
-    //     return JSON.stringify(this.content);
-    // }
-
     get changed() {
-        return this._changed;
+        return this.richText.changed;
     }
 
     set changed(changed: boolean) {
-        this._changed = changed;
+        this.richText.changed = changed;
     }
 
-    // initialize(text: JSONContent) {
-    //     this.content = text ?? "";
-    // }
+    private _createSubscriptions() {
+        this.richText.onChange.subscribe(() =>
+            this.onChange.produce({ id: this.info.id }),
+        );
+    }
 
-    // reset() {
-    //     this.editor.commands.clearContent();
-    //     this._changed = false;
-    // }
+    initialize(text: JSONContent) {
+        this.richText.content = text ?? "";
+    }
 
-    // _buildEditor() {
-    //     const Reference = useReferenceExtension({
-    //         // TODO: need to decide what character to use;
-    //         // currently the default is '@', but '[[' might also work
-    //         prefix: ARTICLE_REFERENCE_PREFIX,
-    //         queryItems: async ({ query }) => this._queryByTitle(query),
-    //         getSelectedIndex: () => this.selectedRefIndex,
-    //         setSelectedIndex: (index) =>
-    //             (this.selectedRefIndex = index as number),
-    //     });
-
-    //     return new Editor({
-    //         extensions: [
-    //             StarterKit,
-    //             Placeholder.configure({ placeholder: "Article Body" }),
-    //             Reference,
-    //         ],
-    //         onUpdate: ({ editor }) => {
-    //             this._updateEditor(editor as Editor);
-    //         },
-    //         editorProps: {
-    //             handleClickOn: (_, __, node) => this._onClickEditor(node),
-    //         },
-    //     });
-    // }
-
-    // _updateEditor(editor: Editor) {
-    //     this.editor = editor;
-    //     this._changed = true;
-    //     this.onChange.produce({ id: this.info.id });
-    // }
+    reset() {
+        this.richText.reset();
+    }
 
     // async _queryByTitle(titleFragment: string): Promise<SuggestionData[]> {
     //     this.selectedRefIndex = 0;
@@ -112,11 +72,4 @@ export class ArticleEditorService implements IComponentService {
     //         .filter((info) => info.id != this.info.id)
     //         .map((info) => ({ label: info.title, value: info.id }));
     // }
-
-    _onClickEditor(node: PMNode) {
-        if (node.type.name == "mention") {
-            const id: number | null = node.attrs["id"] ?? null;
-            if (id !== null) this.onSelectReference.produce({ id });
-        }
-    }
 }

@@ -73,7 +73,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.onDelete = new MultiEventProducer();
 
         this._buildTabData();
-        this._linkSubscribables();
+        this._createSubscriptions();
     }
 
     get key() {
@@ -160,7 +160,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         });
     }
 
-    private _linkSubscribables() {
+    private _createSubscriptions() {
         this.info.onChangeTitle.broker = this.onPartialChange;
 
         this.article.onChange.broker = this.onPeriodicChange;
@@ -200,7 +200,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (response) {
             this.currentView = EntryViewType.ArticleEditor;
             this.info.load(id, response.info.entityType, response.info.title);
-            // this.article.initialize(response.text);
+            this.article.initialize(response.text);
         }
     }
 
@@ -272,7 +272,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         id = null,
         syncTitle = false,
         // syncProperties = false,
-        // syncText = false,
+        syncText = false,
         // syncLexicon = false,
     }: PollEvent): PollResultEntryData | null {
         if (this.info.id === null || this.info.entryType === null) return null;
@@ -292,8 +292,8 @@ export class EntryEditorService implements ICentralPanelContentService {
         //     if (properties) entry.properties = properties;
         // }
 
-        // if (syncText && this.article.changed)
-        //     entry.text = this.article.serialized;
+        if (syncText && this.article.changed)
+            entry.text = this.article.richText.serialized;
 
         // if (syncLexicon) {
         //     const words = this.lexicon.claimModifiedWords();
