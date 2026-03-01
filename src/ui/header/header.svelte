@@ -1,6 +1,11 @@
 <script lang="ts">
     import { Button } from "@/lib/components/button";
-    import { MenuBarDropdown } from "@/lib/components/menubar-dropdown";
+    import {
+        Menubar,
+        MenubarMenu,
+        MenubarTrigger,
+        MenubarAutoContent,
+    } from "@/lib/components/menubar";
 
     import { EntrySearchField } from "../shared/entry-search";
     import type { HeaderProps } from "./header-interface";
@@ -20,13 +25,15 @@
         Home
     </Button>
 
-    <MenuBarDropdown
-        label="File"
-        items={service.fileMenuData}
-        buttonProps={{ class: "h-8", variant: "ghost" }}
-        itemProps={{ class: "hover:bg-neutral-800" }}
-        contentProps={{ align: "start" }}
-    />
+    <Menubar>
+        <MenubarMenu>
+            <MenubarTrigger variant="ghost">File</MenubarTrigger>
+            <MenubarAutoContent
+                items={service.fileMenuData}
+                itemProps={{ class: "hover:bg-neutral-800" }}
+            />
+        </MenubarMenu>
+    </Menubar>
 
     <div class="flex-1"></div>
 

@@ -1,5 +1,3 @@
-export * from "./dropdown-menu-interface";
-
 import Root from "./dropdown-menu.svelte";
 import Sub from "./dropdown-menu-sub.svelte";
 import CheckboxGroup from "./dropdown-menu-checkbox-group.svelte";
@@ -17,7 +15,12 @@ import SubContent from "./dropdown-menu-sub-content.svelte";
 import SubTrigger from "./dropdown-menu-sub-trigger.svelte";
 import GroupHeading from "./dropdown-menu-group-heading.svelte";
 import Portal from "./dropdown-menu-portal.svelte";
-import AutoContent from "./dropdown-menu-auto-content.svelte";
+import AutoContent, {
+    type AutoContentProps,
+    type ItemData,
+    type TextItemData,
+    DIVIDER_DATA,
+} from "./dropdown-menu-auto-content.svelte";
 
 export {
     Root as DropdownMenu,
@@ -38,4 +41,8 @@ export {
     Trigger as DropdownMenuTrigger,
     GroupHeading as DropdownMenuGroupHeading,
     AutoContent as DropdownMenuAutoContent,
+    type AutoContentProps as DropdownMenuAutoContentProps,
+    type ItemData as DropdownMenuItemData,
+    type TextItemData as DropdownMenuTextItemData,
+    DIVIDER_DATA,
 };
