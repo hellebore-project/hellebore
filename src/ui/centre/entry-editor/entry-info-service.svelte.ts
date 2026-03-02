@@ -1,4 +1,4 @@
-import type { ChangeEntryEvent } from "@/interface";
+import type { ChangeEntryEvent, Id } from "@/interface";
 import { ENTITY_TYPE_LABELS, ENTRY_ID_SENTINEL, EntryType } from "@/constants";
 import { MultiEventProducer } from "@/utils/event-producer";
 
@@ -13,7 +13,8 @@ export class EntryInfoService {
     // EVENTS
     onChangeTitle: MultiEventProducer<ChangeEntryEvent, unknown>;
 
-    constructor() {
+    constructor(entryId: Id) {
+        this._id = entryId;
         this.onChangeTitle = new MultiEventProducer();
     }
 

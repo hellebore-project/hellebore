@@ -119,7 +119,7 @@ export class CentralPanelManager implements IComponentService {
             return this.getPanelByIndex(currentIndex) as EntryEditorService;
         }
 
-        const service = new EntryEditorService(this._domain);
+        const service = new EntryEditorService(args.id, this._domain);
 
         service.onOpenReferencedEntry.subscribe((args) =>
             this.openEntryEditor(args),
@@ -130,8 +130,7 @@ export class CentralPanelManager implements IComponentService {
         service.onDelete.broker = this.onDeleteEntry;
 
         // NOTE: the entry-editor service needs to finish loading before we can proceed with
-        // firing the event producers. The event payloads require the entry ID, which is
-        // fetched during the loading sequence.
+        // firing the event producers.
         await service.load(args);
 
         // only one panel can be open at a time
