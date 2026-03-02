@@ -26,36 +26,37 @@ const globalsLintConfig = {
     },
 };
 
-const importLintConfig = {
-    extends: [imports.flatConfigs.recommended, imports.flatConfigs.typescript],
-    files: ["**/*.ts"],
-    plugins: {
-        importPlugin: imports,
-    },
-    rules: {
-        "import/order": ["error", {
-            "groups": [
-                // Imports of builtins are first
-                "builtin",
-                "external",
-                "internal",
-                // Then sibling and parent imports. They can be mingled together
-                ["sibling", "parent"],
-                // Then index file imports
-                "index",
-                // Then any arcane TypeScript imports
-                "object",
-                // Then the omitted imports: internal, external, type, unknown
-            ],
-            "newlines-between": "always",
-        }],
-    },
-    settings: {
-        "import/resolver": {
-            typescript: {},
-        },
-    },
-}
+// the import linter doesn't mesh with svelte
+// const importLintConfig = {
+//     extends: [imports.flatConfigs.recommended, imports.flatConfigs.typescript],
+//     files: ["**/*.ts"],
+//     plugins: {
+//         importPlugin: imports,
+//     },
+//     rules: {
+//         "import/order": ["error", {
+//             "groups": [
+//                 // Imports of builtins are first
+//                 "builtin",
+//                 "external",
+//                 "internal",
+//                 // Then sibling and parent imports. They can be mingled together
+//                 ["sibling", "parent"],
+//                 // Then index file imports
+//                 "index",
+//                 // Then any arcane TypeScript imports
+//                 "object",
+//                 // Then the omitted imports: internal, external, type, unknown
+//             ],
+//             "newlines-between": "always",
+//         }],
+//     },
+//     settings: {
+//         "import/resolver": {
+//             typescript: {},
+//         },
+//     },
+// }
 
 const svelteLintConfigs = [
     ...svelte.configs.recommended,
@@ -93,7 +94,7 @@ export default defineConfig([
     ts.configs.stylistic,
     ...svelteLintConfigs,
     testLintConfig,
-    importLintConfig,
+    //importLintConfig,
     // the prettier config has to be applied last because
     // it turns off any rules that conflict with prettier
     prettier,
