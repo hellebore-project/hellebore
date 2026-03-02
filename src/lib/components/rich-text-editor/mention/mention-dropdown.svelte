@@ -2,8 +2,7 @@
     import { Button } from "@/lib/components/button";
     import { cn } from "@/lib/utils";
 
-    import type { MentionItemData } from "./mention-interface";
-    import type { MentionProps } from "./mention-props";
+    import type { MentionItemData, MentionProps } from "./mention-interface";
 
     const { service }: MentionProps<I> = $props();
 </script>

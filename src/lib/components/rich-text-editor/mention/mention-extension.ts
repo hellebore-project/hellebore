@@ -9,7 +9,10 @@ import type {
 } from "@tiptap/suggestion";
 
 import MentionComponent from "./mention-dropdown.svelte";
-import type { MentionArgs, MentionItemData } from "./mention-interface";
+import type {
+    MentionExtensionArgs,
+    MentionItemData,
+} from "./mention-interface";
 import { MentionDropdownService } from "./mention-dropdown-service.svelte";
 
 function _updatePosition(element: HTMLElement, clientRect: DOMRect | null) {
@@ -24,7 +27,7 @@ function _updatePosition(element: HTMLElement, clientRect: DOMRect | null) {
 export function Mention<I extends MentionItemData>({
     prefix = "@",
     querier,
-}: MentionArgs<I>) {
+}: MentionExtensionArgs<I>) {
     const suggestion = {
         char: prefix,
         startOfLine: false,

@@ -1,21 +1,24 @@
- 
 import { Node as PMNode } from "prosemirror-model";
- 
+
 import { Editor, type Extensions, type JSONContent } from "@tiptap/core";
- 
+
 import { Placeholder } from "@tiptap/extension-placeholder";
 import type { EditorProps } from "@tiptap/pm/view";
- 
+
 import { StarterKit } from "@tiptap/starter-kit";
 
 import type { IComponentService } from "@/interface";
 import { MultiEventProducer } from "@/utils/event-producer";
 
-import { Mention, type MentionArgs, type MentionItemData } from "./mention";
+import {
+    Mention,
+    type MentionExtensionArgs,
+    type MentionItemData,
+} from "./mention";
 
 interface ExtensionArgs<M extends MentionItemData> {
     placeholder?: string;
-    mention?: MentionArgs<M>;
+    mention?: MentionExtensionArgs<M>;
 }
 
 export interface RichTextEditorServiceArgs<M extends MentionItemData> {
