@@ -52,10 +52,10 @@ export class EntryEditorService implements ICentralPanelContentService {
     onPeriodicChange: MultiEventProducer<ChangeEntryEvent, unknown>;
     onDelete: MultiEventProducer<DeleteEntryEvent, unknown>;
 
-    constructor(domain: DomainManager) {
+    constructor(entryId: Id, domain: DomainManager) {
         this._domain = domain;
 
-        this.info = new EntryInfoService();
+        this.info = new EntryInfoService(entryId);
         this.article = new ArticleEditorService(domain, this.info);
         // this.properties = new PropertyEditorService({
         //     info: this.info,
@@ -164,7 +164,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.info.onChangeTitle.broker = this.onPartialChange;
 
         this.article.onChange.broker = this.onPeriodicChange;
-        this.article.onSelectReference.broker = this.onOpenReferencedEntry;
+        this.article.onSelectEntryReference.broker = this.onOpenReferencedEntry;
 
         // this.properties.onChange.broker = this.onPeriodicChange;
 
@@ -194,18 +194,18 @@ export class EntryEditorService implements ICentralPanelContentService {
     }
 
     async loadArticle(id: Id) {
-        if (this.isArticleEditorOpen && this.info.id == id) return; // the article is already open
+        if (this.isArticleEditorOpen && this.article.loaded) return; // the article is already open
 
         const response = await this._domain.entries.getArticle(id);
         if (response) {
             this.currentView = EntryViewType.ArticleEditor;
             this.info.load(id, response.info.entityType, response.info.title);
-            this.article.initialize(response.text);
+            this.article.load(response.text);
         }
     }
 
     async loadProperties(id: Id) {
-        if (this.isPropertyEditorOpen && this.info.id == id) return; // the property editor is already open
+        if (this.isPropertyEditorOpen) return; // the property editor is already open
 
         const response = await this._domain.entries.getProperties(id);
 
@@ -217,7 +217,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     }
 
     async loadLexicon(languageId: Id, wordType?: WordType) {
-        if (this.isWordEditorOpen && this.info.id == languageId) {
+        if (this.isWordEditorOpen) {
             if (wordType === undefined)
                 // don't care about which word type is displayed;
                 // since the word editor is already open for this language, don't reload it
@@ -257,6 +257,7 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     cleanUp() {
         this.onChange.produce({ id: this.info.id });
+        this.article.cleanUp();
         // this.lexicon.cleanUp();
 
         this.onOpenReferencedEntry.broker = null;

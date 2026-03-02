@@ -1,34 +1,64 @@
-// import { Node as PMNode } from "prosemirror-model";
-// eslint-disable-next-line
-import { Editor, type JSONContent } from "@tiptap/core";
-// eslint-disable-next-line
+import { Node as PMNode } from "prosemirror-model";
+
+import { Editor, type Extensions, type JSONContent } from "@tiptap/core";
+
 import { Placeholder } from "@tiptap/extension-placeholder";
-// eslint-disable-next-line
+import type { EditorProps } from "@tiptap/pm/view";
+
 import { StarterKit } from "@tiptap/starter-kit";
 
-// import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
-import type { IComponentService, OpenEntryEditorEvent } from "@/interface";
+import type { IComponentService } from "@/interface";
 import { MultiEventProducer } from "@/utils/event-producer";
 
-// import { useReferenceExtension, type SuggestionData } from "./mention-service";
+import {
+    Mention,
+    type MentionExtensionArgs,
+    type MentionItemData,
+} from "./mention";
 
-interface RichTextEditorServiceArgs {
-    placeholder: string;
+interface ExtensionArgs<M extends MentionItemData> {
+    placeholder?: string;
+    mention?: MentionExtensionArgs<M>;
 }
-export class RichTextEditorService implements IComponentService {
-    readonly key = "rich-text-editor";
 
+export interface RichTextEditorServiceArgs<M extends MentionItemData> {
+    key: string;
+    extensions?: ExtensionArgs<M>;
+}
+
+export class RichTextEditorService<
+    M extends MentionItemData = MentionItemData,
+> implements IComponentService {
+    // STATE
+    key: string;
     editor: Editor;
+    private _mounted = $state(false);
     private _changed = false;
 
+    // EVENTS
     onChange: MultiEventProducer<void, unknown>;
-    onSelectReference: MultiEventProducer<OpenEntryEditorEvent, unknown>;
+    onSelectMention: MultiEventProducer<M, unknown>;
 
-    constructor({ placeholder }: RichTextEditorServiceArgs) {
-        this.editor = $state(this._buildEditor(placeholder));
+    constructor({ key, extensions }: RichTextEditorServiceArgs<M>) {
+        this.key = key;
+
+        const _extensions = this._buildExtensions(extensions ?? {});
+        this.editor = $state(this._buildEditor(_extensions));
 
         this.onChange = new MultiEventProducer();
-        this.onSelectReference = new MultiEventProducer();
+        this.onSelectMention = new MultiEventProducer();
+    }
+
+    get mounted() {
+        return this._mounted;
+    }
+
+    get changed() {
+        return this._changed;
+    }
+
+    set changed(changed: boolean) {
+        this._changed = changed;
     }
 
     get content(): JSONContent {
@@ -43,75 +73,76 @@ export class RichTextEditorService implements IComponentService {
         return JSON.stringify(this.content);
     }
 
-    get changed() {
-        return this._changed;
+    // INITIALIZATION
+
+    private _buildExtensions({ placeholder, mention }: ExtensionArgs<M>) {
+        const extensions: Extensions = [StarterKit];
+
+        if (placeholder)
+            extensions.push(Placeholder.configure({ placeholder }));
+
+        if (mention) extensions.push(Mention({ querier: mention.querier }));
+
+        return extensions;
     }
 
-    set changed(changed: boolean) {
-        this._changed = changed;
-    }
-
-    initialize(text: JSONContent) {
-        this.content = text ?? "";
-    }
-
-    reset() {
-        this.editor.commands.clearContent();
-        this._changed = false;
-    }
-
-    _buildEditor(placeholder: string) {
-        // const Reference = useReferenceExtension({
-        //     // TODO: need to decide what character to use;
-        //     // currently the default is '@', but '[[' might also work
-        //     prefix: ARTICLE_REFERENCE_PREFIX,
-        //     queryItems: async ({ query }) => this._queryByTitle(query),
-        //     getSelectedIndex: () => this.selectedRefIndex,
-        //     setSelectedIndex: (index) =>
-        //         (this.selectedRefIndex = index as number),
-        // });
-
+    private _buildEditor(extensions: Extensions) {
         return new Editor({
             element: null,
-            extensions: [
-                StarterKit,
-                Placeholder.configure({ placeholder }),
-                // Reference,
-            ],
+            extensions,
             onTransaction: ({ editor }) => {
-                this._updateEditor(editor);
+                this.update(editor);
             },
-            editorProps: {},
-            // editorProps: {
-            //     handleClickOn: (_, __, node) => this._onClickEditor(node),
-            // },
+            editorProps: this._buildDefaultEditorProps(),
         });
     }
 
-    _updateEditor(editor: Editor) {
+    private _buildDefaultEditorProps(): EditorProps {
+        return {
+            handleClickOn: (_, __, node) => this._onClickEditor(node),
+        };
+    }
+
+    // LOADING
+
+    load(text: JSONContent) {
+        this.content = text ?? "";
+    }
+
+    mount(element: HTMLDivElement, props?: EditorProps) {
+        this.editor?.mount(element as HTMLDivElement);
+        this.editor?.setOptions({
+            editorProps: {
+                ...this._buildDefaultEditorProps(),
+                ...props,
+            },
+        });
+        this._mounted = true;
+    }
+
+    // UPDATING
+
+    update(editor: Editor) {
         this.editor = editor;
         this._changed = true;
         this.onChange.produce();
     }
 
-    // async _queryByTitle(titleFragment: string): Promise<SuggestionData[]> {
-    //     this.selectedRefIndex = 0;
+    clear() {
+        this.editor.commands.clearContent();
+    }
 
-    //     const results = await this._domain.entries.search({
-    //         keyword: titleFragment,
-    //         limit: 5,
-    //     });
-    //     if (!results) return [];
+    // CLEAN UP
 
-    //     return results
-    //         .filter((info) => info.id != this.info.id)
-    //         .map((info) => ({ label: info.title, value: info.id }));
-    // }
+    cleanUp() {
+        this.editor.unmount();
+        this._mounted = false;
+    }
 
-    // _onClickEditor(node: PMNode) {
-    //     if (node.type.name == "mention") {
-    //         const id: number | null = node.attrs["id"] ?? null;
-    //         if (id !== null) this.onSelectReference.produce({ id });
-    //     }
-    // }
+    // EVENT HANDLING
+
+    private _onClickEditor(node: PMNode) {
+        if (node.type.name == "mention" && node.attrs["id"] !== null)
+            this.onSelectMention.produce(node.attrs as M);
+    }
 }

@@ -1,40 +1,55 @@
-// eslint-disable-next-line
+ 
 import type { JSONContent } from "@tiptap/core";
 
-import { DomainManager } from "@/services";
+import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
 import type {
     ChangeEntryEvent,
     IComponentService,
     OpenEntryEditorEvent,
 } from "@/interface";
 import { RichTextEditorService } from "@/lib/components/rich-text-editor";
+import { DomainManager } from "@/services";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info-service.svelte";
+import type { EntryMentionItemData } from "./article-editor-interface";
 
 export class ArticleEditorService implements IComponentService {
+    private _loaded = false;
+
     private _domain: DomainManager;
     info: EntryInfoService;
-    richText: RichTextEditorService;
+    richText: RichTextEditorService<EntryMentionItemData>;
 
     onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
-    onSelectReference: MultiEventProducer<OpenEntryEditorEvent, unknown>;
+    onSelectEntryReference: MultiEventProducer<OpenEntryEditorEvent, unknown>;
 
     constructor(domain: DomainManager, info: EntryInfoService) {
         this._domain = domain;
         this.info = info;
         this.richText = new RichTextEditorService({
-            placeholder: "Enter a description ...",
+            key: `article-rich-text-editor-${info.id}`,
+            extensions: {
+                placeholder: "Enter a description ...",
+                mention: {
+                    prefix: ARTICLE_REFERENCE_PREFIX,
+                    querier: this._queryByTitle.bind(this),
+                },
+            },
         });
 
         this.onChange = new MultiEventProducer();
-        this.onSelectReference = new MultiEventProducer();
+        this.onSelectEntryReference = new MultiEventProducer();
 
         this._createSubscriptions();
     }
 
     get key() {
         return `article-editor-${this.info.id}`;
+    }
+
+    get loaded() {
+        return this._loaded;
     }
 
     get changed() {
@@ -49,27 +64,31 @@ export class ArticleEditorService implements IComponentService {
         this.richText.onChange.subscribe(() =>
             this.onChange.produce({ id: this.info.id }),
         );
+        this.richText.onSelectMention.subscribe(({ id }) =>
+            this.onSelectEntryReference.produce({ id }),
+        );
     }
 
-    initialize(text: JSONContent) {
-        this.richText.content = text ?? "";
+    load(text: JSONContent) {
+        this.richText.load(text);
+        this._loaded = true;
     }
 
-    reset() {
-        this.richText.reset();
+    cleanUp() {
+        this.richText.cleanUp();
     }
 
-    // async _queryByTitle(titleFragment: string): Promise<SuggestionData[]> {
-    //     this.selectedRefIndex = 0;
+    async _queryByTitle(
+        titleFragment: string,
+    ): Promise<EntryMentionItemData[]> {
+        const results = await this._domain.entries.search({
+            keyword: titleFragment,
+            limit: 5,
+        });
+        if (!results) return [];
 
-    //     const results = await this._domain.entries.search({
-    //         keyword: titleFragment,
-    //         limit: 5,
-    //     });
-    //     if (!results) return [];
-
-    //     return results
-    //         .filter((info) => info.id != this.info.id)
-    //         .map((info) => ({ label: info.title, value: info.id }));
-    // }
+        return results
+            .filter((info) => info.id != this.info.id)
+            .map((info) => ({ id: info.id, label: info.title }));
+    }
 }
