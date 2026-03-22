@@ -7,17 +7,17 @@
     const { service }: ArticleEditorProps = $props();
 </script>
 
-<div class="flex flex-col overflow-auto w-full h-full">
+<div class="flex flex-col overflow-hidden w-full h-full">
     <EntryTitle service={service.info} />
 
     <RichTextEditor
         service={service.richText}
         rootProps={{
-            class: "w-full h-full p-4",
+            class: "grow w-full h-full min-h-0 p-4",
         }}
         editorProps={{
             attributes: {
-                class: "w-full h-full focus:outline-none",
+                class: "overflow-auto w-full h-full focus:outline-none",
             },
         }}
     />
