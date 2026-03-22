@@ -5,7 +5,6 @@
 
     import { EntryViewType } from "@/constants";
     import { VerticalTabs } from "@/lib/components/vertical-tabs";
-    import { Pill } from "@/lib/components/pill";
     import { Button } from "@/lib/components/button";
 
     import type { EntryEditorProps } from "./entry-editor-interface";
@@ -16,10 +15,8 @@
 
 <div class="entry-editor-root grid h-full w-full">
     <div class="entry-editor-header flex items-center justify-between pb-1">
-        <Pill variant="outline">
-            {service.info.entryTypeLabel}
-        </Pill>
-        <Button variant="destructive" size="icon">
+        <!-- TODO: turn this into a dynamic toolbar that changes depending on what tab is visible -->
+        <Button variant="outline" size="icon-sm" color="destructive">
             <TrashIcon />
         </Button>
     </div>

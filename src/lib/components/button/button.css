@@ -1,0 +1,17 @@
+.button-primary {
+    --button-background: var(--primary);
+    --button-foreground: var(--primary-foreground);
+    --button-border: var(--border);
+}
+
+.button-secondary {
+    --button-background: var(--secondary);
+    --button-foreground: var(--secondary-foreground);
+    --button-border: var(--border);
+}
+
+.button-destructive {
+    --button-background: var(--destructive);
+    --button-foreground: var(--destructive-foreground);
+    --button-border: var(--border);
+}
