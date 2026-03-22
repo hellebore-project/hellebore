@@ -1,8 +1,11 @@
 <script lang="ts">
     import "./entry-editor.css";
 
+    import TrashIcon from "@lucide/svelte/icons/trash";
+
     import { EntryViewType } from "@/constants";
     import { VerticalTabs } from "@/lib/components/vertical-tabs";
+    import { Button } from "@/lib/components/button";
 
     import type { EntryEditorProps } from "./entry-editor-interface";
     import { ArticleEditor } from "./article-editor";
@@ -11,10 +14,11 @@
 </script>
 
 <div class="entry-editor-root grid h-full w-full">
-    <div class="entry-editor-header pb-1">
-        <div class="text-sm font-medium text-muted-foreground">
-            [Entry Editor Header - Placeholder]
-        </div>
+    <div class="entry-editor-header flex items-center justify-between pb-1">
+        <!-- TODO: turn this into a dynamic toolbar that changes depending on what tab is visible -->
+        <Button variant="outline" size="icon-sm" color="destructive">
+            <TrashIcon />
+        </Button>
     </div>
 
     <div class="entry-editor-tabs overflow-hidden pt-1">
@@ -44,11 +48,7 @@
                 [Word Editor - Placeholder]
             </div>
         {:else}
-            <div
-                class="rounded-md border border-dashed border-muted-foreground bg-muted/20 p-4 text-muted-foreground"
-            >
-                [Unknown View - Placeholder]
-            </div>
+            {null}
         {/if}
     </div>
 </div>

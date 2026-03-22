@@ -10,9 +10,11 @@ import type { ButtonVariants } from "./button-variants";
 
 export type ButtonVariant = VariantProps<typeof ButtonVariants>["variant"];
 export type ButtonSize = VariantProps<typeof ButtonVariants>["size"];
+export type ButtonColor = VariantProps<typeof ButtonVariants>["color"];
 
 export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
     WithElementRef<HTMLAnchorAttributes> & {
         variant?: ButtonVariant;
         size?: ButtonSize;
+        color?: ButtonColor;
     };

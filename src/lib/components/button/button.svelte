@@ -1,4 +1,6 @@
 <script lang="ts">
+    import "./button.css";
+
     import { cn } from "@/lib/utils.js";
     import { ButtonVariants } from "./button-variants";
     import type { ButtonProps } from "./button-interface";
@@ -6,7 +8,8 @@
     let {
         class: className,
         variant = "default",
-        size = "default",
+        size = "md",
+        color = "primary",
         ref = $bindable(null),
         href = undefined,
         type = "button",
@@ -20,7 +23,7 @@
     <a
         bind:this={ref}
         data-slot="button"
-        class={cn(ButtonVariants({ variant, size }), className)}
+        class={cn(ButtonVariants({ variant, size, color }), className)}
         href={disabled ? undefined : href}
         aria-disabled={disabled}
         role={disabled ? "link" : undefined}
@@ -33,7 +36,7 @@
     <button
         bind:this={ref}
         data-slot="button"
-        class={cn(ButtonVariants({ variant, size }), className)}
+        class={cn(ButtonVariants({ variant, size, color }), className)}
         {type}
         {disabled}
         {...restProps}
