@@ -13,7 +13,7 @@
     let { service }: EntryEditorProps = $props();
 </script>
 
-<div class="entry-editor-root grid h-full w-full">
+<div class="entry-editor-root grid w-full h-full">
     <div class="entry-editor-header flex items-center justify-between pb-1">
         <!-- TODO: turn this into a dynamic toolbar that changes depending on what tab is visible -->
         <Button variant="outline" size="icon-sm" color="destructive">
@@ -32,7 +32,7 @@
         />
     </div>
 
-    <div class="entry-editor-panel overflow-auto px-6 pt-1">
+    <div class="entry-editor-panel overflow-hidden px-6 pt-1">
         {#if service.currentView === EntryViewType.ArticleEditor}
             <ArticleEditor service={service.article} />
         {:else if service.currentView === EntryViewType.PropertyEditor}
