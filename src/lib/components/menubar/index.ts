@@ -23,6 +23,32 @@ import AutoContent, {
 } from "./menubar-auto-content.svelte";
 
 export {
+    // CONSTANTS
+    DIVIDER_DATA,
+    // TYPES
+    type AutoContentProps as MenubarAutoContentProps,
+    type ItemData as MenubarItemData,
+    type TextItemData as MenubarTextItemData,
+    // COMPONENTS
+    Root,
+    CheckboxItem,
+    Content,
+    Item,
+    RadioItem,
+    Separator,
+    Shortcut,
+    SubContent,
+    SubTrigger,
+    Trigger,
+    Menu,
+    Group,
+    Sub,
+    RadioGroup,
+    Label,
+    GroupHeading,
+    Portal,
+    AutoContent,
+    // PREFIXED COMPONENTS
     Root as Menubar,
     CheckboxItem as MenubarCheckboxItem,
     Content as MenubarContent,
@@ -41,8 +67,4 @@ export {
     GroupHeading as MenubarGroupHeading,
     Portal as MenubarPortal,
     AutoContent as MenubarAutoContent,
-    type AutoContentProps as MenubarAutoContentProps,
-    type ItemData as MenubarItemData,
-    type TextItemData as MenubarTextItemData,
-    DIVIDER_DATA,
 };

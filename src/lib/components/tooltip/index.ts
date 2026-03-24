@@ -6,9 +6,16 @@ import Provider from "./tooltip-provider.svelte";
 import Portal from "./tooltip-portal.svelte";
 
 export {
+    Root,
+    Trigger,
+    Content,
+    Arrow,
+    Provider,
+    Portal,
+    //
     Root as Tooltip,
-    Content as TooltipContent,
     Trigger as TooltipTrigger,
+    Content as TooltipContent,
     Arrow as TooltipArrow,
     Provider as TooltipProvider,
     Portal as TooltipPortal,

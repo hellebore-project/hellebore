@@ -23,6 +23,32 @@ import AutoContent, {
 } from "./dropdown-menu-auto-content.svelte";
 
 export {
+    // CONSTANTS
+    DIVIDER_DATA,
+    // TYPES
+    type AutoContentProps as DropdownMenuAutoContentProps,
+    type ItemData as DropdownMenuItemData,
+    type TextItemData as DropdownMenuTextItemData,
+    // COMPONENTS
+    CheckboxGroup,
+    CheckboxItem,
+    Content,
+    Portal,
+    Group,
+    GroupHeading,
+    Item,
+    Label,
+    RadioGroup,
+    RadioItem,
+    Root,
+    Separator,
+    Shortcut,
+    Sub,
+    SubContent,
+    SubTrigger,
+    Trigger,
+    AutoContent,
+    // PREFIXED COMPONENTS
     Root as DropdownMenu,
     CheckboxGroup as DropdownMenuCheckboxGroup,
     CheckboxItem as DropdownMenuCheckboxItem,
@@ -41,8 +67,4 @@ export {
     Trigger as DropdownMenuTrigger,
     GroupHeading as DropdownMenuGroupHeading,
     AutoContent as DropdownMenuAutoContent,
-    type AutoContentProps as DropdownMenuAutoContentProps,
-    type ItemData as DropdownMenuItemData,
-    type TextItemData as DropdownMenuTextItemData,
-    DIVIDER_DATA,
 };
