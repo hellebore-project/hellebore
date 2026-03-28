@@ -1,6 +1,5 @@
-// eslint-disable-next-line
 import { ask, open } from "@tauri-apps/plugin-dialog";
-// eslint-disable-next-line
+
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import type {
@@ -22,7 +21,7 @@ import { CentralPanelManager } from "./centre";
 import { FooterManager } from "./footer";
 import { HeaderManager } from "./header";
 // import { ModalManager } from "./modal";
-// import { LeftSideBarService } from "./left-sidebar";
+import { LeftSidebarService } from "./left-sidebar";
 // import { PortalManager } from "./portal";
 
 export class ClientManager implements IComponentService {
@@ -34,7 +33,7 @@ export class ClientManager implements IComponentService {
     synchronizer: SynchronizationService;
     central: CentralPanelManager;
     header: HeaderManager;
-    // leftSideBar: LeftSideBarService;
+    leftSideBar: LeftSidebarService;
     footer: FooterManager;
     // modal: ModalManager;
     // contextMenu: ContextMenuManager;
@@ -51,9 +50,9 @@ export class ClientManager implements IComponentService {
         // peripheral panels
         this.header = new HeaderManager(this.domain);
         this.footer = new FooterManager(this.domain);
-        // this.leftSideBar = new LeftSideBarService({
-        //     domain: this.domain,
-        // });
+        this.leftSideBar = new LeftSidebarService({
+            domain: this.domain,
+        });
 
         // overlays
         // this.modal = new ModalManager();

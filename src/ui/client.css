@@ -11,13 +11,10 @@
     /* PANELS */
 
     --header-height: 50px;
-    --header-bg-color: #282828;
     --sidebar-width: 300px;
-    --sidebar-bg-color: #161616;
     --central-padding: 20px;
     --central-bg-color: #0a0a0a;
     --footer-height: 25px;
-    --footer-bg-color: #141414;
 }
 
 .client-shell {
