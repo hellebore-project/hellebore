@@ -4,7 +4,6 @@
     import TrashIcon from "@lucide/svelte/icons/trash";
 
     import { EntryViewType } from "@/constants";
-    import { VerticalTabs } from "@/lib/components/vertical-tabs";
     import { Button } from "@/lib/components/button";
 
     import type { EntryEditorProps } from "./entry-editor-interface";
@@ -19,17 +18,6 @@
         <Button variant="outline" size="icon-sm" color="destructive">
             <TrashIcon />
         </Button>
-    </div>
-
-    <div class="entry-editor-tabs overflow-hidden pt-1">
-        <VerticalTabs
-            items={service.tabData}
-            activeValue={service.currentView}
-            onSelect={(value) => {
-                service.currentView = value as EntryViewType;
-            }}
-            class="h-full"
-        />
     </div>
 
     <div class="entry-editor-panel overflow-hidden px-6 pt-1">

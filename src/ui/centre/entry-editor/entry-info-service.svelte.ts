@@ -4,7 +4,7 @@ import { MultiEventProducer } from "@/utils/event-producer";
 
 export class EntryInfoService {
     // STATE
-    private _id: number = $state(ENTRY_ID_SENTINEL);
+    private _entryId: number = $state(ENTRY_ID_SENTINEL);
     private _entryType: EntryType | null = $state(null);
     private _title: string | null = $state(null);
     private _isTitleUnique = $state(true);
@@ -14,16 +14,16 @@ export class EntryInfoService {
     onChangeTitle: MultiEventProducer<ChangeEntryEvent, unknown>;
 
     constructor(entryId: Id) {
-        this._id = entryId;
+        this._entryId = entryId;
         this.onChangeTitle = new MultiEventProducer();
     }
 
     get id() {
-        return this._id;
+        return this._entryId;
     }
 
     set id(id: number) {
-        this._id = id;
+        this._entryId = id;
     }
 
     get entryType() {
@@ -51,8 +51,8 @@ export class EntryInfoService {
         // the sync will happen immediately so that the title can be validated in real-time;
         // to speed things up, we only sync the title
         this.onChangeTitle.produce({
-            id: this._id,
-            poll: { id: this._id, syncTitle: true },
+            id: this._entryId,
+            poll: { id: this._entryId, syncTitle: true },
         });
     }
 

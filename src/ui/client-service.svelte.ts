@@ -12,8 +12,14 @@ import type {
     PollEvent,
     ProjectResponse,
     IComponentService,
+    EntryEditorInfo,
 } from "@/interface";
-import { CentralViewType, EntryType } from "@/constants";
+import {
+    CentralViewType,
+    EntryType,
+    SidebarSectionType,
+    ViewAction,
+} from "@/constants";
 import { DomainManager, SynchronizationService } from "@/services";
 
 import { CentralPanelManager } from "./centre";
@@ -22,7 +28,6 @@ import { FooterManager } from "./footer";
 import { HeaderManager } from "./header";
 // import { ModalManager } from "./modal";
 import { LeftSidebarService } from "./left-sidebar";
-// import { PortalManager } from "./portal";
 
 export class ClientManager implements IComponentService {
     // CONSTANTS
@@ -72,23 +77,33 @@ export class ClientManager implements IComponentService {
     // SUBSCRIPTIONS
 
     private _createSubscriptions() {
-        // this.central.onChangePanel.subscribe(({ action, details }) => {
-        //     if (details.type === CentralViewType.EntryEditor) {
-        //         if (details.entry === undefined) return;
+        this.central.onChangePanel.subscribe(({ action, details }) => {
+            if (details.type === CentralViewType.EntryEditor) {
+                const entryEditorDetails = details as EntryEditorInfo;
 
-        //         if (action === ViewAction.Show)
-        //             this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
-        //                 details.entry.id,
-        //                 true,
-        //             );
-        //         if (action === ViewAction.Hide) {
-        //             this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
-        //                 details.entry.id,
-        //                 false,
-        //             );
-        //         }
-        //     }
-        // });
+                if (action === ViewAction.Show) {
+                    // this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
+                    //     entryEditorDetails.entry.id,
+                    //     true,
+                    // );
+                    this.leftSideBar.openEntryEditorNavigator({
+                        ownerId: entryEditorDetails.id,
+                        entryId: entryEditorDetails.entry.id,
+                        entryType: entryEditorDetails.entry.type,
+                        activeView: entryEditorDetails.subType,
+                    });
+                } else if (action === ViewAction.Hide) {
+                    // this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
+                    //     entryEditorDetails.entry.id,
+                    //     false,
+                    // );
+                    this.leftSideBar.releaseSection({
+                        ownerId: entryEditorDetails.id,
+                        type: SidebarSectionType.EntryEditorNavigator,
+                    });
+                }
+            }
+        });
         this.central.onChangeData.subscribe(() =>
             this.synchronizer.requestFullSynchronization(),
         );
@@ -122,6 +137,11 @@ export class ClientManager implements IComponentService {
         //     this.leftSideBar.toggleMobileOpen(),
         // );
 
+        this.leftSideBar.onSelectEntryEditorNavItem.subscribe(
+            ({ panelId, type }) => {
+                this.central.changeEntryEditorView(panelId, type);
+            },
+        );
         // const spotlight = this.leftSideBar.spotlight;
         // spotlight.onCreateEntry.subscribe((args) =>
         //     this.modal.openEntryCreator(args),
@@ -347,7 +367,7 @@ export class ClientManager implements IComponentService {
         // );
 
         let panelIndex = 0;
-        for (const panelService of this.central.iterateOpenPanels()) {
+        for (const panelService of this.central.iteratePanels()) {
             if (panelService.type !== CentralViewType.EntryEditor) continue;
 
             const entryId = panelService.details.entry?.id;
@@ -408,7 +428,7 @@ export class ClientManager implements IComponentService {
         // this.leftSideBar.spotlight.deleteEntityNode(id);
 
         let panelIndex = 0;
-        for (const panelService of this.central.iterateOpenPanels()) {
+        for (const panelService of this.central.iteratePanels()) {
             if (panelService.type !== CentralViewType.EntryEditor) continue;
 
             const entryId = panelService.details.entry?.id;
