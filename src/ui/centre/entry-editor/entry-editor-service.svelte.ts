@@ -1,5 +1,3 @@
-import { SvelteMap } from "svelte/reactivity";
-
 import {
     CentralViewType,
     EntryType,
@@ -9,6 +7,7 @@ import {
 import type {
     ChangeEntryEvent,
     DeleteEntryEvent,
+    EntryEditorInfo,
     ICentralPanelContentService,
     Id,
     OpenEntryEditorEvent,
@@ -18,7 +17,6 @@ import type {
     // Word,
 } from "@/interface";
 import { DomainManager } from "@/services";
-import type { VerticalTabsItemData } from "@/lib/components/vertical-tabs";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "./entry-info-service.svelte";
@@ -33,9 +31,6 @@ export class EntryEditorService implements ICentralPanelContentService {
     TITLE_FIELD_HEIGHT = 36;
 
     // STATE
-    private _tabData: Map<EntryViewType, VerticalTabsItemData> = $state(
-        new SvelteMap(),
-    );
     private _viewKey: EntryViewType = $state(EntryViewType.ArticleEditor);
 
     // SERVICES
@@ -72,7 +67,6 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.onPeriodicChange = new MultiEventProducer();
         this.onDelete = new MultiEventProducer();
 
-        this._buildTabData();
         this._createSubscriptions();
     }
 
@@ -86,9 +80,14 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     get details() {
         return {
+            id: this.key,
             type: this.type,
-            entry: { id: this.info.id },
-        };
+            subType: this.currentView,
+            entry: {
+                id: this.info.id,
+                type: this.info.entryType,
+            },
+        } as EntryEditorInfo;
     }
 
     get headerSpaceHeight() {
@@ -120,45 +119,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         this._viewKey = key;
     }
 
-    get tabData() {
-        const entryType = this.info.entryType;
-
-        const tabData: VerticalTabsItemData[] = [
-            this._tabData.get(
-                EntryViewType.ArticleEditor,
-            ) as VerticalTabsItemData,
-            this._tabData.get(
-                EntryViewType.PropertyEditor,
-            ) as VerticalTabsItemData,
-        ];
-        if (entryType === EntryType.Language)
-            tabData.push(
-                this._tabData.get(
-                    EntryViewType.WordEditor,
-                ) as VerticalTabsItemData,
-            );
-
-        return tabData;
-    }
-
     // INITIALIZATION
-
-    private _buildTabData() {
-        this._tabData.set(EntryViewType.ArticleEditor, {
-            label: "Article",
-            value: EntryViewType.ArticleEditor,
-        });
-
-        this._tabData.set(EntryViewType.PropertyEditor, {
-            label: "Properties",
-            value: EntryViewType.PropertyEditor,
-        });
-
-        this._tabData.set(EntryViewType.WordEditor, {
-            label: "Lexicon",
-            value: EntryViewType.WordEditor,
-        });
-    }
 
     private _createSubscriptions() {
         this.info.onChangeTitle.broker = this.onPartialChange;
@@ -250,7 +211,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     // VISIBILITY
 
     activate() {
-        // no-op
+        return;
     }
 
     // CLEAN UP

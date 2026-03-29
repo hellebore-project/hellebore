@@ -1,6 +1,5 @@
-// eslint-disable-next-line
 import { ask, open } from "@tauri-apps/plugin-dialog";
-// eslint-disable-next-line
+
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import type {
@@ -13,8 +12,14 @@ import type {
     PollEvent,
     ProjectResponse,
     IComponentService,
+    EntryEditorInfo,
 } from "@/interface";
-import { CentralViewType, EntryType } from "@/constants";
+import {
+    CentralViewType,
+    EntryType,
+    SidebarSectionType,
+    ViewAction,
+} from "@/constants";
 import { DomainManager, SynchronizationService } from "@/services";
 
 import { CentralPanelManager } from "./centre";
@@ -22,8 +27,7 @@ import { CentralPanelManager } from "./centre";
 import { FooterManager } from "./footer";
 import { HeaderManager } from "./header";
 // import { ModalManager } from "./modal";
-// import { LeftSideBarService } from "./left-sidebar";
-// import { PortalManager } from "./portal";
+import { LeftSidebarService } from "./left-sidebar";
 
 export class ClientManager implements IComponentService {
     // CONSTANTS
@@ -34,7 +38,7 @@ export class ClientManager implements IComponentService {
     synchronizer: SynchronizationService;
     central: CentralPanelManager;
     header: HeaderManager;
-    // leftSideBar: LeftSideBarService;
+    leftSideBar: LeftSidebarService;
     footer: FooterManager;
     // modal: ModalManager;
     // contextMenu: ContextMenuManager;
@@ -51,9 +55,9 @@ export class ClientManager implements IComponentService {
         // peripheral panels
         this.header = new HeaderManager(this.domain);
         this.footer = new FooterManager(this.domain);
-        // this.leftSideBar = new LeftSideBarService({
-        //     domain: this.domain,
-        // });
+        this.leftSideBar = new LeftSidebarService({
+            domain: this.domain,
+        });
 
         // overlays
         // this.modal = new ModalManager();
@@ -73,23 +77,33 @@ export class ClientManager implements IComponentService {
     // SUBSCRIPTIONS
 
     private _createSubscriptions() {
-        // this.central.onChangePanel.subscribe(({ action, details }) => {
-        //     if (details.type === CentralViewType.EntryEditor) {
-        //         if (details.entry === undefined) return;
+        this.central.onChangePanel.subscribe(({ action, details }) => {
+            if (details.type === CentralViewType.EntryEditor) {
+                const entryEditorDetails = details as EntryEditorInfo;
 
-        //         if (action === ViewAction.Show)
-        //             this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
-        //                 details.entry.id,
-        //                 true,
-        //             );
-        //         if (action === ViewAction.Hide) {
-        //             this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
-        //                 details.entry.id,
-        //                 false,
-        //             );
-        //         }
-        //     }
-        // });
+                if (action === ViewAction.Show) {
+                    // this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
+                    //     entryEditorDetails.entry.id,
+                    //     true,
+                    // );
+                    this.leftSideBar.openEntryEditorNavigator({
+                        ownerId: entryEditorDetails.id,
+                        entryId: entryEditorDetails.entry.id,
+                        entryType: entryEditorDetails.entry.type,
+                        activeView: entryEditorDetails.subType,
+                    });
+                } else if (action === ViewAction.Hide) {
+                    // this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
+                    //     entryEditorDetails.entry.id,
+                    //     false,
+                    // );
+                    this.leftSideBar.releaseSection({
+                        ownerId: entryEditorDetails.id,
+                        type: SidebarSectionType.EntryEditorNavigator,
+                    });
+                }
+            }
+        });
         this.central.onChangeData.subscribe(() =>
             this.synchronizer.requestFullSynchronization(),
         );
@@ -123,6 +137,11 @@ export class ClientManager implements IComponentService {
         //     this.leftSideBar.toggleMobileOpen(),
         // );
 
+        this.leftSideBar.onSelectEntryEditorNavItem.subscribe(
+            ({ panelId, type }) => {
+                this.central.changeEntryEditorView(panelId, type);
+            },
+        );
         // const spotlight = this.leftSideBar.spotlight;
         // spotlight.onCreateEntry.subscribe((args) =>
         //     this.modal.openEntryCreator(args),
@@ -348,7 +367,7 @@ export class ClientManager implements IComponentService {
         // );
 
         let panelIndex = 0;
-        for (const panelService of this.central.iterateOpenPanels()) {
+        for (const panelService of this.central.iteratePanels()) {
             if (panelService.type !== CentralViewType.EntryEditor) continue;
 
             const entryId = panelService.details.entry?.id;
@@ -409,7 +428,7 @@ export class ClientManager implements IComponentService {
         // this.leftSideBar.spotlight.deleteEntityNode(id);
 
         let panelIndex = 0;
-        for (const panelService of this.central.iterateOpenPanels()) {
+        for (const panelService of this.central.iteratePanels()) {
             if (panelService.type !== CentralViewType.EntryEditor) continue;
 
             const entryId = panelService.details.entry?.id;

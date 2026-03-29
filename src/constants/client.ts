@@ -43,6 +43,11 @@ export enum WordViewType {
     Verbs = "VERBS",
 }
 
+export enum SidebarSectionType {
+    Spotlight = "SPOTLIGHT",
+    EntryEditorNavigator = "ENTRY_EDITOR_NAVIGATOR",
+}
+
 export enum ModalType {
     ProjectCreator = "PROJECT_CREATOR",
     EntryCreator = "ENTRY_CREATOR",

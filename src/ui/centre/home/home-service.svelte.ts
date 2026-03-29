@@ -20,7 +20,7 @@ export class HomeManager implements ICentralPanelContentService {
     }
 
     get details() {
-        return { type: this.type };
+        return { id: this.key, type: this.type };
     }
 
     get projectName() {

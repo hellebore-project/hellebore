@@ -7,6 +7,7 @@
     import { Header } from "./header";
     import { Footer } from "./footer";
     import { Centre } from "./centre";
+    import { LeftSidebar } from "./left-sidebar";
 
     const service = new ClientManager();
 </script>
@@ -18,8 +19,8 @@
                 <Header service={service.header} />
             </header>
 
-            <aside class="left-sidebar-panel overflow-auto">
-                <!-- LeftSidebar content -->
+            <aside class="left-sidebar-panel overflow-hidden">
+                <LeftSidebar service={service.leftSideBar} />
             </aside>
 
             <main
