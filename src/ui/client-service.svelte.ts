@@ -31,7 +31,7 @@ import { LeftSidebarService } from "./left-sidebar";
 
 export class ClientManager implements IComponentService {
     // CONSTANTS
-    readonly key = "client";
+    readonly id = "client";
 
     // SERVICES
     domain: DomainManager;

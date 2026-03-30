@@ -28,9 +28,9 @@
     });
 </script>
 
-{#key service.key}
+{#key service.id}
     <div
-        id={service.key}
+        id={service.id}
         class={cn("rich-text-editor", className)}
         bind:this={element}
         {...rest}

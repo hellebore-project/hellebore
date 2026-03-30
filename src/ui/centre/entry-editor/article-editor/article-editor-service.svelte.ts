@@ -1,4 +1,3 @@
- 
 import type { JSONContent } from "@tiptap/core";
 
 import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
@@ -28,7 +27,7 @@ export class ArticleEditorService implements IComponentService {
         this._domain = domain;
         this.info = info;
         this.richText = new RichTextEditorService({
-            key: `article-rich-text-editor-${info.id}`,
+            id: `article-rich-text-editor-${info.entryId}`,
             extensions: {
                 placeholder: "Enter a description ...",
                 mention: {
@@ -44,8 +43,8 @@ export class ArticleEditorService implements IComponentService {
         this._createSubscriptions();
     }
 
-    get key() {
-        return `article-editor-${this.info.id}`;
+    get id() {
+        return `article-editor-${this.info.entryId}`;
     }
 
     get loaded() {
@@ -62,7 +61,7 @@ export class ArticleEditorService implements IComponentService {
 
     private _createSubscriptions() {
         this.richText.onChange.subscribe(() =>
-            this.onChange.produce({ id: this.info.id }),
+            this.onChange.produce({ id: this.info.entryId }),
         );
         this.richText.onSelectMention.subscribe(({ id }) =>
             this.onSelectEntryReference.produce({ id }),
@@ -88,7 +87,7 @@ export class ArticleEditorService implements IComponentService {
         if (!results) return [];
 
         return results
-            .filter((info) => info.id != this.info.id)
+            .filter((info) => info.id != this.info.entryId)
             .map((info) => ({ id: info.id, label: info.title }));
     }
 }

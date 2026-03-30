@@ -7,7 +7,7 @@ import { DomainManager } from "@/services";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 export class EntrySearchService implements IComponentService {
-    readonly key = "entry-search";
+    readonly id = "entry-search";
     readonly DEFAULT_QUERY_PERIOD = 500;
 
     // CONFIG

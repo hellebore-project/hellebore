@@ -11,7 +11,7 @@ export class HomeManager implements ICentralPanelContentService {
         this.domain = domain;
     }
 
-    get key() {
+    get id() {
         return this.type;
     }
 
@@ -20,7 +20,7 @@ export class HomeManager implements ICentralPanelContentService {
     }
 
     get details() {
-        return { id: this.key, type: this.type };
+        return { id: this.id, type: this.type };
     }
 
     get projectName() {
