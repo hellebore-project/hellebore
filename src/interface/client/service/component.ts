@@ -1,3 +1,3 @@
 export interface IComponentService {
-    key: string;
+    id: string;
 }

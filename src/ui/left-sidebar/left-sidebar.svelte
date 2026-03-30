@@ -15,7 +15,7 @@
         collapsible="none"
     >
         <Sidebar.SidebarContent>
-            {#each service.iterateSections() as section (section.key)}
+            {#each service.iterateSections() as section (section.id)}
                 <LeftSidebarSection service={section} />
             {/each}
         </Sidebar.SidebarContent>

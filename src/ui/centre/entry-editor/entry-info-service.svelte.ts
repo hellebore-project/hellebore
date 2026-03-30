@@ -18,11 +18,11 @@ export class EntryInfoService {
         this.onChangeTitle = new MultiEventProducer();
     }
 
-    get id() {
+    get entryId() {
         return this._entryId;
     }
 
-    set id(id: number) {
+    set entryId(id: number) {
         this._entryId = id;
     }
 
@@ -77,7 +77,7 @@ export class EntryInfoService {
     }
 
     load(id: number, type: EntryType, title: string) {
-        this.id = id;
+        this.entryId = id;
         this.entryType = type;
         // mutate the private title variable directly to avoid an unnecessary sync
         this._title = title;

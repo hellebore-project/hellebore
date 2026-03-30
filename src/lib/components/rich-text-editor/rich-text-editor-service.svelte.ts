@@ -21,8 +21,8 @@ interface ExtensionArgs<M extends MentionItemData> {
     mention?: MentionExtensionArgs<M>;
 }
 
-export interface RichTextEditorServiceArgs<M extends MentionItemData> {
-    key: string;
+interface RichTextEditorServiceArgs<M extends MentionItemData> {
+    id: string;
     extensions?: ExtensionArgs<M>;
 }
 
@@ -30,7 +30,7 @@ export class RichTextEditorService<
     M extends MentionItemData = MentionItemData,
 > implements IComponentService {
     // STATE
-    key: string;
+    id: string;
     editor: Editor;
     private _mounted = $state(false);
     private _changed = false;
@@ -39,8 +39,8 @@ export class RichTextEditorService<
     onChange: MultiEventProducer<void, unknown>;
     onSelectMention: MultiEventProducer<M, unknown>;
 
-    constructor({ key, extensions }: RichTextEditorServiceArgs<M>) {
-        this.key = key;
+    constructor({ id, extensions }: RichTextEditorServiceArgs<M>) {
+        this.id = id;
 
         const _extensions = this._buildExtensions(extensions ?? {});
         this.editor = $state(this._buildEditor(_extensions));

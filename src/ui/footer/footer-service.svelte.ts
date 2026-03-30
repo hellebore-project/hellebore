@@ -2,7 +2,7 @@ import { DomainManager } from "@/services";
 import type { IComponentService } from "@/interface";
 
 export class FooterManager implements IComponentService {
-    readonly key = "footer";
+    readonly id = "footer";
 
     private _domain: DomainManager;
 

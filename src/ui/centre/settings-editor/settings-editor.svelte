@@ -12,6 +12,6 @@
             Settings
         </h1>
         <hr class="mt-3 border-border" />
-        {service.key}
+        {service.id}
     </div>
 </div>

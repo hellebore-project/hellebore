@@ -34,7 +34,7 @@ export class EntryEditorNavigatorService implements ISidebarSectionService {
         this.load(args);
     }
 
-    get key() {
+    get id() {
         return this.type;
     }
 
@@ -72,7 +72,7 @@ export class EntryEditorNavigatorService implements ISidebarSectionService {
         this.activeView = activeView;
 
         if (this.entryType === null)
-            console.warn(`${this.key} service received a null entry type`);
+            console.warn(`${this.id} service received a null entry type`);
     }
 
     activate() {

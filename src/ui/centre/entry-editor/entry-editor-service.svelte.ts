@@ -70,8 +70,8 @@ export class EntryEditorService implements ICentralPanelContentService {
         this._createSubscriptions();
     }
 
-    get key() {
-        return EntryEditorService.generateKey(this.type, this.info.id);
+    get id() {
+        return EntryEditorService.generateKey(this.type, this.info.entryId);
     }
 
     get type() {
@@ -80,11 +80,11 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     get details() {
         return {
-            id: this.key,
+            id: this.id,
             type: this.type,
             subType: this.currentView,
             entry: {
-                id: this.info.id,
+                id: this.info.entryId,
                 type: this.info.entryType,
                 title: this.info.title,
             },
@@ -202,9 +202,9 @@ export class EntryEditorService implements ICentralPanelContentService {
     changeView(viewType: EntryViewType) {
         // the entry-editor is switching to a different view,
         // so any pending edits need to be pushed to the BE
-        this.onChange.produce({ id: this.info.id });
+        this.onChange.produce({ id: this.info.entryId });
         this.load({
-            id: this.info.id,
+            id: this.info.entryId,
             viewKey: viewType,
         });
     }
@@ -218,7 +218,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     // CLEAN UP
 
     cleanUp() {
-        this.onChange.produce({ id: this.info.id });
+        this.onChange.produce({ id: this.info.entryId });
         this.article.cleanUp();
         // this.lexicon.cleanUp();
 
@@ -238,12 +238,13 @@ export class EntryEditorService implements ICentralPanelContentService {
         syncText = false,
         // syncLexicon = false,
     }: PollEvent): PollResultEntryData | null {
-        if (this.info.id === null || this.info.entryType === null) return null;
+        if (this.info.entryId === null || this.info.entryType === null)
+            return null;
 
-        if (id !== null && this.info.id !== id) return null;
+        if (id !== null && this.info.entryId !== id) return null;
 
         const entry: PollResultEntryData = {
-            id: this.info.id,
+            id: this.info.entryId,
             entryType: this.info.entryType,
         };
 
@@ -268,7 +269,7 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     handleSynchronization(events: SyncEntryEvent[]) {
         for (const { request, response } of events) {
-            if (this.info.id != request.id) return;
+            if (this.info.entryId != request.id) return;
 
             if (response.entry) {
                 this.info.isTitleUnique = response.entry.title.isUnique ?? true;
@@ -300,7 +301,10 @@ export class EntryEditorService implements ICentralPanelContentService {
     // DELETION
 
     deleteEntry() {
-        this.onDelete.produce({ id: this.info.id, title: this.info.title });
+        this.onDelete.produce({
+            id: this.info.entryId,
+            title: this.info.title,
+        });
     }
 
     // UTILITY

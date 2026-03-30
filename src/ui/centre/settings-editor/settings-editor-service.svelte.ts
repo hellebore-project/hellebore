@@ -2,7 +2,7 @@ import type { ICentralPanelContentService } from "@/interface";
 import { CentralViewType } from "@/constants";
 
 export class SettingsEditorService implements ICentralPanelContentService {
-    get key() {
+    get id() {
         return this.type;
     }
 
@@ -11,7 +11,7 @@ export class SettingsEditorService implements ICentralPanelContentService {
     }
 
     get details() {
-        return { id: this.key, type: this.type };
+        return { id: this.id, type: this.type };
     }
 
     activate() {

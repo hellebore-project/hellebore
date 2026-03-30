@@ -20,11 +20,11 @@ interface LeftSidebarServiceArgs {
 
 export class LeftSidebarService implements IComponentService {
     // CONSTANTS
-    readonly key = "left-side-bar";
+    readonly id = "left-side-bar";
     readonly NAVBAR_WIDTH = 300;
 
     // STATE VARIABLES
-    private _sectionKeys: string[] = $state([]);
+    private _sectionIds: string[] = $state([]);
     private _sections = new SvelteMap<string, ISidebarSectionService>();
 
     // SERVICES
@@ -87,19 +87,19 @@ export class LeftSidebarService implements IComponentService {
     }
 
     *iterateSections() {
-        for (const key of this._sectionKeys)
+        for (const key of this._sectionIds)
             yield this._sections.get(key) as ISidebarSectionService;
     }
 
     // ADDING SECTIONS
 
     private _addSection(section: ISidebarSectionService): boolean {
-        if (this._sections.has(section.key)) {
+        if (this._sections.has(section.id)) {
             return false;
         }
 
-        this._sections.set(section.key, section);
-        this._sectionKeys.push(section.key);
+        this._sections.set(section.id, section);
+        this._sectionIds.push(section.id);
         section.activate();
 
         return true;
@@ -122,22 +122,22 @@ export class LeftSidebarService implements IComponentService {
     // REMOVING SECTIONS
 
     removeSection(type: SidebarSectionType) {
-        // callers won't know the key of the section, so they'll have to rely on the type;
-        // for now, section's are basically singletons, meaning that we can treat the key and the type interchangeably
-        this._removeSectionByKey(type);
+        // callers won't know the ID of the section, so they'll have to rely on the type;
+        // for now, section's are basically singletons, meaning that we can treat the ID and the type interchangeably
+        this._removeSectionById(type);
     }
 
-    private _removeSectionByKey(key: string): boolean {
-        const section = this._sections.get(key);
+    private _removeSectionById(id: string): boolean {
+        const section = this._sections.get(id);
         if (!section) return false;
         return this._removeSection(section);
     }
 
     private _removeSection(section: ISidebarSectionService): boolean {
         section.cleanUp();
-        this._sections.delete(section.key);
-        const index = this._sectionKeys.indexOf(section.key);
-        if (index >= 0) this._sectionKeys.splice(index, 1);
+        this._sections.delete(section.id);
+        const index = this._sectionIds.indexOf(section.id);
+        if (index >= 0) this._sectionIds.splice(index, 1);
         return true;
     }
 }

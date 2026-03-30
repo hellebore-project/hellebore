@@ -24,11 +24,11 @@ import {
 
 export class CentralPanelManager implements IComponentService {
     // CONSTANTS
-    readonly key = "central-panel";
+    readonly id = "central-panel";
 
     // STATE VARIABLES
     private _activePanelIndex: number | null = $state(null);
-    private _panelKeys: string[] = $state([]);
+    private _panelIds: string[] = $state([]);
     private _panelServices: Map<string, ICentralPanelContentService>;
 
     // SERVICES
@@ -43,7 +43,7 @@ export class CentralPanelManager implements IComponentService {
     onDeleteEntry: MultiEventProducer<DeleteEntryEvent, unknown>;
 
     constructor(domain: DomainManager) {
-        this._panelKeys = [];
+        this._panelIds = [];
         this._panelServices = new SvelteMap();
 
         this._domain = domain;
@@ -59,7 +59,7 @@ export class CentralPanelManager implements IComponentService {
     // PROPERTIES
 
     get panelCount() {
-        return this._panelKeys.length;
+        return this._panelIds.length;
     }
 
     get activePanelService() {
@@ -140,8 +140,8 @@ export class CentralPanelManager implements IComponentService {
     }
 
     private _addPanel(service: ICentralPanelContentService, show = true) {
-        this._panelServices.set(service.key, service);
-        const length = this._panelKeys.push(service.key);
+        this._panelServices.set(service.id, service);
+        const length = this._panelIds.push(service.id);
 
         this._produceChangePanelEvent(service, ViewAction.Create);
 
@@ -204,8 +204,8 @@ export class CentralPanelManager implements IComponentService {
     }
 
     getPanelByIndex(index: number) {
-        const key = this._panelKeys[index];
-        return this._panelServices.get(key) ?? null;
+        const id = this._panelIds[index];
+        return this._panelServices.get(id) ?? null;
     }
 
     getHomePanel(): HomeManager | null {
@@ -215,16 +215,16 @@ export class CentralPanelManager implements IComponentService {
         return service as HomeManager;
     }
 
-    findPanelIndex(key: string) {
-        for (let i = 0; i < this._panelKeys.length; i++) {
-            if (this._panelKeys[i] === key) return i;
+    findPanelIndex(id: string) {
+        for (let i = 0; i < this._panelIds.length; i++) {
+            if (this._panelIds[i] === id) return i;
         }
         return null;
     }
 
     *iteratePanels() {
-        for (const key of this._panelKeys)
-            yield this._panelServices.get(key) as ICentralPanelContentService;
+        for (const id of this._panelIds)
+            yield this._panelServices.get(id) as ICentralPanelContentService;
     }
 
     // CLOSING PANELS
@@ -235,8 +235,8 @@ export class CentralPanelManager implements IComponentService {
 
         this._closePanel(index, service);
 
-        this._panelKeys.splice(index, 1);
-        this._panelServices.delete(service.key);
+        this._panelIds.splice(index, 1);
+        this._panelServices.delete(service.id);
     }
 
     private _closePanel(index: number, service: ICentralPanelContentService) {
@@ -247,14 +247,14 @@ export class CentralPanelManager implements IComponentService {
     }
 
     clear() {
-        for (let index = 0; index < this._panelKeys.length; index++) {
+        for (let index = 0; index < this._panelIds.length; index++) {
             const service = this.getPanelByIndex(
                 index,
             ) as ICentralPanelContentService;
             this._closePanel(index, service);
         }
 
-        this._panelKeys = [];
+        this._panelIds = [];
         this._panelServices.clear();
     }
 
