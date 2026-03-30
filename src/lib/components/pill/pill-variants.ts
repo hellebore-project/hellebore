@@ -1,12 +1,10 @@
 import { tv } from "tailwind-variants";
 
 export const PillVariants = tv({
-    base: "inline-flex items-center justify-center rounded-full font-medium whitespace-nowrap transition-colors",
+    base: "inline-flex items-center justify-center rounded-sm font-small whitespace-nowrap transition-colors",
     variants: {
         variant: {
             default: "bg-primary text-primary-foreground",
-            secondary: "bg-secondary text-secondary-foreground",
-            destructive: "bg-destructive text-white",
             outline: "border border-border bg-background text-foreground",
         },
         size: {

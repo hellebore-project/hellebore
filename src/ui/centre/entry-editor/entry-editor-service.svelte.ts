@@ -18,6 +18,7 @@ import type {
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { MultiEventProducer } from "@/utils/event-producer";
+import { toTitleCase } from "@/utils/string";
 
 import { EntryInfoService } from "./entry-info-service.svelte";
 import { ArticleEditorService } from "./article-editor";
@@ -118,6 +119,10 @@ export class EntryEditorService implements ICentralPanelContentService {
     set currentView(key: EntryViewType) {
         if (this._viewKey == key) return;
         this._viewKey = key;
+    }
+
+    get currentViewLabel() {
+        return toTitleCase(this._viewKey);
     }
 
     // INITIALIZATION
