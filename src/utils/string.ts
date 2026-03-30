@@ -12,12 +12,11 @@ export function pluralize(noun: string, suffix = "s") {
 }
 
 export function toTitleCase(str: string) {
-    str = str.replace("_", " ");
-    let titleCase = "";
-    for (const word of str.split(" ")) {
-        if (word == "") continue;
-        const capital = word.substring(0, 1).toUpperCase();
-        titleCase += capital + word.substring(1);
-    }
-    return titleCase;
+    return str
+        .split("_")
+        .map(
+            (word) =>
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+        )
+        .join(" ");
 }

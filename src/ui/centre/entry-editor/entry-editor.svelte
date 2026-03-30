@@ -5,6 +5,8 @@
 
     import { EntryViewType } from "@/constants";
     import { Button } from "@/lib/components/button";
+    import * as Breadcrumb from "@/lib/components/breadcrumb";
+    import { Pill } from "@/lib/components/pill";
 
     import type { EntryEditorProps } from "./entry-editor-interface";
     import { ArticleEditor } from "./article-editor";
@@ -15,6 +17,24 @@
 <div class="entry-editor-root grid w-full h-full">
     <div class="entry-editor-header flex items-center justify-between pb-1">
         <!-- TODO: turn this into a dynamic toolbar that changes depending on what tab is visible -->
+        <div>
+            <Pill class="inline-block me-2" size="sm">
+                {service.info.entryTypeLabel}
+            </Pill>
+
+            <Breadcrumb.Root class="inline-block">
+                <Breadcrumb.List>
+                    <Breadcrumb.Item>
+                        {service.info.title}
+                    </Breadcrumb.Item>
+                    <Breadcrumb.Separator />
+                    <Breadcrumb.Item>
+                        {service.currentViewLabel}
+                    </Breadcrumb.Item>
+                </Breadcrumb.List>
+            </Breadcrumb.Root>
+        </div>
+
         <Button variant="outline" size="icon-sm" color="destructive">
             <TrashIcon />
         </Button>
