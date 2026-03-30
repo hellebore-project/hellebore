@@ -1,1 +1,1 @@
-export * from "./entry-editor-navigator-service.svelte";
+export * from "./entry-editor-nav-service.svelte";

@@ -6,6 +6,7 @@ import type { IComponentService } from "./component";
 export interface CentralPanelEntryInfo {
     id: Id;
     type: EntryType | null;
+    title: string | null;
 }
 
 export interface CentralPanelInfo {

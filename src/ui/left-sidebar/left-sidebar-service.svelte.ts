@@ -4,8 +4,9 @@ import type {
     ChangeEntryEditorViewEvent,
     IComponentService,
     ISidebarSectionService,
-    OpenEntryEditorNavigatorEvent,
+    AddEntryEditorNavigatorEvent,
     ReleaseSidebarSectionEvent,
+    Id,
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { SidebarSectionType } from "@/constants";
@@ -13,7 +14,7 @@ import { SidebarSectionType } from "@/constants";
 import { EntryEditorNavigatorService } from "./sections";
 import { EventProducer } from "@/utils/event-producer";
 
-export interface LeftSidebarServiceArgs {
+interface LeftSidebarServiceArgs {
     domain: DomainManager;
 }
 
@@ -44,16 +45,19 @@ export class LeftSidebarService implements IComponentService {
         return this.NAVBAR_WIDTH;
     }
 
-    // OPENING SECTIONS
+    // SPOTLIGHT
 
-    openSpotlight() {
+    addSpotlight() {
         // TODO
     }
 
-    openEntryEditorNavigator(event: OpenEntryEditorNavigatorEvent) {
-        const existingSection = this._sections.get(
-            SidebarSectionType.EntryEditorNavigator,
-        ) as EntryEditorNavigatorService | undefined;
+    // ENTRY EDITOR NAVIGATOR
+
+    addEntryEditorNavigator(event: AddEntryEditorNavigatorEvent) {
+        const existingSection =
+            this.getSectionByType<EntryEditorNavigatorService>(
+                SidebarSectionType.EntryEditorNavigator,
+            );
 
         if (existingSection) {
             existingSection.load(event);
@@ -66,6 +70,29 @@ export class LeftSidebarService implements IComponentService {
         }
     }
 
+    updateEntryEditorNavigatorTitle(entryId: Id, title: string) {
+        const section = this.getSectionByType<EntryEditorNavigatorService>(
+            SidebarSectionType.EntryEditorNavigator,
+        );
+        if (!section || section.entryId !== entryId) return;
+        section.title = title;
+    }
+
+    // ACCESSING SECTIONS
+
+    getSectionByType<T extends ISidebarSectionService>(
+        type: SidebarSectionType,
+    ): T | null {
+        return (this._sections.get(type) ?? null) as T | null;
+    }
+
+    *iterateSections() {
+        for (const key of this._sectionKeys)
+            yield this._sections.get(key) as ISidebarSectionService;
+    }
+
+    // ADDING SECTIONS
+
     private _addSection(section: ISidebarSectionService): boolean {
         if (this._sections.has(section.key)) {
             return false;
@@ -76,13 +103,6 @@ export class LeftSidebarService implements IComponentService {
         section.activate();
 
         return true;
-    }
-
-    // ACCESSING SECTIONS
-
-    *iterateSections() {
-        for (const key of this._sectionKeys)
-            yield this._sections.get(key) as ISidebarSectionService;
     }
 
     // RELEASING SECTIONS
@@ -99,9 +119,9 @@ export class LeftSidebarService implements IComponentService {
         return true;
     }
 
-    // CLOSING SECTIONS
+    // REMOVING SECTIONS
 
-    closeSection(type: SidebarSectionType) {
+    removeSection(type: SidebarSectionType) {
         // callers won't know the key of the section, so they'll have to rely on the type;
         // for now, section's are basically singletons, meaning that we can treat the key and the type interchangeably
         this._removeSectionByKey(type);

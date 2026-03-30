@@ -143,13 +143,16 @@ export interface ChangeEntryEditorViewEvent {
     type: EntryViewType;
 }
 
-export interface OpenSidebarSectionEvent {
+export interface AddSidebarSectionEvent {
     ownerId: string;
 }
 
-export interface OpenEntryEditorNavigatorEvent extends OpenSidebarSectionEvent {
-    entryId: Id;
-    entryType: EntryType | null;
+export interface AddEntryEditorNavigatorEvent extends AddSidebarSectionEvent {
+    entry: {
+        id: Id;
+        type: EntryType | null;
+        title: string | null;
+    };
     activeView: EntryViewType;
 }
 

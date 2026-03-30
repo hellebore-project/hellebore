@@ -86,6 +86,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             entry: {
                 id: this.info.id,
                 type: this.info.entryType,
+                title: this.info.title,
             },
         } as EntryEditorInfo;
     }

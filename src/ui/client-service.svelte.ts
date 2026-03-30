@@ -86,10 +86,13 @@ export class ClientManager implements IComponentService {
                     //     entryEditorDetails.entry.id,
                     //     true,
                     // );
-                    this.leftSideBar.openEntryEditorNavigator({
+                    this.leftSideBar.addEntryEditorNavigator({
                         ownerId: entryEditorDetails.id,
-                        entryId: entryEditorDetails.entry.id,
-                        entryType: entryEditorDetails.entry.type,
+                        entry: {
+                            id: entryEditorDetails.entry.id,
+                            type: entryEditorDetails.entry.type,
+                            title: entryEditorDetails.entry.title,
+                        },
                         activeView: entryEditorDetails.subType,
                     });
                 } else if (action === ViewAction.Hide) {
@@ -130,12 +133,6 @@ export class ClientManager implements IComponentService {
         this.header.onOpenEntry.subscribe((args) =>
             this.central.openEntryEditor(args),
         );
-        // this.header.fetchLeftBarStatus.subscribe(
-        //     () => this.leftSideBar.mobileOpen,
-        // );
-        // this.header.onToggleLeftBar.subscribe(() =>
-        //     this.leftSideBar.toggleMobileOpen(),
-        // );
 
         this.leftSideBar.onSelectEntryEditorNavItem.subscribe(
             ({ panelId, type }) => {
@@ -453,18 +450,23 @@ export class ClientManager implements IComponentService {
     private _handleEntrySynchronization(event: SyncEvent) {
         this.central.handleEntrySynchronization(event);
 
-        // for (const { request, response } of event.entries) {
-        //     if (
-        //         request.title &&
-        //         response.entry &&
-        //         response.entry.title.updated &&
-        //         response.entry.title.isUnique
-        //     )
-        //         this.leftSideBar.spotlight.updateEntityNodeText(
-        //             request.id,
-        //             request.title,
-        //         );
-        // }
+        for (const { request, response } of event.entries) {
+            if (
+                request.title &&
+                response.entry &&
+                response.entry.title.updated &&
+                response.entry.title.isUnique
+            ) {
+                // this.leftSideBar.spotlight.updateEntityNodeText(
+                //     request.id,
+                //     request.title,
+                // );
+                this.leftSideBar.updateEntryEditorNavigatorTitle(
+                    response.entry.id,
+                    request.title,
+                );
+            }
+        }
     }
 
     // CLEAN UP

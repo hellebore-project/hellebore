@@ -6,7 +6,7 @@ import type { BaseOwnership } from "@/utils/ownership";
 export interface ISidebarSectionService extends IComponentService {
     readonly type: SidebarSectionType;
     readonly title: string;
-    collapsed: boolean;
+    open: boolean;
     ownership: BaseOwnership;
     activate(): void;
     cleanUp(): void;

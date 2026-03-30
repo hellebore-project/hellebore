@@ -1,19 +1,20 @@
 <script lang="ts">
     import * as Sidebar from "@/lib/components/sidebar";
 
-    import type { EntryEditorNavigatorService } from "./entry-editor-navigator-service.svelte";
+    import type { EntryEditorNavigatorService } from "./entry-editor-nav-service.svelte";
 
     const { service }: { service: EntryEditorNavigatorService } = $props();
 </script>
 
-<Sidebar.SidebarMenu class="gap-0.5">
+<Sidebar.SidebarMenu>
     {#each service.menuItems as item (item.value)}
         <Sidebar.SidebarMenuItem>
             <Sidebar.SidebarMenuButton
+                class="ps-8"
                 isActive={service.activeView === item.value}
                 onclick={() => service.selectView(item.value)}
             >
-                <span>{item.label}</span>
+                {item.label}
             </Sidebar.SidebarMenuButton>
         </Sidebar.SidebarMenuItem>
     {/each}

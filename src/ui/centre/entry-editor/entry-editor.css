@@ -1,8 +1,8 @@
 .entry-editor-root {
     grid-template:
-        "entry-editor-header" 40px
-        "entry-editor-panel" 1fr
-        / 1fr;
+        "entry-editor-header entry-editor-header entry-editor-header" 40px
+        "entry-editor-left entry-editor-panel entry-editor-right" 1fr
+        / minmax(0, 100px) 1fr minmax(0, 100px);
 }
 
 .entry-editor-header {

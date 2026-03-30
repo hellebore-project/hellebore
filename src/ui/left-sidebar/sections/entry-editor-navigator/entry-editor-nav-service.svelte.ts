@@ -7,28 +7,21 @@ import type {
 import { EventProducer } from "@/utils/event-producer";
 import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
-export interface EntryEditorNavigatorItem {
-    label: string;
-    value: EntryViewType;
-}
-
-interface EntryEditorNavigatorServiceArgs {
-    ownerId: string;
-    entryId: Id;
-    entryType?: EntryType | null;
-    activeView?: EntryViewType;
-}
+import type {
+    EntryEditorNavigatorItem,
+    EntryEditorNavigatorServiceArgs,
+} from "./entry-editor-nav-interface";
 
 export class EntryEditorNavigatorService implements ISidebarSectionService {
     // CONSTANTS
     readonly type = SidebarSectionType.EntryEditorNavigator;
-    readonly title = "Views";
 
     // STATE VARIABLES
     entryId: Id = $state(-1); // default to an invalid sentinel value
     entryType: EntryType | null = $state(null);
+    title: string = $state("Entry");
     activeView: EntryViewType = $state(EntryViewType.ArticleEditor);
-    collapsed = $state(false);
+    open = $state(true); // TODO: need to find a way to remember the open state after the entry-editor closes
     ownership: BaseOwnership;
 
     // EVENTS
@@ -69,13 +62,13 @@ export class EntryEditorNavigatorService implements ISidebarSectionService {
 
     load({
         ownerId,
-        entryId,
-        entryType = null,
+        entry,
         activeView = EntryViewType.ArticleEditor,
     }: EntryEditorNavigatorServiceArgs) {
         this.ownership.add(ownerId);
-        this.entryId = entryId;
-        this.entryType = entryType;
+        this.entryId = entry.id;
+        this.entryType = entry.type ?? null;
+        this.title = entry.title ?? "Entry";
         this.activeView = activeView;
 
         if (this.entryType === null)
