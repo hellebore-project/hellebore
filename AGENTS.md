@@ -9,6 +9,7 @@ Tauri app with a typescript frontend and a rust backend.
 - Don't add doc-strings or in-line comments unless instructed.
 - Imports at the top of the file.
 - Organize imports into groups: standard libraries, 3rd party libraries, aliased imports, relative imports.
+- Avoid deleting my comments; only delete them when the associated code is also being deleted.
 
 ## Frontend
 
@@ -19,6 +20,10 @@ Tauri app with a typescript frontend and a rust backend.
 - Style components by adding tailwind classes to the `class` attribute.
 - Avoid style blocks in svelte files.
 - Define custom CSS classes in a CSS stylesheet and import it into the component file.
+
+### Tests
+
+- Ignore them (migration to svelte is still ongoing)
 
 ## Backend
 

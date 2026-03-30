@@ -1,16 +1,12 @@
 .entry-editor-root {
     grid-template:
         "entry-editor-header entry-editor-header entry-editor-header" 40px
-        "entry-editor-tabs entry-editor-panel entry-editor-sidebar" 1fr
+        "entry-editor-left entry-editor-panel entry-editor-right" 1fr
         / minmax(0, 100px) 1fr minmax(0, 100px);
 }
 
 .entry-editor-header {
     grid-area: entry-editor-header;
-}
-
-.entry-editor-tabs {
-    grid-area: entry-editor-tabs;
 }
 
 .entry-editor-panel {

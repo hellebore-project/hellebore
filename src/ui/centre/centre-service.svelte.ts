@@ -1,6 +1,6 @@
 import { SvelteMap } from "svelte/reactivity";
 
-import { CentralViewType, ViewAction } from "@/constants";
+import { CentralViewType, EntryViewType, ViewAction } from "@/constants";
 import type {
     ChangeCentralPanelEvent,
     ChangeEntryEvent,
@@ -184,7 +184,24 @@ export class CentralPanelManager implements IComponentService {
         this._produceChangePanelEvent(service, ViewAction.Hide);
     }
 
+    // UPDATING PANELS
+
+    changeEntryEditorView(id: string, viewType: EntryViewType) {
+        const service = this.getPanel(id);
+        if (!service) {
+            console.error(`Central panel service ${id} not found.`);
+            return;
+        }
+
+        const entryEditorService = service as EntryEditorService;
+        entryEditorService.changeView(viewType);
+    }
+
     // ACCESSING PANELS
+
+    getPanel(id: string) {
+        return this._panelServices.get(id) ?? null;
+    }
 
     getPanelByIndex(index: number) {
         const key = this._panelKeys[index];
@@ -205,7 +222,7 @@ export class CentralPanelManager implements IComponentService {
         return null;
     }
 
-    *iterateOpenPanels() {
+    *iteratePanels() {
         for (const key of this._panelKeys)
             yield this._panelServices.get(key) as ICentralPanelContentService;
     }

@@ -1,4 +1,10 @@
-import { EntryType, EntryViewType, ViewAction, WordType } from "@/constants";
+import {
+    EntryType,
+    EntryViewType,
+    SidebarSectionType,
+    ViewAction,
+    WordType,
+} from "@/constants";
 
 import type { Id, Point } from "../common";
 import type {
@@ -130,6 +136,29 @@ export interface OpenEntryEditorEvent extends OpenCentralPanelEvent {
 export interface ChangeCentralPanelEvent {
     action: ViewAction;
     details: CentralPanelInfo;
+}
+
+export interface ChangeEntryEditorViewEvent {
+    panelId: string;
+    type: EntryViewType;
+}
+
+export interface AddSidebarSectionEvent {
+    ownerId: string;
+}
+
+export interface AddEntryEditorNavigatorEvent extends AddSidebarSectionEvent {
+    entry: {
+        id: Id;
+        type: EntryType | null;
+        title: string | null;
+    };
+    activeView: EntryViewType;
+}
+
+export interface ReleaseSidebarSectionEvent {
+    ownerId: string;
+    type: SidebarSectionType;
 }
 
 // CONTEXT MENU EVENTS
