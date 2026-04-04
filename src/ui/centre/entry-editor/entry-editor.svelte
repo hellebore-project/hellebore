@@ -1,15 +1,13 @@
 <script lang="ts">
     import "./entry-editor.css";
 
-    import TrashIcon from "@lucide/svelte/icons/trash";
-
     import { EntryViewType } from "@/constants";
-    import { Button } from "@/lib/components/button";
     import * as Breadcrumb from "@/lib/components/breadcrumb";
     import { Pill } from "@/lib/components/pill";
 
     import type { EntryEditorProps } from "./entry-editor-interface";
     import { ArticleEditor } from "./article-editor";
+    import { DeleteEntryButton } from "./delete-entry-button";
 
     let { service }: EntryEditorProps = $props();
 </script>
@@ -35,9 +33,7 @@
             </Breadcrumb.Root>
         </div>
 
-        <Button variant="outline" size="icon-sm" color="destructive">
-            <TrashIcon />
-        </Button>
+        <DeleteEntryButton {service} />
     </div>
 
     <div class="entry-editor-panel overflow-hidden px-6 pt-1">
