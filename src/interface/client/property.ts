@@ -1,9 +1,6 @@
-import type { OptionData } from "./option";
+import type { PropertyFieldType } from "@/constants";
 
-export enum PropertyFieldType {
-    TEXT,
-    SELECT,
-}
+import type { OptionData } from "./option";
 
 export interface PropertyFieldData {
     property: string;
@@ -12,14 +9,14 @@ export interface PropertyFieldData {
 }
 
 export interface TextPropertyFieldData extends PropertyFieldData {
-    type: PropertyFieldType.TEXT;
-    getValue?: () => string;
-    setValue?: (value: string) => void;
+    type: PropertyFieldType.Text;
+    getValue: () => string;
+    setValue: (value: string) => void;
 }
 
 export interface SelectPropertyFieldData extends PropertyFieldData {
-    type: PropertyFieldType.SELECT;
+    type: PropertyFieldType.Select;
     options?: OptionData[];
-    getValue?: () => string;
-    setValue?: (value: string) => void;
+    getValue: () => string;
+    setValue: (value: string) => void;
 }

@@ -7,7 +7,12 @@ export const ROOT_FOLDER_NODE_ID = "R";
 export const SHARED_PORTAL_ID = "shared-portal";
 export const SHARED_PORTAL_SELECTOR = `#${SHARED_PORTAL_ID}`;
 
-// VIEWS
+// UI
+
+export enum PropertyFieldType {
+    Text = "TEXT",
+    Select = "SELECT",
+}
 
 export enum ViewAction {
     Create = "CREATE",

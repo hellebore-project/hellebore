@@ -22,7 +22,7 @@ import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "./entry-info-service.svelte";
 import { ArticleEditorService } from "./article-editor";
-// import { PropertyEditorService } from "./property-editor";
+import { PropertyEditorService } from "./property-editor";
 // import { WordEditorService, WordEditorServiceArgs } from "./word-editor";
 
 export class EntryEditorService implements ICentralPanelContentService {
@@ -37,7 +37,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     // SERVICES
     private _domain: DomainManager;
     info: EntryInfoService;
-    // properties: PropertyEditorService;
+    properties: PropertyEditorService;
     article: ArticleEditorService;
     // lexicon: WordEditorService;
 
@@ -53,9 +53,9 @@ export class EntryEditorService implements ICentralPanelContentService {
 
         this.info = new EntryInfoService(entryId);
         this.article = new ArticleEditorService(domain, this.info);
-        // this.properties = new PropertyEditorService({
-        //     info: this.info,
-        // });
+        this.properties = new PropertyEditorService({
+            info: this.info,
+        });
         // this.lexicon = new WordEditorService({
         //     domain,
         //     info: this.info,
@@ -133,7 +133,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.article.onChange.broker = this.onPeriodicChange;
         this.article.onSelectEntryReference.broker = this.onOpenReferencedEntry;
 
-        // this.properties.onChange.broker = this.onPeriodicChange;
+        this.properties.onChange.broker = this.onPeriodicChange;
 
         // this.lexicon.fetchPortalSelector.broker = this.fetchPortalSelector;
         // this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) => {
@@ -179,7 +179,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (response !== null) {
             this.currentView = EntryViewType.PropertyEditor;
             this.info.load(id, response.info.entityType, response.info.title);
-            // this.properties.load(response.properties);
+            this.properties.load(response.properties);
         }
     }
 
@@ -225,6 +225,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     cleanUp() {
         this.onChange.produce({ id: this.info.entryId });
         this.article.cleanUp();
+        this.properties.changed = false;
         // this.lexicon.cleanUp();
 
         this.onOpenReferencedEntry.broker = null;
@@ -256,10 +257,10 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (syncTitle && this.info.titleChanged && this.info.isTitleValid)
             entry.title = this.info.title;
 
-        // if (syncProperties && this.properties.changed) {
-        //     const properties = this.properties.data;
-        //     if (properties) entry.properties = properties;
-        // }
+        if (this.properties.changed) {
+            const properties = this.properties.entity;
+            if (properties) entry.properties = properties;
+        }
 
         if (syncText && this.article.changed)
             entry.text = this.article.richText.serialized;
