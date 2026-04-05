@@ -52,6 +52,11 @@ export interface DeleteFolderEvent {
 
 // ENTRY EVENTS
 
+export interface PropertyChangeEvent {
+    property: string;
+    value: unknown;
+}
+
 export interface CreateEntryEvent {
     entryType: EntryType;
     title: string;
