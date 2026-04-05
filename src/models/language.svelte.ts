@@ -10,6 +10,10 @@ export class Language implements LanguageProperties {
         this.onChange = new EventProducer();
     }
 
+    toJSON(): LanguageProperties {
+        return {};
+    }
+
     buildFieldData(): PropertyFieldData[] {
         return [];
     }

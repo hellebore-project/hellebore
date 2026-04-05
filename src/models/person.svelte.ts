@@ -26,6 +26,10 @@ export class Person implements PersonProperties {
         this.onChange.produce({ property: PersonProperty.NAME, value });
     }
 
+    toJSON(): PersonProperties {
+        return { name: this._name };
+    }
+
     buildFieldData(): PropertyFieldData[] {
         const fields: TextPropertyFieldData[] = [
             {
