@@ -7,6 +7,7 @@
 
     import type { EntryEditorProps } from "./entry-editor-interface";
     import { ArticleEditor } from "./article-editor";
+    import { PropertyEditor } from "./property-editor";
     import { DeleteEntryButton } from "./delete-entry-button";
 
     let { service }: EntryEditorProps = $props();
@@ -40,11 +41,7 @@
         {#if service.currentView === EntryViewType.ArticleEditor}
             <ArticleEditor service={service.article} />
         {:else if service.currentView === EntryViewType.PropertyEditor}
-            <div
-                class="rounded-md border border-dashed border-muted-foreground bg-muted/20 p-4 text-muted-foreground"
-            >
-                [Property Editor - Placeholder]
-            </div>
+            <PropertyEditor service={service.properties} />
         {:else if service.currentView === EntryViewType.WordEditor}
             <div
                 class="rounded-md border border-dashed border-muted-foreground bg-muted/20 p-4 text-muted-foreground"

@@ -7,7 +7,12 @@ export const ROOT_FOLDER_NODE_ID = "R";
 export const SHARED_PORTAL_ID = "shared-portal";
 export const SHARED_PORTAL_SELECTOR = `#${SHARED_PORTAL_ID}`;
 
-// VIEWS
+// UI
+
+export enum PropertyFieldType {
+    Text = "TEXT",
+    Select = "SELECT",
+}
 
 export enum ViewAction {
     Create = "CREATE",
@@ -30,6 +35,12 @@ export enum EntryViewType {
     PropertyEditor = "PROPERTY_EDITOR",
     WordEditor = "WORD_EDITOR",
 }
+
+export const ENTRY_VIEW_LABELS: Record<EntryViewType, string> = {
+    [EntryViewType.ArticleEditor]: "Article",
+    [EntryViewType.PropertyEditor]: "Properties",
+    [EntryViewType.WordEditor]: "Lexicon",
+};
 
 export enum WordViewType {
     RootWords = "ROOT_WORDS",
