@@ -1,5 +1,6 @@
 import {
     CentralViewType,
+    ENTRY_VIEW_LABELS,
     EntryType,
     EntryViewType,
     WordType,
@@ -18,7 +19,6 @@ import type {
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { MultiEventProducer } from "@/utils/event-producer";
-import { toTitleCase } from "@/utils/string";
 
 import { EntryInfoService } from "./entry-info-service.svelte";
 import { ArticleEditorService } from "./article-editor";
@@ -122,7 +122,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     }
 
     get currentViewLabel() {
-        return toTitleCase(this._viewKey);
+        return ENTRY_VIEW_LABELS[this._viewKey];
     }
 
     // INITIALIZATION

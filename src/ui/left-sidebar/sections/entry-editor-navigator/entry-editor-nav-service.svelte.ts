@@ -1,4 +1,9 @@
-import { EntryType, EntryViewType, SidebarSectionType } from "@/constants";
+import {
+    ENTRY_VIEW_LABELS,
+    EntryType,
+    EntryViewType,
+    SidebarSectionType,
+} from "@/constants";
 import type {
     ChangeEntryEditorViewEvent,
     Id,
@@ -11,6 +16,13 @@ import type {
     EntryEditorNavigatorItem,
     EntryEditorNavigatorServiceArgs,
 } from "./entry-editor-nav-interface";
+
+const MENU_ITEMS = Object.fromEntries(
+    Object.entries(ENTRY_VIEW_LABELS).map(([type, label]) => [
+        type as EntryViewType,
+        { label, value: type as EntryViewType },
+    ]),
+) as Record<EntryViewType, EntryEditorNavigatorItem>;
 
 export class EntryEditorNavigatorService implements ISidebarSectionService {
     // CONSTANTS
@@ -41,12 +53,13 @@ export class EntryEditorNavigatorService implements ISidebarSectionService {
     get menuItems(): EntryEditorNavigatorItem[] {
         // if the entry type is null, then we only return the views that all entry types have in common
         const items: EntryEditorNavigatorItem[] = [
-            { label: "Article", value: EntryViewType.ArticleEditor },
-            { label: "Properties", value: EntryViewType.PropertyEditor },
+            MENU_ITEMS[EntryViewType.ArticleEditor],
+            MENU_ITEMS[EntryViewType.PropertyEditor],
         ];
-        if (this.entryType === EntryType.Language) {
-            items.push({ label: "Lexicon", value: EntryViewType.WordEditor });
-        }
+
+        if (this.entryType === EntryType.Language)
+            items.push(MENU_ITEMS[EntryViewType.WordEditor]);
+
         return items;
     }
 

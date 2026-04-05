@@ -31,6 +31,12 @@ export enum EntryViewType {
     WordEditor = "WORD_EDITOR",
 }
 
+export const ENTRY_VIEW_LABELS: Record<EntryViewType, string> = {
+    [EntryViewType.ArticleEditor]: "Article",
+    [EntryViewType.PropertyEditor]: "Properties",
+    [EntryViewType.WordEditor]: "Lexicon",
+};
+
 export enum WordViewType {
     RootWords = "ROOT_WORDS",
     Determiners = "DETERMINERS",
