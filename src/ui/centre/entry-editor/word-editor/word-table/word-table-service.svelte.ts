@@ -4,7 +4,7 @@ import { WordType } from "@/constants";
 import type { Word, WordKey, WordResponse } from "@/interface";
 import { DomainManager } from "@/services";
 
-import { WORD_COLUMNS, type WordColumnKey } from "./word-table-constants";
+import { WORD_COLUMNS, WordColumnKey } from "./word-table-constants";
 import type {
     PositionKey,
     SelectionAnchor,
@@ -24,6 +24,8 @@ export class WordTableService {
 
     selectedCells = new SvelteSet<PositionKey>();
     editCell: { rowKey: WordKey; colKey: WordColumnKey } | null = $state(null);
+    editSelectAll = true;
+    selectContentEl: HTMLElement | null = null;
 
     constructor(domain: DomainManager) {
         this._domain = domain;
@@ -56,14 +58,21 @@ export class WordTableService {
         return this._sentinelKey;
     }
 
-    private get _defaultNewWordType(): WordType {
-        return this._filterTypes[0] ?? WordType.None;
-    }
-
     // FILTER
 
     setFilter(types: WordType[]) {
-        this._filterTypes = [...types];
+        this._filterTypes = types.toSorted();
+
+        const sentinel = this._rows.find((r) => r.key === this._sentinelKey);
+        if (!sentinel) return;
+
+        if (!this._filterTypes.includes(sentinel.wordType)) {
+            const newType = this._filterTypes[0] ?? WordType.None;
+            sentinel.wordType = newType;
+            sentinel.cells.wordType.value = String(newType);
+        } else if (!this._filterTypes) {
+            sentinel.wordType = WordType.None;
+        }
     }
 
     // SELECTION
@@ -129,12 +138,29 @@ export class WordTableService {
 
     // EDITING
 
+    get isEditing() {
+        return this.editCell !== null;
+    }
+
+    isEditable(rowKey: WordKey, colKey: WordColumnKey): boolean {
+        return (
+            this.editCell?.rowKey === rowKey && this.editCell?.colKey === colKey
+        );
+    }
+
     startEdit(rowKey: WordKey, colKey: WordColumnKey) {
         const row = this._rows.find((r) => r.key === rowKey);
         if (!row) return;
+        this.editSelectAll = true;
         row.cells[colKey].oldValue = row.cells[colKey].value;
         this.editCell = { rowKey, colKey };
         this.selectSingle(rowKey, colKey);
+    }
+
+    startEditWithChar(rowKey: WordKey, colKey: WordColumnKey, char: string) {
+        this.startEdit(rowKey, colKey);
+        this.editSelectAll = false;
+        this.setValue(rowKey, colKey, char);
     }
 
     commitEdit() {
@@ -152,20 +178,22 @@ export class WordTableService {
         if (row && row.cells[colKey].oldValue !== undefined) {
             row.cells[colKey].value = row.cells[colKey].oldValue!;
             row.cells[colKey].oldValue = undefined;
+            if (colKey === WordColumnKey.WordType)
+                row.wordType = Number(row.cells.wordType.value) as WordType;
         }
         this.editCell = null;
     }
 
-    setValue(rowKey: WordKey, colKey: WordColumnKey, value: string) {
+    setWordType(rowKey: WordKey, wordType: WordType) {
         const row = this._rows.find((r) => r.key === rowKey);
         if (!row) return;
-        row.cells[colKey].value = value;
+        row.wordType = wordType;
+        row.cells.wordType.value = String(wordType);
 
         if (rowKey === this._sentinelKey) {
             const oldKey = this._sentinelKey;
             const newKey = this._nextKey();
             row.key = newKey;
-            row.wordType = this._defaultNewWordType;
             row.languageId = this._languageId;
             this._modifiedKeys.add(newKey);
 
@@ -193,6 +221,64 @@ export class WordTableService {
         }
     }
 
+    setValue(rowKey: WordKey, colKey: WordColumnKey, value: string) {
+        if (colKey === WordColumnKey.WordType) return;
+        const row = this._rows.find((r) => r.key === rowKey);
+        if (!row) return;
+        row.cells[colKey].value = value;
+
+        if (rowKey === this._sentinelKey) {
+            const oldKey = this._sentinelKey;
+            const newKey = this._nextKey();
+            row.key = newKey;
+            row.languageId = this._languageId;
+            this._modifiedKeys.add(newKey);
+
+            if (this.editCell?.rowKey === oldKey) {
+                this.editCell = {
+                    rowKey: newKey,
+                    colKey: this.editCell.colKey,
+                };
+            }
+
+            const prefix = `${oldKey}-`;
+            const entries = [...this.selectedCells];
+            this.selectedCells.clear();
+            for (const posKey of entries) {
+                this.selectedCells.add(
+                    posKey.startsWith(prefix)
+                        ? `${newKey}-${posKey.slice(prefix.length)}`
+                        : posKey,
+                );
+            }
+
+            this._addSentinel();
+        } else {
+            this._modifiedKeys.add(rowKey);
+        }
+    }
+
+    // MOUSE
+
+    handleCellMouseDown(e: MouseEvent, rowKey: WordKey, colKey: WordColumnKey) {
+        if (this.isEditable(rowKey, colKey)) return;
+        if (this.editCell) this.commitEdit();
+
+        const posKey = `${rowKey}-${colKey}`;
+        if (e.shiftKey) {
+            e.preventDefault();
+            this.selectRange(rowKey, colKey);
+        } else if (e.ctrlKey || e.metaKey) {
+            this.toggleCell(rowKey, colKey);
+        } else if (!this.selectedCells.has(posKey)) {
+            this.startDrag(rowKey, colKey);
+        }
+    }
+
+    handleCellDblClick(rowKey: WordKey, colKey: WordColumnKey) {
+        this.startEdit(rowKey, colKey);
+    }
+
     // KEYBOARD
 
     handleTableKeyDown(e: KeyboardEvent) {
@@ -200,20 +286,6 @@ export class WordTableService {
         const active = this.activeCell;
         if (!active) return;
         this.handleKeyDown(e, active.rowKey, active.colKey);
-    }
-
-    handleCellMouseDown(e: MouseEvent, rowKey: WordKey, colKey: WordColumnKey) {
-        const posKey = `${rowKey}-${colKey}`;
-        if (e.shiftKey) {
-            e.preventDefault();
-            this.selectRange(rowKey, colKey);
-        } else if (e.ctrlKey || e.metaKey) {
-            this.toggleCell(rowKey, colKey);
-        } else if (this.selectedCells.has(posKey) && !this.editCell) {
-            this.startEdit(rowKey, colKey);
-        } else {
-            this.startDrag(rowKey, colKey);
-        }
     }
 
     handleKeyDown(e: KeyboardEvent, rowKey: WordKey, colKey: WordColumnKey) {
@@ -243,8 +315,21 @@ export class WordTableService {
                     e.preventDefault();
                     this.startEdit(rowKey, colKey);
                     break;
+                default:
+                    if (
+                        e.key.length === 1 &&
+                        !e.ctrlKey &&
+                        !e.metaKey &&
+                        !e.altKey &&
+                        colKey !== WordColumnKey.WordType
+                    ) {
+                        e.preventDefault();
+                        this.startEditWithChar(rowKey, colKey, e.key);
+                    }
+                    break;
             }
         } else {
+            const isSelectCol = colKey === WordColumnKey.WordType;
             switch (e.key) {
                 case "Enter":
                     e.preventDefault();
@@ -256,11 +341,13 @@ export class WordTableService {
                     this.cancelEdit();
                     break;
                 case "ArrowDown":
+                    if (isSelectCol) break;
                     e.preventDefault();
                     this.commitEdit();
                     this._navigate(rowKey, colKey, 1, 0);
                     break;
                 case "ArrowUp":
+                    if (isSelectCol) break;
                     e.preventDefault();
                     this.commitEdit();
                     this._navigate(rowKey, colKey, -1, 0);
@@ -314,6 +401,7 @@ export class WordTableService {
             languageId: w.languageId,
             id: w.id,
             cells: {
+                wordType: { value: String(w.wordType) },
                 spelling: { value: w.spelling },
                 definition: { value: w.definition },
                 translations: { value: w.translations.join(", ") },
@@ -391,13 +479,15 @@ export class WordTableService {
     }
 
     private _addSentinel() {
+        const sentinelType = this._filterTypes[0] ?? WordType.None;
         this._sentinelKey = this._nextKey();
         this._rows.push({
             key: this._sentinelKey,
-            wordType: WordType.None,
+            wordType: sentinelType,
             languageId: this._languageId,
             id: null,
             cells: {
+                wordType: { value: String(sentinelType) },
                 spelling: { value: "" },
                 definition: { value: "" },
                 translations: { value: "" },

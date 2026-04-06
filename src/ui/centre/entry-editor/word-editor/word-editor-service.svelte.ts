@@ -4,9 +4,12 @@ import { DomainManager } from "@/services";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import type { EntryInfoService } from "../entry-info-service.svelte";
-import { WordTableService } from "./word-table";
+import {
+    ALL_WORD_TYPES,
+    WORD_TYPE_ITEMS,
+    WordTableService,
+} from "./word-table";
 import type { WordTypeItem } from "./word-editor-interface";
-import { ALL_WORD_TYPES, WORD_VIEW_MAP } from "./word-editor-constants";
 
 export interface WordEditorServiceArgs {
     info: EntryInfoService;
@@ -29,9 +32,9 @@ export class WordEditorService {
     }
 
     get wordTypeItems(): WordTypeItem[] {
-        return WORD_VIEW_MAP.map((m) => ({
+        return WORD_TYPE_ITEMS.map((m) => ({
             label: m.label,
-            value: String(m.wordType),
+            value: String(m.value),
         }));
     }
 
