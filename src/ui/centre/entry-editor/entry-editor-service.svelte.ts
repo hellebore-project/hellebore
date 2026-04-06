@@ -3,7 +3,6 @@ import {
     ENTRY_VIEW_LABELS,
     EntryType,
     EntryViewType,
-    WordType,
 } from "@/constants";
 import type {
     ChangeEntryEvent,
@@ -15,7 +14,7 @@ import type {
     PollEvent,
     PollResultEntryData,
     SyncEntryEvent,
-    // Word,
+    Word,
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { MultiEventProducer } from "@/utils/event-producer";
@@ -23,7 +22,7 @@ import { MultiEventProducer } from "@/utils/event-producer";
 import { EntryInfoService } from "./entry-info-service.svelte";
 import { ArticleEditorService } from "./article-editor";
 import { PropertyEditorService } from "./property-editor";
-// import { WordEditorService, WordEditorServiceArgs } from "./word-editor";
+import { WordEditorService } from "./word-editor";
 
 export class EntryEditorService implements ICentralPanelContentService {
     // CONSTANTS
@@ -39,7 +38,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     info: EntryInfoService;
     properties: PropertyEditorService;
     article: ArticleEditorService;
-    // lexicon: WordEditorService;
+    lexicon: WordEditorService;
 
     // EVENTS
     onOpenReferencedEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
@@ -56,11 +55,10 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.properties = new PropertyEditorService({
             info: this.info,
         });
-        // this.lexicon = new WordEditorService({
-        //     domain,
-        //     info: this.info,
-        //     ...wordEditor,
-        // });
+        this.lexicon = new WordEditorService({
+            domain,
+            info: this.info,
+        });
 
         this.onOpenReferencedEntry = new MultiEventProducer();
         this.onChange = new MultiEventProducer();
@@ -135,14 +133,7 @@ export class EntryEditorService implements ICentralPanelContentService {
 
         this.properties.onChange.broker = this.onPeriodicChange;
 
-        // this.lexicon.fetchPortalSelector.broker = this.fetchPortalSelector;
-        // this.lexicon.onChangeWordType.subscribe(({ languageId, wordType }) => {
-        //     // the word-editor is switching to a different view,
-        //     // so any pending edits need to be pushed to the BE
-        //     this.onChange.produce({ id: languageId });
-        //     this.loadLexicon(languageId, wordType);
-        // });
-        // this.lexicon.onChange.broker = this.onPeriodicChange;
+        this.lexicon.onChange.broker = this.onPeriodicChange;
     }
 
     // LOADING
@@ -150,13 +141,12 @@ export class EntryEditorService implements ICentralPanelContentService {
     async load({
         id,
         viewKey = EntryViewType.ArticleEditor,
-        wordType,
     }: OpenEntryEditorEvent) {
         if (viewKey == EntryViewType.ArticleEditor) return this.loadArticle(id);
         else if (viewKey == EntryViewType.PropertyEditor)
             return this.loadProperties(id);
         else if (viewKey == EntryViewType.WordEditor)
-            return this.loadLexicon(id, wordType);
+            return this.loadLexicon(id);
         throw `Unable to load view with key ${viewKey}.`;
     }
 
@@ -183,24 +173,15 @@ export class EntryEditorService implements ICentralPanelContentService {
         }
     }
 
-    async loadLexicon(languageId: Id, wordType?: WordType) {
-        if (this.isWordEditorOpen) {
-            if (wordType === undefined)
-                // don't care about which word type is displayed;
-                // since the word editor is already open for this language, don't reload it
-                return;
-            // else if (wordType === this.lexicon.wordType)
-            //     // the word editor is already open for this language and word type
-            //     return;
-        }
+    async loadLexicon(languageId: Id) {
+        if (this.isWordEditorOpen) return;
 
         const info = await this._domain.entries.get(languageId);
 
         if (info !== null) {
             this.currentView = EntryViewType.WordEditor;
             this.info.load(languageId, EntryType.Language, info.title);
-            // FIXME: should we be awaiting on this?
-            // this.lexicon.load(languageId, wordType);
+            await this.lexicon.load(languageId);
         }
     }
 
@@ -226,7 +207,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         this.onChange.produce({ id: this.info.entryId });
         this.article.cleanUp();
         this.properties.changed = false;
-        // this.lexicon.cleanUp();
+        this.lexicon.cleanUp();
 
         this.onOpenReferencedEntry.broker = null;
         this.onChange.broker = null;
@@ -242,7 +223,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         syncTitle = false,
         // syncProperties = false,
         syncText = false,
-        // syncLexicon = false,
+        syncLexicon = false,
     }: PollEvent): PollResultEntryData | null {
         if (this.info.entryId === null || this.info.entryType === null)
             return null;
@@ -265,10 +246,10 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (syncText && this.article.changed)
             entry.text = this.article.richText.serialized;
 
-        // if (syncLexicon) {
-        //     const words = this.lexicon.claimModifiedWords();
-        //     if (words.length > 0) entry.words = words;
-        // }
+        if (syncLexicon) {
+            const words = this.lexicon.claimModifiedWords();
+            if (words.length > 0) entry.words = words;
+        }
 
         return entry;
     }
@@ -287,18 +268,18 @@ export class EntryEditorService implements ICentralPanelContentService {
 
                 if (response.entry.text.updated) this.article.changed = false;
 
-                if (request.words) {
-                    // const wordResponses = response.entry.words;
-                    // const words: Word[] = request.words.map((word, i) => {
-                    //     const wordResponse = wordResponses[i];
-                    //     return {
-                    //         ...word,
-                    //         id: wordResponse.id,
-                    //         created: wordResponse.status.created,
-                    //         updated: wordResponse.status.updated,
-                    //     };
-                    // });
-                    // this.lexicon.handleSynchronization(words);
+                if (request.words && response.entry) {
+                    const wordResponses = response.entry.words;
+                    const words: Word[] = request.words.map((word, i) => {
+                        const wordResponse = wordResponses[i];
+                        return {
+                            ...word,
+                            id: wordResponse.id,
+                            created: wordResponse.status.created,
+                            updated: wordResponse.status.updated,
+                        };
+                    });
+                    this.lexicon.handleSynchronization(words);
                 }
             }
         }
