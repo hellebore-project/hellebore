@@ -1,16 +1,14 @@
-<script lang="ts">
+<script lang="ts" generics="TColKey extends string">
     import { Input } from "@/lib/components/input";
-    import type { WordKey } from "@/interface";
 
-    import type { WordTableService } from "../word-table-service.svelte";
-    import type { WordColumnKey } from "../word-table-constants";
+    import type { TableService } from "../data-table-service.svelte";
 
     interface Props {
-        rowKey: WordKey;
-        colKey: WordColumnKey;
+        rowKey: string;
+        colKey: TColKey;
         value: string;
-        service: WordTableService;
-        onfocusgrid: () => void;
+        service: TableService<TColKey>;
+        oninput: (value: string) => void;
         selectAll?: boolean;
     }
 
@@ -19,7 +17,7 @@
         colKey,
         value,
         service,
-        onfocusgrid,
+        oninput,
         selectAll = true,
     }: Props = $props();
 
@@ -43,9 +41,9 @@
     shape="sharp"
     class="h-full w-full rounded-none px-2 py-2"
     {value}
-    oninput={(e) => service.setValue(rowKey, colKey, e.currentTarget.value)}
+    oninput={(e) => oninput(e.currentTarget.value)}
     onkeydown={(e) => {
         service.handleKeyDown(e, rowKey, colKey);
-        if (service.editCell === null) onfocusgrid();
+        if (service.editCell === null) service.focusGrid?.();
     }}
 />

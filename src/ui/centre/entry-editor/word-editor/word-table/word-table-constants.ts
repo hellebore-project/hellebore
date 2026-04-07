@@ -34,3 +34,6 @@ export const WORD_TYPE_ITEMS: { value: WordType; label: string }[] = [
 ];
 
 export const ALL_WORD_TYPES: WordType[] = WORD_TYPE_ITEMS.map((m) => m.value);
+
+export const WORD_TYPE_SELECT_ITEMS: { value: string; label: string }[] =
+    WORD_TYPE_ITEMS.map((m) => ({ value: String(m.value), label: m.label }));
