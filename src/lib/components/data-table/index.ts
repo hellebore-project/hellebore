@@ -1,12 +1,12 @@
 export type {
-    CellState,
-    ColumnDef,
+    DataCell as CellState,
+    DataColumn as ColumnDef,
     DataRow,
     PositionKey,
     SelectionAnchor,
 } from "./data-table-interface";
-export { TableService } from "./data-table-service.svelte";
-export type { TableServiceConfig } from "./data-table-service.svelte";
+export { DataTableService as TableService } from "./data-table-service.svelte";
+export type { DataTableServiceArgs as TableServiceConfig } from "./data-table-service.svelte";
 export { default as DataTable } from "./data-table.svelte";
-export { LabelCell, TextCell, SelectCell } from "./cells";
+export { ReadOnlyCell as LabelCell, TextCell, SelectCell } from "./cells";
 export { DeleteRowButton } from "./actions";

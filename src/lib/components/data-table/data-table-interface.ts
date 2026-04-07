@@ -1,33 +1,37 @@
 export type PositionKey = string;
 
-export interface CellState {
+export interface DataCell {
     value: string;
     oldValue?: string;
 }
 
 export interface DataRow<TColKey extends string> {
     key: string;
-    cells: Record<TColKey, CellState>;
+    cells: Record<TColKey, DataCell>;
 }
 
-export interface TextColumnDef<TColKey extends string = string> {
+export interface TextColumn<TColKey extends string = string> {
     key: TColKey;
     label: string;
     type: "text";
     getLabel?: (rowKey: string, value: string) => string;
 }
 
-export interface SelectColumnDef<TColKey extends string = string> {
+export interface SelectColumnItem {
+    label: string;
+    value: string;
+}
+
+export interface SelectColumn<TColKey extends string = string> {
     key: TColKey;
     label: string;
     type: "select";
-    items: { value: string; label: string }[];
-    getLabel?: (rowKey: string, value: string) => string;
+    items: SelectColumnItem[];
 }
 
-export type ColumnDef<TColKey extends string = string> =
-    | TextColumnDef<TColKey>
-    | SelectColumnDef<TColKey>;
+export type DataColumn<TColKey extends string = string> =
+    | TextColumn<TColKey>
+    | SelectColumn<TColKey>;
 
 export interface SelectionAnchor<TColKey extends string = string> {
     rowIndex: number;

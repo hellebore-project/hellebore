@@ -1,13 +1,13 @@
 <script lang="ts" generics="TColKey extends string">
     import { Input } from "@/lib/components/input";
 
-    import type { TableService } from "../data-table-service.svelte";
+    import type { DataTableService } from "../data-table-service.svelte";
 
-    interface Props {
+    interface TextCellProps {
         rowKey: string;
         colKey: TColKey;
         value: string;
-        service: TableService<TColKey>;
+        service: DataTableService<TColKey>;
         oninput: (value: string) => void;
         selectAll?: boolean;
     }
@@ -19,7 +19,7 @@
         service,
         oninput,
         selectAll = true,
-    }: Props = $props();
+    }: TextCellProps = $props();
 
     let ref: HTMLInputElement | null = $state(null);
 

@@ -3,11 +3,11 @@
 
     import * as Table from "@/lib/components/table";
 
-    import type { TableService } from "./data-table-service.svelte";
+    import type { DataTableService } from "./data-table-service.svelte";
     import DataRow from "./data-row.svelte";
 
     interface Props {
-        service: TableService<TColKey>;
+        service: DataTableService<TColKey>;
         rowActions?: Snippet<[string]>;
     }
 
@@ -16,9 +16,10 @@
     let gridEl: HTMLDivElement;
 
     $effect(() => {
-        service.focusGrid = () => gridEl?.focus();
+        const s = service;
+        s.focusGrid = () => gridEl?.focus();
         return () => {
-            service.focusGrid = undefined;
+            s.focusGrid = undefined;
         };
     });
 </script>

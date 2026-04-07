@@ -1,12 +1,13 @@
 <script lang="ts" generics="TColKey extends string">
     import * as Select from "@/lib/components/select";
 
-    import type { TableService } from "../data-table-service.svelte";
+    import type { DataTableService } from "../data-table-service.svelte";
+    import type { SelectColumnItem } from "../data-table-interface";
 
-    interface Props {
+    interface SelectCellProps {
         value: string;
-        items: { value: string; label: string }[];
-        service: TableService<TColKey>;
+        items: SelectColumnItem[];
+        service: DataTableService<TColKey>;
         onValueChange: (value: string) => void;
         placeholder?: string;
     }
@@ -17,7 +18,7 @@
         service,
         onValueChange,
         placeholder = "",
-    }: Props = $props();
+    }: SelectCellProps = $props();
 
     let contentRef: HTMLElement | null = $state(null);
 

@@ -4,18 +4,16 @@
     import { cn } from "@/lib/utils";
     import * as Table from "@/lib/components/table";
 
-    import type { TableService } from "./data-table-service.svelte";
-    import LabelCell from "./cells/label-cell.svelte";
-    import TextCell from "./cells/text-cell.svelte";
-    import SelectCell from "./cells/select-cell.svelte";
+    import type { DataTableService } from "./data-table-service.svelte";
+    import { ReadOnlyCell, TextCell, SelectCell } from "./cells";
 
-    interface Props {
+    interface DataRowProps {
         row: { key: string; cells: Record<TColKey, { value: string }> };
-        service: TableService<TColKey>;
+        service: DataTableService<TColKey>;
         rowActions?: Snippet<[string]>;
     }
 
-    const { row, service, rowActions }: Props = $props();
+    const { row, service, rowActions }: DataRowProps = $props();
 </script>
 
 <Table.Row class="group">
@@ -40,9 +38,7 @@
         >
             {#if col.type === "select"}
                 {@const displayValue =
-                    col.getLabel?.(row.key, cellValue) ??
-                    col.items.find((i) => i.value === cellValue)?.label ??
-                    ""}
+                    col.items.find((i) => i.value === cellValue)?.label ?? ""}
                 {#if isEditing}
                     <SelectCell
                         value={cellValue}
@@ -52,7 +48,7 @@
                             service.setValue(row.key, col.key, v)}
                     />
                 {:else}
-                    <LabelCell value={displayValue} />
+                    <ReadOnlyCell value={displayValue} />
                 {/if}
             {:else}
                 {@const displayValue =
@@ -67,7 +63,7 @@
                         selectAll={service.editSelectAll}
                     />
                 {:else}
-                    <LabelCell value={displayValue} />
+                    <ReadOnlyCell value={displayValue} />
                 {/if}
             {/if}
         </Table.Cell>

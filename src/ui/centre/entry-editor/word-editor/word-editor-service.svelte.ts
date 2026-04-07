@@ -6,7 +6,7 @@ import { MultiEventProducer } from "@/utils/event-producer";
 import type { EntryInfoService } from "../entry-info-service.svelte";
 import {
     ALL_WORD_TYPES,
-    WORD_TYPE_ITEMS,
+    WORD_TYPE_SELECT_ITEMS,
     WordTableService,
 } from "./word-table";
 import type { WordTypeItem } from "./word-editor-interface";
@@ -32,10 +32,7 @@ export class WordEditorService {
     }
 
     get wordTypeItems(): WordTypeItem[] {
-        return WORD_TYPE_ITEMS.map((m) => ({
-            label: m.label,
-            value: String(m.value),
-        }));
+        return WORD_TYPE_SELECT_ITEMS;
     }
 
     get selectedTypeValues(): string[] {

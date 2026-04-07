@@ -24,12 +24,6 @@ export class WordTableService {
                     label: "Type",
                     type: "select",
                     items: WORD_TYPE_SELECT_ITEMS,
-                    getLabel: (rowKey, value) =>
-                        rowKey === this._sentinelKey
-                            ? ""
-                            : (WORD_TYPE_SELECT_ITEMS.find(
-                                  (i) => i.value === value,
-                              )?.label ?? ""),
                 },
                 {
                     key: WordColumnKey.Spelling,
@@ -58,7 +52,17 @@ export class WordTableService {
                 );
             },
             onSetValue: (rowKey) => {
-                if (rowKey === this._sentinelKey) this._addSentinel();
+                if (rowKey === this._sentinelKey) {
+                    const row = this.table.findRow(rowKey) as
+                        | WordRow
+                        | undefined;
+                    if (row && row.cells.wordType.value === "") {
+                        row.cells.wordType.value = String(
+                            this._filterTypes[0] ?? WordType.None,
+                        );
+                    }
+                    this._addSentinel();
+                }
             },
         });
     }
@@ -104,6 +108,7 @@ export class WordTableService {
         if (!sentinel) return;
 
         if (
+            sentinel.cells.wordType.value !== "" &&
             !this._filterTypes.includes(
                 Number(sentinel.cells.wordType.value) as WordType,
             )
@@ -114,14 +119,13 @@ export class WordTableService {
     }
 
     private _addSentinel() {
-        const sentinelType = this._filterTypes[0] ?? WordType.None;
         this._sentinelKey = this._nextKey();
         const sentinelRow: WordRow = {
             key: this._sentinelKey,
             languageId: this._languageId,
             id: null,
             cells: {
-                wordType: { value: String(sentinelType) },
+                wordType: { value: "" },
                 spelling: { value: "" },
                 definition: { value: "" },
                 translations: { value: "" },
