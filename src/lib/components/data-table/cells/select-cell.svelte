@@ -20,19 +20,10 @@
         placeholder = "",
     }: SelectCellProps = $props();
 
-    let contentRef: HTMLElement | null = $state(null);
-
     let label = $derived(
         items.find((i) => i.value === value)?.label ?? placeholder,
     );
     let isPlaceholder = $derived(!items.some((i) => i.value === value));
-
-    $effect(() => {
-        service.selectContentEl = contentRef;
-        return () => {
-            service.selectContentEl = null;
-        };
-    });
 </script>
 
 <Select.Root
@@ -52,7 +43,7 @@
     >
         <span class:text-muted-foreground={isPlaceholder}>{label}</span>
     </Select.Trigger>
-    <Select.Content bind:ref={contentRef}>
+    <Select.Content data-table-id={service.id}>
         {#each items as item (item.value)}
             <Select.Item value={item.value} label={item.label} />
         {/each}

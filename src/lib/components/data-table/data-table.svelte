@@ -27,15 +27,19 @@
 <svelte:window
     onmouseup={() => service.endDrag()}
     onmousedown={(e) => {
-        if (
-            service.editCell &&
+        const isOutside =
             !e.composedPath().includes(gridEl) &&
-            !(
-                service.selectContentEl &&
-                e.composedPath().includes(service.selectContentEl)
-            )
-        )
-            service.commitEdit();
+            !e
+                .composedPath()
+                .some(
+                    (el) =>
+                        el instanceof HTMLElement &&
+                        el.dataset.tableId === service.id,
+                );
+        if (isOutside) {
+            if (service.editCell) service.commitEdit();
+            service.selectedCells.clear();
+        }
     }}
 />
 

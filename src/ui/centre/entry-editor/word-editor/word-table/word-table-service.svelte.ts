@@ -1,23 +1,31 @@
 import { WordType } from "@/constants";
-import type { Word, WordKey, WordResponse } from "@/interface";
+import type {
+    IComponentService,
+    Word,
+    WordKey,
+    WordResponse,
+} from "@/interface";
 import { DomainManager } from "@/services";
-import { TableService } from "@/lib/components/data-table";
+import { DataTableService } from "@/lib/components/data-table";
 
 import { WordColumnKey, WORD_TYPE_SELECT_ITEMS } from "./word-table-constants";
 import type { WordRow } from "./word-table-interface";
 
-export class WordTableService {
+export class WordTableService implements IComponentService {
+    private _id: string;
     private _sentinelKey: WordKey = $state("");
     private _languageId = -1;
     private _keyCounter = 0;
     private _filterTypes: WordType[] = $state([]);
     private _domain: DomainManager;
 
-    table: TableService<WordColumnKey>;
+    table: DataTableService<WordColumnKey>;
 
-    constructor(domain: DomainManager) {
+    constructor(id: string, domain: DomainManager) {
+        this._id = id;
         this._domain = domain;
-        this.table = new TableService({
+        this.table = new DataTableService({
+            id: `${this._id}-data-table`,
             columns: [
                 {
                     key: WordColumnKey.WordType,
@@ -68,6 +76,10 @@ export class WordTableService {
     }
 
     // PROPERTIES
+
+    get id() {
+        return this._id;
+    }
 
     get sentinelKey(): WordKey {
         return this._sentinelKey;

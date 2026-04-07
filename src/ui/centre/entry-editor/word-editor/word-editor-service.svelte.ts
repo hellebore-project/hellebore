@@ -1,5 +1,10 @@
 import { WordType } from "@/constants";
-import type { ChangeEntryEvent, Id, Word } from "@/interface";
+import type {
+    ChangeEntryEvent,
+    IComponentService,
+    Id,
+    Word,
+} from "@/interface";
 import { DomainManager } from "@/services";
 import { MultiEventProducer } from "@/utils/event-producer";
 
@@ -16,7 +21,7 @@ export interface WordEditorServiceArgs {
     domain: DomainManager;
 }
 
-export class WordEditorService {
+export class WordEditorService implements IComponentService {
     private _domain: DomainManager;
     private _selectedTypes: WordType[] = $state([...ALL_WORD_TYPES]);
 
@@ -28,7 +33,11 @@ export class WordEditorService {
         this._domain = domain;
         this.info = info;
         this.onChange = new MultiEventProducer();
-        this.table = new WordTableService(domain);
+        this.table = new WordTableService(`${this.id}-word-table`, domain);
+    }
+
+    get id() {
+        return `word-editor-${this.info.entryId}`;
     }
 
     get wordTypeItems(): WordTypeItem[] {

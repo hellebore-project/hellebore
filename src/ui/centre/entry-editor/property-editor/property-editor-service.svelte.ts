@@ -2,6 +2,7 @@ import { EntryType } from "@/constants";
 import type {
     BaseEntity,
     ChangeEntryEvent,
+    IComponentService,
     LanguageProperties,
     PersonProperties,
     PropertyFieldData,
@@ -16,7 +17,7 @@ interface PropertyEditorServiceArgs {
     info: EntryInfoService;
 }
 
-export class PropertyEditorService {
+export class PropertyEditorService implements IComponentService {
     // STATE VARIABLES
     private _entity: Person | Language | null = $state(null);
     private _changed = $state(false);
@@ -34,7 +35,7 @@ export class PropertyEditorService {
         this.onChange = new MultiEventProducer();
     }
 
-    get key() {
+    get id() {
         return `property-editor-${this.info.entryId}`;
     }
 

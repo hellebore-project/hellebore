@@ -1,5 +1,7 @@
 import { SvelteSet } from "svelte/reactivity";
 
+import type { IComponentService } from "@/interface";
+
 import type {
     DataColumn,
     DataRow,
@@ -8,14 +10,18 @@ import type {
 } from "./data-table-interface";
 
 export interface DataTableServiceArgs<TColKey extends string> {
+    id: string;
     columns: DataColumn<TColKey>[];
     filterRow?: (row: DataRow<TColKey>) => boolean;
     onCancelEdit?: (rowKey: string, colKey: TColKey) => void;
     onSetValue?: (rowKey: string, colKey: TColKey, value: string) => void;
 }
 
-export class DataTableService<TColKey extends string> {
+export class DataTableService<
+    TColKey extends string,
+> implements IComponentService {
     // STATE VARIABLES
+    private _id: string;
     rows: DataRow<TColKey>[] = $state([]);
     private _columns: DataColumn<TColKey>[];
     modifiedKeys = new SvelteSet<string>();
@@ -24,7 +30,6 @@ export class DataTableService<TColKey extends string> {
     private _isDragging = false;
     editCell: { rowKey: string; colKey: TColKey } | null = $state(null);
     editSelectAll = true;
-    selectContentEl: HTMLElement | null = null;
 
     // CALLBACKS
     focusGrid: (() => void) | undefined = undefined;
@@ -37,11 +42,13 @@ export class DataTableService<TColKey extends string> {
         | undefined;
 
     constructor({
+        id,
         columns,
         filterRow,
         onCancelEdit,
         onSetValue,
     }: DataTableServiceArgs<TColKey>) {
+        this._id = id;
         this._columns = columns;
         this._filterRow = filterRow;
         this._onCancelEdit = onCancelEdit;
@@ -49,6 +56,10 @@ export class DataTableService<TColKey extends string> {
     }
 
     // PROPERTIES
+
+    get id() {
+        return this._id;
+    }
 
     get columns(): DataColumn<TColKey>[] {
         return this._columns;
@@ -240,13 +251,12 @@ export class DataTableService<TColKey extends string> {
         if (this.isEditable(rowKey, colKey)) return;
         if (this.isEditing) this.commitEdit();
 
-        const posKey = `${rowKey}-${colKey}`;
         if (e.shiftKey) {
             e.preventDefault();
             this.selectRange(rowKey, colKey);
         } else if (e.ctrlKey || e.metaKey) {
             this.toggleCell(rowKey, colKey);
-        } else if (!this.selectedCells.has(posKey)) {
+        } else {
             this.startDrag(rowKey, colKey);
         }
     }
