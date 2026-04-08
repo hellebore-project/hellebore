@@ -7,16 +7,44 @@ import type {
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { DataTableService } from "@/lib/components/data-table";
+import type { ColumnDef } from "@/lib/components/data-table";
 
 import { WordColumnKey, WORD_TYPE_SELECT_ITEMS } from "./word-table-constants";
 import type { WordRow } from "./word-table-interface";
+
+const WORD_COLUMNS: ColumnDef<WordColumnKey>[] = [
+    {
+        key: WordColumnKey.WordType,
+        label: "Type",
+        type: "select",
+        filterable: true,
+        items: WORD_TYPE_SELECT_ITEMS,
+    },
+    {
+        key: WordColumnKey.Spelling,
+        label: "Spelling",
+        type: "text",
+        filterable: true,
+    },
+    {
+        key: WordColumnKey.Definition,
+        label: "Definition",
+        type: "text",
+        filterable: true,
+    },
+    {
+        key: WordColumnKey.Translations,
+        label: "Translations",
+        type: "text",
+        filterable: true,
+    },
+];
 
 export class WordTableService implements IComponentService {
     private _id: string;
     private _sentinelKey: WordKey = $state("");
     private _languageId = -1;
     private _keyCounter = 0;
-    private _filterTypes: WordType[] = $state([]);
     private _domain: DomainManager;
 
     table: DataTableService<WordColumnKey>;
@@ -26,52 +54,9 @@ export class WordTableService implements IComponentService {
         this._domain = domain;
         this.table = new DataTableService({
             id: `${this._id}-data-table`,
-            columns: [
-                {
-                    key: WordColumnKey.WordType,
-                    label: "Type",
-                    type: "select",
-                    items: WORD_TYPE_SELECT_ITEMS,
-                },
-                {
-                    key: WordColumnKey.Spelling,
-                    label: "Spelling",
-                    type: "text",
-                },
-                {
-                    key: WordColumnKey.Definition,
-                    label: "Definition",
-                    type: "text",
-                },
-                {
-                    key: WordColumnKey.Translations,
-                    label: "Translations",
-                    type: "text",
-                },
-            ],
-            filterRow: (row) => {
-                if (this._filterTypes.length === 0) return false;
-                const wordRow = row as WordRow;
-                return (
-                    wordRow.key === this._sentinelKey ||
-                    this._filterTypes.includes(
-                        Number(wordRow.cells.wordType.value) as WordType,
-                    )
-                );
-            },
-            onSetValue: (rowKey) => {
-                if (rowKey === this._sentinelKey) {
-                    const row = this.table.findRow(rowKey) as
-                        | WordRow
-                        | undefined;
-                    if (row && row.cells.wordType.value === "") {
-                        row.cells.wordType.value = String(
-                            this._filterTypes[0] ?? WordType.None,
-                        );
-                    }
-                    this._addSentinel();
-                }
-            },
+            columns: WORD_COLUMNS,
+            onFilter: (colKey, values) => this._onFilter(colKey, values),
+            onSetValue: (rowKey) => this._onSetValue(rowKey),
         });
     }
 
@@ -111,29 +96,11 @@ export class WordTableService implements IComponentService {
         return `N${this._keyCounter++}`;
     }
 
-    setFilter(types: WordType[]) {
-        this._filterTypes = types.toSorted();
-
-        const sentinel = this.table.findRow(this._sentinelKey) as
-            | WordRow
-            | undefined;
-        if (!sentinel) return;
-
-        if (
-            sentinel.cells.wordType.value !== "" &&
-            !this._filterTypes.includes(
-                Number(sentinel.cells.wordType.value) as WordType,
-            )
-        ) {
-            const newType = this._filterTypes[0] ?? WordType.None;
-            sentinel.cells.wordType.value = String(newType);
-        }
-    }
-
     private _addSentinel() {
         this._sentinelKey = this._nextKey();
         const sentinelRow: WordRow = {
             key: this._sentinelKey,
+            filterable: false,
             languageId: this._languageId,
             id: null,
             cells: {
@@ -159,6 +126,41 @@ export class WordTableService implements IComponentService {
         }
 
         this.table.removeRow(key);
+    }
+
+    private _onSetValue(rowKey: string) {
+        if (rowKey !== this._sentinelKey) return;
+        const row = this.table.findRow(rowKey) as WordRow | undefined;
+
+        if (row) {
+            row.filterable = true;
+
+            if (row.cells.wordType.value === "") {
+                const filterValues = this.table.getColumnFilter(
+                    WordColumnKey.WordType,
+                );
+                row.cells.wordType.value =
+                    filterValues[0] ?? String(WordType.RootWord);
+            }
+        }
+
+        this._addSentinel();
+    }
+
+    private _onFilter(colKey: WordColumnKey, values: string[]) {
+        if (colKey !== WordColumnKey.WordType) return;
+        if (values.length === 0) return;
+
+        const sentinel = this.table.findRow(this._sentinelKey) as
+            | WordRow
+            | undefined;
+        if (!sentinel) return;
+
+        if (
+            sentinel.cells.wordType.value !== "" &&
+            !values.includes(sentinel.cells.wordType.value)
+        )
+            sentinel.cells.wordType.value = values[0];
     }
 
     // SYNC

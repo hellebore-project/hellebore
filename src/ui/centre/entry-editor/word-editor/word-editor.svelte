@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { MultiSelect } from "@/lib/components/multi-select";
     import { Pagination } from "@/lib/components/pagination";
 
     import { EntryTitle } from "../title";
@@ -11,12 +10,6 @@
 
 <div class="flex h-full flex-col gap-3 overflow-hidden">
     <EntryTitle service={service.info} />
-    <MultiSelect
-        items={service.wordTypeItems}
-        values={service.selectedTypeValues}
-        onValueChange={(values) => service.changeFilter(values)}
-        placeholder="Select word types..."
-    />
     <div class="min-h-0 flex-1 overflow-auto">
         <WordTable service={service.table} />
     </div>

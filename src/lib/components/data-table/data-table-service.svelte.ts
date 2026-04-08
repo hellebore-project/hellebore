@@ -12,7 +12,7 @@ import type {
 export interface DataTableServiceArgs<TColKey extends string> {
     id: string;
     columns: DataColumn<TColKey>[];
-    filterRow?: (row: DataRow<TColKey>) => boolean;
+    onFilter?: (colKey: TColKey, values: string[]) => void;
     onCancelEdit?: (rowKey: string, colKey: TColKey) => void;
     onSetValue?: (rowKey: string, colKey: TColKey, value: string) => void;
 }
@@ -30,10 +30,13 @@ export class DataTableService<
     private _isDragging = false;
     editCell: { rowKey: string; colKey: TColKey } | null = $state(null);
     editSelectAll = true;
+    private _columnFilters: Record<string, string[]> = $state({});
 
     // CALLBACKS
     focusGrid: (() => void) | undefined = undefined;
-    private _filterRow: ((row: DataRow<TColKey>) => boolean) | undefined;
+    private _onFilter:
+        | ((colKey: TColKey, values: string[]) => void)
+        | undefined;
     private _onCancelEdit:
         | ((rowKey: string, colKey: TColKey) => void)
         | undefined;
@@ -44,13 +47,13 @@ export class DataTableService<
     constructor({
         id,
         columns,
-        filterRow,
+        onFilter,
         onCancelEdit,
         onSetValue,
     }: DataTableServiceArgs<TColKey>) {
         this._id = id;
         this._columns = columns;
-        this._filterRow = filterRow;
+        this._onFilter = onFilter;
         this._onCancelEdit = onCancelEdit;
         this._onSetValue = onSetValue;
     }
@@ -66,7 +69,88 @@ export class DataTableService<
     }
 
     get visibleRows(): DataRow<TColKey>[] {
-        return this._filterRow ? this.rows.filter(this._filterRow) : this.rows;
+        return this.rows.filter((row) => {
+            if (row.filterable === false) return true;
+            for (const [colKey, values] of Object.entries(
+                this._columnFilters,
+            )) {
+                const col = this.findColumn(colKey as TColKey);
+                const cellValue = row.cells[colKey as TColKey].value;
+                if (col?.type === "text") {
+                    if (
+                        !cellValue
+                            .toLowerCase()
+                            .includes(values[0].toLowerCase())
+                    ) {
+                        return false;
+                    }
+                } else {
+                    if (!values.includes(cellValue)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        });
+    }
+
+    getColumnFilter(colKey: TColKey): string[] {
+        return this._columnFilters[colKey] ?? [];
+    }
+
+    getTextColumnFilter(colKey: TColKey): string {
+        return this._columnFilters[colKey]?.[0] ?? "";
+    }
+
+    setTextColumnFilter(colKey: TColKey, value: string) {
+        if (value === "") {
+            this.clearColumnFilter(colKey);
+        } else {
+            this.setColumnFilter(colKey, [value]);
+        }
+    }
+
+    isColumnFiltered(colKey: TColKey): boolean {
+        return colKey in this._columnFilters;
+    }
+
+    isColumnFilterChecked(colKey: TColKey, value: string): boolean {
+        if (!(colKey in this._columnFilters)) return true;
+        return this._columnFilters[colKey].includes(value);
+    }
+
+    clearColumnFilter(colKey: TColKey) {
+        delete this._columnFilters[colKey];
+        this.selectedCells.clear();
+        this.editCell = null;
+        this._selectionAnchor = null;
+        this._onFilter?.(colKey, []);
+    }
+
+    toggleColumnFilter(colKey: TColKey, value: string) {
+        const col = this.findColumn(colKey);
+        if (!col || col.type !== "select") return;
+        const allValues = col.items.map((i) => i.value);
+        const current =
+            colKey in this._columnFilters
+                ? [...this._columnFilters[colKey]]
+                : [...allValues];
+        const next = current.includes(value)
+            ? current.filter((v) => v !== value)
+            : [...current, value];
+        if (next.length === allValues.length) {
+            this.clearColumnFilter(colKey);
+        } else {
+            this.setColumnFilter(colKey, next);
+        }
+    }
+
+    setColumnFilter(colKey: TColKey, values: string[]) {
+        this._columnFilters[colKey] = values;
+        this.selectedCells.clear();
+        this.editCell = null;
+        this._selectionAnchor = null;
+        this._onFilter?.(colKey, values);
     }
 
     get activeCell(): { rowKey: string; colKey: TColKey } | null {

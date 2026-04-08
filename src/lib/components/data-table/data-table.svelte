@@ -3,6 +3,7 @@
 
     import * as Table from "@/lib/components/table";
 
+    import { ColumnFilter } from "./column-filter";
     import type { DataTableService } from "./data-table-service.svelte";
     import DataRow from "./data-row.svelte";
 
@@ -54,7 +55,18 @@
         <Table.Header>
             <Table.Row class="hover:bg-transparent">
                 {#each service.columns as col (col.key)}
-                    <Table.Head>{col.label}</Table.Head>
+                    <Table.Head>
+                        {#if col.filterable}
+                            <div
+                                class="flex items-center justify-between gap-1"
+                            >
+                                <span>{col.label}</span>
+                                <ColumnFilter {service} colKey={col.key} />
+                            </div>
+                        {:else}
+                            {col.label}
+                        {/if}
+                    </Table.Head>
                 {/each}
                 {#if rowActions}
                     <Table.Head class="w-10" />

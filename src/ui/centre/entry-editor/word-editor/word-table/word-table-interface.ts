@@ -6,6 +6,7 @@ import type { WordColumnKey } from "./word-table-constants";
 
 export interface WordRow {
     key: WordKey;
+    filterable?: boolean;
     languageId: number;
     id: Id | null;
     cells: Record<WordColumnKey, CellState>;

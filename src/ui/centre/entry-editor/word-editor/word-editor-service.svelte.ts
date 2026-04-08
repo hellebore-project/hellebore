@@ -1,4 +1,3 @@
-import { WordType } from "@/constants";
 import type {
     ChangeEntryEvent,
     IComponentService,
@@ -9,12 +8,7 @@ import { DomainManager } from "@/services";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import type { EntryInfoService } from "../entry-info-service.svelte";
-import {
-    ALL_WORD_TYPES,
-    WORD_TYPE_SELECT_ITEMS,
-    WordTableService,
-} from "./word-table";
-import type { WordTypeItem } from "./word-editor-interface";
+import { WordTableService } from "./word-table";
 
 export interface WordEditorServiceArgs {
     info: EntryInfoService;
@@ -23,7 +17,6 @@ export interface WordEditorServiceArgs {
 
 export class WordEditorService implements IComponentService {
     private _domain: DomainManager;
-    private _selectedTypes: WordType[] = $state([...ALL_WORD_TYPES]);
 
     info: EntryInfoService;
     table: WordTableService;
@@ -40,23 +33,9 @@ export class WordEditorService implements IComponentService {
         return `word-editor-${this.info.entryId}`;
     }
 
-    get wordTypeItems(): WordTypeItem[] {
-        return WORD_TYPE_SELECT_ITEMS;
-    }
-
-    get selectedTypeValues(): string[] {
-        return this._selectedTypes.map(String);
-    }
-
-    changeFilter(values: string[]) {
-        this._selectedTypes = values.map(Number) as WordType[];
-        this.table.setFilter(this._selectedTypes);
-    }
-
     async load(languageId: Id) {
         const words = await this._domain.words.getAllForLanguage(languageId);
         if (words) {
-            this.table.setFilter(this._selectedTypes);
             this.table.load(words, languageId);
         }
     }
