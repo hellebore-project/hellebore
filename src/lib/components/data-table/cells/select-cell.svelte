@@ -24,20 +24,48 @@
         items.find((i) => i.value === value)?.label ?? placeholder,
     );
     let isPlaceholder = $derived(!items.some((i) => i.value === value));
+    let open = $state(false);
+    let triggerRef = $state<HTMLButtonElement | null>(null);
+
+    $effect(() => {
+        if (!triggerRef) return;
+        triggerRef.focus();
+        triggerRef.dispatchEvent(
+            new KeyboardEvent("keydown", {
+                key: " ",
+                bubbles: true,
+                cancelable: true,
+            }),
+        );
+    });
+
+    $effect(() => {
+        function handleKeyDown(e: KeyboardEvent) {
+            service.handleSelectCellKeyDown(e, open);
+        }
+        window.addEventListener("keydown", handleKeyDown, true);
+        return () => window.removeEventListener("keydown", handleKeyDown, true);
+    });
 </script>
 
 <Select.Root
     type="single"
+    bind:open
     {value}
     onValueChange={(v) => {
         onValueChange(v);
+        service.commitEdit();
         service.focusGrid?.();
     }}
-    onOpenChange={(open) => {
-        if (!open && service.editCell !== null) service.focusGrid?.();
+    onOpenChange={(isOpen) => {
+        if (!isOpen && service.editCell !== null) {
+            service.cancelEdit();
+            service.focusGrid?.();
+        }
     }}
 >
     <Select.Trigger
+        bind:ref={triggerRef}
         size="sm"
         class="h-full w-full rounded-none border-none shadow-none"
     >

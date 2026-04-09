@@ -292,6 +292,25 @@ export class DataTableService<
         this._isDragging = false;
     }
 
+    canMove(rowKey: string, colKey: TColKey, dr: number, dc: number): boolean {
+        const rowKeys = this.visibleRows.map((r) => r.key);
+        const colKeys = this._columns.map((c) => c.key);
+        const rowIdx = rowKeys.indexOf(rowKey);
+        const colIdx = colKeys.indexOf(colKey);
+        const newRowIdx = rowIdx + dr;
+        const newColIdx = colIdx + dc;
+        return (
+            newRowIdx >= 0 &&
+            newRowIdx < rowKeys.length &&
+            newColIdx >= 0 &&
+            newColIdx < colKeys.length
+        );
+    }
+
+    moveSelection(rowKey: string, colKey: TColKey, dr: number, dc: number) {
+        this._moveSelection(rowKey, colKey, dr, dc);
+    }
+
     // EDITING
 
     get isEditing() {
@@ -363,6 +382,26 @@ export class DataTableService<
         this.handleKeyDown(e, active.rowKey, active.colKey);
     }
 
+    handleSelectCellKeyDown(e: KeyboardEvent, open: boolean) {
+        if (!this.editCell) return;
+        const { rowKey, colKey } = this.editCell;
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            if (!open) return;
+            const dc = e.key === "ArrowLeft" ? -1 : 1;
+            if (!this.canMove(rowKey, colKey, 0, dc)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            this.commitEdit();
+            this._moveSelection(rowKey, colKey, 0, dc);
+        } else if (e.key === "Enter") {
+            if (open) return;
+            e.preventDefault();
+            e.stopPropagation();
+            this.commitEdit();
+            this.focusGrid?.();
+        }
+    }
+
     handleKeyDown(e: KeyboardEvent, rowKey: string, colKey: TColKey) {
         if (this.isEditable(rowKey, colKey)) {
             this._handleKeyDownEditing(e, rowKey, colKey);
@@ -425,7 +464,7 @@ export class DataTableService<
             case "Enter":
                 e.preventDefault();
                 this.commitEdit();
-                this._moveSelection(rowKey, colKey, 1, 0);
+                if (!isSelect) this._moveSelection(rowKey, colKey, 1, 0);
                 break;
             case "Escape":
                 e.preventDefault();
@@ -442,6 +481,20 @@ export class DataTableService<
                 e.preventDefault();
                 this.commitEdit();
                 this._moveSelection(rowKey, colKey, -1, 0);
+                break;
+            case "ArrowLeft":
+                if (!isSelect) break;
+                if (!this.canMove(rowKey, colKey, 0, -1)) break;
+                e.preventDefault();
+                this.commitEdit();
+                this._moveSelection(rowKey, colKey, 0, -1);
+                break;
+            case "ArrowRight":
+                if (!isSelect) break;
+                if (!this.canMove(rowKey, colKey, 0, 1)) break;
+                e.preventDefault();
+                this.commitEdit();
+                this._moveSelection(rowKey, colKey, 0, 1);
                 break;
             case "Tab":
                 e.preventDefault();
