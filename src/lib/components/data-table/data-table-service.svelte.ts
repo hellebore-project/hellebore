@@ -12,9 +12,11 @@ import type {
 export interface DataTableServiceArgs<TColKey extends string> {
     id: string;
     columns: DataColumn<TColKey>[];
+    pageCount?: number;
     onFilter?: (colKey: TColKey, values: string[]) => void;
     onCancelEdit?: (rowKey: string, colKey: TColKey) => void;
     onSetValue?: (rowKey: string, colKey: TColKey, value: string) => void;
+    onPageChange?: (page: number) => void;
 }
 
 export class DataTableService<
@@ -31,6 +33,8 @@ export class DataTableService<
     editCell: { rowKey: string; colKey: TColKey } | null = $state(null);
     editSelectAll = true;
     private _columnFilters: Record<string, string[]> = $state({});
+    page: number = $state(1);
+    pageCount: number = $state(1);
 
     // CALLBACKS
     focusGrid: (() => void) | undefined = undefined;
@@ -43,19 +47,24 @@ export class DataTableService<
     private _onSetValue:
         | ((rowKey: string, colKey: TColKey, value: string) => void)
         | undefined;
+    private _onPageChange: ((page: number) => void) | undefined;
 
     constructor({
         id,
         columns,
+        pageCount,
         onFilter,
         onCancelEdit,
         onSetValue,
+        onPageChange,
     }: DataTableServiceArgs<TColKey>) {
         this._id = id;
         this._columns = columns;
+        if (pageCount !== undefined) this.pageCount = pageCount;
         this._onFilter = onFilter;
         this._onCancelEdit = onCancelEdit;
         this._onSetValue = onSetValue;
+        this._onPageChange = onPageChange;
     }
 
     // PROPERTIES
@@ -454,6 +463,13 @@ export class DataTableService<
             block: "nearest",
             inline: "nearest",
         });
+    }
+
+    // PAGINATION
+
+    changePage(page: number) {
+        this.page = page;
+        this._onPageChange?.(page);
     }
 
     // CLEAN UP

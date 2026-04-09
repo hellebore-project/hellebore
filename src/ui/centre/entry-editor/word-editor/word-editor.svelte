@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { Pagination } from "@/lib/components/pagination";
-
     import { EntryTitle } from "../title";
     import { WordTable } from "./word-table";
     import type { WordEditorProps } from "./word-editor-interface";
@@ -12,14 +10,5 @@
     <EntryTitle service={service.info} />
     <div class="min-h-0 flex-1 overflow-auto">
         <WordTable service={service.table} />
-    </div>
-    <div class="flex shrink-0 justify-end border-t pt-2">
-        <Pagination
-            page={1}
-            pageCount={1}
-            onPageChange={() => {
-                return;
-            }}
-        />
     </div>
 </div>

@@ -1,6 +1,7 @@
 <script lang="ts" generics="TColKey extends string">
     import type { Snippet } from "svelte";
 
+    import { Pagination } from "@/lib/components/pagination";
     import * as Table from "@/lib/components/table";
 
     import { ColumnFilter } from "./column-filter";
@@ -79,4 +80,11 @@
             {/each}
         </Table.Body>
     </Table.Root>
+</div>
+<div class="flex shrink-0 justify-end border-t pt-2">
+    <Pagination
+        page={service.page}
+        pageCount={service.pageCount}
+        onPageChange={(p) => service.changePage(p)}
+    />
 </div>
