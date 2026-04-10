@@ -7,12 +7,12 @@
 </script>
 
 {#if service}
-    {#snippet rowActions(rowKey: string)}
-        <DeleteRowButton
-            onclick={() => service?.removeRow(rowKey)}
-            deletable={rowKey !== service?.sentinelKey}
-        />
-    {/snippet}
+{#snippet rowActions(rowKey: string)}
+    <DeleteRowButton
+        onclick={() => service?.removeRow(rowKey)}
+        deletable={rowKey !== service?.sentinelKey}
+    />
+{/snippet}
 
-    <DataTable service={service?.table ?? null} {rowActions} />
+<DataTable service={service?.table ?? null} {rowActions} />
 {/if}
