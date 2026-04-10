@@ -66,7 +66,7 @@
         tabindex="0"
     >
         <Table.Root class="table-fixed">
-            <Table.Header>
+            <Table.Header id={service.headerId}>
                 <Table.Row class="hover:bg-transparent">
                     {#each service.columns as col (col.key)}
                         <Table.Head>

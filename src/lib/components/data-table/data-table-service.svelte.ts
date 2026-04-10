@@ -74,6 +74,10 @@ export class DataTableService<
         return this._id;
     }
 
+    get headerId() {
+        return `${this._id}-header`;
+    }
+
     get columns(): DataColumn<TColKey>[] {
         return this._columns;
     }
@@ -436,7 +440,11 @@ export class DataTableService<
                 break;
             case "ArrowUp":
                 e.preventDefault();
-                this._moveSelection(rowKey, colKey, -1, 0);
+                if (this.visibleRows[0]?.key === rowKey) {
+                    this.scrollHeaderIntoView();
+                } else {
+                    this._moveSelection(rowKey, colKey, -1, 0);
+                }
                 break;
             case "ArrowLeft":
                 e.preventDefault();
@@ -526,6 +534,14 @@ export class DataTableService<
 
     scrollCellIntoView(rowKey: string, colKey: TColKey) {
         document.getElementById(`cell-${rowKey}-${colKey}`)?.scrollIntoView({
+            behavior: "instant",
+            block: "nearest",
+            inline: "nearest",
+        });
+    }
+
+    scrollHeaderIntoView() {
+        document.getElementById(this.headerId)?.scrollIntoView({
             behavior: "instant",
             block: "nearest",
             inline: "nearest",
