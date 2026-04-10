@@ -221,7 +221,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     fetchChanges({
         id = null,
         syncTitle = false,
-        // syncProperties = false,
+        syncProperties = false,
         syncText = false,
         syncLexicon = false,
     }: PollEvent): PollResultEntryData | null {
@@ -238,7 +238,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         if (syncTitle && this.info.titleChanged && this.info.isTitleValid)
             entry.title = this.info.title;
 
-        if (this.properties.changed) {
+        if (syncProperties && this.properties.changed) {
             const properties = this.properties.entity;
             if (properties) entry.properties = properties;
         }
@@ -263,8 +263,8 @@ export class EntryEditorService implements ICentralPanelContentService {
                 if (response.entry.title.updated)
                     this.info.titleChanged = false;
 
-                // if (response.entry.properties.updated)
-                //     this.properties.changed = false;
+                if (response.entry.properties.updated)
+                    this.properties.changed = false;
 
                 if (response.entry.text.updated) this.article.changed = false;
 
