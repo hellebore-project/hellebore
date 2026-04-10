@@ -1,3 +1,7 @@
+import type { Snippet } from "svelte";
+
+import type { DataTableService } from "./data-table-service.svelte";
+
 export type PositionKey = string;
 
 export interface DataCell {
@@ -39,4 +43,9 @@ export type DataColumn<TColKey extends string = string> =
 export interface SelectionAnchor<TColKey extends string = string> {
     rowIndex: number;
     colKey: TColKey;
+}
+
+export interface DataTableProps<TColKey extends string = string> {
+    service: DataTableService<TColKey> | null;
+    rowActions?: Snippet<[string]>;
 }

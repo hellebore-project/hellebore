@@ -1,19 +1,12 @@
 <script lang="ts" generics="TColKey extends string">
-    import type { Snippet } from "svelte";
-
     import { Pagination } from "@/lib/components/pagination";
     import * as Table from "@/lib/components/table";
 
     import { ColumnFilter } from "./column-filter";
-    import type { DataTableService } from "./data-table-service.svelte";
     import DataRow from "./data-row.svelte";
+    import type { DataTableProps } from "./data-table-interface";
 
-    interface DataTableProps {
-        service: DataTableService<TColKey> | null;
-        rowActions?: Snippet<[string]>;
-    }
-
-    const { service, rowActions }: DataTableProps = $props();
+    const { service, rowActions }: DataTableProps<TColKey> = $props();
 
     let gridEl: HTMLDivElement;
 
@@ -63,51 +56,51 @@
 />
 
 {#if service}
-<div class="flex flex-col h-full overflow-hidden">
-    <div
-        bind:this={gridEl}
-        class="min-h-0 flex-1 overflow-y-auto focus:outline-none"
-        role="grid"
-        tabindex="0"
-    >
-        <Table.Root class="table-fixed">
-            <Table.Header id={service.headerId}>
-                <Table.Row class="hover:bg-transparent">
-                    {#each service.columns as col (col.key)}
-                        <Table.Head>
-                            {#if col.filterable}
-                                <div
-                                    class="flex items-center justify-between gap-1"
-                                >
-                                    <span>{col.label}</span>
-                                    <ColumnFilter
-                                        {service}
-                                        colKey={col.key}
-                                    />
-                                </div>
-                            {:else}
-                                {col.label}
-                            {/if}
-                        </Table.Head>
+    <div class="flex flex-col h-full overflow-hidden">
+        <div
+            bind:this={gridEl}
+            class="min-h-0 flex-1 overflow-y-auto focus:outline-none"
+            role="grid"
+            tabindex="0"
+        >
+            <Table.Root class="table-fixed">
+                <Table.Header id={service.headerId}>
+                    <Table.Row class="hover:bg-transparent">
+                        {#each service.columns as col (col.key)}
+                            <Table.Head>
+                                {#if col.filterable}
+                                    <div
+                                        class="flex items-center justify-between gap-1"
+                                    >
+                                        <span>{col.label}</span>
+                                        <ColumnFilter
+                                            {service}
+                                            colKey={col.key}
+                                        />
+                                    </div>
+                                {:else}
+                                    {col.label}
+                                {/if}
+                            </Table.Head>
+                        {/each}
+                        {#if rowActions}
+                            <Table.Head class="w-10" />
+                        {/if}
+                    </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                    {#each service.visibleRows as row (row.key)}
+                        <DataRow {row} {service} {rowActions} />
                     {/each}
-                    {#if rowActions}
-                        <Table.Head class="w-10" />
-                    {/if}
-                </Table.Row>
-            </Table.Header>
-            <Table.Body>
-                {#each service.visibleRows as row (row.key)}
-                    <DataRow {row} {service} {rowActions} />
-                {/each}
-            </Table.Body>
-        </Table.Root>
+                </Table.Body>
+            </Table.Root>
+        </div>
+        <div class="flex shrink-0 justify-end border-t pt-2">
+            <Pagination
+                page={service.page}
+                pageCount={service.pageCount}
+                onPageChange={(p) => service.changePage(p)}
+            />
+        </div>
     </div>
-    <div class="flex shrink-0 justify-end border-t pt-2">
-        <Pagination
-            page={service.page}
-            pageCount={service.pageCount}
-            onPageChange={(p) => service.changePage(p)}
-        />
-    </div>
-</div>
 {/if}
