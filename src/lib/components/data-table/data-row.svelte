@@ -55,10 +55,7 @@
                     col.getLabel?.(row.key, cellValue) ?? cellValue}
                 {#if isEditing}
                     <TextCell
-                        rowKey={row.key}
-                        colKey={col.key}
                         value={cellValue}
-                        {service}
                         oninput={(v) => service.setValue(row.key, col.key, v)}
                         selectAll={service.editSelectAll}
                     />

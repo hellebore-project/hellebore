@@ -31,6 +31,7 @@ export class DataTableService<
     private _selectionAnchor: SelectionAnchor<TColKey> | null = null;
     private _isDragging = false;
     editCell: { rowKey: string; colKey: TColKey } | null = $state(null);
+    selectOpen: boolean = $state(false);
     editSelectAll = true;
     private _columnFilters: Record<string, string[]> = $state({});
     page: number = $state(1);
@@ -307,10 +308,6 @@ export class DataTableService<
         );
     }
 
-    moveSelection(rowKey: string, colKey: TColKey, dr: number, dc: number) {
-        this._moveSelection(rowKey, colKey, dr, dc);
-    }
-
     // EDITING
 
     get isEditing() {
@@ -377,29 +374,44 @@ export class DataTableService<
 
     handleTableKeyDown(e: KeyboardEvent) {
         if (e.defaultPrevented) return;
+
         const active = this.activeCell;
         if (!active) return;
-        this.handleKeyDown(e, active.rowKey, active.colKey);
+        const { rowKey, colKey } = active;
+
+        if (this._handleSelectDropdownKeyDown(e, rowKey, colKey)) return;
+
+        const wasEditing = this.isEditing;
+        this.handleKeyDown(e, rowKey, colKey);
+
+        if (wasEditing && !this.isEditing) this.focusGrid?.();
     }
 
-    handleSelectCellKeyDown(e: KeyboardEvent, open: boolean) {
-        if (!this.editCell) return;
-        const { rowKey, colKey } = this.editCell;
-        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-            if (!open) return;
-            const dc = e.key === "ArrowLeft" ? -1 : 1;
-            if (!this.canMove(rowKey, colKey, 0, dc)) return;
-            e.preventDefault();
-            e.stopPropagation();
-            this.commitEdit();
-            this._moveSelection(rowKey, colKey, 0, dc);
-        } else if (e.key === "Enter") {
-            if (open) return;
-            e.preventDefault();
-            e.stopPropagation();
-            this.commitEdit();
-            this.focusGrid?.();
-        }
+    private _handleSelectDropdownKeyDown(
+        e: KeyboardEvent,
+        rowKey: string,
+        colKey: TColKey,
+    ) {
+        // When a select cell's dropdown is open, bits-ui handles ArrowUp/Down/Enter natively.
+        // We only intercept lateral navigation to commit and leave the cell.
+
+        const isSelect = this.findColumn(colKey)?.type === "select";
+        if (!isSelect || !this.isEditable(rowKey, colKey) || !this.selectOpen)
+            return false;
+
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return true;
+
+        const dc = e.key === "ArrowLeft" ? -1 : 1;
+        if (!this.canMove(rowKey, colKey, 0, dc)) return true;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.commitEdit();
+        this._moveSelection(rowKey, colKey, 0, dc);
+        this.focusGrid?.();
+
+        return true;
     }
 
     handleKeyDown(e: KeyboardEvent, rowKey: string, colKey: TColKey) {
@@ -463,11 +475,13 @@ export class DataTableService<
         switch (e.key) {
             case "Enter":
                 e.preventDefault();
+                if (isSelect) e.stopPropagation();
                 this.commitEdit();
                 if (!isSelect) this._moveSelection(rowKey, colKey, 1, 0);
                 break;
             case "Escape":
                 e.preventDefault();
+                if (isSelect) e.stopPropagation();
                 this.cancelEdit();
                 break;
             case "ArrowDown":

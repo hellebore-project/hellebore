@@ -24,7 +24,6 @@
         items.find((i) => i.value === value)?.label ?? placeholder,
     );
     let isPlaceholder = $derived(!items.some((i) => i.value === value));
-    let open = $state(false);
     let triggerRef = $state<HTMLButtonElement | null>(null);
 
     $effect(() => {
@@ -37,20 +36,15 @@
                 cancelable: true,
             }),
         );
-    });
-
-    $effect(() => {
-        function handleKeyDown(e: KeyboardEvent) {
-            service.handleSelectCellKeyDown(e, open);
-        }
-        window.addEventListener("keydown", handleKeyDown, true);
-        return () => window.removeEventListener("keydown", handleKeyDown, true);
+        return () => {
+            service.selectOpen = false;
+        };
     });
 </script>
 
 <Select.Root
     type="single"
-    bind:open
+    bind:open={service.selectOpen}
     {value}
     onValueChange={(v) => {
         onValueChange(v);

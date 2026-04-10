@@ -24,6 +24,19 @@
             s.focusGrid = undefined;
         };
     });
+
+    // A single window capture listener handles all keyboard events for the table.
+    // Capture phase is required to catch events when a select cell's dropdown is
+    // open, since bits-ui renders it in a portal outside the grid's DOM subtree.
+    $effect(() => {
+        function handleKeyDown(e: KeyboardEvent) {
+            const isInGrid = e.composedPath().includes(gridEl);
+            if (!isInGrid && !(service.isEditing && service.selectOpen)) return;
+            service.handleTableKeyDown(e);
+        }
+        window.addEventListener("keydown", handleKeyDown, true);
+        return () => window.removeEventListener("keydown", handleKeyDown, true);
+    });
 </script>
 
 <svelte:window
@@ -51,7 +64,6 @@
         class="min-h-0 flex-1 overflow-y-auto focus:outline-none"
         role="grid"
         tabindex="0"
-        onkeydown={(e) => service.handleTableKeyDown(e)}
     >
         <Table.Root class="table-fixed">
             <Table.Header>
