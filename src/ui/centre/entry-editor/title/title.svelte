@@ -16,6 +16,7 @@
     let { service }: EntryTitleProps = $props();
 
     let error = $derived.by(() => {
+        if (!service) return null;
         if (service.title === "") return "Empty title";
         if (!service.isTitleUnique) return "Duplicate title";
         return null;
@@ -34,35 +35,37 @@
 </script>
 
 <div class="h-(--title-field-height)">
-    <TooltipProvider
-        delayDuration={0}
-        skipDelayDuration={0}
-        disableCloseOnTriggerClick
-    >
-        <Tooltip bind:open={getOpen, setOpen} disableCloseOnTriggerClick>
-            <TooltipTrigger class="w-full">
-                <Input
-                    class="pb-2"
-                    variant="ghost"
-                    size="h2"
-                    shape="round"
-                    {severity}
-                    placeholder="Title"
-                    value={service.title}
-                    oninput={(e) => (service.title = e.currentTarget.value)}
-                />
-            </TooltipTrigger>
+    {#if service}
+        <TooltipProvider
+            delayDuration={0}
+            skipDelayDuration={0}
+            disableCloseOnTriggerClick
+        >
+            <Tooltip bind:open={getOpen, setOpen} disableCloseOnTriggerClick>
+                <TooltipTrigger class="w-full">
+                    <Input
+                        class="pb-2"
+                        variant="ghost"
+                        size="h2"
+                        shape="round"
+                        {severity}
+                        placeholder="Title"
+                        value={service.title}
+                        oninput={(e) => (service.title = e.currentTarget.value)}
+                    />
+                </TooltipTrigger>
 
-            <TooltipContent
-                class="flex items-start w-full px-3 py-2 gap-2 bg-error text-white"
-                side="bottom"
-            >
-                <TooltipArrow class="bg-error" />
-                <CircleAlertIcon class="h-5 w-5 shrink-0" />
-                <span class="text-sm">{error}</span>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
+                <TooltipContent
+                    class="flex items-start w-full px-3 py-2 gap-2 bg-error text-white"
+                    side="bottom"
+                >
+                    <TooltipArrow class="bg-error" />
+                    <CircleAlertIcon class="h-5 w-5 shrink-0" />
+                    <span class="text-sm">{error}</span>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    {/if}
 
     <Separator class="my-3 border" />
 </div>

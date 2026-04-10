@@ -15,38 +15,40 @@
 </script>
 
 <div class="entry-editor-root grid w-full h-full">
-    <div class="entry-editor-header flex items-center justify-between pb-1">
-        <!-- TODO: turn this into a dynamic toolbar that changes depending on what tab is visible -->
-        <div>
-            <Pill class="inline-block me-2" size="sm">
-                {service.info.entryTypeLabel}
-            </Pill>
+    {#if service}
+        <div class="entry-editor-header flex items-center justify-between pb-1">
+            <!-- TODO: turn this into a dynamic toolbar that changes depending on what tab is visible -->
+            <div>
+                <Pill class="inline-block me-2" size="sm">
+                    {service.info.entryTypeLabel}
+                </Pill>
 
-            <Breadcrumb.Root class="inline-block">
-                <Breadcrumb.List>
-                    <Breadcrumb.Item>
-                        {service.info.title}
-                    </Breadcrumb.Item>
-                    <Breadcrumb.Separator />
-                    <Breadcrumb.Item>
-                        {service.currentViewLabel}
-                    </Breadcrumb.Item>
-                </Breadcrumb.List>
-            </Breadcrumb.Root>
+                <Breadcrumb.Root class="inline-block">
+                    <Breadcrumb.List>
+                        <Breadcrumb.Item>
+                            {service.info.title}
+                        </Breadcrumb.Item>
+                        <Breadcrumb.Separator />
+                        <Breadcrumb.Item>
+                            {service.currentViewLabel}
+                        </Breadcrumb.Item>
+                    </Breadcrumb.List>
+                </Breadcrumb.Root>
+            </div>
+
+            <DeleteEntryButton {service} />
         </div>
 
-        <DeleteEntryButton {service} />
-    </div>
-
-    <div class="entry-editor-panel overflow-hidden px-6 pt-1">
-        {#if service.currentView === EntryViewType.ArticleEditor}
-            <ArticleEditor service={service.article} />
-        {:else if service.currentView === EntryViewType.PropertyEditor}
-            <PropertyEditor service={service.properties} />
-        {:else if service.currentView === EntryViewType.WordEditor}
-            <WordEditor service={service.lexicon} />
-        {:else}
-            {null}
-        {/if}
-    </div>
+        <div class="entry-editor-panel overflow-hidden px-6 pt-1">
+            {#if service.currentView === EntryViewType.ArticleEditor}
+                <ArticleEditor service={service?.article ?? null} />
+            {:else if service.currentView === EntryViewType.PropertyEditor}
+                <PropertyEditor service={service?.properties ?? null} />
+            {:else if service.currentView === EntryViewType.WordEditor}
+                <WordEditor service={service?.lexicon ?? null} />
+            {:else}
+                {null}
+            {/if}
+        </div>
+    {/if}
 </div>

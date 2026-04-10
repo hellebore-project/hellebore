@@ -6,9 +6,11 @@
     const { service }: WordEditorProps = $props();
 </script>
 
-<div class="flex h-full flex-col gap-3 overflow-hidden">
-    <EntryTitle service={service.info} />
-    <div class="min-h-0 flex-1 overflow-auto">
-        <WordTable service={service.table} />
+{#if service}
+    <div class="flex h-full flex-col gap-3 overflow-hidden">
+        <EntryTitle service={service?.info ?? null} />
+        <div class="min-h-0 flex-1 overflow-auto">
+            <WordTable service={service?.table ?? null} />
+        </div>
     </div>
-</div>
+{/if}

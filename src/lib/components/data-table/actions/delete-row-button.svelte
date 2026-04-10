@@ -6,14 +6,14 @@
 
     interface Props {
         onclick: () => void;
-        deleteable?: boolean;
+        deletable?: boolean;
     }
 
-    const { onclick, deleteable = false }: Props = $props();
+    const { onclick, deletable = false }: Props = $props();
 </script>
 
 <Button
-    class={cn("invisible", deleteable && "group-hover:visible")}
+    class={cn("invisible", deletable && "group-hover:visible")}
     variant="ghost"
     size="icon-sm"
     color="destructive"

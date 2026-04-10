@@ -5,8 +5,10 @@
     const { service }: PropertyEditorProps = $props();
 </script>
 
-<div class="property-editor">
-    <div class="property-editor-stack space-y-4">
-        <PropertyTable service={service.tableService} />
+{#if service}
+    <div class="property-editor">
+        <div class="property-editor-stack space-y-4">
+            <PropertyTable service={service?.tableService ?? null} />
+        </div>
     </div>
-</div>
+{/if}

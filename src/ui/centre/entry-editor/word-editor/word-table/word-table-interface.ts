@@ -5,13 +5,13 @@ import type { WordTableService } from "./word-table-service.svelte";
 import type { WordColumnKey } from "./word-table-constants";
 
 export interface WordRow {
-    key: WordKey;
-    filterable?: boolean;
-    languageId: number;
     id: Id | null;
+    key: WordKey;
+    languageId: number;
+    filterable?: boolean;
     cells: Record<WordColumnKey, CellState>;
 }
 
 export interface WordTableProps {
-    service: WordTableService;
+    service: WordTableService | null;
 }
