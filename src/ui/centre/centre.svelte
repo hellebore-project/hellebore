@@ -15,7 +15,9 @@
     {:else if contentService.type === CentralViewType.Settings}
         <SettingsEditor service={contentService as SettingsEditorService} />
     {:else if contentService.type === CentralViewType.EntryEditor}
-        <EntryEditor service={contentService as EntryEditorService} />
+        {#key contentService}
+            <EntryEditor service={contentService as EntryEditorService} />
+        {/key}
     {:else}
         {null}
     {/if}

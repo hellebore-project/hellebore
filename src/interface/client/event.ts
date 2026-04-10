@@ -3,7 +3,6 @@ import {
     EntryViewType,
     SidebarSectionType,
     ViewAction,
-    WordType,
 } from "@/constants";
 
 import type { Id, Point } from "../common";
@@ -135,7 +134,6 @@ interface OpenCentralPanelEvent {
 export interface OpenEntryEditorEvent extends OpenCentralPanelEvent {
     id: Id;
     viewKey?: EntryViewType;
-    wordType?: WordType;
 }
 
 export interface ChangeCentralPanelEvent {
