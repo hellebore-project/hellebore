@@ -14,6 +14,7 @@
     let { service }: EntryEditorProps = $props();
 </script>
 
+{#if service}
 <div class="entry-editor-root grid w-full h-full">
     <div class="entry-editor-header flex items-center justify-between pb-1">
         <!-- TODO: turn this into a dynamic toolbar that changes depending on what tab is visible -->
@@ -40,13 +41,14 @@
 
     <div class="entry-editor-panel overflow-hidden px-6 pt-1">
         {#if service.currentView === EntryViewType.ArticleEditor}
-            <ArticleEditor service={service.article} />
+            <ArticleEditor service={service?.article ?? null} />
         {:else if service.currentView === EntryViewType.PropertyEditor}
-            <PropertyEditor service={service.properties} />
+            <PropertyEditor service={service?.properties ?? null} />
         {:else if service.currentView === EntryViewType.WordEditor}
-            <WordEditor service={service.lexicon} />
+            <WordEditor service={service?.lexicon ?? null} />
         {:else}
             {null}
         {/if}
     </div>
 </div>
+{/if}

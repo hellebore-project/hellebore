@@ -16,6 +16,7 @@
     let { service }: EntryTitleProps = $props();
 
     let error = $derived.by(() => {
+        if (!service) return null;
         if (service.title === "") return "Empty title";
         if (!service.isTitleUnique) return "Duplicate title";
         return null;
@@ -33,6 +34,7 @@
     }
 </script>
 
+{#if service}
 <div class="h-(--title-field-height)">
     <TooltipProvider
         delayDuration={0}
@@ -66,3 +68,4 @@
 
     <Separator class="my-3 border" />
 </div>
+{/if}

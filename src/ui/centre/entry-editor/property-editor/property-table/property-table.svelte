@@ -12,7 +12,7 @@
     const { service }: PropertyTableProps = $props();
 </script>
 
-{#if service.rows.length > 0}
+{#if service && service.rows.length > 0}
     <Card>
         <div class="space-y-3 px-6">
             {#each service.rows as fieldData (fieldData.property)}

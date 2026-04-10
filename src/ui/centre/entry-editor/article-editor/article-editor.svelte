@@ -7,8 +7,9 @@
     const { service }: ArticleEditorProps = $props();
 </script>
 
+{#if service}
 <div class="flex flex-col overflow-hidden w-full h-full">
-    <EntryTitle service={service.info} />
+    <EntryTitle service={service?.info ?? null} />
 
     <RichTextEditor
         service={service.richText}
@@ -22,3 +23,4 @@
         }}
     />
 </div>
+{/if}
