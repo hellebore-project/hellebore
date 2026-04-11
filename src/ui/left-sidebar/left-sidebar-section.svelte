@@ -8,6 +8,8 @@
 
     import EntryEditorNavigator from "./sections/entry-editor-navigator/entry-editor-nav.svelte";
     import type { EntryEditorNavigatorService } from "./sections/entry-editor-navigator/entry-editor-nav-service.svelte";
+    import EntrySpotlight from "./sections/entry-spotlight/entry-spotlight.svelte";
+    import type { EntrySpotlightService } from "./sections/entry-spotlight/entry-spotlight-service.svelte";
     import type { LeftSidebarSectionProps } from "./left-sidebar-interface";
 
     const { service }: LeftSidebarSectionProps = $props();
@@ -33,7 +35,9 @@
         <Collapsible.Content>
             <Sidebar.SidebarGroupContent>
                 {#if service.type === SidebarSectionType.Spotlight}
-                    TODO
+                    <EntrySpotlight
+                        service={service as EntrySpotlightService}
+                    />
                 {:else if service.type === SidebarSectionType.EntryEditorNavigator}
                     <EntryEditorNavigator
                         service={service as EntryEditorNavigatorService}
