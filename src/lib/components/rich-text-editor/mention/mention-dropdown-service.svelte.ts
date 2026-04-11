@@ -5,11 +5,13 @@ import type {
 
 import type { MentionItemData } from "./mention-interface";
 
-export class MentionDropdownService<I extends MentionItemData> {
-    suggestion: SuggestionProps<I, I>;
+export class MentionDropdownService<T> {
+    suggestion: SuggestionProps<MentionItemData<T>, MentionItemData<T>>;
     private _selectedIndex: number = $state(0);
 
-    constructor(suggestion: SuggestionProps<I, I>) {
+    constructor(
+        suggestion: SuggestionProps<MentionItemData<T>, MentionItemData<T>>,
+    ) {
         this.suggestion = $state(suggestion);
     }
 
@@ -31,7 +33,7 @@ export class MentionDropdownService<I extends MentionItemData> {
         this._selectedIndex = idx;
     }
 
-    select(item: I) {
+    select(item: MentionItemData<T>) {
         this.suggestion.command(item);
     }
 

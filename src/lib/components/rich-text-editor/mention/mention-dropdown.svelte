@@ -1,10 +1,10 @@
-<script lang="ts" generics="I extends MentionItemData">
+<script lang="ts" generics="T">
     import { Button } from "@/lib/components/button";
     import { cn } from "@/lib/utils";
 
-    import type { MentionItemData, MentionProps } from "./mention-interface";
+    import type { MentionProps } from "./mention-interface";
 
-    const { service }: MentionProps<I> = $props();
+    const { service }: MentionProps<T> = $props();
 </script>
 
 <div

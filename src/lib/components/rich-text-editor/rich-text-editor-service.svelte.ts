@@ -16,19 +16,17 @@ import {
     type MentionItemData,
 } from "./mention";
 
-interface ExtensionArgs<M extends MentionItemData> {
+interface ExtensionArgs<M> {
     placeholder?: string;
     mention?: MentionExtensionArgs<M>;
 }
 
-interface RichTextEditorServiceArgs<M extends MentionItemData> {
+interface RichTextEditorServiceArgs<M> {
     id: string;
     extensions?: ExtensionArgs<M>;
 }
 
-export class RichTextEditorService<
-    M extends MentionItemData = MentionItemData,
-> implements IComponentService {
+export class RichTextEditorService<M> implements IComponentService {
     // STATE
     id: string;
     editor: Editor;
@@ -37,7 +35,7 @@ export class RichTextEditorService<
 
     // EVENTS
     onChange: MultiEventProducer<void, unknown>;
-    onSelectMention: MultiEventProducer<M, unknown>;
+    onSelectMention: MultiEventProducer<MentionItemData<M>, unknown>;
 
     constructor({ id, extensions }: RichTextEditorServiceArgs<M>) {
         this.id = id;
@@ -142,7 +140,12 @@ export class RichTextEditorService<
     // EVENT HANDLING
 
     private _onClickEditor(node: PMNode) {
-        if (node.type.name == "mention" && node.attrs["id"] !== null)
-            this.onSelectMention.produce(node.attrs as M);
+        if (node.type.name == "mention") {
+            const { label, ...data } = node.attrs;
+            this.onSelectMention.produce({
+                label: label,
+                data: data as M,
+            });
+        }
     }
 }

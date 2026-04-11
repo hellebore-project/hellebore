@@ -1,17 +1,13 @@
-<script lang="ts">
+<script lang="ts" generics="M">
     import "./rich-text-editor.css";
 
     import { onMount } from "svelte";
 
     import type { RichTextEditorProps } from "./rich-text-editor-interface";
-    import type { MentionItemData } from "./mention";
     import { cn } from "@/lib/utils";
 
-    const {
-        service,
-        rootProps,
-        editorProps,
-    }: RichTextEditorProps<MentionItemData> = $props();
+    const { service, rootProps, editorProps }: RichTextEditorProps<M> =
+        $props();
     let { class: className, ...rest } = $derived(rootProps ?? {});
 
     let element: HTMLDivElement | null = $state(null);
