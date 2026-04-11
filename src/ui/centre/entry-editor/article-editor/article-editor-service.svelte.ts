@@ -12,6 +12,7 @@ import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info-service.svelte";
 import type { EntryMentionItemData } from "./article-editor-interface";
+import type { BaseMentionItemData } from "@/lib/components/rich-text-editor/mention";
 
 export class ArticleEditorService implements IComponentService {
     private _loaded = false;
@@ -63,9 +64,11 @@ export class ArticleEditorService implements IComponentService {
         this.richText.onChange.subscribe(() =>
             this.onChange.produce({ id: this.info.entryId }),
         );
-        this.richText.onSelectMention.subscribe(({ id }) =>
-            this.onSelectEntryReference.produce({ id }),
-        );
+        this.richText.onSelectMention.subscribe(({ data }) => {
+            const id = data?.id;
+            if (id === undefined) return;
+            this.onSelectEntryReference.produce({ id });
+        });
     }
 
     load(text: JSONContent) {
@@ -79,7 +82,7 @@ export class ArticleEditorService implements IComponentService {
 
     async _queryByTitle(
         titleFragment: string,
-    ): Promise<EntryMentionItemData[]> {
+    ): Promise<(BaseMentionItemData & EntryMentionItemData)[]> {
         const results = await this._domain.entries.search({
             keyword: titleFragment,
             limit: 5,
@@ -88,6 +91,9 @@ export class ArticleEditorService implements IComponentService {
 
         return results
             .filter((info) => info.id != this.info.entryId)
-            .map((info) => ({ id: info.id, label: info.title }));
+            .map((info) => ({
+                label: info.title,
+                id: info.id,
+            }));
     }
 }

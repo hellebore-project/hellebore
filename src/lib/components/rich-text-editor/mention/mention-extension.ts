@@ -24,29 +24,35 @@ function _updatePosition(element: HTMLElement, clientRect: DOMRect | null) {
     element.style.zIndex = "1000";
 }
 
-export function Mention<I extends MentionItemData>({
-    prefix = "@",
-    querier,
-}: MentionExtensionArgs<I>) {
+interface ItemsArgs {
+    query: string;
+}
+
+export function Mention<T>({ prefix = "@", querier }: MentionExtensionArgs<T>) {
     const suggestion = {
         char: prefix,
         startOfLine: false,
 
-        async items({ query }: { query: string }) {
+        async items({ query }: ItemsArgs) {
             return querier(query);
         },
 
         render: () => {
             let component: any | null = null;
-            let service: MentionDropdownService<I> | null = null;
+            let service: MentionDropdownService<T> | null = null;
             let popupElement: HTMLElement | null = null;
 
             return {
-                onStart: (props: SuggestionProps<I, I>) => {
+                onStart: (
+                    props: SuggestionProps<
+                        MentionItemData<T>,
+                        MentionItemData<T>
+                    >,
+                ) => {
                     service = new MentionDropdownService(props);
 
                     popupElement = document.createElement("div");
-                    component = mount(MentionComponent<I>, {
+                    component = mount(MentionComponent<T>, {
                         target: popupElement,
                         props: { service },
                     });
@@ -58,7 +64,12 @@ export function Mention<I extends MentionItemData>({
                     _updatePosition(popupElement, props.clientRect());
                 },
 
-                onUpdate: (props: SuggestionProps<I, I>) => {
+                onUpdate: (
+                    props: SuggestionProps<
+                        MentionItemData<T>,
+                        MentionItemData<T>
+                    >,
+                ) => {
                     if (service) {
                         service.suggestion = props;
                     }
@@ -88,9 +99,10 @@ export function Mention<I extends MentionItemData>({
                 },
             };
         },
-    } as unknown as SuggestionOptions<I, I>;
+    } as unknown as SuggestionOptions<MentionItemData<T>, MentionItemData<T>>;
 
     return MentionPrimitive.configure({
+        // @ts-expect-error: no clue why typescript is complaining here
         suggestion,
         HTMLAttributes: { class: "text-blue-500 cursor-pointer" },
         renderHTML({ options, node }) {
