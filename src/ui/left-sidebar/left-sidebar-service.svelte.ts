@@ -56,7 +56,14 @@ export class LeftSidebarService implements IComponentService {
         );
         if (existing) return existing;
 
-        const section = new EntrySpotlightService({ domain: this.domain });
+        const section = new EntrySpotlightService({
+            domain: this.domain,
+            folderNodeId: (id) => `folder-${id}`,
+            rawFolderId: (nodeId) =>
+                parseInt(nodeId.replace("folder-", ""), 10),
+            entryNodeId: (id) => `entry-${id}`,
+            createPlaceholderId: () => `placeholder-${Date.now()}`,
+        });
         section.onOpenEntry.broker = this.onOpenEntry;
         this._addSection(section);
         return section;

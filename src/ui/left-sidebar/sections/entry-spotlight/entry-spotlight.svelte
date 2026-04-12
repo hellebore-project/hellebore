@@ -1,12 +1,15 @@
 <script lang="ts">
     import FolderPlusIcon from "@lucide/svelte/icons/folder-plus";
+    import FolderIcon from "@lucide/svelte/icons/folder";
+    import FolderOpenIcon from "@lucide/svelte/icons/folder-open";
+    import FileIcon from "@lucide/svelte/icons/file";
     import FoldVerticalIcon from "@lucide/svelte/icons/fold-vertical";
 
     import { Button } from "@/lib/components/button";
     import * as Tooltip from "@/lib/components/tooltip";
+    import { FileTree } from "@/lib/components/file-tree";
 
     import type { EntrySpotlightProps } from "./entry-spotlight-interface";
-    import { FileTree } from "./file-tree";
 
     const { service }: EntrySpotlightProps = $props();
 
@@ -66,6 +69,23 @@
     </div>
 
     <div class="flex-1 overflow-y-auto px-1">
-        <FileTree {service} />
+        <FileTree service={service.fileTreeService}>
+            {#snippet folderLabel(node, collapsed)}
+                {#if collapsed}
+                    <FolderIcon
+                        class="size-3.5 shrink-0 text-muted-foreground"
+                    />
+                {:else}
+                    <FolderOpenIcon
+                        class="size-3.5 shrink-0 text-muted-foreground"
+                    />
+                {/if}
+                <span class="flex-1 min-w-0 truncate">{node.text}</span>
+            {/snippet}
+            {#snippet leafLabel(node)}
+                <FileIcon class="size-3.5 shrink-0 text-muted-foreground" />
+                <span class="flex-1 min-w-0 truncate">{node.text}</span>
+            {/snippet}
+        </FileTree>
     </div>
 </div>

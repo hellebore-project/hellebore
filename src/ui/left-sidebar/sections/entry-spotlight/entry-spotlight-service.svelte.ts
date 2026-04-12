@@ -1,4 +1,4 @@
-import { SvelteMap, SvelteSet } from "svelte/reactivity";
+import { SvelteMap } from "svelte/reactivity";
 
 import { ROOT_FOLDER_ID, SidebarSectionType } from "@/constants";
 import type {
@@ -8,43 +8,23 @@ import type {
     ISidebarSectionService,
     OpenEntryEditorEvent,
 } from "@/interface";
+import type { TreeNode } from "@/lib/components/file-tree";
+import { FileTreeService } from "@/lib/components/file-tree";
 import type { DomainManager } from "@/services";
 import { EventProducer } from "@/utils/event-producer";
 import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
-export interface SpotlightNode {
-    id: string;
-    parent: string;
-    text: string;
-    isFolder: boolean;
-    rawId: number;
-    isEditable?: boolean;
-    editableText?: string;
-    isDndShadowItem?: boolean;
-}
+import type { SpotlightNodeData } from "./entry-spotlight-interface";
 
 export interface EntrySpotlightServiceArgs {
     domain: DomainManager;
+    folderNodeId: (id: number) => string;
+    rawFolderId: (nodeId: string) => number;
+    entryNodeId: (id: number) => string;
+    createPlaceholderId: () => string;
 }
 
 const ROOT_NODE_ID = "root";
-const PLACEHOLDER_PREFIX = "placeholder-";
-
-function folderNodeId(id: number): string {
-    return `folder-${id}`;
-}
-
-function entryNodeId(id: number): string {
-    return `entry-${id}`;
-}
-
-function rawFolderId(nodeId: string): number {
-    return parseInt(nodeId.replace("folder-", ""), 10);
-}
-
-function rawEntryId(nodeId: string): number {
-    return parseInt(nodeId.replace("entry-", ""), 10);
-}
 
 export class EntrySpotlightService implements ISidebarSectionService {
     // CONSTANTS
@@ -58,21 +38,43 @@ export class EntrySpotlightService implements ISidebarSectionService {
     private _hover: boolean = $state(false);
     private _focused: boolean = $state(false);
     private _displayedEntryId: Id | null = $state(null);
-    private _childrenOf: SvelteMap<string, SpotlightNode[]> = $state(
-        new SvelteMap(),
-    );
-    private _collapsedIds: SvelteSet<string> = $state(new SvelteSet());
 
     // SERVICES
     private _domain: DomainManager;
 
+    // CALLBACKS
+    private _folderNodeId: (id: number) => string;
+    private _rawFolderId: (nodeId: string) => number;
+    private _entryNodeId: (id: number) => string;
+    private _createPlaceholderId: () => string;
+
     // EVENTS
     onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
 
-    constructor({ domain }: EntrySpotlightServiceArgs) {
+    // TREE SERVICE
+    readonly fileTreeService: FileTreeService<SpotlightNodeData>;
+
+    constructor({
+        domain,
+        folderNodeId,
+        rawFolderId,
+        entryNodeId,
+        createPlaceholderId,
+    }: EntrySpotlightServiceArgs) {
         this._domain = domain;
+        this._folderNodeId = folderNodeId;
+        this._rawFolderId = rawFolderId;
+        this._entryNodeId = entryNodeId;
+        this._createPlaceholderId = createPlaceholderId;
         this.ownership = new SoleOwnership();
         this.onOpenEntry = new EventProducer();
+        this.fileTreeService = new FileTreeService<SpotlightNodeData>({
+            id: `${this.id}-file-tree`,
+            onFinalize: (parentId, items, id) =>
+                this.finalizeMove(parentId, items, id),
+            onConfirmEdit: (node) => this.confirmFolderName(node),
+            onSelectLeaf: (node) => this.selectEntry(node),
+        });
     }
 
     get id() {
@@ -109,65 +111,37 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     // TREE STRUCTURE
 
-    childrenOf(parentId: string): SpotlightNode[] {
-        return this._childrenOf.get(parentId) ?? [];
-    }
-
-    isCollapsed(nodeId: string): boolean {
-        return this._collapsedIds.has(nodeId);
-    }
-
-    toggleCollapsed(nodeId: string) {
-        if (this._collapsedIds.has(nodeId)) {
-            this._collapsedIds.delete(nodeId);
-        } else {
-            this._collapsedIds.add(nodeId);
-        }
-    }
-
     collapseAll() {
-        const folderIds: string[] = [];
-        for (const [parentId] of this._childrenOf) {
-            if (parentId !== ROOT_NODE_ID) {
-                folderIds.push(parentId);
-            }
-        }
-        this._collapsedIds = new SvelteSet(folderIds);
+        this.fileTreeService.collapseAll();
     }
 
     // DND HANDLERS
 
-    setChildrenOf(parentId: string, items: SpotlightNode[]) {
-        this._childrenOf.set(parentId, items);
-    }
-
     async finalizeMove(
         parentId: string,
-        items: SpotlightNode[],
+        items: TreeNode<SpotlightNodeData>[],
         movedItemId: string,
     ) {
-        this._childrenOf.set(parentId, items);
-
         const movedNode = items.find((n) => n.id === movedItemId);
         if (!movedNode) return;
 
         const newParentFolderId =
-            parentId === ROOT_NODE_ID ? ROOT_FOLDER_ID : rawFolderId(parentId);
+            parentId === ROOT_NODE_ID
+                ? ROOT_FOLDER_ID
+                : this._rawFolderId(parentId);
 
         if (!movedNode.isFolder) {
-            const entryId = rawEntryId(movedNode.id);
             await this._domain.entries.update({
-                id: entryId,
+                id: movedNode.data.rawId,
                 folderId: newParentFolderId,
             });
         } else {
-            const folderId = rawFolderId(movedNode.id);
             const oldParentFolderId =
                 movedNode.parent === ROOT_NODE_ID
                     ? ROOT_FOLDER_ID
-                    : rawFolderId(movedNode.parent);
+                    : this._rawFolderId(movedNode.parent);
             await this._domain.folders.update({
-                id: folderId,
+                id: movedNode.data.rawId,
                 parentId: newParentFolderId,
                 oldParentId: oldParentFolderId,
             });
@@ -178,13 +152,16 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     // SELECTION & DISPLAY
 
-    selectEntry(node: SpotlightNode) {
+    selectEntry(node: TreeNode<SpotlightNodeData>) {
         this._focused = true;
-        this.onOpenEntry.produce({ id: node.rawId });
+        this._displayedEntryId = node.data.rawId;
+        this.onOpenEntry.produce({ id: node.data.rawId });
     }
 
     setDisplayedEntryId(id: Id | null) {
         this._displayedEntryId = id;
+        this.fileTreeService.selectedNodeId =
+            id !== null ? this._entryNodeId(id) : null;
     }
 
     // ADD FOLDER
@@ -195,43 +172,31 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     addFolder() {
         const parentId = this.selectedFolderId;
-        const placeholderId = `${PLACEHOLDER_PREFIX}${Date.now()}`;
-        const placeholder: SpotlightNode = {
+        const placeholderId = this._createPlaceholderId();
+        const placeholder: TreeNode<SpotlightNodeData> = {
             id: placeholderId,
             parent: parentId,
             text: "",
             isFolder: true,
-            rawId: -1,
             isEditable: true,
             editableText: "",
+            data: { rawId: -1 },
         };
 
-        const current = this._childrenOf.get(parentId) ?? [];
-        this._childrenOf.set(parentId, [...current, placeholder]);
+        this.fileTreeService.addNode(parentId, placeholder);
     }
 
-    setFolderEditText(nodeId: string, text: string) {
-        for (const [parentId, children] of this._childrenOf) {
-            const node = children.find((n) => n.id === nodeId);
-            if (node) {
-                node.editableText = text;
-                this._childrenOf.set(parentId, [...children]);
-                return;
-            }
-        }
-    }
-
-    async confirmFolderName(node: SpotlightNode) {
+    async confirmFolderName(node: TreeNode<SpotlightNodeData>) {
         const name = node.editableText?.trim() ?? "";
         if (!name) {
-            this._removePlaceholder(node.id);
+            this.fileTreeService.removeNode(node.id);
             return;
         }
 
         const parentFolderId =
             node.parent === ROOT_NODE_ID
                 ? ROOT_FOLDER_ID
-                : rawFolderId(node.parent);
+                : this._rawFolderId(node.parent);
 
         const validation = await this._domain.folders.validate(
             null,
@@ -244,46 +209,19 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
         const created = await this._domain.folders.create(name, parentFolderId);
         if (!created) {
-            this._removePlaceholder(node.id);
+            this.fileTreeService.removeNode(node.id);
             return;
         }
 
-        const newNode: SpotlightNode = {
-            id: folderNodeId(created.id),
+        const newNode: TreeNode<SpotlightNodeData> = {
+            id: this._folderNodeId(created.id),
             parent: node.parent,
             text: created.name,
             isFolder: true,
-            rawId: created.id,
+            data: { rawId: created.id },
         };
-        this._replacePlaceholder(node.id, newNode);
-        this._childrenOf.set(folderNodeId(created.id), []);
-    }
-
-    cancelFolderName(node: SpotlightNode) {
-        this._removePlaceholder(node.id);
-    }
-
-    private _removePlaceholder(placeholderId: string) {
-        for (const [parentId, children] of this._childrenOf) {
-            const index = children.findIndex((n) => n.id === placeholderId);
-            if (index >= 0) {
-                const updated = children.filter((n) => n.id !== placeholderId);
-                this._childrenOf.set(parentId, updated);
-                return;
-            }
-        }
-    }
-
-    private _replacePlaceholder(placeholderId: string, newNode: SpotlightNode) {
-        for (const [parentId, children] of this._childrenOf) {
-            const index = children.findIndex((n) => n.id === placeholderId);
-            if (index >= 0) {
-                const updated = [...children];
-                updated[index] = newNode;
-                this._childrenOf.set(parentId, updated);
-                return;
-            }
-        }
+        this.fileTreeService.replaceNode(node.id, newNode);
+        this.fileTreeService.setChildrenOf(this._folderNodeId(created.id), []);
     }
 
     // LIFECYCLE
@@ -300,29 +238,28 @@ export class EntrySpotlightService implements ISidebarSectionService {
     }
 
     cleanUp() {
-        this._childrenOf.clear();
-        this._collapsedIds.clear();
+        this.fileTreeService.clearTree();
         this._displayedEntryId = null;
         this.onOpenEntry.clear();
     }
 
     private _load(folders: FolderResponse[], entries: EntryInfoResponse[]) {
-        const map = new SvelteMap<string, SpotlightNode[]>();
+        const map = new SvelteMap<string, TreeNode<SpotlightNodeData>[]>();
         map.set(ROOT_NODE_ID, []);
 
         for (const folder of folders) {
-            const nodeId = folderNodeId(folder.id);
+            const nodeId = this._folderNodeId(folder.id);
             const parentNodeId =
                 folder.parentId === ROOT_FOLDER_ID
                     ? ROOT_NODE_ID
-                    : folderNodeId(folder.parentId);
+                    : this._folderNodeId(folder.parentId);
 
-            const node: SpotlightNode = {
+            const node: TreeNode<SpotlightNodeData> = {
                 id: nodeId,
                 parent: parentNodeId,
                 text: folder.name,
                 isFolder: true,
-                rawId: folder.id,
+                data: { rawId: folder.id },
             };
 
             if (!map.has(parentNodeId)) {
@@ -339,14 +276,14 @@ export class EntrySpotlightService implements ISidebarSectionService {
             const parentNodeId =
                 entry.folderId === ROOT_FOLDER_ID
                     ? ROOT_NODE_ID
-                    : folderNodeId(entry.folderId);
+                    : this._folderNodeId(entry.folderId);
 
-            const node: SpotlightNode = {
-                id: entryNodeId(entry.id),
+            const node: TreeNode<SpotlightNodeData> = {
+                id: this._entryNodeId(entry.id),
                 parent: parentNodeId,
                 text: entry.title,
                 isFolder: false,
-                rawId: entry.id,
+                data: { rawId: entry.id },
             };
 
             if (!map.has(parentNodeId)) {
@@ -355,6 +292,6 @@ export class EntrySpotlightService implements ISidebarSectionService {
             map.get(parentNodeId)!.push(node);
         }
 
-        this._childrenOf = map;
+        this.fileTreeService.load(map);
     }
 }
