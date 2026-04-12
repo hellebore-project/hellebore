@@ -6,31 +6,51 @@
     import * as Sidebar from "@/lib/components/sidebar";
     import { cn } from "@/lib/utils";
 
-    import EntryEditorNavigator from "./sections/entry-editor-navigator/entry-editor-nav.svelte";
-    import type { EntryEditorNavigatorService } from "./sections/entry-editor-navigator/entry-editor-nav-service.svelte";
-    import EntrySpotlight from "./sections/entry-spotlight/entry-spotlight.svelte";
-    import type { EntrySpotlightService } from "./sections/entry-spotlight/entry-spotlight-service.svelte";
+    import {
+        EntryEditorNavigator,
+        EntryEditorNavigatorService,
+    } from "./sections/entry-editor-navigator";
+    import {
+        EntrySpotlight,
+        EntrySpotlightActions,
+        EntrySpotlightService,
+    } from "./sections/entry-spotlight";
     import type { LeftSidebarSectionProps } from "./left-sidebar-interface";
 
     const { service }: LeftSidebarSectionProps = $props();
+
+    let hover = $state(false);
 </script>
 
-<Sidebar.SidebarGroup>
+<Sidebar.SidebarGroup
+    class="py-1"
+    onmouseenter={() => (hover = true)}
+    onmouseleave={() => (hover = false)}
+>
     <Collapsible.Root bind:open={service.open} class="w-full">
-        <Collapsible.Trigger
-            class={cn(
-                "flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm font-medium",
-                "text-sidebar-foreground outline-none ring-sidebar-ring hover:bg-sidebar-accent focus-visible:ring-2",
-                "data-[state=open]:[&>svg]:rotate-90",
-            )}
-        >
-            <ChevronRightIcon
-                class="size-4 shrink-0 transition-transform duration-200"
-            />
-            <span class="flex-1 min-w-0 truncate font-bold">
-                {service.title.toUpperCase()}
-            </span>
-        </Collapsible.Trigger>
+        <div class="flex w-full items-center" role="none">
+            <Collapsible.Trigger
+                class={cn(
+                    "flex flex-1 items-center gap-2 px-2 py-1.5 text-left text-sm font-medium",
+                    "text-sidebar-foreground outline-none ring-sidebar-ring focus-visible:ring-2",
+                    "data-[state=open]:[&>svg]:rotate-90",
+                )}
+            >
+                <ChevronRightIcon
+                    class="size-4 shrink-0 transition-transform duration-200"
+                />
+                <span class="flex-1 min-w-0 truncate font-bold">
+                    {service.title.toUpperCase()}
+                </span>
+            </Collapsible.Trigger>
+
+            {#if service.type === SidebarSectionType.Spotlight}
+                <EntrySpotlightActions
+                    service={service as EntrySpotlightService}
+                    {hover}
+                />
+            {/if}
+        </div>
 
         <Collapsible.Content>
             <Sidebar.SidebarGroupContent>

@@ -35,7 +35,6 @@ export class EntrySpotlightService implements ISidebarSectionService {
     open: boolean = $state(true);
     ownership: BaseOwnership;
 
-    private _hover: boolean = $state(false);
     private _focused: boolean = $state(false);
     private _displayedEntryId: Id | null = $state(null);
 
@@ -81,14 +80,6 @@ export class EntrySpotlightService implements ISidebarSectionService {
         return this.type;
     }
 
-    get hover() {
-        return this._hover;
-    }
-
-    set hover(value: boolean) {
-        this._hover = value;
-    }
-
     get focused() {
         return this._focused;
     }
@@ -102,11 +93,11 @@ export class EntrySpotlightService implements ISidebarSectionService {
     }
 
     get canAddFolder() {
-        return this.open && this._hover;
+        return this.open;
     }
 
     get canCollapseAll() {
-        return this.open && this._hover;
+        return this.open;
     }
 
     // TREE STRUCTURE

@@ -58,6 +58,7 @@ export class ClientManager implements IComponentService {
         this.leftSideBar = new LeftSidebarService({
             domain: this.domain,
         });
+        this.leftSideBar.addSpotlight();
 
         // overlays
         // this.modal = new ModalManager();
