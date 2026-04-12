@@ -25,10 +25,15 @@
     class={cn(
         "flex items-center gap-1 px-1 py-0.5 cursor-pointer select-none",
         "hover:bg-sidebar-accent rounded-sm text-sm text-sidebar-foreground",
+        service.dragOverFolderId === node.id &&
+            "ring-1 ring-sidebar-ring bg-sidebar-accent",
     )}
     style="padding-left: {depth * 12 + 4}px"
     role="button"
     tabindex="0"
+    draggable="true"
+    ondragstart={(e) => service.handleDragStart(e, node.id)}
+    ondragend={() => service.handleDragEnd()}
     onclick={() => service.toggleCollapsed(node.id)}
     onkeydown={(e) => {
         if (e.key === "Enter" || e.key === " ") {

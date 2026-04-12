@@ -212,7 +212,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
             data: { rawId: created.id },
         };
         this.fileTreeService.replaceNode(node.id, newNode);
-        this.fileTreeService.setChildrenOf(this._folderNodeId(created.id), []);
+        this.fileTreeService.setChildren(this._folderNodeId(created.id), []);
     }
 
     // LIFECYCLE
@@ -229,7 +229,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
     }
 
     cleanUp() {
-        this.fileTreeService.clearTree();
+        this.fileTreeService.clear();
         this._displayedEntryId = null;
         this.onOpenEntry.clear();
     }

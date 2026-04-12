@@ -26,7 +26,7 @@
 </script>
 
 <div class="flex flex-col h-full" data-spotlight role="tree">
-    <div class="flex-1 overflow-y-auto px-1">
+    <div class="flex-1 min-h-0 overflow-y-auto px-1 pt-1">
         <FileTree service={service.fileTreeService}>
             {#snippet folderLabel(node, collapsed)}
                 {#if collapsed}

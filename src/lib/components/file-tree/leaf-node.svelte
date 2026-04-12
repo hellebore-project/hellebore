@@ -21,10 +21,14 @@
         "flex items-center gap-1 px-1 py-0.5 cursor-pointer select-none",
         "hover:bg-sidebar-accent rounded-sm text-sm text-sidebar-foreground",
         service.isLeafSelected(node) && "bg-sidebar-accent font-medium",
+        service.draggingNodeId === node.id && "opacity-40",
     )}
     style="padding-left: {depth * 12 + 20}px"
     role="button"
     tabindex="0"
+    draggable="true"
+    ondragstart={(e) => service.handleDragStart(e, node.id)}
+    ondragend={() => service.handleDragEnd()}
     onclick={() => service.selectLeaf(node)}
     onkeydown={(e) => {
         if (e.key === "Enter" || e.key === " ") {

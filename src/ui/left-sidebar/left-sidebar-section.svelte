@@ -23,11 +23,14 @@
 </script>
 
 <Sidebar.SidebarGroup
-    class="py-1"
+    class="h-full py-1"
     onmouseenter={() => (hover = true)}
     onmouseleave={() => (hover = false)}
 >
-    <Collapsible.Root bind:open={service.open} class="w-full">
+    <Collapsible.Root
+        bind:open={service.open}
+        class="flex flex-col w-full flex-1 min-h-0"
+    >
         <div class="flex w-full items-center" role="none">
             <Collapsible.Trigger
                 class={cn(
@@ -52,8 +55,8 @@
             {/if}
         </div>
 
-        <Collapsible.Content>
-            <Sidebar.SidebarGroupContent>
+        <Collapsible.Content class="flex flex-col flex-1 min-h-0">
+            <Sidebar.SidebarGroupContent class="flex flex-col flex-1 min-h-0">
                 {#if service.type === SidebarSectionType.Spotlight}
                     <EntrySpotlight
                         service={service as EntrySpotlightService}
