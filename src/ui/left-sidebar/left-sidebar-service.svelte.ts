@@ -7,11 +7,12 @@ import type {
     AddEntryEditorNavigatorEvent,
     ReleaseSidebarSectionEvent,
     Id,
+    OpenEntryEditorEvent,
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { SidebarSectionType } from "@/constants";
 
-import { EntryEditorNavigatorService } from "./sections";
+import { EntryEditorNavigatorService, EntrySpotlightService } from "./sections";
 import { EventProducer } from "@/utils/event-producer";
 
 interface LeftSidebarServiceArgs {
@@ -35,10 +36,12 @@ export class LeftSidebarService implements IComponentService {
         ChangeEntryEditorViewEvent,
         unknown
     >;
+    onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
 
     constructor({ domain }: LeftSidebarServiceArgs) {
         this.domain = domain;
         this.onSelectEntryEditorNavItem = new EventProducer();
+        this.onOpenEntry = new EventProducer();
     }
 
     get width() {
@@ -48,7 +51,22 @@ export class LeftSidebarService implements IComponentService {
     // SPOTLIGHT
 
     addSpotlight() {
-        // TODO
+        const existing = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.Spotlight,
+        );
+        if (existing) return existing;
+
+        const section = new EntrySpotlightService({
+            domain: this.domain,
+            folderNodeId: (id) => `folder-${id}`,
+            rawFolderId: (nodeId) =>
+                parseInt(nodeId.replace("folder-", ""), 10),
+            entryNodeId: (id) => `entry-${id}`,
+            createPlaceholderId: () => `placeholder-${Date.now()}`,
+        });
+        section.onOpenEntry.broker = this.onOpenEntry;
+        this._addSection(section);
+        return section;
     }
 
     // ENTRY EDITOR NAVIGATOR

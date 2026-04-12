@@ -1,7 +1,7 @@
 <script lang="ts">
     import "./client.css";
 
-    import { TooltipProvider } from "@/lib/components/tooltip";
+    import * as Tooltip from "@/lib/components/tooltip";
 
     import { ClientManager } from "./client-service.svelte";
     import { Header } from "./header";
@@ -12,7 +12,7 @@
     const service = new ClientManager();
 </script>
 
-<TooltipProvider>
+<Tooltip.Provider>
     <div class="client h-screen">
         <div class="client-shell overflow-hidden w-full h-full gap-0">
             <header class="header-panel overflow-auto">
@@ -46,4 +46,4 @@
             <!-- Portal -->
         </div>
     </div>
-</TooltipProvider>
+</Tooltip.Provider>
