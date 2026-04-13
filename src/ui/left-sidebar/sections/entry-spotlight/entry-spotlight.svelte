@@ -13,6 +13,7 @@
         const handlePointerDown = (e: PointerEvent) => {
             if (
                 service.focused &&
+                // FIXME: this is a terrible implementation; don't rely on data attributes in the DOM for this
                 !(e.target as Element).closest("[data-spotlight]")
             ) {
                 service.focused = false;
@@ -27,7 +28,7 @@
 
 <div class="flex flex-col h-full" data-spotlight role="tree">
     <div class="flex-1 min-h-0 overflow-y-auto px-1 pt-1">
-        <FileTree service={service.fileTreeService}>
+        <FileTree service={service.fileTree}>
             {#snippet folderLabel(node, collapsed)}
                 {#if collapsed}
                     <FolderIcon

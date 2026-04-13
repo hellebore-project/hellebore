@@ -53,10 +53,10 @@
     {#if parentId === service.rootNodeId}
         <div
             class="flex-1 min-h-7"
-            ondragover={(e) => service.handleDragOver(e, parentId)}
-            ondragenter={(e) => service.handleDragEnter(e, parentId)}
-            ondragleave={(e) => service.handleDragLeave(e, parentId)}
-            ondrop={(e) => service.handleDrop(e, parentId)}
+            ondragover={(e) => service.handleNodeDragOverById(e, parentId)}
+            ondragenter={(e) => service.handleNodeDragEnterById(e, parentId)}
+            ondragleave={(e) => service.handleNodeDragLeaveById(e, parentId)}
+            ondrop={(e) => service.handleNodeDropById(e, parentId)}
             aria-hidden="true"
         ></div>
     {/if}

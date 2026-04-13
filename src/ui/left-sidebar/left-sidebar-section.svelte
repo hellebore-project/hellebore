@@ -47,7 +47,7 @@
                 </span>
             </Collapsible.Trigger>
 
-            {#if service.type === SidebarSectionType.Spotlight}
+            {#if service.type === SidebarSectionType.EntrySpotlight}
                 <EntrySpotlightActions
                     service={service as EntrySpotlightService}
                     {hover}
@@ -57,7 +57,7 @@
 
         <Collapsible.Content class="flex flex-col flex-1 min-h-0">
             <Sidebar.SidebarGroupContent class="flex flex-col flex-1 min-h-0">
-                {#if service.type === SidebarSectionType.Spotlight}
+                {#if service.type === SidebarSectionType.EntrySpotlight}
                     <EntrySpotlight
                         service={service as EntrySpotlightService}
                     />

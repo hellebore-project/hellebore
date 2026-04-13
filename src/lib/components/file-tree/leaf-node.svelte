@@ -27,7 +27,7 @@
     role="button"
     tabindex="0"
     draggable="true"
-    ondragstart={(e) => service.handleDragStart(e, node.id)}
+    ondragstart={(e) => service.handleDragStartById(e, node.id)}
     ondragend={() => service.handleDragEnd()}
     onclick={() => service.selectLeaf(node)}
     onkeydown={(e) => {

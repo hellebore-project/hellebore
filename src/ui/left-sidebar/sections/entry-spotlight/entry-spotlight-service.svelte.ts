@@ -2,10 +2,14 @@ import { SvelteMap } from "svelte/reactivity";
 
 import { ROOT_FOLDER_ID, SidebarSectionType } from "@/constants";
 import type {
+    BulkFileResponse,
+    DeleteFolderEvent,
     FolderResponse,
     EntryInfoResponse,
     Id,
     ISidebarSectionService,
+    MoveFolderEvent,
+    MoveFolderResult,
     OpenEntryEditorEvent,
 } from "@/interface";
 import type { TreeNode } from "@/lib/components/file-tree";
@@ -16,61 +20,41 @@ import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
 import type { SpotlightNodeData } from "./entry-spotlight-interface";
 
-export interface EntrySpotlightServiceArgs {
-    domain: DomainManager;
-    folderNodeId: (id: number) => string;
-    rawFolderId: (nodeId: string) => number;
-    entryNodeId: (id: number) => string;
-    createPlaceholderId: () => string;
-}
-
 const ROOT_NODE_ID = "root";
 
 export class EntrySpotlightService implements ISidebarSectionService {
     // CONSTANTS
-    readonly type = SidebarSectionType.Spotlight;
+    readonly type = SidebarSectionType.EntrySpotlight;
     readonly title = "Spotlight";
 
     // STATE VARIABLES
     open: boolean = $state(true);
     ownership: BaseOwnership;
-
     private _focused: boolean = $state(false);
-    private _displayedEntryId: Id | null = $state(null);
 
     // SERVICES
     private _domain: DomainManager;
-
-    // CALLBACKS
-    private _folderNodeId: (id: number) => string;
-    private _rawFolderId: (nodeId: string) => number;
-    private _entryNodeId: (id: number) => string;
-    private _createPlaceholderId: () => string;
+    readonly fileTree: FileTreeService<SpotlightNodeData>;
 
     // EVENTS
     onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
+    onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
+    onDeleteFolder: EventProducer<
+        DeleteFolderEvent,
+        Promise<BulkFileResponse | null>
+    >;
 
-    // TREE SERVICE
-    readonly fileTreeService: FileTreeService<SpotlightNodeData>;
-
-    constructor({
-        domain,
-        folderNodeId,
-        rawFolderId,
-        entryNodeId,
-        createPlaceholderId,
-    }: EntrySpotlightServiceArgs) {
+    constructor(domain: DomainManager) {
         this._domain = domain;
-        this._folderNodeId = folderNodeId;
-        this._rawFolderId = rawFolderId;
-        this._entryNodeId = entryNodeId;
-        this._createPlaceholderId = createPlaceholderId;
+
         this.ownership = new SoleOwnership();
         this.onOpenEntry = new EventProducer();
-        this.fileTreeService = new FileTreeService<SpotlightNodeData>({
+        this.onMoveFolder = new EventProducer();
+        this.onDeleteFolder = new EventProducer();
+        this.fileTree = new FileTreeService<SpotlightNodeData>({
             id: `${this.id}-file-tree`,
-            onFinalize: (parentId, items, id) =>
-                this.finalizeMove(parentId, items, id),
+            onFinalize: (nodeId, destParentNodeId) =>
+                this.finalizeMove(nodeId, destParentNodeId),
             onConfirmEdit: (node) => this.confirmFolderName(node),
             onSelectLeaf: (node) => this.selectEntry(node),
         });
@@ -88,10 +72,6 @@ export class EntrySpotlightService implements ISidebarSectionService {
         this._focused = value;
     }
 
-    get displayedEntryId() {
-        return this._displayedEntryId;
-    }
-
     get canAddFolder() {
         return this.open;
     }
@@ -100,69 +80,73 @@ export class EntrySpotlightService implements ISidebarSectionService {
         return this.open;
     }
 
-    // TREE STRUCTURE
+    // COLLAPSE NODES
 
     collapseAll() {
-        this.fileTreeService.collapseAll();
+        this.fileTree.collapseAll();
     }
 
-    // DND HANDLERS
+    // MOVE NODES
 
     async finalizeMove(
-        parentId: string,
-        items: TreeNode<SpotlightNodeData>[],
-        movedItemId: string,
-    ) {
-        const movedNode = items.find((n) => n.id === movedItemId);
-        if (!movedNode) return;
+        nodeId: string,
+        destParentNodeId: string,
+    ): Promise<boolean> {
+        const node = this.fileTree.getNode(nodeId);
+        if (!node) return false;
 
-        const newParentFolderId =
-            parentId === ROOT_NODE_ID
-                ? ROOT_FOLDER_ID
-                : this._rawFolderId(parentId);
+        const destParentFolderId = this.toFolderId(destParentNodeId);
 
-        if (!movedNode.isFolder) {
-            await this._domain.entries.update({
-                id: movedNode.data.rawId,
-                folderId: newParentFolderId,
+        let moved: boolean;
+        let cancelled = false;
+
+        if (node.isFolder) {
+            const sourceParentFolderId = this.toFolderId(node.parent);
+            const result = await this.onMoveFolder.produce({
+                id: node.data.rawId,
+                title: node.text,
+                sourceParentId: sourceParentFolderId,
+                destParentId: destParentFolderId,
             });
+
+            moved = result.moved;
+            cancelled = result.cancelled;
         } else {
-            const oldParentFolderId =
-                movedNode.parent === ROOT_NODE_ID
-                    ? ROOT_FOLDER_ID
-                    : this._rawFolderId(movedNode.parent);
-            await this._domain.folders.update({
-                id: movedNode.data.rawId,
-                parentId: newParentFolderId,
-                oldParentId: oldParentFolderId,
+            const response = await this._domain.entries.update({
+                id: node.data.rawId,
+                folderId: destParentFolderId,
             });
+            if (response) moved = response.folderId.updated;
+            else moved = false;
         }
 
-        movedNode.parent = parentId;
+        if (!moved && !cancelled)
+            console.error(
+                `Unable to move node ${node.id} to folder ${destParentFolderId}.`,
+            );
+        if (!moved) return false;
+
+        node.parent = destParentNodeId;
+
+        return true;
     }
 
     // SELECTION & DISPLAY
 
     selectEntry(node: TreeNode<SpotlightNodeData>) {
         this._focused = true;
-        this._displayedEntryId = node.data.rawId;
         this.onOpenEntry.produce({ id: node.data.rawId });
     }
 
-    setDisplayedEntryId(id: Id | null) {
-        this._displayedEntryId = id;
-        this.fileTreeService.selectedNodeId =
-            id !== null ? this._entryNodeId(id) : null;
+    setDisplayedEntry(id: Id | null) {
+        const nodeId = id !== null ? this.toEntryNodeId(id) : null;
+        this.fileTree.selectedNodeId = nodeId;
     }
 
     // ADD FOLDER
 
-    get selectedFolderId(): string {
-        return ROOT_NODE_ID;
-    }
-
     addFolder() {
-        const parentId = this.selectedFolderId;
+        const parentId = this.fileTree.selectedFolderId;
         const placeholderId = this._createPlaceholderId();
         const placeholder: TreeNode<SpotlightNodeData> = {
             id: placeholderId,
@@ -174,20 +158,17 @@ export class EntrySpotlightService implements ISidebarSectionService {
             data: { rawId: -1 },
         };
 
-        this.fileTreeService.addNode(parentId, placeholder);
+        this.fileTree.addNode(parentId, placeholder);
     }
 
     async confirmFolderName(node: TreeNode<SpotlightNodeData>) {
         const name = node.editableText?.trim() ?? "";
         if (!name) {
-            this.fileTreeService.removeNode(node.id);
+            this.fileTree.removeNode(node.id);
             return;
         }
 
-        const parentFolderId =
-            node.parent === ROOT_NODE_ID
-                ? ROOT_FOLDER_ID
-                : this._rawFolderId(node.parent);
+        const parentFolderId = this.toFolderId(node.parent);
 
         const validation = await this._domain.folders.validate(
             null,
@@ -200,19 +181,19 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
         const created = await this._domain.folders.create(name, parentFolderId);
         if (!created) {
-            this.fileTreeService.removeNode(node.id);
+            this.fileTree.removeNode(node.id);
             return;
         }
 
         const newNode: TreeNode<SpotlightNodeData> = {
-            id: this._folderNodeId(created.id),
+            id: this.toFolderNodeId(created.id),
             parent: node.parent,
             text: created.name,
             isFolder: true,
             data: { rawId: created.id },
         };
-        this.fileTreeService.replaceNode(node.id, newNode);
-        this.fileTreeService.setChildren(this._folderNodeId(created.id), []);
+        this.fileTree.setNode(node.id, newNode);
+        this.fileTree.setChildren(this.toFolderNodeId(created.id), []);
     }
 
     // LIFECYCLE
@@ -228,22 +209,16 @@ export class EntrySpotlightService implements ISidebarSectionService {
         }
     }
 
-    cleanUp() {
-        this.fileTreeService.clear();
-        this._displayedEntryId = null;
-        this.onOpenEntry.clear();
-    }
-
     private _load(folders: FolderResponse[], entries: EntryInfoResponse[]) {
         const map = new SvelteMap<string, TreeNode<SpotlightNodeData>[]>();
         map.set(ROOT_NODE_ID, []);
 
         for (const folder of folders) {
-            const nodeId = this._folderNodeId(folder.id);
+            const nodeId = this.toFolderNodeId(folder.id);
             const parentNodeId =
                 folder.parentId === ROOT_FOLDER_ID
                     ? ROOT_NODE_ID
-                    : this._folderNodeId(folder.parentId);
+                    : this.toFolderNodeId(folder.parentId);
 
             const node: TreeNode<SpotlightNodeData> = {
                 id: nodeId,
@@ -267,10 +242,10 @@ export class EntrySpotlightService implements ISidebarSectionService {
             const parentNodeId =
                 entry.folderId === ROOT_FOLDER_ID
                     ? ROOT_NODE_ID
-                    : this._folderNodeId(entry.folderId);
+                    : this.toFolderNodeId(entry.folderId);
 
             const node: TreeNode<SpotlightNodeData> = {
-                id: this._entryNodeId(entry.id),
+                id: this.toEntryNodeId(entry.id),
                 parent: parentNodeId,
                 text: entry.title,
                 isFolder: false,
@@ -283,6 +258,36 @@ export class EntrySpotlightService implements ISidebarSectionService {
             map.get(parentNodeId)!.push(node);
         }
 
-        this.fileTreeService.load(map);
+        this.fileTree.load(map);
+    }
+
+    cleanUp() {
+        this.fileTree.clear();
+        this.onOpenEntry.clear();
+        this.onMoveFolder.clear();
+        this.onDeleteFolder.clear();
+    }
+
+    // UTILITY
+
+    toFolderNodeId(id: Id) {
+        return `folder-${id}`;
+    }
+
+    toFolderId(nodeId: string) {
+        if (nodeId === ROOT_NODE_ID) return ROOT_FOLDER_ID;
+        return parseInt(nodeId.replace("folder-", ""));
+    }
+
+    toEntryNodeId(id: Id) {
+        return `entry-${id}`;
+    }
+
+    toEntryId(nodeId: string) {
+        return parseInt(nodeId.replace("entry-", ""));
+    }
+
+    private _createPlaceholderId() {
+        return `placeholder-${Date.now()}`;
     }
 }

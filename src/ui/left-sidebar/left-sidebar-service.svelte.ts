@@ -1,10 +1,14 @@
 import { SvelteMap } from "svelte/reactivity";
 
 import type {
+    BulkFileResponse,
     ChangeEntryEditorViewEvent,
+    DeleteFolderEvent,
     IComponentService,
     ISidebarSectionService,
     AddEntryEditorNavigatorEvent,
+    MoveFolderEvent,
+    MoveFolderResult,
     ReleaseSidebarSectionEvent,
     Id,
     OpenEntryEditorEvent,
@@ -37,11 +41,18 @@ export class LeftSidebarService implements IComponentService {
         unknown
     >;
     onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
+    onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
+    onDeleteFolder: EventProducer<
+        DeleteFolderEvent,
+        Promise<BulkFileResponse | null>
+    >;
 
     constructor({ domain }: LeftSidebarServiceArgs) {
         this.domain = domain;
         this.onSelectEntryEditorNavItem = new EventProducer();
         this.onOpenEntry = new EventProducer();
+        this.onMoveFolder = new EventProducer();
+        this.onDeleteFolder = new EventProducer();
     }
 
     get width() {
@@ -52,20 +63,18 @@ export class LeftSidebarService implements IComponentService {
 
     addSpotlight() {
         const existing = this.getSectionByType<EntrySpotlightService>(
-            SidebarSectionType.Spotlight,
+            SidebarSectionType.EntrySpotlight,
         );
         if (existing) return existing;
 
-        const section = new EntrySpotlightService({
-            domain: this.domain,
-            folderNodeId: (id) => `folder-${id}`,
-            rawFolderId: (nodeId) =>
-                parseInt(nodeId.replace("folder-", ""), 10),
-            entryNodeId: (id) => `entry-${id}`,
-            createPlaceholderId: () => `placeholder-${Date.now()}`,
-        });
+        const section = new EntrySpotlightService(this.domain);
+
         section.onOpenEntry.broker = this.onOpenEntry;
+        section.onMoveFolder.broker = this.onMoveFolder;
+        section.onDeleteFolder.broker = this.onDeleteFolder;
+
         this._addSection(section);
+
         return section;
     }
 
@@ -86,14 +95,6 @@ export class LeftSidebarService implements IComponentService {
             this._addSection(newSection);
             return newSection;
         }
-    }
-
-    updateEntryEditorNavigatorTitle(entryId: Id, title: string) {
-        const section = this.getSectionByType<EntryEditorNavigatorService>(
-            SidebarSectionType.EntryEditorNavigator,
-        );
-        if (!section || section.entryId !== entryId) return;
-        section.title = title;
     }
 
     // ACCESSING SECTIONS
@@ -157,5 +158,25 @@ export class LeftSidebarService implements IComponentService {
         const index = this._sectionIds.indexOf(section.id);
         if (index >= 0) this._sectionIds.splice(index, 1);
         return true;
+    }
+
+    // EVENT HANDLERS
+
+    updateEntryDisplayedStatus(id: Id, displayed: boolean) {
+        const section = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        if (!section) return;
+
+        if (displayed) section.setDisplayedEntry(id);
+        else section.setDisplayedEntry(null);
+    }
+
+    updateDisplayedEntryTitle(entryId: Id, title: string) {
+        const section = this.getSectionByType<EntryEditorNavigatorService>(
+            SidebarSectionType.EntryEditorNavigator,
+        );
+        if (!section || section.entryId !== entryId) return;
+        section.title = title;
     }
 }
