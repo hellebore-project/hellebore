@@ -161,6 +161,41 @@ export class EntrySpotlightService implements ISidebarSectionService {
         this.fileTree.addNode(parentId, placeholder);
     }
 
+    // NODE MUTATION
+
+    addEntryNode(entry: EntryInfoResponse) {
+        const parentNodeId =
+            entry.folderId === ROOT_FOLDER_ID
+                ? ROOT_NODE_ID
+                : this.toFolderNodeId(entry.folderId);
+        const node: TreeNode<SpotlightNodeData> = {
+            id: this.toEntryNodeId(entry.id),
+            parent: parentNodeId,
+            text: entry.title,
+            isFolder: false,
+            data: { rawId: entry.id },
+        };
+        this.fileTree.addNode(parentNodeId, node);
+    }
+
+    deleteEntryNode(id: Id) {
+        this.fileTree.removeNode(this.toEntryNodeId(id));
+    }
+
+    deleteManyNodes(entryIds: Id[], folderIds: Id[]) {
+        for (const id of entryIds)
+            this.fileTree.removeNode(this.toEntryNodeId(id));
+        for (const id of folderIds)
+            this.fileTree.removeNode(this.toFolderNodeId(id));
+    }
+
+    updateEntryText(id: Id, title: string) {
+        const nodeId = this.toEntryNodeId(id);
+        const node = this.fileTree.getNode(nodeId);
+        if (!node) return;
+        this.fileTree.setNode(nodeId, { ...node, text: title });
+    }
+
     async confirmFolderName(node: TreeNode<SpotlightNodeData>) {
         const name = node.editableText?.trim() ?? "";
         if (!name) {

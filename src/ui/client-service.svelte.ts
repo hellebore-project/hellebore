@@ -342,10 +342,7 @@ export class ClientManager implements IComponentService {
         const fileIds = await this.domain.folders.delete(id);
         if (!fileIds) return null;
 
-        // this.leftSideBar.spotlight.deleteManyNodes(
-        //     fileIds.entries,
-        //     fileIds.folders,
-        // );
+        this.leftSideBar.deleteManyNodes(fileIds.entries, fileIds.folders);
 
         let panelIndex = 0;
         for (const panelService of this.central.iteratePanels()) {
@@ -375,7 +372,7 @@ export class ClientManager implements IComponentService {
         );
 
         if (entry) {
-            // this.leftSideBar.spotlight.addNodeForCreatedEntry(entry);
+            this.leftSideBar.addEntryNode(entry);
             this.central.openEntryEditor({ id: entry.id });
         }
 
@@ -406,7 +403,7 @@ export class ClientManager implements IComponentService {
             // failed to delete the entry; aborting
             return false;
 
-        // this.leftSideBar.spotlight.deleteEntityNode(id);
+        this.leftSideBar.deleteEntryNode(id);
 
         let panelIndex = 0;
         for (const panelService of this.central.iteratePanels()) {

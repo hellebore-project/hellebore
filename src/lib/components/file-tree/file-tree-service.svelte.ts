@@ -202,6 +202,7 @@ export class FileTreeService<T> implements IComponentService {
                     parentId,
                     children.filter((n) => n.id !== nodeId),
                 );
+                this._nodes.delete(nodeId);
                 return;
             }
         }

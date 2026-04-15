@@ -4,6 +4,7 @@ import type {
     BulkFileResponse,
     ChangeEntryEditorViewEvent,
     DeleteFolderEvent,
+    EntryInfoResponse,
     IComponentService,
     ISidebarSectionService,
     AddEntryEditorNavigatorEvent,
@@ -173,10 +174,36 @@ export class LeftSidebarService implements IComponentService {
     }
 
     updateDisplayedEntryTitle(entryId: Id, title: string) {
-        const section = this.getSectionByType<EntryEditorNavigatorService>(
+        const spotlight = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        spotlight?.updateEntryText(entryId, title);
+
+        const navigator = this.getSectionByType<EntryEditorNavigatorService>(
             SidebarSectionType.EntryEditorNavigator,
         );
-        if (!section || section.entryId !== entryId) return;
-        section.title = title;
+        if (!navigator || navigator.entryId !== entryId) return;
+        navigator.title = title;
+    }
+
+    addEntryNode(entry: EntryInfoResponse) {
+        const section = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        section?.addEntryNode(entry);
+    }
+
+    deleteEntryNode(id: Id) {
+        const section = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        section?.deleteEntryNode(id);
+    }
+
+    deleteManyNodes(entryIds: Id[], folderIds: Id[]) {
+        const section = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        section?.deleteManyNodes(entryIds, folderIds);
     }
 }
