@@ -19,6 +19,7 @@ import { EventProducer } from "@/utils/event-producer";
 import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
 import type { SpotlightNodeData } from "./entry-spotlight-interface";
+import type { TreeNodeTextEdit } from "@/lib/components/file-tree/file-tree-interface";
 
 const ROOT_NODE_ID = "root";
 
@@ -53,9 +54,9 @@ export class EntrySpotlightService implements ISidebarSectionService {
         this.onDeleteFolder = new EventProducer();
         this.fileTree = new FileTreeService<SpotlightNodeData>({
             id: `${this.id}-file-tree`,
-            onFinalize: (nodeId, destParentNodeId) =>
-                this.finalizeMove(nodeId, destParentNodeId),
-            onConfirmEdit: (node) => this.confirmFolderName(node),
+            onFinalizeMove: (node, destParentNodeId) =>
+                this.finalizeMove(node, destParentNodeId),
+            onConfirmNodeTextEdit: (node) => this.confirmNodeName(node),
             onSelectLeaf: (node) => this.selectEntry(node),
         });
     }
@@ -89,19 +90,16 @@ export class EntrySpotlightService implements ISidebarSectionService {
     // MOVE NODES
 
     async finalizeMove(
-        nodeId: string,
+        node: TreeNode<SpotlightNodeData>,
         destParentNodeId: string,
     ): Promise<boolean> {
-        const node = this.fileTree.getNode(nodeId);
-        if (!node) return false;
-
         const destParentFolderId = this.toFolderId(destParentNodeId);
 
         let moved: boolean;
         let cancelled = false;
 
         if (node.isFolder) {
-            const sourceParentFolderId = this.toFolderId(node.parent);
+            const sourceParentFolderId = this.toFolderId(node.parentId);
             const result = await this.onMoveFolder.produce({
                 id: node.data.rawId,
                 title: node.text,
@@ -126,8 +124,6 @@ export class EntrySpotlightService implements ISidebarSectionService {
             );
         if (!moved) return false;
 
-        node.parent = destParentNodeId;
-
         return true;
     }
 
@@ -150,7 +146,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         const placeholderId = this._createPlaceholderId();
         const placeholder: TreeNode<SpotlightNodeData> = {
             id: placeholderId,
-            parent: parentId,
+            parentId: parentId,
             text: "",
             isFolder: true,
             isEditable: true,
@@ -170,7 +166,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
                 : this.toFolderNodeId(entry.folderId);
         const node: TreeNode<SpotlightNodeData> = {
             id: this.toEntryNodeId(entry.id),
-            parent: parentNodeId,
+            parentId: parentNodeId,
             text: entry.title,
             isFolder: false,
             data: { rawId: entry.id },
@@ -179,56 +175,52 @@ export class EntrySpotlightService implements ISidebarSectionService {
     }
 
     deleteEntryNode(id: Id) {
-        this.fileTree.removeNode(this.toEntryNodeId(id));
+        this.fileTree.removeNodeById(this.toEntryNodeId(id));
     }
 
     deleteManyNodes(entryIds: Id[], folderIds: Id[]) {
         for (const id of entryIds)
-            this.fileTree.removeNode(this.toEntryNodeId(id));
+            this.fileTree.removeNodeById(this.toEntryNodeId(id));
         for (const id of folderIds)
-            this.fileTree.removeNode(this.toFolderNodeId(id));
+            this.fileTree.removeNodeById(this.toFolderNodeId(id));
     }
 
     updateEntryText(id: Id, title: string) {
         const nodeId = this.toEntryNodeId(id);
         const node = this.fileTree.getNode(nodeId);
         if (!node) return;
-        this.fileTree.setNode(nodeId, { ...node, text: title });
+        node.text = title;
     }
 
-    async confirmFolderName(node: TreeNode<SpotlightNodeData>) {
+    async confirmNodeName(
+        node: TreeNode<SpotlightNodeData>,
+    ): Promise<TreeNodeTextEdit<SpotlightNodeData> | null> {
+        // TODO: Refactor to handle both folder and entry renaming
+
         const name = node.editableText?.trim() ?? "";
-        if (!name) {
-            this.fileTree.removeNode(node.id);
-            return;
-        }
+        if (!name) return null;
 
-        const parentFolderId = this.toFolderId(node.parent);
+        const parentFolderId = this.toFolderId(node.parentId);
 
-        const validation = await this._domain.folders.validate(
+        const validationResponse = await this._domain.folders.validate(
             null,
             parentFolderId,
             name,
         );
-        if (validation?.nameCollision && !validation.nameCollision.isUnique) {
-            return;
+        if (
+            validationResponse?.nameCollision &&
+            !validationResponse.nameCollision.isUnique
+        ) {
+            return null;
         }
 
-        const created = await this._domain.folders.create(name, parentFolderId);
-        if (!created) {
-            this.fileTree.removeNode(node.id);
-            return;
-        }
+        const createResponse = await this._domain.folders.create(
+            name,
+            parentFolderId,
+        );
+        if (!createResponse) return null;
 
-        const newNode: TreeNode<SpotlightNodeData> = {
-            id: this.toFolderNodeId(created.id),
-            parent: node.parent,
-            text: created.name,
-            isFolder: true,
-            data: { rawId: created.id },
-        };
-        this.fileTree.setNode(node.id, newNode);
-        this.fileTree.setChildren(this.toFolderNodeId(created.id), []);
+        return { id: node.id, text: name, data: { rawId: createResponse.id } };
     }
 
     // LIFECYCLE
@@ -257,20 +249,21 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
             const node: TreeNode<SpotlightNodeData> = {
                 id: nodeId,
-                parent: parentNodeId,
+                parentId: parentNodeId,
                 text: folder.name,
                 isFolder: true,
                 data: { rawId: folder.id },
             };
 
+            let children: TreeNode<SpotlightNodeData>[];
             if (!map.has(parentNodeId)) {
-                map.set(parentNodeId, []);
-            }
-            map.get(parentNodeId)!.push(node);
+                children = [];
+                map.set(parentNodeId, children);
+            } else children = map.get(parentNodeId)!;
 
-            if (!map.has(nodeId)) {
-                map.set(nodeId, []);
-            }
+            children.push(node);
+
+            if (!map.has(nodeId)) map.set(nodeId, []);
         }
 
         for (const entry of entries) {
@@ -281,16 +274,19 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
             const node: TreeNode<SpotlightNodeData> = {
                 id: this.toEntryNodeId(entry.id),
-                parent: parentNodeId,
+                parentId: parentNodeId,
                 text: entry.title,
                 isFolder: false,
                 data: { rawId: entry.id },
             };
 
+            let children: TreeNode<SpotlightNodeData>[];
             if (!map.has(parentNodeId)) {
-                map.set(parentNodeId, []);
-            }
-            map.get(parentNodeId)!.push(node);
+                children = [];
+                map.set(parentNodeId, children);
+            } else children = map.get(parentNodeId)!;
+
+            children.push(node);
         }
 
         this.fileTree.load(map);

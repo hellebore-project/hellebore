@@ -2,18 +2,17 @@ import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
 import type { IComponentService } from "@/interface";
 
-import type { TreeNode } from "./file-tree-interface";
-
-type FinalizeMoveHandler = (
-    nodeId: string,
-    destParentNodeId: string,
-) => Promise<boolean>;
+import type {
+    ConfirmNodeTextEditHandler,
+    FinalizeMoveHandler,
+    TreeNode,
+} from "./file-tree-interface";
 
 export interface FileTreeServiceArgs<T> {
     id: string;
     rootNodeId?: string;
-    onFinalize: FinalizeMoveHandler;
-    onConfirmEdit: (node: TreeNode<T>) => void;
+    onFinalizeMove: FinalizeMoveHandler<T>;
+    onConfirmNodeTextEdit: ConfirmNodeTextEditHandler<T>;
     onSelectLeaf: (node: TreeNode<T>) => void;
 }
 
@@ -23,27 +22,28 @@ export class FileTreeService<T> implements IComponentService {
 
     // STATE VARIABLES
     private _rootNodeId: string;
-    private _nodes: SvelteMap<string, TreeNode<T>[]> = $state(new SvelteMap());
+    private _structure: SvelteMap<string, string[]> = $state(new SvelteMap());
+    private _nodes: SvelteMap<string, TreeNode<T>> = $state(new SvelteMap());
     private _collapsedIds: SvelteSet<string> = $state(new SvelteSet());
     selectedNodeId: string | null = $state(null);
     draggingNodeId: string | null = $state(null);
     dragOverFolderId: string | null = $state(null);
 
-    private _onMoveNode: FinalizeMoveHandler;
-    private _onConfirmEdit: (node: TreeNode<T>) => void;
+    private _onMoveNode: FinalizeMoveHandler<T>;
+    private _onConfirmNodeTextEdit: ConfirmNodeTextEditHandler<T>;
     private _onSelectLeaf: (node: TreeNode<T>) => void;
 
     constructor({
         id,
         rootNodeId = "root",
-        onFinalize,
-        onConfirmEdit,
+        onFinalizeMove,
+        onConfirmNodeTextEdit,
         onSelectLeaf,
     }: FileTreeServiceArgs<T>) {
         this._id = id;
         this._rootNodeId = rootNodeId;
-        this._onMoveNode = onFinalize;
-        this._onConfirmEdit = onConfirmEdit;
+        this._onMoveNode = onFinalizeMove;
+        this._onConfirmNodeTextEdit = onConfirmNodeTextEdit;
         this._onSelectLeaf = onSelectLeaf;
     }
 
@@ -55,6 +55,16 @@ export class FileTreeService<T> implements IComponentService {
 
     get rootNodeId() {
         return this._rootNodeId;
+    }
+
+    get rootNode() {
+        return {
+            id: this._rootNodeId,
+            parentId: "",
+            text: "",
+            isFolder: true,
+            data: null as unknown as T,
+        };
     }
 
     get selectedNode() {
@@ -69,7 +79,7 @@ export class FileTreeService<T> implements IComponentService {
         if (selectedNode) {
             return this.isFolderNode(selectedNode)
                 ? selectedNode.id
-                : selectedNode.parent;
+                : selectedNode.parentId;
         }
 
         return this.rootNodeId;
@@ -78,12 +88,24 @@ export class FileTreeService<T> implements IComponentService {
     // LOADING
 
     load(map: Map<string, TreeNode<T>[]>) {
-        this._nodes = new SvelteMap(map);
+        this._nodes.clear();
+        this._structure.clear();
+
+        for (const [parentId, children] of map) {
+            const sortedChildren = this.sortNodes(children);
+            this._structure.set(
+                parentId,
+                sortedChildren.map((n) => n.id),
+            );
+
+            for (const node of sortedChildren) this._nodes.set(node.id, node);
+        }
     }
 
     // CLEAN UP
 
     clear() {
+        this._structure.clear();
         this._nodes.clear();
         this._collapsedIds.clear();
         this.selectedNodeId = null;
@@ -96,7 +118,7 @@ export class FileTreeService<T> implements IComponentService {
     }
 
     isDescendantOfFolder(ancestorId: string, targetId: string): boolean {
-        return this.getChildren(ancestorId).some(
+        return this.getChildNodes(ancestorId).some(
             (c) =>
                 c.id === targetId ||
                 (c.isFolder && this.isDescendantOfFolder(c.id, targetId)),
@@ -106,15 +128,13 @@ export class FileTreeService<T> implements IComponentService {
     // RETRIEVAL
 
     getNode(nodeId: string): TreeNode<T> | undefined {
-        for (const children of this._nodes.values()) {
-            const found = children.find((n) => n.id === nodeId);
-            if (found) return found;
-        }
-        return undefined;
+        return this._nodes.get(nodeId);
     }
 
-    getChildren(parentId: string): TreeNode<T>[] {
-        return this._nodes.get(parentId) ?? [];
+    getChildNodes(parentId: string): TreeNode<T>[] {
+        return (this._structure.get(parentId) ?? [])
+            .map((id) => this._nodes.get(id))
+            .filter((n): n is TreeNode<T> => n !== undefined);
     }
 
     // COLLAPSE
@@ -133,10 +153,8 @@ export class FileTreeService<T> implements IComponentService {
 
     collapseAll() {
         const folderIds: string[] = [];
-        for (const [parentId] of this._nodes) {
-            if (parentId !== this._rootNodeId) {
-                folderIds.push(parentId);
-            }
+        for (const [id, node] of this._nodes) {
+            if (node.isFolder) folderIds.push(id);
         }
         this._collapsedIds = new SvelteSet(folderIds);
     }
@@ -154,61 +172,65 @@ export class FileTreeService<T> implements IComponentService {
 
     // EDITING
 
-    setNode(oldId: string, newNode: TreeNode<T>) {
-        for (const [parentId, children] of this._nodes) {
-            const index = children.findIndex((n) => n.id === oldId);
-            if (index >= 0) {
-                const updated = [...children];
-                updated[index] = newNode;
-                this._nodes.set(parentId, updated);
-                return;
-            }
-        }
-    }
-
-    setChildren(parentId: string, nodes: TreeNode<T>[]) {
-        this._nodes.set(parentId, nodes);
-    }
-
     setNodeEditText(nodeId: string, text: string) {
-        for (const [parentId, children] of this._nodes) {
-            const node = children.find((n) => n.id === nodeId);
-            if (node) {
-                node.editableText = text;
-                this._nodes.set(parentId, [...children]);
-                return;
-            }
-        }
+        const node = this._nodes.get(nodeId);
+        if (node) node.editableText = text;
     }
 
-    onConfirmEdit = (node: TreeNode<T>) => {
-        this._onConfirmEdit(node);
-    };
+    async commitNodeTextEdit(node: TreeNode<T>) {
+        const textEdit = await this._onConfirmNodeTextEdit(node);
 
-    // ADDITION
+        if (!textEdit) {
+            this.removeNode(node);
+            return;
+        }
+
+        node.text = textEdit.text;
+        node.data = textEdit.data;
+    }
+
+    // TOPOLOGY
 
     addNode(parentId: string, node: TreeNode<T>) {
-        const current = this._nodes.get(parentId) ?? [];
-        this._nodes.set(parentId, this.sortNodes([...current, node]));
+        node.parentId = parentId;
+        this._nodes.set(node.id, node);
+        const children = this.sortNodes([
+            ...this.getChildNodes(parentId),
+            node,
+        ]);
+        this._structure.set(
+            parentId,
+            children.map((n) => n.id),
+        );
     }
 
-    // REMOVAL
-
-    removeNode(nodeId: string) {
-        for (const [parentId, children] of this._nodes) {
-            const index = children.findIndex((n) => n.id === nodeId);
-            if (index >= 0) {
-                this._nodes.set(
-                    parentId,
-                    children.filter((n) => n.id !== nodeId),
-                );
-                this._nodes.delete(nodeId);
-                return;
-            }
-        }
+    removeNodeById(nodeId: string) {
+        const node = this._nodes.get(nodeId);
+        if (!node) return;
+        this.removeNode(node);
     }
 
-    // RELOCATION
+    removeNode(node: TreeNode<T>) {
+        this._removeNode(node.id);
+    }
+
+    private _removeNode(nodeId: string) {
+        for (const childId of this._structure.get(nodeId) ?? [])
+            this._removeNode(childId);
+        this._structure.delete(nodeId);
+        this._nodes.delete(nodeId);
+    }
+
+    private _disconnectNode(node: TreeNode<T>) {
+        const siblings = this._structure.get(node.parentId);
+        if (siblings)
+            this._structure.set(
+                node.parentId,
+                siblings.filter((id) => id !== node.id),
+            );
+
+        node.parentId = "";
+    }
 
     async moveNode(nodeId: string, destFolderId: string) {
         this.dragOverFolderId = null;
@@ -218,23 +240,17 @@ export class FileTreeService<T> implements IComponentService {
         if (!movedNode) return;
 
         if (
-            movedNode.parent === destFolderId ||
+            movedNode.parentId === destFolderId ||
             movedNode.id === destFolderId ||
             this.isDescendantOfFolder(nodeId, destFolderId)
         )
             return;
 
-        const moved = await this._onMoveNode(nodeId, destFolderId);
+        const moved = await this._onMoveNode(movedNode, destFolderId);
         if (!moved) return;
 
-        this.removeNode(nodeId);
-        movedNode.parent = destFolderId;
-
-        const newChildren = this.sortNodes([
-            ...this.getChildren(destFolderId),
-            movedNode,
-        ]);
-        this.setChildren(destFolderId, newChildren);
+        this._disconnectNode(movedNode);
+        this.addNode(destFolderId, movedNode);
     }
 
     // EVENT HANDLERS
@@ -251,7 +267,7 @@ export class FileTreeService<T> implements IComponentService {
     }
 
     handleNodeDragEnter(e: DragEvent, node: TreeNode<T>) {
-        const folderId = this.isFolderNode(node) ? node.id : node.parent;
+        const folderId = this.isFolderNode(node) ? node.id : node.parentId;
         this.handleNodeDragEnterById(e, folderId);
     }
 
@@ -262,7 +278,7 @@ export class FileTreeService<T> implements IComponentService {
     }
 
     handleNodeDragOver(e: DragEvent, node: TreeNode<T>) {
-        const folderId = this.isFolderNode(node) ? node.id : node.parent;
+        const folderId = this.isFolderNode(node) ? node.id : node.parentId;
         this.handleNodeDragOverById(e, folderId);
     }
 
@@ -276,7 +292,7 @@ export class FileTreeService<T> implements IComponentService {
     }
 
     handleNodeDragLeave(e: DragEvent, node: TreeNode<T>) {
-        const folderId = this.isFolderNode(node) ? node.id : node.parent;
+        const folderId = this.isFolderNode(node) ? node.id : node.parentId;
         this.handleNodeDragLeaveById(e, folderId);
     }
 
@@ -291,7 +307,7 @@ export class FileTreeService<T> implements IComponentService {
     async handleNodeDrop(e: DragEvent, destNode: TreeNode<T>) {
         const folderId = this.isFolderNode(destNode)
             ? destNode.id
-            : destNode.parent;
+            : destNode.parentId;
         await this.handleNodeDropById(e, folderId);
     }
 
@@ -302,16 +318,16 @@ export class FileTreeService<T> implements IComponentService {
             e.dataTransfer!.getData("text/plain") || this.draggingNodeId;
         if (!movedNodeId) return;
 
-        this.moveNode(movedNodeId, destFolderId);
+        await this.moveNode(movedNodeId, destFolderId);
     }
 
-    handleKeydown(e: KeyboardEvent, node: TreeNode<T>) {
+    async handleKeydown(e: KeyboardEvent, node: TreeNode<T>) {
         if (e.key === "Escape") {
             e.preventDefault();
-            this.removeNode(node.id);
+            this.removeNode(node);
         } else if (e.key === "Enter") {
             e.preventDefault();
-            this._onConfirmEdit(node);
+            await this.commitNodeTextEdit(node);
         }
     }
 

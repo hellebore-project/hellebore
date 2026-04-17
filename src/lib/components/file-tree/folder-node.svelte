@@ -56,7 +56,7 @@
             value={node.editableText ?? ""}
             oninput={(e) =>
                 service.setNodeEditText(node.id, e.currentTarget.value)}
-            onblur={() => service.onConfirmEdit(node)}
+            onblur={() => service.commitNodeTextEdit(node)}
             onkeydown={(e) => service.handleKeydown(e, node)}
             onclick={(e) => e.stopPropagation()}
         />
@@ -68,11 +68,5 @@
 </div>
 
 {#if !service.isCollapsed(node.id)}
-    <FileTree
-        {service}
-        {folderLabel}
-        {leafLabel}
-        parentId={node.id}
-        depth={depth + 1}
-    />
+    <FileTree {service} {node} {folderLabel} {leafLabel} depth={depth + 1} />
 {/if}

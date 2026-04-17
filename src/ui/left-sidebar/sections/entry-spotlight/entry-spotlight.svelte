@@ -28,7 +28,7 @@
 
 <div class="flex flex-col h-full" data-spotlight role="tree">
     <div class="flex-1 min-h-0 overflow-y-auto px-1 pt-1">
-        <FileTree service={service.fileTree}>
+        <FileTree service={service.fileTree} node={service.fileTree.rootNode}>
             {#snippet folderLabel(node, collapsed)}
                 {#if collapsed}
                     <FolderIcon
