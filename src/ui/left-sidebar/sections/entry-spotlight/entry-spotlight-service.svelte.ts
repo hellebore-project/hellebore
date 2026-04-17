@@ -1,5 +1,3 @@
-import { SvelteMap } from "svelte/reactivity";
-
 import { ROOT_FOLDER_ID, SidebarSectionType } from "@/constants";
 import type {
     BulkFileResponse,
@@ -19,7 +17,10 @@ import { EventProducer } from "@/utils/event-producer";
 import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
 import type { SpotlightNodeData } from "./entry-spotlight-interface";
-import type { TreeNodeTextEdit } from "@/lib/components/file-tree/file-tree-interface";
+import type {
+    TreeNodeInfo,
+    TreeNodeTextEdit,
+} from "@/lib/components/file-tree/file-tree-interface";
 
 const ROOT_NODE_ID = "root";
 
@@ -54,6 +55,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         this.onDeleteFolder = new EventProducer();
         this.fileTree = new FileTreeService<SpotlightNodeData>({
             id: `${this.id}-file-tree`,
+            rootNodeId: ROOT_NODE_ID,
             onFinalizeMove: (node, destParentNodeId) =>
                 this.finalizeMove(node, destParentNodeId),
             onConfirmNodeTextEdit: (node) => this.confirmNodeName(node),
@@ -79,6 +81,51 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     get canCollapseAll() {
         return this.open;
+    }
+
+    // LIFECYCLE
+
+    async activate() {
+        const [folders, entries] = await Promise.all([
+            this._domain.folders.getAll(),
+            this._domain.entries.getAll(),
+        ]);
+
+        this._load(folders ?? [], entries ?? []);
+    }
+
+    private _load(folders: FolderResponse[], entries: EntryInfoResponse[]) {
+        const folderNodes = [];
+        for (const folder of folders) {
+            const node: TreeNodeInfo<SpotlightNodeData> = {
+                id: this.toFolderNodeId(folder.id),
+                parentId: this.toFolderNodeId(folder.parentId),
+                text: folder.name,
+                data: { rawId: folder.id },
+            };
+            folderNodes.push(node);
+        }
+
+        const entryNodes = [];
+        for (const entry of entries) {
+            const node: TreeNode<SpotlightNodeData> = {
+                id: this.toEntryNodeId(entry.id),
+                parentId: this.toFolderNodeId(entry.folderId),
+                text: entry.title,
+                isFolder: false,
+                data: { rawId: entry.id },
+            };
+            entryNodes.push(node);
+        }
+
+        this.fileTree.load(folderNodes, entryNodes);
+    }
+
+    cleanUp() {
+        this.fileTree.clear();
+        this.onOpenEntry.clear();
+        this.onMoveFolder.clear();
+        this.onDeleteFolder.clear();
     }
 
     // COLLAPSE NODES
@@ -144,34 +191,28 @@ export class EntrySpotlightService implements ISidebarSectionService {
     addFolder() {
         const parentId = this.fileTree.selectedFolderId;
         const placeholderId = this._createPlaceholderId();
-        const placeholder: TreeNode<SpotlightNodeData> = {
+        this.fileTree.addFolderNode({
             id: placeholderId,
-            parentId: parentId,
+            parentId,
             text: "",
-            isFolder: true,
-            isEditable: true,
-            editableText: "",
             data: { rawId: -1 },
-        };
-
-        this.fileTree.addNode(parentId, placeholder);
+        });
     }
 
     // NODE MUTATION
 
     addEntryNode(entry: EntryInfoResponse) {
-        const parentNodeId =
-            entry.folderId === ROOT_FOLDER_ID
-                ? ROOT_NODE_ID
-                : this.toFolderNodeId(entry.folderId);
-        const node: TreeNode<SpotlightNodeData> = {
+        const parentNodeId = this.toFolderNodeId(entry.folderId);
+        this.fileTree.addLeafNode({
             id: this.toEntryNodeId(entry.id),
             parentId: parentNodeId,
             text: entry.title,
-            isFolder: false,
             data: { rawId: entry.id },
-        };
-        this.fileTree.addNode(parentNodeId, node);
+        });
+    }
+
+    deleteFolderNode(id: Id) {
+        this.fileTree.removeNodeById(this.toFolderNodeId(id));
     }
 
     deleteEntryNode(id: Id) {
@@ -223,85 +264,10 @@ export class EntrySpotlightService implements ISidebarSectionService {
         return { id: node.id, text: name, data: { rawId: createResponse.id } };
     }
 
-    // LIFECYCLE
-
-    async activate() {
-        const [folders, entries] = await Promise.all([
-            this._domain.folders.getAll(),
-            this._domain.entries.getAll(),
-        ]);
-
-        if (folders !== null && entries !== null) {
-            this._load(folders, entries);
-        }
-    }
-
-    private _load(folders: FolderResponse[], entries: EntryInfoResponse[]) {
-        const map = new SvelteMap<string, TreeNode<SpotlightNodeData>[]>();
-        map.set(ROOT_NODE_ID, []);
-
-        for (const folder of folders) {
-            const nodeId = this.toFolderNodeId(folder.id);
-            const parentNodeId =
-                folder.parentId === ROOT_FOLDER_ID
-                    ? ROOT_NODE_ID
-                    : this.toFolderNodeId(folder.parentId);
-
-            const node: TreeNode<SpotlightNodeData> = {
-                id: nodeId,
-                parentId: parentNodeId,
-                text: folder.name,
-                isFolder: true,
-                data: { rawId: folder.id },
-            };
-
-            let children: TreeNode<SpotlightNodeData>[];
-            if (!map.has(parentNodeId)) {
-                children = [];
-                map.set(parentNodeId, children);
-            } else children = map.get(parentNodeId)!;
-
-            children.push(node);
-
-            if (!map.has(nodeId)) map.set(nodeId, []);
-        }
-
-        for (const entry of entries) {
-            const parentNodeId =
-                entry.folderId === ROOT_FOLDER_ID
-                    ? ROOT_NODE_ID
-                    : this.toFolderNodeId(entry.folderId);
-
-            const node: TreeNode<SpotlightNodeData> = {
-                id: this.toEntryNodeId(entry.id),
-                parentId: parentNodeId,
-                text: entry.title,
-                isFolder: false,
-                data: { rawId: entry.id },
-            };
-
-            let children: TreeNode<SpotlightNodeData>[];
-            if (!map.has(parentNodeId)) {
-                children = [];
-                map.set(parentNodeId, children);
-            } else children = map.get(parentNodeId)!;
-
-            children.push(node);
-        }
-
-        this.fileTree.load(map);
-    }
-
-    cleanUp() {
-        this.fileTree.clear();
-        this.onOpenEntry.clear();
-        this.onMoveFolder.clear();
-        this.onDeleteFolder.clear();
-    }
-
     // UTILITY
 
     toFolderNodeId(id: Id) {
+        if (id === ROOT_FOLDER_ID) return ROOT_NODE_ID;
         return `folder-${id}`;
     }
 

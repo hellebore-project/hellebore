@@ -193,17 +193,17 @@ export class LeftSidebarService implements IComponentService {
         section?.addEntryNode(entry);
     }
 
+    deleteFolderNode(id: Id) {
+        const section = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        section?.deleteFolderNode(id);
+    }
+
     deleteEntryNode(id: Id) {
         const section = this.getSectionByType<EntrySpotlightService>(
             SidebarSectionType.EntrySpotlight,
         );
         section?.deleteEntryNode(id);
-    }
-
-    deleteManyNodes(entryIds: Id[], folderIds: Id[]) {
-        const section = this.getSectionByType<EntrySpotlightService>(
-            SidebarSectionType.EntrySpotlight,
-        );
-        section?.deleteManyNodes(entryIds, folderIds);
     }
 }

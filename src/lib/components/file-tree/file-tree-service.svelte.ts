@@ -6,6 +6,7 @@ import type {
     ConfirmNodeTextEditHandler,
     FinalizeMoveHandler,
     TreeNode,
+    TreeNodeInfo,
 } from "./file-tree-interface";
 
 export interface FileTreeServiceArgs<T> {
@@ -87,18 +88,46 @@ export class FileTreeService<T> implements IComponentService {
 
     // LOADING
 
-    load(map: Map<string, TreeNode<T>[]>) {
+    load(folders: TreeNodeInfo<T>[], leaves: TreeNodeInfo<T>[]) {
         this._nodes.clear();
         this._structure.clear();
 
-        for (const [parentId, children] of map) {
+        for (const folder of folders) {
+            const node: TreeNode<T> = {
+                id: folder.id,
+                parentId: folder.parentId,
+                text: folder.text,
+                isFolder: true,
+                data: folder.data,
+            };
+            this._nodes.set(node.id, node);
+        }
+
+        for (const leaf of leaves) {
+            const node: TreeNode<T> = {
+                id: leaf.id,
+                parentId: leaf.parentId,
+                text: leaf.text,
+                isFolder: false,
+                data: leaf.data,
+            };
+            this._nodes.set(node.id, node);
+        }
+
+        const structure = new SvelteMap<string, TreeNode<T>[]>();
+        for (const node of this._nodes.values()) {
+            const parentId = node.parentId || this.rootNodeId;
+            if (structure.has(parentId)) structure.get(parentId)!.push(node);
+            else structure.set(parentId, [node]);
+        }
+
+        for (const parentId of structure.keys()) {
+            const children = structure.get(parentId)!;
             const sortedChildren = this.sortNodes(children);
             this._structure.set(
                 parentId,
                 sortedChildren.map((n) => n.id),
             );
-
-            for (const node of sortedChildren) this._nodes.set(node.id, node);
         }
     }
 
@@ -181,7 +210,7 @@ export class FileTreeService<T> implements IComponentService {
         const textEdit = await this._onConfirmNodeTextEdit(node);
 
         if (!textEdit) {
-            this.removeNode(node);
+            this._removeNode(node);
             return;
         }
 
@@ -191,7 +220,17 @@ export class FileTreeService<T> implements IComponentService {
 
     // TOPOLOGY
 
-    addNode(parentId: string, node: TreeNode<T>) {
+    addFolderNode({ id, parentId, text, data }: TreeNodeInfo<T>) {
+        const node: TreeNode<T> = { id, parentId, text, isFolder: true, data };
+        this._addNode(parentId, node);
+    }
+
+    addLeafNode({ id, parentId, text, data }: TreeNodeInfo<T>) {
+        const node: TreeNode<T> = { id, parentId, text, isFolder: false, data };
+        this._addNode(parentId, node);
+    }
+
+    private _addNode(parentId: string, node: TreeNode<T>) {
         node.parentId = parentId;
         this._nodes.set(node.id, node);
         const children = this.sortNodes([
@@ -207,16 +246,16 @@ export class FileTreeService<T> implements IComponentService {
     removeNodeById(nodeId: string) {
         const node = this._nodes.get(nodeId);
         if (!node) return;
-        this.removeNode(node);
+        this._removeNode(node);
     }
 
-    removeNode(node: TreeNode<T>) {
-        this._removeNode(node.id);
+    private _removeNode(node: TreeNode<T>) {
+        this._removeNodeById(node.id);
     }
 
-    private _removeNode(nodeId: string) {
+    private _removeNodeById(nodeId: string) {
         for (const childId of this._structure.get(nodeId) ?? [])
-            this._removeNode(childId);
+            this._removeNodeById(childId);
         this._structure.delete(nodeId);
         this._nodes.delete(nodeId);
     }
@@ -250,7 +289,7 @@ export class FileTreeService<T> implements IComponentService {
         if (!moved) return;
 
         this._disconnectNode(movedNode);
-        this.addNode(destFolderId, movedNode);
+        this._addNode(destFolderId, movedNode);
     }
 
     // EVENT HANDLERS
@@ -324,7 +363,7 @@ export class FileTreeService<T> implements IComponentService {
     async handleKeydown(e: KeyboardEvent, node: TreeNode<T>) {
         if (e.key === "Escape") {
             e.preventDefault();
-            this.removeNode(node);
+            this._removeNode(node);
         } else if (e.key === "Enter") {
             e.preventDefault();
             await this.commitNodeTextEdit(node);

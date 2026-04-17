@@ -2,14 +2,17 @@ import type { Snippet } from "svelte";
 
 import type { FileTreeService } from "./file-tree-service.svelte";
 
-export interface TreeNode<T> {
+export interface TreeNodeInfo<T> {
     id: string;
     parentId: string;
     text: string;
+    data: T;
+}
+
+export interface TreeNode<T> extends TreeNodeInfo<T> {
     isFolder: boolean;
     isEditable?: boolean;
     editableText?: string;
-    data: T;
 }
 
 export type FinalizeMoveHandler<T> = (

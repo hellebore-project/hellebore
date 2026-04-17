@@ -342,7 +342,7 @@ export class ClientManager implements IComponentService {
         const fileIds = await this.domain.folders.delete(id);
         if (!fileIds) return null;
 
-        this.leftSideBar.deleteManyNodes(fileIds.entries, fileIds.folders);
+        this.leftSideBar.deleteFolderNode(id);
 
         let panelIndex = 0;
         for (const panelService of this.central.iteratePanels()) {
