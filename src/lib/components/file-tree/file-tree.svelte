@@ -6,9 +6,10 @@
     const {
         service,
         node,
+        depth = 0,
         folderLabel,
         leafLabel,
-        depth = 0,
+        nodeContextMenu,
     }: FileTreeProps<T> = $props();
 </script>
 
@@ -38,16 +39,18 @@
                     <FileTreeFolderNode
                         {service}
                         node={child}
+                        {depth}
                         {folderLabel}
                         {leafLabel}
-                        {depth}
+                        contextMenu={nodeContextMenu}
                     />
                 {:else}
                     <FileTreeLeafNode
                         {service}
                         node={child}
-                        {leafLabel}
                         {depth}
+                        {leafLabel}
+                        contextMenu={nodeContextMenu}
                     />
                 {/if}
             </li>
