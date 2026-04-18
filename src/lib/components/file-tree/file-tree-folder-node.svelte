@@ -6,7 +6,7 @@
     import * as ContextMenu from "@/lib/components/context-menu";
 
     import type { FolderNodeProps } from "./file-tree-interface";
-    import FileTree from "./file-tree.svelte";
+    import FileTreeBranch from "./file-tree-branch.svelte";
 
     const {
         service,
@@ -80,7 +80,7 @@
 </ContextMenu.Root>
 
 {#if !service.isCollapsed(node.id)}
-    <FileTree
+    <FileTreeBranch
         {service}
         {node}
         {folderLabel}

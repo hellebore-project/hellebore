@@ -47,10 +47,18 @@ export interface LeafNodeProps<T> {
     contextMenu?: Snippet<[TreeNode<T>]>;
 }
 
+export interface BranchProps<T> {
+    service: FileTreeService<T>;
+    node: TreeNode<T>;
+    depth: number;
+    folderLabel?: Snippet<[TreeNode<T>, boolean]>;
+    leafLabel?: Snippet<[TreeNode<T>]>;
+    nodeContextMenu?: Snippet<[TreeNode<T>]>;
+}
+
 export interface FileTreeProps<T> {
     service: FileTreeService<T>;
     node: TreeNode<T>;
-    depth?: number;
     folderLabel?: Snippet<[TreeNode<T>, boolean]>;
     leafLabel?: Snippet<[TreeNode<T>]>;
     nodeContextMenu?: Snippet<[TreeNode<T>]>;
