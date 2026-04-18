@@ -30,10 +30,28 @@ export type ConfirmNodeTextEditHandler<T> = (
     node: TreeNode<T>,
 ) => Promise<TreeNodeTextEdit<T> | null>;
 
+export interface FolderNodeProps<T> {
+    service: FileTreeService<T>;
+    node: TreeNode<T>;
+    depth: number;
+    folderLabel?: Snippet<[TreeNode<T>, boolean]>;
+    leafLabel?: Snippet<[TreeNode<T>]>;
+    contextMenu?: Snippet<[TreeNode<T>]>;
+}
+
+export interface LeafNodeProps<T> {
+    service: FileTreeService<T>;
+    node: TreeNode<T>;
+    depth: number;
+    leafLabel?: Snippet<[TreeNode<T>]>;
+    contextMenu?: Snippet<[TreeNode<T>]>;
+}
+
 export interface FileTreeProps<T> {
     service: FileTreeService<T>;
     node: TreeNode<T>;
+    depth?: number;
     folderLabel?: Snippet<[TreeNode<T>, boolean]>;
     leafLabel?: Snippet<[TreeNode<T>]>;
-    depth?: number;
+    nodeContextMenu?: Snippet<[TreeNode<T>]>;
 }

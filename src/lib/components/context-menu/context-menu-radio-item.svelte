@@ -1,0 +1,41 @@
+<script lang="ts">
+    import { ContextMenu as ContextMenuPrimitive } from "bits-ui";
+    import { cn, type WithoutChild } from "@/lib/utils.js";
+    import CheckIcon from "@lucide/svelte/icons/check";
+
+    let {
+        ref = $bindable(null),
+        class: className,
+        inset,
+        children: childrenProp,
+        ...restProps
+    }: WithoutChild<ContextMenuPrimitive.RadioItemProps> & {
+        inset?: boolean;
+    } = $props();
+</script>
+
+<ContextMenuPrimitive.RadioItem
+    bind:ref
+    data-slot="context-menu-radio-item"
+    data-inset={inset}
+    class={cn(
+        "relative flex items-center gap-1.5",
+        "outline-hidden select-none rounded-md py-1 pr-8 pl-1.5 data-inset:pl-7 text-sm",
+        "cursor-default",
+        "focus:bg-accent focus:text-accent-foreground",
+        "[&_svg:not([class*='size-'])]:size-4",
+        "data-disabled:pointer-events-none data-disabled:opacity-50",
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0",
+        className,
+    )}
+    {...restProps}
+>
+    {#snippet children({ checked })}
+        <span class="absolute right-2 pointer-events-none">
+            {#if checked}
+                <CheckIcon />
+            {/if}
+        </span>
+        {@render childrenProp?.({ checked })}
+    {/snippet}
+</ContextMenuPrimitive.RadioItem>
