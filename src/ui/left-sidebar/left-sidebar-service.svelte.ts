@@ -1,17 +1,23 @@
 import { SvelteMap } from "svelte/reactivity";
 
 import type {
+    BulkFileResponse,
     ChangeEntryEditorViewEvent,
+    DeleteFolderEvent,
+    EntryInfoResponse,
     IComponentService,
     ISidebarSectionService,
     AddEntryEditorNavigatorEvent,
+    MoveFolderEvent,
+    MoveFolderResult,
     ReleaseSidebarSectionEvent,
     Id,
+    OpenEntryEditorEvent,
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { SidebarSectionType } from "@/constants";
 
-import { EntryEditorNavigatorService } from "./sections";
+import { EntryEditorNavigatorService, EntrySpotlightService } from "./sections";
 import { EventProducer } from "@/utils/event-producer";
 
 interface LeftSidebarServiceArgs {
@@ -35,10 +41,19 @@ export class LeftSidebarService implements IComponentService {
         ChangeEntryEditorViewEvent,
         unknown
     >;
+    onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
+    onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
+    onDeleteFolder: EventProducer<
+        DeleteFolderEvent,
+        Promise<BulkFileResponse | null>
+    >;
 
     constructor({ domain }: LeftSidebarServiceArgs) {
         this.domain = domain;
         this.onSelectEntryEditorNavItem = new EventProducer();
+        this.onOpenEntry = new EventProducer();
+        this.onMoveFolder = new EventProducer();
+        this.onDeleteFolder = new EventProducer();
     }
 
     get width() {
@@ -48,7 +63,20 @@ export class LeftSidebarService implements IComponentService {
     // SPOTLIGHT
 
     addSpotlight() {
-        // TODO
+        const existing = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        if (existing) return existing;
+
+        const section = new EntrySpotlightService(this.domain);
+
+        section.onOpenEntry.broker = this.onOpenEntry;
+        section.onMoveFolder.broker = this.onMoveFolder;
+        section.onDeleteFolder.broker = this.onDeleteFolder;
+
+        this._addSection(section);
+
+        return section;
     }
 
     // ENTRY EDITOR NAVIGATOR
@@ -68,14 +96,6 @@ export class LeftSidebarService implements IComponentService {
             this._addSection(newSection);
             return newSection;
         }
-    }
-
-    updateEntryEditorNavigatorTitle(entryId: Id, title: string) {
-        const section = this.getSectionByType<EntryEditorNavigatorService>(
-            SidebarSectionType.EntryEditorNavigator,
-        );
-        if (!section || section.entryId !== entryId) return;
-        section.title = title;
     }
 
     // ACCESSING SECTIONS
@@ -139,5 +159,51 @@ export class LeftSidebarService implements IComponentService {
         const index = this._sectionIds.indexOf(section.id);
         if (index >= 0) this._sectionIds.splice(index, 1);
         return true;
+    }
+
+    // EVENT HANDLERS
+
+    updateEntryDisplayedStatus(id: Id, displayed: boolean) {
+        const section = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        if (!section) return;
+
+        if (displayed) section.setDisplayedEntry(id);
+        else section.setDisplayedEntry(null);
+    }
+
+    updateDisplayedEntryTitle(entryId: Id, title: string) {
+        const spotlight = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        spotlight?.updateEntryText(entryId, title);
+
+        const navigator = this.getSectionByType<EntryEditorNavigatorService>(
+            SidebarSectionType.EntryEditorNavigator,
+        );
+        if (!navigator || navigator.entryId !== entryId) return;
+        navigator.title = title;
+    }
+
+    addEntryNode(entry: EntryInfoResponse) {
+        const section = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        section?.addEntryNode(entry);
+    }
+
+    deleteFolderNode(id: Id) {
+        const section = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        section?.deleteFolderNode(id);
+    }
+
+    deleteEntryNode(id: Id) {
+        const section = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        section?.deleteEntryNode(id);
     }
 }

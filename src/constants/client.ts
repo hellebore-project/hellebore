@@ -55,7 +55,7 @@ export enum WordViewType {
 }
 
 export enum SidebarSectionType {
-    Spotlight = "SPOTLIGHT",
+    EntrySpotlight = "ENTRY_SPOTLIGHT",
     EntryEditorNavigator = "ENTRY_EDITOR_NAVIGATOR",
 }
 

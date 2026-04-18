@@ -13,6 +13,7 @@ import type {
     ProjectResponse,
     IComponentService,
     EntryEditorInfo,
+    ChangeCentralPanelEvent,
 } from "@/interface";
 import {
     CentralViewType,
@@ -58,6 +59,7 @@ export class ClientManager implements IComponentService {
         this.leftSideBar = new LeftSidebarService({
             domain: this.domain,
         });
+        this.leftSideBar.addSpotlight();
 
         // overlays
         // this.modal = new ModalManager();
@@ -77,36 +79,9 @@ export class ClientManager implements IComponentService {
     // SUBSCRIPTIONS
 
     private _createSubscriptions() {
-        this.central.onChangePanel.subscribe(({ action, details }) => {
-            if (details.type === CentralViewType.EntryEditor) {
-                const entryEditorDetails = details as EntryEditorInfo;
-
-                if (action === ViewAction.Show) {
-                    // this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
-                    //     entryEditorDetails.entry.id,
-                    //     true,
-                    // );
-                    this.leftSideBar.addEntryEditorNavigator({
-                        ownerId: entryEditorDetails.id,
-                        entry: {
-                            id: entryEditorDetails.entry.id,
-                            type: entryEditorDetails.entry.type,
-                            title: entryEditorDetails.entry.title,
-                        },
-                        activeView: entryEditorDetails.subType,
-                    });
-                } else if (action === ViewAction.Hide) {
-                    // this.leftSideBar.spotlight.setEntryNodeDisplayedStatus(
-                    //     entryEditorDetails.entry.id,
-                    //     false,
-                    // );
-                    this.leftSideBar.releaseSection({
-                        ownerId: entryEditorDetails.id,
-                        type: SidebarSectionType.EntryEditorNavigator,
-                    });
-                }
-            }
-        });
+        this.central.onChangePanel.subscribe((event) =>
+            this.handleCentralPanelChange(event),
+        );
         this.central.onChangeData.subscribe(() =>
             this.synchronizer.requestFullSynchronization(),
         );
@@ -143,13 +118,15 @@ export class ClientManager implements IComponentService {
         // spotlight.onCreateEntry.subscribe((args) =>
         //     this.modal.openEntryCreator(args),
         // );
-        // spotlight.onOpenEntry.subscribe((args) =>
-        //     this.central.openEntryEditor(args),
-        // );
-        // spotlight.onMoveFolder.subscribe((args) => this.moveFolder(args));
-        // spotlight.onDeleteFolder.subscribe(({ id, confirm }) =>
-        //     this.deleteFolder(id, confirm),
-        // );
+        this.leftSideBar.onOpenEntry.subscribe((args) =>
+            this.central.openEntryEditor(args),
+        );
+        this.leftSideBar.onMoveFolder.subscribe((args) =>
+            this.moveFolder(args),
+        );
+        this.leftSideBar.onDeleteFolder.subscribe(({ id, confirm }) =>
+            this.deleteFolder(id, confirm),
+        );
         // spotlight.onOpenFolderContext.subscribe((args) =>
         //     this.contextMenu.openForNavBarFolderNode(args),
         // );
@@ -223,6 +200,13 @@ export class ClientManager implements IComponentService {
         // const folders = await this.domain.folders.getAll();
         // if (entries !== null && folders !== null)
         //     this.leftSideBar.load(entries, folders);
+    }
+
+    // CLEAN UP
+
+    cleanUp() {
+        // this.modal.close();
+        this.central.clear();
     }
 
     // PROJECT HANDLING
@@ -358,10 +342,7 @@ export class ClientManager implements IComponentService {
         const fileIds = await this.domain.folders.delete(id);
         if (!fileIds) return null;
 
-        // this.leftSideBar.spotlight.deleteManyNodes(
-        //     fileIds.entries,
-        //     fileIds.folders,
-        // );
+        this.leftSideBar.deleteFolderNode(id);
 
         let panelIndex = 0;
         for (const panelService of this.central.iteratePanels()) {
@@ -391,7 +372,7 @@ export class ClientManager implements IComponentService {
         );
 
         if (entry) {
-            // this.leftSideBar.spotlight.addNodeForCreatedEntry(entry);
+            this.leftSideBar.addEntryNode(entry);
             this.central.openEntryEditor({ id: entry.id });
         }
 
@@ -422,7 +403,7 @@ export class ClientManager implements IComponentService {
             // failed to delete the entry; aborting
             return false;
 
-        // this.leftSideBar.spotlight.deleteEntityNode(id);
+        this.leftSideBar.deleteEntryNode(id);
 
         let panelIndex = 0;
         for (const panelService of this.central.iteratePanels()) {
@@ -439,6 +420,39 @@ export class ClientManager implements IComponentService {
         if (this.central.panelCount == 0) this.central.openHome();
 
         return true;
+    }
+
+    // CENTRAL PANEL
+
+    handleCentralPanelChange({ action, details }: ChangeCentralPanelEvent) {
+        if (details.type === CentralViewType.EntryEditor) {
+            const entryEditorDetails = details as EntryEditorInfo;
+
+            if (action === ViewAction.Show) {
+                this.leftSideBar.updateEntryDisplayedStatus(
+                    entryEditorDetails.entry.id,
+                    true,
+                );
+                this.leftSideBar.addEntryEditorNavigator({
+                    ownerId: entryEditorDetails.id,
+                    entry: {
+                        id: entryEditorDetails.entry.id,
+                        type: entryEditorDetails.entry.type,
+                        title: entryEditorDetails.entry.title,
+                    },
+                    activeView: entryEditorDetails.subType,
+                });
+            } else if (action === ViewAction.Hide) {
+                this.leftSideBar.updateEntryDisplayedStatus(
+                    entryEditorDetails.entry.id,
+                    false,
+                );
+                this.leftSideBar.releaseSection({
+                    ownerId: entryEditorDetails.id,
+                    type: SidebarSectionType.EntryEditorNavigator,
+                });
+            }
+        }
     }
 
     // SYNCHRONIZATION
@@ -461,18 +475,11 @@ export class ClientManager implements IComponentService {
                 //     request.id,
                 //     request.title,
                 // );
-                this.leftSideBar.updateEntryEditorNavigatorTitle(
+                this.leftSideBar.updateDisplayedEntryTitle(
                     response.entry.id,
                     request.title,
                 );
             }
         }
-    }
-
-    // CLEAN UP
-
-    cleanUp() {
-        // this.modal.close();
-        this.central.clear();
     }
 }

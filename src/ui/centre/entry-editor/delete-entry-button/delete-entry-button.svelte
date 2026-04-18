@@ -9,20 +9,19 @@
     let { service }: DeleteEntryButtonProps = $props();
 </script>
 
-<Tooltip.Provider>
-    <Tooltip.Root>
-        <Tooltip.Trigger>
-            <Button
-                variant="outline"
-                size="icon-sm"
-                color="destructive"
-                onclick={() => service.deleteEntry()}
-            >
-                <TrashIcon />
-            </Button>
-        </Tooltip.Trigger>
-        <Tooltip.Content>
-            <p>Delete entry</p>
-        </Tooltip.Content>
-    </Tooltip.Root>
-</Tooltip.Provider>
+<Tooltip.Root>
+    <Tooltip.Trigger>
+        <Button
+            variant="outline"
+            size="icon-sm"
+            color="destructive"
+            onclick={() => service.deleteEntry()}
+        >
+            <TrashIcon />
+        </Button>
+    </Tooltip.Trigger>
+    <Tooltip.Content side="bottom">
+        <Tooltip.Arrow />
+        Delete Entry
+    </Tooltip.Content>
+</Tooltip.Root>
