@@ -1,7 +1,7 @@
 <script lang="ts" generics="T">
-    import type { FileTreeProps } from "./file-tree-interface";
-    import FileTreeFolderNode from "./folder-node.svelte";
-    import FileTreeLeafNode from "./leaf-node.svelte";
+    import type { BranchProps } from "./file-tree-interface";
+    import FileTreeFolderNode from "./file-tree-folder-node.svelte";
+    import FileTreeLeafNode from "./file-tree-leaf-node.svelte";
 
     const {
         service,
@@ -10,10 +10,10 @@
         folderLabel,
         leafLabel,
         nodeContextMenu,
-    }: FileTreeProps<T> = $props();
+    }: BranchProps<T> = $props();
 </script>
 
-<div class="flex flex-col h-full">
+<div class="flex flex-col">
     <ul class="w-full list-none p-0 m-0">
         {#each service.getChildNodes(node.id) as child (child.id)}
             <li
@@ -56,14 +56,4 @@
             </li>
         {/each}
     </ul>
-    {#if node.id === service.rootNodeId}
-        <div
-            class="flex-1 min-h-7"
-            ondragover={(e) => service.handleNodeDragOverById(e, node.id)}
-            ondragenter={(e) => service.handleNodeDragEnterById(e, node.id)}
-            ondragleave={(e) => service.handleNodeDragLeaveById(e, node.id)}
-            ondrop={(e) => service.handleNodeDropById(e, node.id)}
-            aria-hidden="true"
-        ></div>
-    {/if}
 </div>
