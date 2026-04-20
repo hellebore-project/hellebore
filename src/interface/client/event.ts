@@ -29,7 +29,7 @@ export interface EditFolderNameEvent {
 }
 
 export interface MoveFolderEvent {
-    id: Id;
+    id: Id | null;
     title: string;
     sourceParentId: Id;
     destParentId: Id;
@@ -68,6 +68,11 @@ export interface ChangeEntryEvent {
 }
 
 export interface DeleteEntryEvent {
+    id: Id;
+    title: string;
+}
+
+export interface RenameEntryEvent {
     id: Id;
     title: string;
 }
