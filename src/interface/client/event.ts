@@ -29,7 +29,7 @@ export interface EditFolderNameEvent {
 }
 
 export interface MoveFolderEvent {
-    id: Id | null;
+    id: Id;
     title: string;
     sourceParentId: Id;
     destParentId: Id;
@@ -72,11 +72,6 @@ export interface DeleteEntryEvent {
     title: string;
 }
 
-export interface RenameEntryEvent {
-    id: Id;
-    title: string;
-}
-
 // POLLING
 
 export interface PollEvent {
@@ -89,7 +84,7 @@ export interface PollEvent {
 
 export interface PollResultEntryData {
     id: Id;
-    entryType: EntryType;
+    entryType?: EntryType | null;
     title?: string;
     properties?: BaseEntity;
     text?: string;
@@ -104,7 +99,7 @@ export interface PollResult {
 
 export interface SyncEntryRequest {
     id: Id;
-    entryType: EntryType;
+    entryType?: EntryType | null;
     folderId?: Id | null;
     title?: string | null;
     properties?: BaseEntity | null;

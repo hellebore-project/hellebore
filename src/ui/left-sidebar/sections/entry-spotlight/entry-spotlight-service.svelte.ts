@@ -1,6 +1,9 @@
+import { SvelteMap } from "svelte/reactivity";
+
 import { ROOT_FOLDER_ID, SidebarSectionType } from "@/constants";
 import type {
     BulkFileResponse,
+    ChangeEntryEvent,
     DeleteFolderEvent,
     FolderResponse,
     EntryInfoResponse,
@@ -9,7 +12,9 @@ import type {
     MoveFolderEvent,
     MoveFolderResult,
     OpenEntryEditorEvent,
-    RenameEntryEvent,
+    PollEvent,
+    PollResultEntryData,
+    SyncEntryEvent,
 } from "@/interface";
 import type { TreeNode } from "@/lib/components/file-tree";
 import { FileTreeService } from "@/lib/components/file-tree";
@@ -34,6 +39,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
     open: boolean = $state(true);
     ownership: BaseOwnership;
     private _focused: boolean = $state(false);
+    private _entryTitleChanges = new SvelteMap<number, string>();
 
     // SERVICES
     private _domain: DomainManager;
@@ -46,7 +52,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         DeleteFolderEvent,
         Promise<BulkFileResponse | null>
     >;
-    onRenameEntry: EventProducer<RenameEntryEvent, unknown>;
+    onChangeTitle: EventProducer<ChangeEntryEvent, unknown>;
 
     constructor(domain: DomainManager) {
         this._domain = domain;
@@ -55,7 +61,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
         this.onOpenEntry = new EventProducer();
         this.onMoveFolder = new EventProducer();
         this.onDeleteFolder = new EventProducer();
-        this.onRenameEntry = new EventProducer();
+
+        this.onChangeTitle = new EventProducer();
         this.fileTree = new FileTreeService<SpotlightNodeData>({
             id: `${this.id}-file-tree`,
             rootNodeId: ROOT_NODE_ID,
@@ -96,7 +103,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         return this.open;
     }
 
-    // LIFECYCLE
+    // LOAD
 
     async activate() {
         const [folders, entries] = await Promise.all([
@@ -134,12 +141,44 @@ export class EntrySpotlightService implements ISidebarSectionService {
         this.fileTree.load(folderNodes, entryNodes);
     }
 
+    // SYNC
+
+    fetchChanges({
+        id = null,
+        syncTitle = false,
+    }: PollEvent): PollResultEntryData[] {
+        if (!syncTitle || this._entryTitleChanges.size === 0) return [];
+
+        const results: PollResultEntryData[] = [];
+        for (const [entryId, title] of this._entryTitleChanges) {
+            if (id !== null && id !== entryId) continue;
+
+            const node = this.fileTree.getNode(this.toEntryNodeId(entryId));
+            if (!node) continue;
+
+            results.push({ id: entryId, title });
+        }
+        return results;
+    }
+
+    handleSynchronization(events: SyncEntryEvent[]) {
+        for (const { request, response } of events) {
+            if (!request.title) continue;
+            if (!response.entry?.title.updated) continue;
+
+            this._entryTitleChanges.delete(request.id);
+        }
+    }
+
+    // CLEAN UP
+
     cleanUp() {
         this.fileTree.clear();
         this.onOpenEntry.clear();
         this.onMoveFolder.clear();
         this.onDeleteFolder.clear();
-        this.onRenameEntry.clear();
+        this.onChangeTitle.clear();
+        this._entryTitleChanges.clear();
     }
 
     // COLLAPSE NODES
@@ -212,16 +251,20 @@ export class EntrySpotlightService implements ISidebarSectionService {
         let cancelled = false;
 
         if (node.isFolder) {
-            const sourceParentFolderId = this.toFolderId(node.parentId);
-            const result = await this.onMoveFolder.produce({
-                id: node.data.id,
-                title: node.text,
-                sourceParentId: sourceParentFolderId,
-                destParentId: destParentFolderId,
-            });
+            if (node.data.id === null)
+                console.error(`Folder node ${node.id} has null folder id.`);
+            else {
+                const sourceParentFolderId = this.toFolderId(node.parentId);
+                const result = await this.onMoveFolder.produce({
+                    id: node.data.id,
+                    title: node.text,
+                    sourceParentId: sourceParentFolderId,
+                    destParentId: destParentFolderId,
+                });
 
-            moved = result.moved;
-            cancelled = result.cancelled;
+                moved = result.moved;
+                cancelled = result.cancelled;
+            }
         } else {
             if (node.data.id === null) {
                 console.error(`Leaf node ${node.id} has null entry id.`);
@@ -264,7 +307,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
         if (node.isFolder) return await this._upsertFolderName(node, name);
 
-        return await this._updateEntryName(node, name);
+        return this._updateEntryName(node, name);
     }
 
     private async _upsertFolderName(
@@ -302,10 +345,10 @@ export class EntrySpotlightService implements ISidebarSectionService {
         return { id: node.id, text: name, data: node.data };
     }
 
-    private async _updateEntryName(
+    private _updateEntryName(
         node: TreeNode<SpotlightNodeData>,
         name: string,
-    ): Promise<TreeNodeTextEdit<SpotlightNodeData> | null> {
+    ): TreeNodeTextEdit<SpotlightNodeData> | null {
         const id = node.data.id;
         if (id === null) {
             console.error(`Cannot rename node ${node.id} with null entry id.`);
@@ -316,13 +359,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
             `Updating entry name for node ${node.id} with name "${name}" and id ${id}`,
         );
 
-        const updateResponse = await this._domain.entries.update({
-            id,
-            title: name,
-        });
-        if (!updateResponse?.title.updated) return null;
-
-        this.onRenameEntry.produce({ id, title: name });
+        this._entryTitleChanges.set(id, name);
+        this.onChangeTitle.produce({ id, poll: { id, syncTitle: true } });
 
         return { id: node.id, text: name, data: node.data };
     }

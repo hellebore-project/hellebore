@@ -46,24 +46,29 @@ export class FileTreeService<T> implements IComponentService {
     private _commitDebouncer: BlockingDebouncer<string, void>;
 
     // EVENTS
-    onFinalizeNodeMove = new EventProducer<
+    onFinalizeNodeMove: EventProducer<
         FinalizeNodeMoveEvent<T>,
         Promise<boolean>
-    >();
-    onFinalizeNodeTextEdit = new EventProducer<
+    >;
+    onFinalizeNodeTextEdit: EventProducer<
         TreeNode<T>,
         Promise<TreeNodeTextEdit<T> | null>
-    >();
-    onValidateNodeText = new EventProducer<
+    >;
+    onValidateNodeText: EventProducer<
         ValidateNodeTextEvent<T>,
         Promise<string | null>
-    >();
-    onSelectLeafNode = new EventProducer<TreeNode<T>, void>();
+    >;
+    onSelectLeafNode: EventProducer<TreeNode<T>, void>;
     onCloseContextMenu: (() => void) | null = null;
 
     constructor({ id, rootNodeId = "root" }: FileTreeServiceArgs) {
         this._id = id;
         this._rootNodeId = rootNodeId;
+
+        this.onFinalizeNodeMove = new EventProducer();
+        this.onFinalizeNodeTextEdit = new EventProducer();
+        this.onValidateNodeText = new EventProducer();
+        this.onSelectLeafNode = new EventProducer();
 
         this._validationDebouncer = new ReplaceDebouncer(
             this._delayedValidateNodeText.bind(this),

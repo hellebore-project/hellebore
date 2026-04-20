@@ -1,4 +1,3 @@
- 
 import { invoke } from "@tauri-apps/api/core";
 
 import {
@@ -290,7 +289,7 @@ export class EntryManager {
     }: EntryUpdate<E>): BackendEntryUpdate {
         let mappedProperties: Partial<Record<EntryTypeLabel, E>> | null = null;
         if (properties) {
-            if (entryType === null)
+            if (entryType === null || entryType === undefined)
                 throw (
                     `Failed to update entry ${id}; a non-null entry type must be specified ` +
                     "in order to update the entry properties."
