@@ -1,4 +1,4 @@
-// eslint-disable-next-line
+ 
 import { invoke } from "@tauri-apps/api/core";
 
 import {
@@ -199,6 +199,19 @@ export class EntryManager {
         }
 
         return true;
+    }
+
+    async validateTitle(id: Id | null, title: string): Promise<boolean | null> {
+        try {
+            const response = await invoke<DiagnosticResponse<boolean>>(
+                CommandNames.Entry.ValidateTitle,
+                { id, title },
+            );
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
     }
 
     private async _createLanguage(

@@ -21,6 +21,7 @@ export const CommandNames = {
         Create: "create_entry",
         Update: "update_entry",
         BulkUpdate: "update_entries",
+        ValidateTitle: "validate_entry_title",
         GetInfo: "get_entry",
         GetProperties: "get_entry_properties",
         GetArticle: "get_entry_text",
