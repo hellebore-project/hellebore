@@ -83,4 +83,9 @@ export class EntryInfoService {
         this._title = title;
         this.isTitleUnique = true;
     }
+
+    handleSynchronization(title: string) {
+        this.titleChanged = false;
+        this.title = title;
+    }
 }

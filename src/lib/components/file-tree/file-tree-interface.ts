@@ -12,13 +12,9 @@ export interface TreeNodeInfo<T> {
 export interface TreeNode<T> extends TreeNodeInfo<T> {
     isFolder: boolean;
     isEditable?: boolean;
-    editableText?: string;
+    originalText?: string;
+    validationError?: string;
 }
-
-export type FinalizeMoveHandler<T> = (
-    node: TreeNode<T>,
-    destParentNodeId: string,
-) => Promise<boolean>;
 
 export interface TreeNodeTextEdit<T> {
     id: string;
@@ -26,9 +22,20 @@ export interface TreeNodeTextEdit<T> {
     data: T;
 }
 
-export type ConfirmNodeTextEditHandler<T> = (
-    node: TreeNode<T>,
-) => Promise<TreeNodeTextEdit<T> | null>;
+export interface FinalizeNodeMoveEvent<T> {
+    node: TreeNode<T>;
+    destParentNodeId: string;
+}
+
+export interface ValidateNodeTextEvent<T> {
+    node: TreeNode<T>;
+    text: string;
+}
+
+export interface EditableLabelProps<T> {
+    service: FileTreeService<T>;
+    node: TreeNode<T>;
+}
 
 export interface FolderNodeProps<T> {
     service: FileTreeService<T>;

@@ -84,7 +84,7 @@ export interface PollEvent {
 
 export interface PollResultEntryData {
     id: Id;
-    entryType: EntryType;
+    entryType?: EntryType | null;
     title?: string;
     properties?: BaseEntity;
     text?: string;
@@ -99,7 +99,7 @@ export interface PollResult {
 
 export interface SyncEntryRequest {
     id: Id;
-    entryType: EntryType;
+    entryType?: EntryType | null;
     folderId?: Id | null;
     title?: string | null;
     properties?: BaseEntity | null;

@@ -158,6 +158,9 @@ export class ClientManager implements IComponentService {
         this.synchronizer.onSync.subscribe((event) =>
             this._handleEntrySynchronization(event),
         );
+        this.leftSideBar.onChangeTitle.subscribe(({ poll }) =>
+            this.synchronizer.requestSynchronization(poll ?? {}),
+        );
     }
 
     // LOADING
@@ -458,11 +461,19 @@ export class ClientManager implements IComponentService {
     // SYNCHRONIZATION
 
     private _fetchChanges(event: PollEvent) {
-        return { entries: this.central.fetchChanges(event) };
+        // FIXME: the changes fetched here may contain multiple conflicting changes for the same entry;
+        // we need to decide which changes take priority
+        return {
+            entries: [
+                ...this.central.fetchChanges(event),
+                ...this.leftSideBar.fetchChanges(event),
+            ],
+        };
     }
 
     private _handleEntrySynchronization(event: SyncEvent) {
         this.central.handleEntrySynchronization(event);
+        this.leftSideBar.handleSynchronization(event);
 
         for (const { request, response } of event.entries) {
             if (
