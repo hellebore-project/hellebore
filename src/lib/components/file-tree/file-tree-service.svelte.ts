@@ -172,7 +172,7 @@ export class FileTreeService<T> implements IComponentService {
         this.selectedNodeId = null;
     }
 
-    // IDENTIFICATION
+    // IDENTIFY NODE
 
     isFolderNode(node: TreeNode<T>): boolean {
         return node.isFolder;
@@ -186,7 +186,7 @@ export class FileTreeService<T> implements IComponentService {
         );
     }
 
-    // RETRIEVAL
+    // RETRIEVE NODE
 
     getNode(nodeId: string): TreeNode<T> | undefined {
         return this._nodes.get(nodeId);
@@ -198,7 +198,26 @@ export class FileTreeService<T> implements IComponentService {
             .filter((n): n is TreeNode<T> => n !== undefined);
     }
 
-    // COLLAPSE
+    // SORT NODES
+
+    sortChildrenOfNode(nodeId: string) {
+        const children = this.getChildNodes(nodeId);
+        const sortedChildren = this.sortNodes(children);
+        this._structure.set(
+            nodeId,
+            sortedChildren.map((n) => n.id),
+        );
+    }
+
+    sortNodes(nodes: TreeNode<T>[]): TreeNode<T>[] {
+        return [...nodes].sort((a, b) => {
+            if (a.isFolder && !b.isFolder) return -1;
+            if (!a.isFolder && b.isFolder) return 1;
+            return a.text.localeCompare(b.text);
+        });
+    }
+
+    // COLLAPSE NODE
 
     isCollapsed(nodeId: string): boolean {
         return this._collapsedIds.has(nodeId);
@@ -220,7 +239,7 @@ export class FileTreeService<T> implements IComponentService {
         this._collapsedIds = new SvelteSet(folderIds);
     }
 
-    // SELECTION
+    // SELECT NODE
 
     isNodeSelected(node: TreeNode<T>): boolean {
         return node.id === this.selectedNodeId;
@@ -231,7 +250,7 @@ export class FileTreeService<T> implements IComponentService {
         if (!this.isFolderNode(node)) this.onSelectLeafNode.produce(node);
     }
 
-    // EDITING
+    // EDIT NODE
 
     isNodeEditable(nodeId: string): boolean {
         return this._editableNodeIds.has(nodeId);
@@ -338,8 +357,13 @@ export class FileTreeService<T> implements IComponentService {
             return;
         }
 
+        if (node.originalText !== textEdit.text) {
+            this.sortChildrenOfNode(node.parentId);
+        }
+
         node.text = textEdit.text;
         node.data = textEdit.data;
+        delete node.originalText;
     }
 
     private _revertNodeToOriginalText(node: TreeNode<T>) {
@@ -349,9 +373,10 @@ export class FileTreeService<T> implements IComponentService {
             );
 
         node.text = node.originalText ?? "";
+        delete node.originalText;
     }
 
-    // TOPOLOGY
+    // ADD NODE
 
     addFolderNode({ id, parentId, text, data }: TreeNodeInfo<T>) {
         const node: TreeNode<T> = { id, parentId, text, isFolder: true, data };
@@ -380,6 +405,8 @@ export class FileTreeService<T> implements IComponentService {
         return node;
     }
 
+    // REMOVE NODE
+
     removeNodeById(nodeId: string) {
         const node = this._nodes.get(nodeId);
         if (!node) return;
@@ -407,6 +434,8 @@ export class FileTreeService<T> implements IComponentService {
 
         node.parentId = "";
     }
+
+    // MOVE NODE
 
     async moveNode(nodeId: string, destFolderId: string) {
         this.dragOverFolderId = null;
@@ -520,12 +549,4 @@ export class FileTreeService<T> implements IComponentService {
     }
 
     // UTILITY
-
-    sortNodes(nodes: TreeNode<T>[]): TreeNode<T>[] {
-        return [...nodes].sort((a, b) => {
-            if (a.isFolder && !b.isFolder) return -1;
-            if (!a.isFolder && b.isFolder) return 1;
-            return a.text.localeCompare(b.text);
-        });
-    }
 }

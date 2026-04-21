@@ -207,14 +207,14 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     // ADD NODE
 
-    createNewFolder() {
+    addPlaceholderForNewFolder() {
         const parentId = this.fileTree.selectedFolderId;
         const placeholderId = this._createPlaceholderId();
         const node = this.fileTree.addFolderNode({
             id: placeholderId,
             parentId,
             text: "",
-            data: { id: -1 },
+            data: { id: null },
         });
         this.fileTree.makeNodeEditable(node);
     }

@@ -23,7 +23,7 @@
                     <Button
                         variant="ghost"
                         size="icon-sm"
-                        onclick={() => service.createNewFolder()}
+                        onclick={() => service.addPlaceholderForNewFolder()}
                     >
                         <FolderPlusIcon class="size-4" />
                     </Button>
