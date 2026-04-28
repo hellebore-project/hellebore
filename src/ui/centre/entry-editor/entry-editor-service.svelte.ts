@@ -260,8 +260,8 @@ export class EntryEditorService implements ICentralPanelContentService {
 
             if (response.entry) {
                 this.info.isTitleUnique = response.entry.title.isUnique ?? true;
-                if (response.entry.title.updated)
-                    this.info.titleChanged = false;
+                if (response.entry.title.updated && request?.title)
+                    this.info.handleSynchronization(request.title);
 
                 if (response.entry.properties.updated)
                     this.properties.changed = false;

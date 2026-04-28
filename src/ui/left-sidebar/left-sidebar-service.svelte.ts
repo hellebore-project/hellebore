@@ -3,6 +3,7 @@ import { SvelteMap } from "svelte/reactivity";
 import type {
     BulkFileResponse,
     ChangeEntryEditorViewEvent,
+    ChangeEntryEvent,
     DeleteFolderEvent,
     EntryInfoResponse,
     IComponentService,
@@ -10,9 +11,12 @@ import type {
     AddEntryEditorNavigatorEvent,
     MoveFolderEvent,
     MoveFolderResult,
+    PollEvent,
+    PollResultEntryData,
     ReleaseSidebarSectionEvent,
     Id,
     OpenEntryEditorEvent,
+    SyncEvent,
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { SidebarSectionType } from "@/constants";
@@ -47,6 +51,7 @@ export class LeftSidebarService implements IComponentService {
         DeleteFolderEvent,
         Promise<BulkFileResponse | null>
     >;
+    onChangeTitle: EventProducer<ChangeEntryEvent, unknown>;
 
     constructor({ domain }: LeftSidebarServiceArgs) {
         this.domain = domain;
@@ -54,6 +59,7 @@ export class LeftSidebarService implements IComponentService {
         this.onOpenEntry = new EventProducer();
         this.onMoveFolder = new EventProducer();
         this.onDeleteFolder = new EventProducer();
+        this.onChangeTitle = new EventProducer();
     }
 
     get width() {
@@ -73,6 +79,7 @@ export class LeftSidebarService implements IComponentService {
         section.onOpenEntry.broker = this.onOpenEntry;
         section.onMoveFolder.broker = this.onMoveFolder;
         section.onDeleteFolder.broker = this.onDeleteFolder;
+        section.onChangeTitle.broker = this.onChangeTitle;
 
         this._addSection(section);
 
@@ -205,5 +212,19 @@ export class LeftSidebarService implements IComponentService {
             SidebarSectionType.EntrySpotlight,
         );
         section?.deleteEntryNode(id);
+    }
+
+    fetchChanges(event: PollEvent): PollResultEntryData[] {
+        const spotlight = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        return spotlight?.fetchChanges(event) ?? [];
+    }
+
+    handleSynchronization(event: SyncEvent) {
+        const spotlight = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        spotlight?.handleSynchronization(event.entries);
     }
 }

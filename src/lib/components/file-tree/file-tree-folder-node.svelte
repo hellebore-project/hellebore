@@ -2,11 +2,11 @@
     import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
 
     import { cn } from "@/lib/utils";
-    import { Input } from "@/lib/components/input";
     import * as ContextMenu from "@/lib/components/context-menu";
 
     import type { FolderNodeProps } from "./file-tree-interface";
     import FileTreeBranch from "./file-tree-branch.svelte";
+    import FileTreeEditableLabel from "./file-tree-editable-label.svelte";
 
     const {
         service,
@@ -18,7 +18,9 @@
     }: FolderNodeProps<T> = $props();
 </script>
 
-<ContextMenu.Root>
+<ContextMenu.Root
+    onOpenChangeComplete={(open) => service.handleContextMenuStatusChange(open)}
+>
     <ContextMenu.Trigger>
         {#snippet child({ props })}
             <div
@@ -50,20 +52,8 @@
                     )}
                 />
 
-                {#if node.isEditable}
-                    <Input
-                        class="flex-1 min-w-0"
-                        autofocus
-                        value={node.editableText ?? ""}
-                        oninput={(e) =>
-                            service.setNodeEditText(
-                                node.id,
-                                e.currentTarget.value,
-                            )}
-                        onblur={() => service.commitNodeTextEdit(node)}
-                        onkeydown={(e) => service.handleKeydown(e, node)}
-                        onclick={(e) => e.stopPropagation()}
-                    />
+                {#if service.isNodeEditable(node.id)}
+                    <FileTreeEditableLabel {service} {node} />
                 {:else if folderLabel}
                     {@render folderLabel(node, service.isCollapsed(node.id))}
                 {:else}
@@ -72,7 +62,7 @@
             </div>
         {/snippet}
     </ContextMenu.Trigger>
-    <ContextMenu.Content>
+    <ContextMenu.Content onCloseAutoFocus={(e) => e.preventDefault()}>
         {#if contextMenu}
             {@render contextMenu(node)}
         {/if}

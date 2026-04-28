@@ -205,6 +205,8 @@ pub async fn bulk_update(
     database: &DatabaseConnection,
     entries: Vec<EntryUpdateSchema>,
 ) -> Vec<DiagnosticResponseSchema<EntryUpdateResponseSchema>> {
+    // FIXME: `entries` may contain multiple conflicting changes for the same entry;
+    // we need to decide how to handle such conflicts
     future::join_all(
         entries
             .into_iter()
