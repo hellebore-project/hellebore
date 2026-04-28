@@ -7,6 +7,7 @@
     const { service, node }: EditableLabelProps<T> = $props();
 
     let ref: HTMLInputElement | null = $state(null);
+    let error = $derived(service.getNodeError(node.id));
 
     $effect(() => {
         if (!ref) return;
@@ -14,12 +15,7 @@
     });
 </script>
 
-<Popover.Root
-    open={!!node.validationError}
-    onOpenChange={() => {
-        return;
-    }}
->
+<Popover.Root open={!!error}>
     <Popover.Trigger>
         {#snippet child({ props })}
             <!-- 
@@ -33,7 +29,7 @@
                 type="text"
                 class={"flex-1 min-w-0 h-auto py-0 border-0 px-0 shadow-none " +
                     "focus-visible:ring-0 focus-visible:border-0"}
-                severity={node.validationError ? "error" : "normal"}
+                severity={error ? "error" : "normal"}
                 value={node.text ?? ""}
                 oninput={(e) =>
                     service.setNodeEditText(node.id, e.currentTarget.value)}
@@ -48,6 +44,6 @@
         align="start"
         class="w-auto px-2 py-1.5 text-sm text-error-foreground bg-popover"
     >
-        {node.validationError}
+        {error}
     </Popover.Content>
 </Popover.Root>

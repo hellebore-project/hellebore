@@ -10,6 +10,7 @@ import { EventProducer } from "@/utils/event-producer";
 
 import type {
     FinalizeNodeMoveEvent,
+    NodeTextValidationResult,
     TreeNode,
     TreeNodeInfo,
     TreeNodeTextEdit,
@@ -19,11 +20,6 @@ import type {
 export interface FileTreeServiceArgs {
     id: string;
     rootNodeId?: string;
-}
-
-interface NodeTextValidationResult {
-    valid: boolean;
-    error?: string | null;
 }
 
 export class FileTreeService<T> implements IComponentService {
@@ -56,7 +52,7 @@ export class FileTreeService<T> implements IComponentService {
     >;
     onValidateNodeText: EventProducer<
         ValidateNodeTextEvent<T>,
-        Promise<string | null>
+        Promise<NodeTextValidationResult>
     >;
     onSelectLeafNode: EventProducer<TreeNode<T>, void>;
     onCloseContextMenu: (() => void) | null = null;
@@ -282,37 +278,6 @@ export class FileTreeService<T> implements IComponentService {
         this._validationDebouncer.call(nodeId);
     }
 
-    private async _delayedValidateNodeText(
-        nodeId: string,
-    ): Promise<DebouncerResult<void>> {
-        const result = await this._validateNodeText(nodeId);
-        console.debug(`Validation result for node ${nodeId}:`, result);
-        if (!result.valid) return { status: "rejected", reason: result.error };
-        return { status: "resolved", value: undefined };
-    }
-
-    private async _validateNodeText(
-        nodeId: string,
-    ): Promise<NodeTextValidationResult> {
-        const node = this._nodes.get(nodeId);
-        if (!node) return { valid: false, error: "Node not found" };
-
-        const currentText = node.text;
-        const error = await this.onValidateNodeText.produce({
-            node,
-            text: currentText,
-        });
-
-        if (node.text !== currentText)
-            return { valid: false, error: "Text changed during validation" };
-
-        node.validationError = error ?? undefined;
-
-        if (error) return { valid: false, error };
-
-        return { valid: true };
-    }
-
     async commitNodeTextEdit(nodeId: string) {
         await this._commitDebouncer.call(nodeId);
     }
@@ -374,6 +339,50 @@ export class FileTreeService<T> implements IComponentService {
 
         node.text = node.originalText ?? "";
         delete node.originalText;
+    }
+
+    // VALIDATE NODE TEXT
+
+    getNodeError(nodeId: string) {
+        const node = this._nodes.get(nodeId);
+        console.debug(
+            `Retrieving validation error for node ${nodeId}:`,
+            node?.validationError,
+        );
+        return node?.validationError ?? null;
+    }
+
+    private async _delayedValidateNodeText(
+        nodeId: string,
+    ): Promise<DebouncerResult<void>> {
+        const result = await this._validateNodeText(nodeId);
+        console.debug(`Validation result for node ${nodeId}:`, result);
+        if (!result.valid) return { status: "rejected", reason: result.error };
+        return { status: "resolved", value: undefined };
+    }
+
+    private async _validateNodeText(
+        nodeId: string,
+    ): Promise<NodeTextValidationResult> {
+        const node = this._nodes.get(nodeId);
+        if (!node) return { valid: false, error: "Node not found" };
+
+        const currentText = node.text;
+        const result = await this.onValidateNodeText.produce({
+            node,
+            text: currentText,
+        });
+
+        if (node.text !== currentText)
+            return { valid: false, error: "Text changed during validation" };
+
+        if (result.valid) return { valid: true };
+
+        console.debug(`Validation failed for node ${nodeId}:`, result.error);
+        const error = result.error ?? "Node text is invalid.";
+        node.validationError = error;
+
+        return { valid: false, error };
     }
 
     // ADD NODE

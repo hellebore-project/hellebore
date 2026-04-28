@@ -24,6 +24,7 @@ import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
 import type { SpotlightNodeData } from "./entry-spotlight-interface";
 import type {
+    NodeTextValidationResult,
     TreeNodeInfo,
     TreeNodeTextEdit,
 } from "@/lib/components/file-tree/file-tree-interface";
@@ -368,9 +369,13 @@ export class EntrySpotlightService implements ISidebarSectionService {
     async validateName(
         node: TreeNode<SpotlightNodeData>,
         text: string,
-    ): Promise<string | null> {
+    ): Promise<NodeTextValidationResult> {
         const trimmed = text.trim();
-        if (!trimmed) return "A name must be provided.";
+        if (!trimmed)
+            return {
+                valid: false,
+                error: "An entry or folder name must be provided.",
+            };
 
         const id = node.data.id;
 
@@ -381,21 +386,35 @@ export class EntrySpotlightService implements ISidebarSectionService {
                 parentFolderId,
                 trimmed,
             );
-            if (!validationResponse) return null;
+
+            if (!validationResponse)
+                return { valid: false, error: "Folder validation failed." };
+
             if (
                 validationResponse.nameCollision &&
                 !validationResponse.nameCollision.isUnique
-            ) {
-                return `A folder named "${trimmed}" already exists at this location.`;
-            }
-            return null;
+            )
+                return {
+                    valid: false,
+                    error: `A folder named "${trimmed}" already exists at this location.`,
+                };
+        } else {
+            const isValid = await this._domain.entries.validateTitle(
+                id,
+                trimmed,
+            );
+
+            if (isValid === null)
+                return { valid: false, error: "Entry validation failed." };
+
+            if (!isValid)
+                return {
+                    valid: false,
+                    error: `An entry named "${trimmed}" already exists.`,
+                };
         }
 
-        // entry
-        const isValid = await this._domain.entries.validateTitle(id, trimmed);
-        if (isValid === null) return null;
-        if (!isValid) return `An entry named "${trimmed}" already exists.`;
-        return null;
+        return { valid: true };
     }
 
     handleContextMenuItemRename(node: TreeNode<SpotlightNodeData>) {
