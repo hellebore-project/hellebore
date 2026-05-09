@@ -13,15 +13,19 @@ This is just a hobby project, so I don't plan on ever distributing this. However
 - pnpm: https://pnpm.io/installation
 - sqlite 3: https://www.sqlite.org/download.html
 
+#### Linux
+
+- tauri dependencies: https://v2.tauri.app/start/prerequisites/#linux
+
 ### Setup
 
-1. Install the front-end.
+1. Install the frontend.
 
 ```sh
 pnpm install
 ```
 
-2. Install the back-end.
+2. Install the backend.
 
 ```sh
 cargo install --path src-tauri
@@ -30,7 +34,7 @@ cargo install --path src-tauri
 3. Install the sea-orm cli
 
 ```sh
-cargo install sea-orm-cli@1.1.0
+cargo install sea-orm-cli@^1.1.20
 ```
 
 4. Configure the development environment via a `.env` file in the project root.
