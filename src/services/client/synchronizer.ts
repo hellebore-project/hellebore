@@ -1,9 +1,13 @@
+import { SyncType } from "@/constants";
 import type {
     PollEvent,
     PollResult,
     SyncEntryEvent,
     SyncEntryRequest,
     SyncEvent,
+    SyncProjectEvent,
+    SyncProjectRequest,
+    SyncRequest,
 } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
@@ -35,6 +39,24 @@ export class SynchronizationService {
         return this.DEFAULT_SYNC_PERIOD;
     }
 
+    canSkipSync(poll: PollEvent) {
+        if (poll.type === SyncType.FULL) return false;
+
+        if (poll.project && poll.project.syncName) return false;
+
+        for (const entryPoll of poll.entries ?? []) {
+            if (
+                entryPoll.syncTitle ||
+                entryPoll.syncProperties ||
+                entryPoll.syncText ||
+                entryPoll.syncLexicon
+            )
+                return false;
+        }
+
+        return true;
+    }
+
     requestPeriodicSynchronization() {
         this._lastFullRequestTime = Date.now();
 
@@ -64,12 +86,7 @@ export class SynchronizationService {
     }
 
     async requestFullSynchronization(): Promise<SyncEvent | null> {
-        return this.requestSynchronization({
-            syncTitle: true,
-            syncText: true,
-            syncProperties: true,
-            syncLexicon: true,
-        });
+        return this.requestSynchronization({ type: SyncType.FULL });
     }
 
     /**
@@ -78,33 +95,15 @@ export class SynchronizationService {
      * the time the method terminates.
      * @returns promise that returns the sync event or null if the request is skipped
      */
-    requestSynchronization({
-        id = null,
-        syncTitle = false,
-        syncProperties = false,
-        syncText = false,
-        syncLexicon = false,
-    }: PollEvent): Promise<SyncEvent | null> {
-        if (!syncTitle && !syncProperties && !syncText && !syncLexicon)
+    requestSynchronization(poll: PollEvent): Promise<SyncEvent | null> {
+        if (this.canSkipSync(poll)) return new Promise(() => null);
+
+        const result = this.onPoll.produce(poll);
+
+        if (!result.project && (!result.entries || result.entries.length == 0))
             return new Promise(() => null);
 
-        const result = this.onPoll.produce({
-            id,
-            syncTitle,
-            syncProperties,
-            syncText,
-            syncLexicon,
-        });
-
-        if (result.entries.length == 0) return new Promise(() => null);
-
-        if (
-            id === null &&
-            syncTitle &&
-            syncProperties &&
-            syncText &&
-            syncLexicon
-        )
+        if (poll.type === SyncType.FULL)
             // the last sync time corresponds to the moment that the view data is retrieved
             this._lastFullSyncTime = Date.now();
 
@@ -114,37 +113,69 @@ export class SynchronizationService {
         // the waiting-for-sync flag is set to false to permit the creation of a delayed sync event
         this._waitingForSync = false;
 
-        const requests: SyncEntryRequest[] = result.entries.map((result) => ({
-            id: result.id,
-            entryType: result.entryType,
-            title: result.title ?? null,
-            properties: result.properties ?? null,
-            text: result.text ?? null,
-            words: result.words ?? null,
-        }));
+        const projectRequest: SyncProjectRequest = {
+            name: result.project?.name ?? null,
+        };
 
-        return this._synchronize(requests).then((events) => {
+        const entryRequests: SyncEntryRequest[] =
+            result.entries?.map((entry) => ({
+                id: entry.id,
+                entryType: entry.entryType,
+                title: entry.title ?? null,
+                properties: entry.properties ?? null,
+                text: entry.text ?? null,
+                words: entry.words ?? null,
+            })) ?? [];
+
+        return this._synchronize({
+            project: projectRequest,
+            entries: entryRequests,
+        }).then((event) => {
             this._syncing = false;
-            const event = { entries: events };
             this.onSync.produce(event);
             return event;
         });
     }
 
-    private async _synchronize(
-        requests: SyncEntryRequest[],
-    ): Promise<SyncEntryEvent[]> {
-        const events: SyncEntryEvent[] = requests.map((r) => ({
-            request: r,
-            response: { entry: null },
-        }));
+    private async _synchronize({
+        project: projectRequest = null,
+        entries: entryRequests = null,
+    }: SyncRequest): Promise<SyncEvent> {
+        const syncEvent: SyncEvent = {
+            project: null,
+            entries: [],
+        };
 
-        const entryResponses = await this._domain.entries.bulkUpdate(requests);
-        if (entryResponses) {
-            for (let i = 0; i < events.length; i++)
-                events[i].response.entry = entryResponses[i];
+        if (projectRequest) {
+            const projectEvent: SyncProjectEvent = {
+                request: projectRequest,
+                response: { project: null },
+            };
+
+            const projectResponse =
+                await this._domain.session.updateProject(projectRequest);
+            if (projectResponse)
+                projectEvent.response.project = projectResponse;
+
+            syncEvent.project = projectEvent;
         }
 
-        return events;
+        if (entryRequests) {
+            const entryEvents: SyncEntryEvent[] = entryRequests.map((r) => ({
+                request: r,
+                response: { entry: null },
+            }));
+
+            const entryResponses =
+                await this._domain.entries.bulkUpdate(entryRequests);
+            if (entryResponses) {
+                for (let i = 0; i < entryEvents.length; i++)
+                    entryEvents[i].response.entry = entryResponses[i];
+            }
+
+            syncEvent.entries = entryEvents;
+        }
+
+        return syncEvent;
     }
 }

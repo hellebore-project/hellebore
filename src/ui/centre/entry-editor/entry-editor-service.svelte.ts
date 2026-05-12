@@ -3,14 +3,16 @@ import {
     ENTRY_VIEW_LABELS,
     EntryType,
     EntryViewType,
+    SyncType,
 } from "@/constants";
 import type {
-    ChangeEntryEvent,
+    EntryChangeEvent,
     DeleteEntryEvent,
     EntryEditorInfo,
     ICentralPanelContentService,
     Id,
     OpenEntryEditorEvent,
+    PollEntryEvent,
     PollEvent,
     PollResultEntryData,
     SyncEntryEvent,
@@ -42,9 +44,7 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     // EVENTS
     onOpenReferencedEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
-    onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
-    onPartialChange: MultiEventProducer<ChangeEntryEvent, unknown>;
-    onPeriodicChange: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onChange: MultiEventProducer<EntryChangeEvent, unknown>;
     onDelete: MultiEventProducer<DeleteEntryEvent, unknown>;
 
     constructor(entryId: Id, domain: DomainManager) {
@@ -62,8 +62,6 @@ export class EntryEditorService implements ICentralPanelContentService {
 
         this.onOpenReferencedEntry = new MultiEventProducer();
         this.onChange = new MultiEventProducer();
-        this.onPartialChange = new MultiEventProducer();
-        this.onPeriodicChange = new MultiEventProducer();
         this.onDelete = new MultiEventProducer();
 
         this._createSubscriptions();
@@ -126,14 +124,14 @@ export class EntryEditorService implements ICentralPanelContentService {
     // INITIALIZATION
 
     private _createSubscriptions() {
-        this.info.onChangeTitle.broker = this.onPartialChange;
+        this.info.onChangeTitle.broker = this.onChange;
 
-        this.article.onChange.broker = this.onPeriodicChange;
+        this.article.onChange.broker = this.onChange;
         this.article.onSelectEntryReference.broker = this.onOpenReferencedEntry;
 
-        this.properties.onChange.broker = this.onPeriodicChange;
+        this.properties.onChange.broker = this.onChange;
 
-        this.lexicon.onChange.broker = this.onPeriodicChange;
+        this.lexicon.onChange.broker = this.onChange;
     }
 
     // LOADING
@@ -188,7 +186,14 @@ export class EntryEditorService implements ICentralPanelContentService {
     changeView(viewType: EntryViewType) {
         // the entry-editor is switching to a different view,
         // so any pending edits need to be pushed to the BE
-        this.onChange.produce({ id: this.info.entryId });
+        this.onChange.produce({
+            id: this.info.entryId,
+            titleChanged: this.info.titleChanged,
+            propertiesChanged: this.properties.changed,
+            textChanged: this.article.changed,
+            lexiconChanged: this.lexicon.changed,
+            syncImmediately: true,
+        });
         this.load({
             id: this.info.entryId,
             viewKey: viewType,
@@ -204,54 +209,78 @@ export class EntryEditorService implements ICentralPanelContentService {
     // CLEAN UP
 
     cleanUp() {
-        this.onChange.produce({ id: this.info.entryId });
+        this.onChange.produce({
+            id: this.info.entryId,
+            titleChanged: this.info.titleChanged,
+            propertiesChanged: this.properties.changed,
+            textChanged: this.article.changed,
+            lexiconChanged: this.lexicon.changed,
+            syncImmediately: true,
+        });
         this.article.cleanUp();
         this.properties.changed = false;
         this.lexicon.cleanUp();
 
         this.onOpenReferencedEntry.broker = null;
         this.onChange.broker = null;
-        this.onPartialChange.broker = null;
-        this.onPeriodicChange.broker = null;
         this.onDelete.broker = null;
     }
 
     // SYNC
 
-    fetchChanges({
-        id = null,
-        syncTitle = false,
-        syncProperties = false,
-        syncText = false,
-        syncLexicon = false,
-    }: PollEvent): PollResultEntryData | null {
+    collectChanges(event: PollEvent): PollResultEntryData | null {
         if (this.info.entryId === null || this.info.entryType === null)
             return null;
 
-        if (id !== null && this.info.entryId !== id) return null;
+        let syncTitle = false;
+        let syncProperties = false;
+        let syncText = false;
+        let syncLexicon = false;
 
-        const entry: PollResultEntryData = {
+        if (event.type === SyncType.FULL) {
+            syncTitle = true;
+            syncProperties = true;
+            syncText = true;
+            syncLexicon = true;
+        } else if (event.type === SyncType.PARTIAL) {
+            let entryEvent: PollEntryEvent | undefined = undefined;
+
+            for (const e of event.entries ?? []) {
+                if (e.id === this.info.entryId) {
+                    entryEvent = e;
+                    break;
+                }
+            }
+            if (!entryEvent) return null;
+
+            syncTitle = entryEvent.syncTitle ?? false;
+            syncProperties = entryEvent.syncProperties ?? false;
+            syncText = entryEvent.syncText ?? false;
+            syncLexicon = entryEvent.syncLexicon ?? false;
+        }
+
+        const changes: PollResultEntryData = {
             id: this.info.entryId,
             entryType: this.info.entryType,
         };
 
         if (syncTitle && this.info.titleChanged && this.info.isTitleValid)
-            entry.title = this.info.title;
+            changes.title = this.info.title;
 
         if (syncProperties && this.properties.changed) {
             const properties = this.properties.entity;
-            if (properties) entry.properties = properties;
+            if (properties) changes.properties = properties;
         }
 
         if (syncText && this.article.changed)
-            entry.text = this.article.richText.serialized;
+            changes.text = this.article.richText.serialized;
 
         if (syncLexicon) {
             const words = this.lexicon.claimModifiedWords();
-            if (words.length > 0) entry.words = words;
+            if (words.length > 0) changes.words = words;
         }
 
-        return entry;
+        return changes;
     }
 
     handleSynchronization(events: SyncEntryEvent[]) {

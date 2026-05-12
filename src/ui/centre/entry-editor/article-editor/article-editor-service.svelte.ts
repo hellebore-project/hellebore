@@ -2,7 +2,7 @@ import type { JSONContent } from "@tiptap/core";
 
 import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
 import type {
-    ChangeEntryEvent,
+    EntryChangeEvent,
     IComponentService,
     OpenEntryEditorEvent,
 } from "@/interface";
@@ -21,7 +21,7 @@ export class ArticleEditorService implements IComponentService {
     info: EntryInfoService;
     richText: RichTextEditorService<EntryMentionItemData>;
 
-    onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onChange: MultiEventProducer<EntryChangeEvent, unknown>;
     onSelectEntryReference: MultiEventProducer<OpenEntryEditorEvent, unknown>;
 
     constructor(domain: DomainManager, info: EntryInfoService) {
@@ -62,7 +62,7 @@ export class ArticleEditorService implements IComponentService {
 
     private _createSubscriptions() {
         this.richText.onChange.subscribe(() =>
-            this.onChange.produce({ id: this.info.entryId }),
+            this.onChange.produce({ id: this.info.entryId, textChanged: true }),
         );
         this.richText.onSelectMention.subscribe(({ data }) => {
             const id = data?.id;

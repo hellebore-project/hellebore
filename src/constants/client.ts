@@ -68,3 +68,9 @@ export enum ContextMenuType {
     NavBarFolderNode = "NAV_BAR_FOLDER_NODE",
     NavBarEntityNode = "NAV_BAR_ENTITY_NODE",
 }
+
+export enum SyncType {
+    NONE = 0,
+    PARTIAL = 1,
+    FULL = 2,
+}

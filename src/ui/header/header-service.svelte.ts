@@ -1,7 +1,11 @@
 import { DomainManager } from "@/services";
-import type { IComponentService, OpenEntryEditorEvent } from "@/interface";
+import type {
+    IComponentService,
+    LoadProjectEvent,
+    OpenEntryEditorEvent,
+} from "@/interface";
 import { DIVIDER_DATA, type MenubarItemData } from "@/lib/components/menubar";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntrySearchService } from "../shared/entry-search";
 
@@ -24,9 +28,9 @@ export class HeaderManager implements IComponentService {
 
     // STATE
     private _menuItems: MenuItems;
+    private _isProjectLoaded: boolean = $state(false);
 
     // SERVICES
-    domain: DomainManager;
     entrySearch: EntrySearchService;
 
     // EVENTS
@@ -37,11 +41,8 @@ export class HeaderManager implements IComponentService {
     onOpenSettings: MultiEventProducer<void, unknown>;
     onCreateEntry: MultiEventProducer<void, unknown>;
     onOpenEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
-    fetchLeftBarStatus: EventProducer<void, boolean>;
-    onToggleLeftBar: MultiEventProducer<void, unknown>;
 
     constructor(domain: DomainManager) {
-        this.domain = domain;
         this.entrySearch = new EntrySearchService(domain);
 
         this.onCreateProject = new MultiEventProducer();
@@ -51,8 +52,6 @@ export class HeaderManager implements IComponentService {
         this.onOpenSettings = new MultiEventProducer();
         this.onCreateEntry = new MultiEventProducer();
         this.onOpenEntry = new MultiEventProducer();
-        this.fetchLeftBarStatus = new EventProducer();
-        this.onToggleLeftBar = new MultiEventProducer();
 
         this._menuItems = {
             project: {
@@ -88,8 +87,12 @@ export class HeaderManager implements IComponentService {
         return this.DEFAULT_HEIGHT;
     }
 
+    get isProjectLoaded() {
+        return this._isProjectLoaded;
+    }
+
     get fileMenuData() {
-        if (this.domain.hasProject)
+        if (this._isProjectLoaded)
             return [
                 this._menuItems.project.create,
                 this._menuItems.project.open,
@@ -106,6 +109,10 @@ export class HeaderManager implements IComponentService {
             DIVIDER_DATA,
             this._menuItems.settings,
         ];
+    }
+
+    handleProjectChange(event: LoadProjectEvent) {
+        this._isProjectLoaded = event.loaded;
     }
 
     private _linkSubscribables() {

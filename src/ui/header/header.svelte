@@ -37,7 +37,7 @@
 
     <div class="flex-1"></div>
 
-    <div class="">
+    {#if service.isProjectLoaded}
         <EntrySearchField service={service.entrySearch} />
-    </div>
+    {/if}
 </div>

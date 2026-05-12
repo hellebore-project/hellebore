@@ -62,13 +62,14 @@ export class LeftSidebarService implements IComponentService {
 
     // SPOTLIGHT
 
-    addSpotlight() {
+    addSpotlight(ownerId: string) {
         const existing = this.getSectionByType<EntrySpotlightService>(
             SidebarSectionType.EntrySpotlight,
         );
         if (existing) return existing;
 
         const section = new EntrySpotlightService(this.domain);
+        section.ownership.add(ownerId);
 
         section.onOpenEntry.broker = this.onOpenEntry;
         section.onMoveFolder.broker = this.onMoveFolder;

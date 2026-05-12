@@ -11,6 +11,7 @@ import type { ColumnDef } from "@/lib/components/data-table";
 
 import { WordColumnKey, WORD_TYPE_SELECT_ITEMS } from "./word-table-constants";
 import type { WordRow } from "./word-table-interface";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 const WORD_COLUMNS: ColumnDef<WordColumnKey>[] = [
     {
@@ -41,13 +42,18 @@ const WORD_COLUMNS: ColumnDef<WordColumnKey>[] = [
 ];
 
 export class WordTableService implements IComponentService {
+    // STATE VARIABLES
     private _id: string;
     private _sentinelKey: WordKey = $state("");
     private _languageId = -1;
     private _keyCounter = 0;
     private _domain: DomainManager;
 
+    // SERVICES
     table: DataTableService<WordColumnKey>;
+
+    // EVENTS
+    onChange: MultiEventProducer<void, unknown>;
 
     constructor(id: string, domain: DomainManager) {
         this._id = id;
@@ -58,12 +64,17 @@ export class WordTableService implements IComponentService {
             onFilter: (colKey, values) => this._onFilter(colKey, values),
             onSetValue: (rowKey) => this._onSetValue(rowKey),
         });
+        this.onChange = new MultiEventProducer();
     }
 
     // PROPERTIES
 
     get id() {
         return this._id;
+    }
+
+    get changed() {
+        return this.table.modifiedKeys.size > 0;
     }
 
     get sentinelKey(): WordKey {
@@ -129,22 +140,25 @@ export class WordTableService implements IComponentService {
     }
 
     private _onSetValue(rowKey: string) {
-        if (rowKey !== this._sentinelKey) return;
-        const row = this.table.findRow(rowKey) as WordRow | undefined;
+        if (rowKey === this._sentinelKey) {
+            const row = this.table.findRow(rowKey) as WordRow | undefined;
 
-        if (row) {
-            row.filterable = true;
+            if (row) {
+                row.filterable = true;
 
-            if (row.cells.wordType.value === "") {
-                const filterValues = this.table.getColumnFilter(
-                    WordColumnKey.WordType,
-                );
-                row.cells.wordType.value =
-                    filterValues[0] ?? String(WordType.RootWord);
+                if (row.cells.wordType.value === "") {
+                    const filterValues = this.table.getColumnFilter(
+                        WordColumnKey.WordType,
+                    );
+                    row.cells.wordType.value =
+                        filterValues[0] ?? String(WordType.RootWord);
+                }
             }
+
+            this._addSentinel();
         }
 
-        this._addSentinel();
+        this.onChange.produce();
     }
 
     private _onFilter(colKey: WordColumnKey, values: string[]) {

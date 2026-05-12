@@ -1,7 +1,7 @@
 import { EntryType } from "@/constants";
 import type {
     BaseEntity,
-    ChangeEntryEvent,
+    EntryChangeEvent,
     IComponentService,
     LanguageProperties,
     PersonProperties,
@@ -27,7 +27,7 @@ export class PropertyEditorService implements IComponentService {
     table: PropertyTableService;
 
     // EVENTS
-    onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onChange: MultiEventProducer<EntryChangeEvent, unknown>;
 
     constructor({ info }: PropertyEditorServiceArgs) {
         this.info = info;
@@ -75,7 +75,10 @@ export class PropertyEditorService implements IComponentService {
 
         entity.onChange.subscribe(() => {
             this._changed = true;
-            this.onChange.produce({ id: this.info.entryId });
+            this.onChange.produce({
+                id: this.info.entryId,
+                propertiesChanged: true,
+            });
         });
 
         this._entity = entity;

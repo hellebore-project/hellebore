@@ -1,29 +1,13 @@
-// eslint-disable-next-line
 import { invoke } from "@tauri-apps/api/core";
 
 import { CommandNames } from "@/constants";
-import type { ProjectResponse, SessionResponse } from "@/interface";
+import type {
+    ProjectResponse,
+    ProjectUpdate,
+    SessionResponse,
+} from "@/interface";
 
 export class SessionManager {
-    private _dbFilePath: string | null = $state(null);
-    private _project: ProjectResponse | null = $state(null);
-
-    get project() {
-        return this._project;
-    }
-
-    set project(project: ProjectResponse | null) {
-        this._project = project;
-    }
-
-    get dbFilePath() {
-        return this._dbFilePath;
-    }
-
-    set dbFilePath(dbFilePath: string | null) {
-        this._dbFilePath = dbFilePath;
-    }
-
     async getSession() {
         let response: SessionResponse | null;
         try {
@@ -32,8 +16,6 @@ export class SessionManager {
             console.error(error);
             return null;
         }
-        this.project = response.project;
-        this.dbFilePath = response.dbFilePath;
         return response;
     }
 
@@ -45,8 +27,6 @@ export class SessionManager {
             console.error(error);
             return null;
         }
-        this.project = response;
-        this.dbFilePath = dbFilePath;
         return response;
     }
 
@@ -58,8 +38,6 @@ export class SessionManager {
             console.error(error);
             return null;
         }
-        this.project = response;
-        this.dbFilePath = dbFilePath;
         return response;
     }
 
@@ -70,20 +48,20 @@ export class SessionManager {
             console.error(error);
             return false;
         }
-        this.project = null;
-        this.dbFilePath = null;
         return true;
     }
 
-    async updateProject(name: string) {
+    async updateProject({ name = null }: ProjectUpdate) {
+        if (name === null) return null;
+
         let response: ProjectResponse | null;
         try {
+            // TODO: the update project endpoint should support null fields
             response = await this._updateProject(name);
         } catch (error) {
             console.error(error);
             return null;
         }
-        this.project = response;
         return response;
     }
 

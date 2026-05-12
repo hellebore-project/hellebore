@@ -3,17 +3,19 @@ import { SvelteMap } from "svelte/reactivity";
 import { CentralViewType, EntryViewType, ViewAction } from "@/constants";
 import type {
     ChangeCentralPanelEvent,
-    ChangeEntryEvent,
     DeleteEntryEvent,
     ICentralPanelContentService,
     IComponentService,
     OpenEntryEditorEvent,
     PollEvent,
-    PollResultEntryData,
+    PollResult,
     SyncEvent,
+    DataChangeEvent,
+    LoadProjectEvent,
+    ProjectResponse,
 } from "@/interface";
 import { DomainManager } from "@/services";
-import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home";
 import { SettingsEditorService } from "./settings-editor";
@@ -35,11 +37,8 @@ export class CentralPanelManager implements IComponentService {
     private _domain: DomainManager;
 
     // EVENTS
-    fetchPortalSelector: EventProducer<void, string>;
     onChangePanel: MultiEventProducer<ChangeCentralPanelEvent, unknown>;
-    onChangeData: MultiEventProducer<ChangeEntryEvent, unknown>;
-    onPartialChangeData: MultiEventProducer<ChangeEntryEvent, unknown>;
-    onPeriodicChangeData: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onChangeData: MultiEventProducer<DataChangeEvent, unknown>;
     onDeleteEntry: MultiEventProducer<DeleteEntryEvent, unknown>;
 
     constructor(domain: DomainManager) {
@@ -48,11 +47,8 @@ export class CentralPanelManager implements IComponentService {
 
         this._domain = domain;
 
-        this.fetchPortalSelector = new EventProducer();
         this.onChangePanel = new MultiEventProducer();
         this.onChangeData = new MultiEventProducer();
-        this.onPartialChangeData = new MultiEventProducer();
-        this.onPeriodicChangeData = new MultiEventProducer();
         this.onDeleteEntry = new MultiEventProducer();
     }
 
@@ -73,7 +69,7 @@ export class CentralPanelManager implements IComponentService {
 
     // OPENING PANELS
 
-    openHome() {
+    openHome(project: ProjectResponse | null) {
         const currentIndex = this.findPanelIndex(CentralViewType.Home);
         if (currentIndex !== null) {
             this._showPanel(currentIndex);
@@ -81,8 +77,11 @@ export class CentralPanelManager implements IComponentService {
         }
 
         const service = new HomeManager(this._domain);
+        service.onChange.subscribe((event) =>
+            this.onChangeData.produce({ project: event }),
+        );
 
-        service.load(this._domain.projectName ?? "");
+        service.load({ project });
 
         // only one panel can be open at a time
         this._clearAndAddPanel(service, true);
@@ -124,9 +123,9 @@ export class CentralPanelManager implements IComponentService {
         service.onOpenReferencedEntry.subscribe((args) =>
             this.openEntryEditor(args),
         );
-        service.onChange.broker = this.onChangeData;
-        service.onPartialChange.broker = this.onPartialChangeData;
-        service.onPeriodicChange.broker = this.onPeriodicChangeData;
+        service.onChange.subscribe((event) =>
+            this.onChangeData.produce({ entries: [event] }),
+        );
         service.onDelete.broker = this.onDeleteEntry;
 
         // NOTE: the entry-editor service needs to finish loading before we can proceed with
@@ -275,28 +274,50 @@ export class CentralPanelManager implements IComponentService {
 
     // SYNC
 
-    fetchChanges(event: PollEvent) {
-        const results: PollResultEntryData[] = [];
+    handleProjectChange(event: LoadProjectEvent) {
+        for (const service of this._panelServices.values()) {
+            if (service.type === CentralViewType.Home) {
+                const home = service as HomeManager;
+                home.handleProjectChange(event);
+            }
+        }
+    }
+
+    collectChanges(event: PollEvent): PollResult {
+        const results: PollResult = {
+            project: {},
+            entries: [],
+        };
 
         for (const service of this._panelServices.values()) {
-            if (service.type !== CentralViewType.EntryEditor) continue;
+            if (service.type === CentralViewType.EntryEditor) {
+                const entryEditor = service as EntryEditorService;
+                const entryResult = entryEditor.collectChanges(event);
+                if (entryResult === null) continue;
 
-            const entryEditor = service as EntryEditorService;
-            const result = entryEditor.fetchChanges(event);
-            if (result === null) continue;
+                results.entries!.push(entryResult);
+            } else if (service.type === CentralViewType.Home) {
+                const home = service as HomeManager;
+                const projectResult = home.collectChanges(event);
+                if (projectResult === null) continue;
 
-            results.push(result);
+                results.project = projectResult;
+            }
         }
 
         return results;
     }
 
-    handleEntrySynchronization(event: SyncEvent) {
+    handleSynchronization(event: SyncEvent) {
         for (const service of this._panelServices.values()) {
-            if (service.type !== CentralViewType.EntryEditor) continue;
-
-            const entryEditor = service as EntryEditorService;
-            entryEditor.handleSynchronization(event.entries);
+            if (service.type === CentralViewType.EntryEditor) {
+                const entryEditor = service as EntryEditorService;
+                entryEditor.handleSynchronization(event.entries ?? []);
+            } else if (service.type === CentralViewType.Home) {
+                if (!event.project) continue;
+                const home = service as HomeManager;
+                home.handleSynchronization(event.project);
+            }
         }
     }
 }
