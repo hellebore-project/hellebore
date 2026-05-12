@@ -8,6 +8,7 @@
     import { Footer } from "./footer";
     import { Centre } from "./centre";
     import { LeftSidebar } from "./left-sidebar";
+    import { Modal } from "./modal";
 
     const service = new ClientManager();
 </script>
@@ -35,7 +36,7 @@
         </div>
 
         <div>
-            <!-- Modals -->
+            <Modal service={service.modal} />
         </div>
 
         <div>

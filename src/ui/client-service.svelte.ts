@@ -32,7 +32,7 @@ import { CentralPanelManager } from "./centre";
 // import { ContextMenuManager } from "./context-menu";
 import { FooterManager } from "./footer";
 import { HeaderManager } from "./header";
-// import { ModalManager } from "./modal";
+import { ModalManager } from "./modal";
 import { LeftSidebarService } from "./left-sidebar";
 
 export class ClientManager implements IComponentService {
@@ -49,7 +49,7 @@ export class ClientManager implements IComponentService {
     header: HeaderManager;
     leftSideBar: LeftSidebarService;
     footer: FooterManager;
-    // modal: ModalManager;
+    modal: ModalManager;
     // contextMenu: ContextMenuManager;
 
     // CONSTRUCTION
@@ -69,7 +69,7 @@ export class ClientManager implements IComponentService {
         });
 
         // overlays
-        // this.modal = new ModalManager();
+        this.modal = new ModalManager();
         // this.contextMenu = new ContextMenuManager();
 
         this._createSubscriptions();
@@ -100,9 +100,9 @@ export class ClientManager implements IComponentService {
             this.deleteEntry(id, title),
         );
 
-        // this.header.onCreateProject.subscribe(() =>
-        //     this.modal.openProjectCreator(),
-        // );
+        this.header.onCreateProject.subscribe(() =>
+            this.modal.openProjectCreator(),
+        );
         this.header.onLoadProject.subscribe(() => this.loadProject());
         this.header.onCloseProject.subscribe(() => this.closeProject());
         this.header.onOpenHome.subscribe(() =>
@@ -137,13 +137,13 @@ export class ClientManager implements IComponentService {
         //     this.contextMenu.openForNavBarEntryNode(args),
         // );
 
-        // this.modal.onCreateProject.subscribe(({ name, dbFilePath }) =>
-        //     this.createProject(name, dbFilePath),
-        // );
-        // this.modal.onCreateEntry.subscribe(
-        //     ({ entryType: entityType, title, folderId }) =>
-        //         this.createEntry(entityType, title, folderId),
-        // );
+        this.modal.onCreateProject.subscribe(({ name, dbFilePath }) =>
+            this.createProject(name, dbFilePath),
+        );
+        this.modal.onCreateEntry.subscribe(
+            ({ entryType: entityType, title, folderId }) =>
+                this.createEntry(entityType, title, folderId),
+        );
 
         // this.contextMenu.onEditFolderName.subscribe(({ id }) =>
         //     this.editFolderName(id),
@@ -174,7 +174,7 @@ export class ClientManager implements IComponentService {
     // CLEAN UP
 
     cleanUp() {
-        // this.modal.close();
+        this.modal.close();
         this.central.clear();
     }
 
