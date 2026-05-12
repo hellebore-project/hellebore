@@ -87,6 +87,11 @@ export class HomeManager implements ICentralPanelContentService {
     }
 
     handleSynchronization(event: SyncProjectEvent) {
-        this._projectName = event.response.project?.name ?? "";
+        if (!event.response.project) return;
+
+        if (this._changed && event.response.project.name === this._projectName)
+            this._changed = false;
+
+        this._projectName = event.response.project.name;
     }
 }
