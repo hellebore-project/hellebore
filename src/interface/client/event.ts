@@ -2,6 +2,7 @@ import {
     EntryType,
     EntryViewType,
     SidebarSectionType,
+    SyncType,
     ViewAction,
 } from "@/constants";
 
@@ -11,6 +12,7 @@ import type {
     BulkFileResponse,
     EntryUpdateResponse,
     FolderUpdateResponse,
+    ProjectResponse,
 } from "../domain";
 import type { CentralPanelInfo } from "./service";
 import type { Word } from "./word";
@@ -20,6 +22,16 @@ import type { Word } from "./word";
 export interface CreateProjectEvent {
     name: string;
     dbFilePath: string;
+}
+
+export interface ProjectChangeEvent {
+    nameChanged?: boolean;
+    syncImmediately?: boolean;
+}
+
+export interface LoadProjectEvent {
+    loaded: boolean;
+    project: ProjectResponse | null;
 }
 
 // FOLDER EVENTS
@@ -62,9 +74,13 @@ export interface CreateEntryEvent {
     folderId: Id;
 }
 
-export interface ChangeEntryEvent {
+export interface EntryChangeEvent {
     id: Id;
-    poll?: PollEvent;
+    titleChanged?: boolean;
+    propertiesChanged?: boolean;
+    textChanged?: boolean;
+    lexiconChanged?: boolean;
+    syncImmediately?: boolean;
 }
 
 export interface DeleteEntryEvent {
@@ -72,14 +88,46 @@ export interface DeleteEntryEvent {
     title: string;
 }
 
+// GENERAL DATA EVENTS
+
+export interface DataChangeEvent {
+    project?: ProjectChangeEvent | null;
+    entries?: EntryChangeEvent[] | null;
+}
+
 // POLLING
 
-export interface PollEvent {
-    id?: Id | null;
+export interface PollProjectEvent {
+    syncName?: boolean;
+}
+
+export interface PollEntryEvent {
+    id: Id;
     syncTitle?: boolean;
     syncProperties?: boolean;
     syncText?: boolean;
     syncLexicon?: boolean;
+}
+
+export interface BasePollEvent {
+    type: SyncType;
+    immediate?: boolean;
+}
+
+export interface PartialPollEvent extends BasePollEvent {
+    type: SyncType.PARTIAL;
+    project?: PollProjectEvent;
+    entries?: PollEntryEvent[];
+}
+
+export interface FullPollEvent extends BasePollEvent {
+    type: SyncType.FULL;
+}
+
+export type PollEvent = PartialPollEvent | FullPollEvent;
+
+export interface PollResultProjectData {
+    name?: string;
 }
 
 export interface PollResultEntryData {
@@ -92,10 +140,24 @@ export interface PollResultEntryData {
 }
 
 export interface PollResult {
-    entries: PollResultEntryData[];
+    project?: PollResultProjectData;
+    entries?: PollResultEntryData[];
 }
 
 // SYNCING
+
+export interface SyncProjectRequest {
+    name?: string | null;
+}
+
+export interface SyncProjectResponse {
+    project: ProjectResponse | null;
+}
+
+export interface SyncProjectEvent {
+    request: SyncProjectRequest;
+    response: SyncProjectResponse;
+}
 
 export interface SyncEntryRequest {
     id: Id;
@@ -116,8 +178,14 @@ export interface SyncEntryEvent {
     response: SyncEntryResponse;
 }
 
+export interface SyncRequest {
+    project?: SyncProjectRequest | null;
+    entries?: SyncEntryRequest[] | null;
+}
+
 export interface SyncEvent {
-    entries: SyncEntryEvent[];
+    project?: SyncProjectEvent | null;
+    entries?: SyncEntryEvent[];
 }
 
 // VIEW EVENTS

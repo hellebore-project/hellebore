@@ -15,12 +15,4 @@ export class DomainManager {
         this.entries = new EntryManager();
         this.words = new WordManager();
     }
-
-    get hasProject() {
-        return this.session.project !== null;
-    }
-
-    get projectName() {
-        return this.session.project?.name ?? null;
-    }
 }

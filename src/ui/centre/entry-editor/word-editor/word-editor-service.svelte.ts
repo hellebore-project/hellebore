@@ -1,5 +1,5 @@
 import type {
-    ChangeEntryEvent,
+    EntryChangeEvent,
     IComponentService,
     Id,
     Word,
@@ -17,20 +17,27 @@ export interface WordEditorServiceArgs {
 
 export class WordEditorService implements IComponentService {
     private _domain: DomainManager;
-
     info: EntryInfoService;
     table: WordTableService;
-    onChange: MultiEventProducer<ChangeEntryEvent, unknown>;
+
+    onChange: MultiEventProducer<EntryChangeEvent, unknown>;
 
     constructor({ info, domain }: WordEditorServiceArgs) {
         this._domain = domain;
         this.info = info;
-        this.onChange = new MultiEventProducer();
         this.table = new WordTableService(`${this.id}-word-table`, domain);
+
+        this.onChange = new MultiEventProducer();
+
+        this._linkSubscribables();
     }
 
     get id() {
         return `word-editor-${this.info.entryId}`;
+    }
+
+    get changed() {
+        return this.table.changed;
     }
 
     async load(languageId: Id) {
@@ -50,5 +57,14 @@ export class WordEditorService implements IComponentService {
 
     cleanUp() {
         this.table.cleanUp();
+    }
+
+    private _linkSubscribables() {
+        this.table.onChange.subscribe(() =>
+            this.onChange.produce({
+                id: this.info.entryId,
+                lexiconChanged: true,
+            }),
+        );
     }
 }

@@ -1,4 +1,4 @@
-import type { ChangeEntryEvent, Id } from "@/interface";
+import type { EntryChangeEvent, Id } from "@/interface";
 import { ENTITY_TYPE_LABELS, ENTRY_ID_SENTINEL, EntryType } from "@/constants";
 import { MultiEventProducer } from "@/utils/event-producer";
 
@@ -11,7 +11,7 @@ export class EntryInfoService {
     private _titleChanged = false;
 
     // EVENTS
-    onChangeTitle: MultiEventProducer<ChangeEntryEvent, unknown>;
+    onChangeTitle: MultiEventProducer<EntryChangeEvent, unknown>;
 
     constructor(entryId: Id) {
         this._entryId = entryId;
@@ -52,7 +52,8 @@ export class EntryInfoService {
         // to speed things up, we only sync the title
         this.onChangeTitle.produce({
             id: this._entryId,
-            poll: { id: this._entryId, syncTitle: true },
+            titleChanged: true,
+            syncImmediately: true,
         });
     }
 

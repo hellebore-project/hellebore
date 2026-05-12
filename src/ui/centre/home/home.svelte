@@ -8,14 +8,16 @@
 
 <div class="flex flex-row justify-center py-6">
     <div class="w-2/3">
-        <Input
-            class="tracking-tight text-foreground"
-            variant="ghost"
-            size="h1"
-            placeholder="Project name"
-            value={service.projectName}
-            oninput={(e) => (service.projectName = e.currentTarget.value)}
-        />
-        <Separator class="mt-3 border" />
+        {#if service.isProjectLoaded}
+            <Input
+                class="tracking-tight text-foreground"
+                variant="ghost"
+                size="h1"
+                placeholder="Project name"
+                value={service.projectName}
+                oninput={(e) => (service.projectName = e.currentTarget.value)}
+            />
+            <Separator class="mt-3 border" />
+        {/if}
     </div>
 </div>

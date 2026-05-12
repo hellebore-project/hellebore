@@ -14,11 +14,16 @@ import type {
     IComponentService,
     EntryEditorInfo,
     ChangeCentralPanelEvent,
+    PollResult,
+    DataChangeEvent,
+    PollEntryEvent,
+    PartialPollEvent,
 } from "@/interface";
 import {
     CentralViewType,
     EntryType,
     SidebarSectionType,
+    SyncType,
     ViewAction,
 } from "@/constants";
 import { DomainManager, SynchronizationService } from "@/services";
@@ -33,6 +38,9 @@ import { LeftSidebarService } from "./left-sidebar";
 export class ClientManager implements IComponentService {
     // CONSTANTS
     readonly id = "client";
+
+    // STATE
+    private _project: ProjectResponse | null = $state(null);
 
     // SERVICES
     domain: DomainManager;
@@ -59,7 +67,6 @@ export class ClientManager implements IComponentService {
         this.leftSideBar = new LeftSidebarService({
             domain: this.domain,
         });
-        this.leftSideBar.addSpotlight();
 
         // overlays
         // this.modal = new ModalManager();
@@ -76,20 +83,18 @@ export class ClientManager implements IComponentService {
         return window.innerSize();
     }
 
+    get project() {
+        return this._project;
+    }
+
     // SUBSCRIPTIONS
 
     private _createSubscriptions() {
         this.central.onChangePanel.subscribe((event) =>
             this.handleCentralPanelChange(event),
         );
-        this.central.onChangeData.subscribe(() =>
-            this.synchronizer.requestFullSynchronization(),
-        );
-        this.central.onPartialChangeData.subscribe(({ poll }) =>
-            this.synchronizer.requestSynchronization(poll ?? {}),
-        );
-        this.central.onPeriodicChangeData.subscribe(() =>
-            this.synchronizer.requestPeriodicSynchronization(),
+        this.central.onChangeData.subscribe((event) =>
+            this._requestSynchronization(event),
         );
         this.central.onDeleteEntry.subscribe(({ id, title }) =>
             this.deleteEntry(id, title),
@@ -98,9 +103,11 @@ export class ClientManager implements IComponentService {
         // this.header.onCreateProject.subscribe(() =>
         //     this.modal.openProjectCreator(),
         // );
-        // this.header.onLoadProject.subscribe(() => this.loadProject());
-        // this.header.onCloseProject.subscribe(() => this.closeProject());
-        this.header.onOpenHome.subscribe(() => this.central.openHome());
+        this.header.onLoadProject.subscribe(() => this.loadProject());
+        this.header.onCloseProject.subscribe(() => this.closeProject());
+        this.header.onOpenHome.subscribe(() =>
+            this.central.openHome(this._project),
+        );
         this.header.onOpenSettings.subscribe(() => this.central.openSettings());
         // this.header.onCreateEntry.subscribe(() =>
         //     this.modal.openEntryCreator({}),
@@ -114,10 +121,6 @@ export class ClientManager implements IComponentService {
                 this.central.changeEntryEditorView(panelId, type);
             },
         );
-        // const spotlight = this.leftSideBar.spotlight;
-        // spotlight.onCreateEntry.subscribe((args) =>
-        //     this.modal.openEntryCreator(args),
-        // );
         this.leftSideBar.onOpenEntry.subscribe((args) =>
             this.central.openEntryEditor(args),
         );
@@ -153,53 +156,19 @@ export class ClientManager implements IComponentService {
         // );
 
         this.synchronizer.onPoll.subscribe((event) =>
-            this._fetchChanges(event),
+            this._collectChanges(event),
         );
         this.synchronizer.onSync.subscribe((event) =>
-            this._handleEntrySynchronization(event),
+            this._handleSynchronization(event),
         );
     }
 
     // LOADING
 
     async load() {
-        const project = await this._fetchProjectInfo();
-        if (project) await this._loadClientForProject(project);
-    }
-
-    private async _fetchProjectInfo() {
-        return this.domain.session.getSession().then((session) => {
-            // TODO: trigger UI error state if the project info is unavailable
-            return session?.project ?? null;
-        });
-    }
-
-    private async _loadClientForProject(project: ProjectResponse) {
-        return Promise.allSettled([
-            this._loadNavigator(),
-            this._loadHome(project),
-        ]);
-    }
-
-    private async _loadHome(project: ProjectResponse) {
-        if (this.central.panelCount === 0) {
-            this.central.openHome();
-            return;
-        }
-
-        const service = this.central.getHomePanel();
-        if (!service) return;
-
-        service.load(project.name);
-    }
-
-    private async _loadNavigator() {
-        // for now, the navigator is populated with ALL entries;
-        // TODO: once entry pinning is supported, fetch the pinned entries from the backend
-        // const entries = await this.domain.entries.getAll();
-        // const folders = await this.domain.folders.getAll();
-        // if (entries !== null && folders !== null)
-        //     this.leftSideBar.load(entries, folders);
+        const session = await this.domain.session.getSession();
+        const project = session?.project ?? null;
+        if (project) await this.handleLoadProject(project);
     }
 
     // CLEAN UP
@@ -221,8 +190,9 @@ export class ClientManager implements IComponentService {
         );
 
         if (response) {
-            this._loadClientForProject(response);
-            this.central.openHome();
+            this._project = response;
+            this.handleLoadProject(response);
+            this.central.openHome(response);
         }
 
         return response;
@@ -237,22 +207,45 @@ export class ClientManager implements IComponentService {
 
         const response = await this.domain.session.loadProject(path);
         if (response) {
-            this._loadClientForProject(response);
-            this.central.openHome();
+            this.handleLoadProject(response);
         }
 
         return response;
+    }
+
+    private async handleLoadProject(project: ProjectResponse) {
+        this._project = project;
+
+        this.header.handleProjectChange({ loaded: true, project });
+        this.footer.handleProjectChange({ loaded: true, project });
+
+        this.leftSideBar.addSpotlight(this.id);
+
+        this.central.handleProjectChange({ loaded: true, project });
+        this.central.openHome(project);
     }
 
     async closeProject() {
         // save any unsynced data before closing the project
         this.central.clear();
         const success = await this.domain.session.closeProject();
-        if (success) {
-            // this.leftSideBar.reset();
-            this.central.openHome();
-        }
+        if (success) this.handleCloseProject();
         return success;
+    }
+
+    private async handleCloseProject() {
+        this._project = null;
+
+        this.header.handleProjectChange({ loaded: false, project: null });
+        this.footer.handleProjectChange({ loaded: false, project: null });
+
+        this.leftSideBar.releaseSection({
+            ownerId: this.id,
+            type: SidebarSectionType.EntrySpotlight,
+        });
+
+        this.central.handleProjectChange({ loaded: false, project: null });
+        this.central.openHome(null);
     }
 
     // FOLDER HANDLING
@@ -357,7 +350,7 @@ export class ClientManager implements IComponentService {
             panelIndex++;
         }
 
-        if (this.central.panelCount == 0) this.central.openHome();
+        if (this.central.panelCount == 0) this.central.openHome(this._project);
 
         return fileIds;
     }
@@ -417,7 +410,7 @@ export class ClientManager implements IComponentService {
             panelIndex++;
         }
 
-        if (this.central.panelCount == 0) this.central.openHome();
+        if (this.central.panelCount == 0) this.central.openHome(this._project);
 
         return true;
     }
@@ -457,14 +450,68 @@ export class ClientManager implements IComponentService {
 
     // SYNCHRONIZATION
 
-    private _fetchChanges(event: PollEvent) {
-        return { entries: this.central.fetchChanges(event) };
+    private _requestSynchronization(event: DataChangeEvent) {
+        const poll = this._buildPollEvent(event);
+
+        if (poll.immediate) this.synchronizer.requestSynchronization(poll);
+        else
+            // if there aren't any changes that need to be synced immediately,
+            // just let the periodic sync handle the changes
+            this.synchronizer.requestPeriodicSynchronization();
     }
 
-    private _handleEntrySynchronization(event: SyncEvent) {
-        this.central.handleEntrySynchronization(event);
+    private _buildPollEvent(event: DataChangeEvent): PollEvent {
+        const poll: PartialPollEvent = {
+            type: SyncType.PARTIAL,
+            immediate: true,
+        };
 
-        for (const { request, response } of event.entries) {
+        if (event.project) {
+            if (!(event.project.syncImmediately ?? false))
+                return { type: SyncType.FULL, immediate: false };
+
+            poll.project = {
+                syncName: event.project.nameChanged ?? false,
+            };
+        }
+
+        if (event.entries) {
+            const entryPolls: PollEntryEvent[] = [];
+
+            for (const entryEvent of event.entries) {
+                if (!(entryEvent.syncImmediately ?? false))
+                    return { type: SyncType.FULL, immediate: false };
+
+                entryPolls.push({
+                    id: entryEvent.id,
+                    syncTitle: entryEvent.titleChanged ?? false,
+                    syncProperties: entryEvent.propertiesChanged ?? false,
+                    syncText: entryEvent.textChanged ?? false,
+                    syncLexicon: entryEvent.lexiconChanged ?? false,
+                });
+            }
+            poll.entries = entryPolls;
+        }
+
+        return poll;
+    }
+
+    private _collectChanges(event: PollEvent): PollResult {
+        return this.central.collectChanges(event);
+    }
+
+    private _handleSynchronization(event: SyncEvent) {
+        this.footer.handleSynchronization(event);
+        this.central.handleSynchronization(event);
+
+        if (event.project) {
+            const response = event.project.response;
+            if (response.project) {
+                this._project = response.project;
+            }
+        }
+
+        for (const { request, response } of event.entries ?? []) {
             if (
                 request.title &&
                 response.entry &&

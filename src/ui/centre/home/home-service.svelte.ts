@@ -1,14 +1,28 @@
-import { CentralViewType } from "@/constants";
-import type { ICentralPanelContentService } from "@/interface";
+import { CentralViewType, SyncType } from "@/constants";
+import type {
+    ICentralPanelContentService,
+    LoadProjectEvent,
+    PollEvent,
+    PollResultProjectData,
+    ProjectChangeEvent,
+    SyncProjectEvent,
+} from "@/interface";
 import { DomainManager } from "@/services";
+import { MultiEventProducer } from "@/utils/event-producer";
+import type { HomeLoadArgs } from "./home-interface";
 
 export class HomeManager implements ICentralPanelContentService {
-    _projectName: string = $state("");
+    private _isProjectLoaded: boolean = $state(false);
+    private _projectName: string = $state("");
+    private _changed: boolean = $state(false);
 
     domain: DomainManager;
 
+    onChange: MultiEventProducer<ProjectChangeEvent, unknown>;
+
     constructor(domain: DomainManager) {
         this.domain = domain;
+        this.onChange = new MultiEventProducer();
     }
 
     get id() {
@@ -23,17 +37,23 @@ export class HomeManager implements ICentralPanelContentService {
         return { id: this.id, type: this.type };
     }
 
+    get isProjectLoaded() {
+        return this._isProjectLoaded;
+    }
+
     get projectName() {
         return this._projectName;
     }
 
     set projectName(name: string) {
         this._projectName = name;
-        if (name) this.domain.session.updateProject(name);
+        this._changed = true;
+        this.onChange.produce({ nameChanged: true, syncImmediately: true });
     }
 
-    load(name: string) {
-        this._projectName = name;
+    load({ project }: HomeLoadArgs) {
+        this._isProjectLoaded = project != null;
+        this._projectName = project?.name ?? "";
     }
 
     activate() {
@@ -42,5 +62,31 @@ export class HomeManager implements ICentralPanelContentService {
 
     cleanUp() {
         return;
+    }
+
+    // SYNC
+
+    handleProjectChange(event: LoadProjectEvent) {
+        this._isProjectLoaded = event.loaded;
+        if (event.loaded) this._projectName = event.project?.name ?? "";
+        else this._projectName = "";
+    }
+
+    collectChanges(event: PollEvent): PollResultProjectData | null {
+        if (!this._changed) return null;
+
+        let syncName = false;
+        if (event.type === SyncType.FULL) syncName = true;
+        else if (event.type === SyncType.PARTIAL)
+            syncName = event.project?.syncName ?? false;
+
+        const changes: PollResultProjectData = {};
+        if (syncName) changes.name = this._projectName;
+
+        return changes;
+    }
+
+    handleSynchronization(event: SyncProjectEvent) {
+        this._projectName = event.response.project?.name ?? "";
     }
 }
