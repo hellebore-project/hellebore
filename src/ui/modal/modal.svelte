@@ -3,6 +3,8 @@
     import { ModalType } from "@/constants";
 
     import type { ModalProps } from "./modal-interface";
+    import { EntryCreator } from "./entry-creator";
+    import type { EntryCreatorService } from "./entry-creator";
     import { ProjectCreator } from "./project-creator";
     import type { ProjectCreatorService } from "./project-creator";
 
@@ -22,6 +24,10 @@
             {#if service.modalKey === ModalType.ProjectCreator}
                 <ProjectCreator
                     service={service.content as ProjectCreatorService}
+                />
+            {:else if service.modalKey === ModalType.EntryCreator}
+                <EntryCreator
+                    service={service.content as EntryCreatorService}
                 />
             {/if}
         </Dialog.DialogContent>

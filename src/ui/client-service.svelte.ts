@@ -109,9 +109,9 @@ export class ClientManager implements IComponentService {
             this.central.openHome(this._project),
         );
         this.header.onOpenSettings.subscribe(() => this.central.openSettings());
-        // this.header.onCreateEntry.subscribe(() =>
-        //     this.modal.openEntryCreator({}),
-        // );
+        this.header.onCreateEntry.subscribe(() =>
+            this.modal.openEntryCreator({}),
+        );
         this.header.onOpenEntry.subscribe((args) =>
             this.central.openEntryEditor(args),
         );

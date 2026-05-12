@@ -5,9 +5,11 @@ import type {
     EntryInfoResponse,
     IComponentService,
     IModalContentManager,
+    OpenEntryCreatorEvent,
 } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
+import { EntryCreatorService } from "./entry-creator";
 import { ProjectCreatorService } from "./project-creator";
 
 interface ModalContentManager extends IModalContentManager {
@@ -40,6 +42,13 @@ export class ModalManager implements IComponentService {
         const modal = new ProjectCreatorService();
         modal.onCreateProject.broker = this.onCreateProject;
         modal.initialize();
+        this._open(modal);
+    }
+
+    openEntryCreator({ entryType, folderId }: OpenEntryCreatorEvent) {
+        const modal = new EntryCreatorService();
+        modal.onCreateEntry.broker = this.onCreateEntry;
+        modal.initialize(entryType, folderId);
         this._open(modal);
     }
 
