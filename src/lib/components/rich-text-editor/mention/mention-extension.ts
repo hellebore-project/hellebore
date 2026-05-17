@@ -7,6 +7,7 @@ import type {
     SuggestionProps,
     SuggestionKeyDownProps,
 } from "@tiptap/suggestion";
+import { SHARED_PORTAL_SELECTOR } from "@/constants/client";
 
 import MentionComponent from "./mention-dropdown.svelte";
 import type {
@@ -60,7 +61,12 @@ export function Mention<T>({ prefix = "@", querier }: MentionExtensionArgs<T>) {
                     if (!props.clientRect) return;
 
                     popupElement.style.position = "absolute";
-                    document.body.appendChild(popupElement);
+
+                    const target =
+                        document.querySelector(SHARED_PORTAL_SELECTOR) ??
+                        document.body;
+                    target.appendChild(popupElement);
+
                     _updatePosition(popupElement, props.clientRect());
                 },
 

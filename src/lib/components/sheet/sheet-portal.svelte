@@ -1,7 +1,11 @@
 <script lang="ts">
     import { Dialog as SheetPrimitive } from "bits-ui";
+    import { SHARED_PORTAL_SELECTOR } from "@/constants/client";
 
-    let { ...restProps }: SheetPrimitive.PortalProps = $props();
+    let {
+        to = SHARED_PORTAL_SELECTOR,
+        ...restProps
+    }: SheetPrimitive.PortalProps = $props();
 </script>
 
-<SheetPrimitive.Portal {...restProps} />
+<SheetPrimitive.Portal {to} {...restProps} />
