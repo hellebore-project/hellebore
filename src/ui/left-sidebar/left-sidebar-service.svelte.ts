@@ -10,9 +10,13 @@ import type {
     AddEntryEditorNavigatorEvent,
     MoveFolderEvent,
     MoveFolderResult,
+    PollEvent,
+    PollResultEntryData,
     ReleaseSidebarSectionEvent,
     Id,
     OpenEntryEditorEvent,
+    SyncEvent,
+    DataChangeEvent,
 } from "@/interface";
 import { DomainManager } from "@/services";
 import { SidebarSectionType } from "@/constants";
@@ -47,6 +51,7 @@ export class LeftSidebarService implements IComponentService {
         DeleteFolderEvent,
         Promise<BulkFileResponse | null>
     >;
+    onDataChange: EventProducer<DataChangeEvent, unknown>;
 
     constructor({ domain }: LeftSidebarServiceArgs) {
         this.domain = domain;
@@ -54,6 +59,7 @@ export class LeftSidebarService implements IComponentService {
         this.onOpenEntry = new EventProducer();
         this.onMoveFolder = new EventProducer();
         this.onDeleteFolder = new EventProducer();
+        this.onDataChange = new EventProducer();
     }
 
     get width() {
@@ -74,6 +80,9 @@ export class LeftSidebarService implements IComponentService {
         section.onOpenEntry.broker = this.onOpenEntry;
         section.onMoveFolder.broker = this.onMoveFolder;
         section.onDeleteFolder.broker = this.onDeleteFolder;
+        section.onChangeTitle.subscribe((event) =>
+            this.onDataChange.produce({ entries: [event] }),
+        );
 
         this._addSection(section);
 
@@ -206,5 +215,19 @@ export class LeftSidebarService implements IComponentService {
             SidebarSectionType.EntrySpotlight,
         );
         section?.deleteEntryNode(id);
+    }
+
+    fetchChanges(event: PollEvent): PollResultEntryData[] {
+        const spotlight = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        return spotlight?.fetchChanges(event) ?? [];
+    }
+
+    handleSynchronization(event: SyncEvent) {
+        const spotlight = this.getSectionByType<EntrySpotlightService>(
+            SidebarSectionType.EntrySpotlight,
+        );
+        spotlight?.handleSynchronization(event.entries ?? []);
     }
 }

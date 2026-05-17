@@ -4,6 +4,7 @@
     import FileIcon from "@lucide/svelte/icons/file";
 
     import { FileTree } from "@/lib/components/file-tree";
+    import * as ContextMenu from "@/lib/components/context-menu";
 
     import type { EntrySpotlightProps } from "./entry-spotlight-interface";
 
@@ -44,6 +45,13 @@
             {#snippet leafLabel(node)}
                 <FileIcon class="size-3.5 shrink-0 text-muted-foreground" />
                 <span class="flex-1 min-w-0 truncate">{node.text}</span>
+            {/snippet}
+            {#snippet nodeContextMenu(node)}
+                <ContextMenu.Item
+                    onclick={() => service.handleContextMenuItemRename(node)}
+                >
+                    Rename
+                </ContextMenu.Item>
             {/snippet}
         </FileTree>
     </div>

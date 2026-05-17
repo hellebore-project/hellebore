@@ -24,6 +24,7 @@
     --destructive-foreground: oklch(98.5% 0 0deg);
     --error: oklch(31.396% 0.1222 25.692deg);
     --error-foreground: oklch(54.568% 0.1949 26.6deg);
+    --error-border: oklch(54.568% 0.1949 26.6deg);
     --input: oklch(92.2% 0 0deg);
     --card: oklch(100% 0 0deg);
     --card-foreground: oklch(14.5% 0 0deg);
