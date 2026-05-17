@@ -1,7 +1,11 @@
 <script lang="ts">
     import { Tooltip as TooltipPrimitive } from "bits-ui";
+    import { SHARED_PORTAL_SELECTOR } from "@/constants/client";
 
-    let { ...restProps }: TooltipPrimitive.PortalProps = $props();
+    let {
+        to = SHARED_PORTAL_SELECTOR,
+        ...restProps
+    }: TooltipPrimitive.PortalProps = $props();
 </script>
 
-<TooltipPrimitive.Portal {...restProps} />
+<TooltipPrimitive.Portal {to} {...restProps} />

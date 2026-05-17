@@ -1,7 +1,11 @@
 <script lang="ts">
     import { Menubar as MenubarPrimitive } from "bits-ui";
+    import { SHARED_PORTAL_SELECTOR } from "@/constants/client";
 
-    let { ...restProps }: MenubarPrimitive.PortalProps = $props();
+    let {
+        to = SHARED_PORTAL_SELECTOR,
+        ...restProps
+    }: MenubarPrimitive.PortalProps = $props();
 </script>
 
-<MenubarPrimitive.Portal {...restProps} />
+<MenubarPrimitive.Portal {to} {...restProps} />

@@ -1,6 +1,7 @@
 <script lang="ts">
     import "./client.css";
 
+    import { SHARED_PORTAL_ID } from "@/constants/client";
     import * as Tooltip from "@/lib/components/tooltip";
 
     import { ClientManager } from "./client-service.svelte";
@@ -39,12 +40,6 @@
             <Modal service={service.modal} />
         </div>
 
-        <div>
-            <!-- Context Menu -->
-        </div>
-
-        <div>
-            <!-- Portal -->
-        </div>
+        <div id={SHARED_PORTAL_ID}></div>
     </div>
 </Tooltip.Provider>
