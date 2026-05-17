@@ -1,4 +1,3 @@
-// eslint-disable-next-line
 import { invoke } from "@tauri-apps/api/core";
 
 import {
@@ -201,6 +200,19 @@ export class EntryManager {
         return true;
     }
 
+    async validateTitle(id: Id | null, title: string): Promise<boolean | null> {
+        try {
+            const response = await invoke<DiagnosticResponse<boolean>>(
+                CommandNames.Entry.ValidateTitle,
+                { id, title },
+            );
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
     private async _createLanguage(
         name: string,
         folderId: number,
@@ -277,7 +289,7 @@ export class EntryManager {
     }: EntryUpdate<E>): BackendEntryUpdate {
         let mappedProperties: Partial<Record<EntryTypeLabel, E>> | null = null;
         if (properties) {
-            if (entryType === null)
+            if (entryType === null || entryType === undefined)
                 throw (
                     `Failed to update entry ${id}; a non-null entry type must be specified ` +
                     "in order to update the entry properties."

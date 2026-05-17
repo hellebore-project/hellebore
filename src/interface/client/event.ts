@@ -83,6 +83,11 @@ export interface EntryChangeEvent {
     syncImmediately?: boolean;
 }
 
+export interface RenameEntryEvent {
+    id: Id;
+    title: string;
+}
+
 export interface DeleteEntryEvent {
     id: Id;
     title: string;
@@ -132,7 +137,7 @@ export interface PollResultProjectData {
 
 export interface PollResultEntryData {
     id: Id;
-    entryType: EntryType;
+    entryType?: EntryType | null;
     title?: string;
     properties?: BaseEntity;
     text?: string;
@@ -161,7 +166,7 @@ export interface SyncProjectEvent {
 
 export interface SyncEntryRequest {
     id: Id;
-    entryType: EntryType;
+    entryType?: EntryType | null;
     folderId?: Id | null;
     title?: string | null;
     properties?: BaseEntity | null;

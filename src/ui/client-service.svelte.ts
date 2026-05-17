@@ -124,6 +124,9 @@ export class ClientManager implements IComponentService {
         this.leftSideBar.onOpenEntry.subscribe((args) =>
             this.central.openEntryEditor(args),
         );
+        this.leftSideBar.onDataChange.subscribe((event) =>
+            this._requestSynchronization(event),
+        );
         this.leftSideBar.onMoveFolder.subscribe((args) =>
             this.moveFolder(args),
         );
@@ -497,11 +500,25 @@ export class ClientManager implements IComponentService {
     }
 
     private _collectChanges(event: PollEvent): PollResult {
-        return this.central.collectChanges(event);
+        // FIXME: the changes fetched here may contain multiple conflicting changes;
+        // we need to decide which changes take priority
+        const centralChanges = this.central.collectChanges(event);
+        const sidebarChanges = this.leftSideBar.fetchChanges(event);
+
+        return {
+            // HACK: the left sidebar currently doesn't modify the project,
+            // but this might change in the future
+            project: centralChanges.project,
+            entries: [
+                ...(centralChanges.entries ?? []),
+                ...(sidebarChanges ?? []),
+            ],
+        };
     }
 
     private _handleSynchronization(event: SyncEvent) {
         this.footer.handleSynchronization(event);
+        this.leftSideBar.handleSynchronization(event);
         this.central.handleSynchronization(event);
 
         if (event.project) {

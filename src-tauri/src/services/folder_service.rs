@@ -60,29 +60,35 @@ pub async fn validate_name(
     };
 
     if !is_unique {
-        let colliding_folder: Option<Folder> =
+        let colliding_folders: Vec<Folder> =
             folder_manager::query(Some(parent_id), Some(name.to_owned()))
-                .one(database)
+                .all(database)
                 .await
-                .map_err(|e| ApiError::db("", e))?;
+                .map_err(|e| {
+                    ApiError::db(
+                        "Failed to query the folder table while fetching colliding folders.",
+                        e,
+                    )
+                })?;
 
-        response.name_collision = match colliding_folder {
-            Some(_colliding_folder) => Some(FolderNameCollisionSchema {
+        let sibling_colliding_folder = colliding_folders
+            .into_iter()
+            .find(|candidate| Some(candidate.id) != id);
+
+        if sibling_colliding_folder.is_some() {
+            response.name_collision = Some(FolderNameCollisionSchema {
                 is_unique,
-                colliding_folder: generate_response(&_colliding_folder),
-            }),
-            None => {
-                return Err(ApiError::internal("Failed to query colliding folder."));
-            }
-        };
+                colliding_folder: generate_response(sibling_colliding_folder.as_ref().unwrap()),
+            });
 
-        errors.push(ApiError::field_not_unique(
-            "Folder names must be locally unique.",
-            FOLDER,
-            id,
-            "name".to_owned(),
-            name,
-        ));
+            errors.push(ApiError::field_not_unique(
+                "Folder names must be locally unique.",
+                FOLDER,
+                id,
+                "name".to_owned(),
+                name,
+            ));
+        }
     }
 
     return Ok(DiagnosticResponseSchema {

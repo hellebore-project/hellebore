@@ -8,6 +8,10 @@ export class EventProducer<I, O> {
         this._consumer = null;
     }
 
+    get hasConsumer() {
+        return this._consumer !== null || this._broker !== null;
+    }
+
     get broker() {
         return this._broker;
     }
