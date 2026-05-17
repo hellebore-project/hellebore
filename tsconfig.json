@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@": ["./src"],
-      "@/*": ["./src/*"],
+      "@/*": ["./src/*"]
     }
   },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" },
-    // TODO: uncomment this
-    //{ "path": "./tsconfig.test.json" }
+    { "path": "./tsconfig.node.json" }
+    /* TODO: uncomment this
+    { "path": "./tsconfig.test.json" }
+    */
   ]
 }
