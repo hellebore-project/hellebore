@@ -10,7 +10,7 @@
     "build:fe": "tsc && vite build",
     "build": "tauri build",
     "test:be": "cargo test --manifest-path ./src-tauri/Cargo.toml",
-    "test:fe": "vitest",
+    "test:fe": "vitest run",
     "test": "pnpm run test:be && pnpm run test:fe",
     "preview": "vite preview",
     "dev:fe": "vite",

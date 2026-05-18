@@ -1,5 +1,6 @@
 import type { ArticleEditorService } from "@/ui/centre/entry-editor/article-editor";
-import { EntryViewType } from "@/constants";
+import { EntryType, EntryViewType, ROOT_FOLDER_ID } from "@/constants";
+import type { EntryInfoResponse } from "@/interface";
 
 import { test as baseTest } from "../fixtures";
 
@@ -27,3 +28,12 @@ export const test = baseTest.extend<BaseArticleEditorFixtures>({
         { auto: true },
     ],
 });
+
+export const referencedEntryId = 2;
+export const referencedEntryTitle = "mocked-referenced-entry";
+export const referencedEntryInfo: EntryInfoResponse = {
+    id: referencedEntryId,
+    folderId: ROOT_FOLDER_ID,
+    entityType: EntryType.Person,
+    title: referencedEntryTitle,
+};
