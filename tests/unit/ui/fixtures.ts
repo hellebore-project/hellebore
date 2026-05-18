@@ -1,11 +1,10 @@
-import { cleanup } from "@testing-library/react";
-import userEvent, { UserEvent } from "@testing-library/user-event";
-import { JSONContent } from "@tiptap/core";
+import { cleanup } from "@testing-library/svelte";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
+import type { JSONContent } from "@tiptap/core";
 import { test as baseTest } from "vitest";
 
-import { ClientManager } from "@/components";
-import { EntityType, EntryType } from "@/constants";
-import {
+import { EntryType } from "@/constants";
+import type {
     EntryArticleResponse,
     EntryInfoResponse,
     FolderResponse,
@@ -13,12 +12,13 @@ import {
     ProjectResponse,
     SessionResponse,
 } from "@/interface";
-import { STATE } from "@/state";
+import { ClientManager } from "@/ui";
 import {
     createDocNode,
     createParagraphNode,
     createTextNode,
     MockedInvoker,
+    mockBulkUpdateEntries,
     mockGetEntries,
     mockGetEntryArticle,
     mockGetEntryInfo,
@@ -39,7 +39,7 @@ export interface BaseUnitTestFixtures {
     otherFolders: FolderResponse[];
     allFolders: FolderResponse[];
     entryId: Id;
-    entryType: EntityType;
+    entryType: EntryType;
     entryTitle: string;
     entryArticleText: string;
     entryArticle: JSONContent;
@@ -54,16 +54,13 @@ export interface BaseUnitTestFixtures {
     mockedEntryArticle: EntryArticleResponse;
     mockedEntries: EntryInfoResponse[];
     mockedSearchedEntries: EntryInfoResponse[];
+    mockedBulkEntryUpdate: null;
     clientManager: ClientManager;
     user: UserEvent;
     setup: null;
 }
 
-// NOTE: the first argument inside a fixture must use the object destructuring pattern;
-// don't get rid of the empty objects in the arrow functions below
-
 export const test = baseTest.extend<BaseUnitTestFixtures>({
-    // data
     dbFilePath: "mocked/db/file/path",
     project: { id: 1, name: "mocked-project" },
     session: async ({ dbFilePath, project }, use) => {
@@ -91,7 +88,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     },
 
     entryId: 1,
-    entryType: EntityType.ENTRY,
+    entryType: EntryType.Person,
     entryTitle: "mocked-title",
     entryArticleText: "mocked article text",
     entryArticle: async ({ entryArticleText }, use) => {
@@ -103,8 +100,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     entryInfo: async ({ entryId, entryType, folderId, entryTitle }, use) => {
         const entry: EntryInfoResponse = {
             id: entryId,
-            // TODO: remove cast once generic entries are supported
-            entityType: entryType as unknown as EntryType,
+            entityType: entryType,
             folderId,
             title: entryTitle,
         };
@@ -115,7 +111,6 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         use([entryInfo, ...otherEntries]);
     },
 
-    // mocking
     mockedInvoker: [
         async ({}, use) => {
             const invoker = new MockedInvoker();
@@ -126,8 +121,8 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     ],
     mockedSession: async ({ mockedInvoker, session }, use) => {
         mockGetSession(mockedInvoker, {
-            dbFilePath: session.dbFilePath,
-            project: session.project,
+            dbFilePath: session.dbFilePath as string,
+            project: session.project as ProjectResponse,
         });
         await use(session);
     },
@@ -162,6 +157,10 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         mockSearchEntries(mockedInvoker, allEntries);
         use(allEntries);
     },
+    mockedBulkEntryUpdate: async ({ mockedInvoker }, use) => {
+        mockBulkUpdateEntries(mockedInvoker);
+        await use(null);
+    },
 
     user: [
         async ({}, use) => {
@@ -170,34 +169,28 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         { auto: true },
     ],
 
-    // services
     clientManager: [
         async (
             {
-                mockedInvoker,
-                dbFilePath,
-                project,
                 mockedSession,
                 mockedFolders,
                 mockedEntries,
+                mockedBulkEntryUpdate,
             },
             use,
         ) => {
             const clientManager = new ClientManager();
             await clientManager.load();
-            STATE.manager = clientManager;
-
             await use(clientManager);
         },
         { auto: true },
     ],
 
-    // setup and teardown
     setup: [
         async ({ user, mockedInvoker, clientManager }, use) => {
             await use(null);
 
-            mockedInvoker.clear();
+            clientManager.cleanUp();
             cleanup();
         },
         { auto: true },

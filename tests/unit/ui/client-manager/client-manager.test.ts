@@ -1,63 +1,16 @@
+import { ask } from "@tauri-apps/plugin-dialog";
 import { describe, expect, vi } from "vitest";
 
-import { FolderResponse, FolderValidateResponse, Id } from "@/interface";
-import { test as baseTest } from "@tests/unit/components/fixtures";
-import {
-    mockDeleteFolder,
-    mockUpdateFolder,
-    mockValidateFolder,
-} from "@tests/utils/mocks";
+vi.mock("@tauri-apps/plugin-dialog", () => ({
+    ask: vi.fn(),
+    open: vi.fn(),
+}));
 
-vi.mock("@tauri-apps/plugin-dialog");
+import { mockUpdateFolder } from "@tests/utils/mocks";
+
+import { test } from "./fixtures";
 
 describe("moving folders", () => {
-    interface MoveFolderFixtures {
-        isUnique: boolean;
-        parentFolder: FolderResponse;
-        collidingFolder: FolderResponse;
-        deletedFolderIds: Id[];
-        mockFolderValidation: FolderValidateResponse;
-        mockFolderDeletion: null;
-    }
-
-    const test = baseTest.extend<MoveFolderFixtures>({
-        // data
-        isUnique: true,
-        parentFolder: null,
-        collidingFolder: null,
-        deletedFolderIds: async ({}, use) => use([]),
-
-        // mocking
-        mockFolderValidation: [
-            async (
-                { mockedInvoker, folder, collidingFolder, isUnique },
-                use,
-            ) => {
-                const response: FolderValidateResponse = {
-                    ...folder,
-                    nameCollision: null,
-                };
-
-                if (!isUnique)
-                    response.nameCollision = {
-                        isUnique: false,
-                        collidingFolder,
-                    };
-
-                mockValidateFolder(mockedInvoker, response);
-                use(response);
-            },
-            { auto: true },
-        ],
-        mockFolderDeletion: [
-            async ({ mockedInvoker, deletedFolderIds }, use) => {
-                mockDeleteFolder(mockedInvoker, deletedFolderIds, []);
-                use(null);
-            },
-            { auto: true },
-        ],
-    });
-
     test.scoped({
         parentFolder: async ({}, use) => {
             use({
@@ -150,19 +103,18 @@ describe("moving folders", () => {
     test("user confirms move on name collision", async ({
         mockedInvoker,
         clientManager,
-        mockedFolder,
+        folder,
     }) => {
-        const plugin = await import("@tauri-apps/plugin-dialog");
-        plugin.ask = vi.fn().mockResolvedValue(true);
+        vi.mocked(ask).mockResolvedValue(true);
 
-        const updatedFolder = { ...mockedFolder, parentId: 2 };
+        const updatedFolder = { ...folder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
-                id: mockedFolder.id,
-                title: mockedFolder.name,
-                sourceParentId: mockedFolder.parentId,
+                id: folder.id,
+                title: folder.name,
+                sourceParentId: folder.parentId,
                 destParentId: 2,
                 confirm: true,
             });
@@ -180,19 +132,18 @@ describe("moving folders", () => {
     test("user cancels move on name collision", async ({
         mockedInvoker,
         clientManager,
-        mockedFolder,
+        folder,
     }) => {
-        const plugin = await import("@tauri-apps/plugin-dialog");
-        plugin.ask = vi.fn().mockResolvedValue(false);
+        vi.mocked(ask).mockResolvedValue(false);
 
-        const updatedFolder = { ...mockedFolder, parentId: 2 };
+        const updatedFolder = { ...folder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
-                id: mockedFolder.id,
-                title: mockedFolder.name,
-                sourceParentId: mockedFolder.parentId,
+                id: folder.id,
+                title: folder.name,
+                sourceParentId: folder.parentId,
                 destParentId: 2,
                 confirm: true,
             });

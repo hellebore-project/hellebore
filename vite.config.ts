@@ -12,11 +12,14 @@ export default defineConfig(async () => ({
         manifest: true,
         rollupOptions: { input: { main: resolve(__dirname, "index.html") } },
     },
-    resolve: { alias: { "@": "/src", "@tests": "/tests" } },
+    resolve: {
+        alias: { "@": "/src", "@tests": "/tests" },
+        conditions: ["browser"],
+    },
     test: {
         environment: "jsdom",
         setupFiles: "./vitest.setup.mjs",
-        include: ["./tests/{unit,functional}/**/*.{test,spec}.{ts,tsx}"],
+        include: ["tests/**/*.test.ts", "tests/**/*.spec.ts"],
     },
 
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

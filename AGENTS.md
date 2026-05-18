@@ -21,10 +21,6 @@ Tauri app with a typescript frontend and a rust backend.
 - Avoid style blocks in svelte files.
 - Define custom CSS classes in a CSS stylesheet and import it into the component file.
 
-### Tests
-
-- Ignore them (migration to svelte is still ongoing)
-
 ## Backend
 
 - Use snake-case for file names.

@@ -8,9 +8,7 @@
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-    /* TODO: uncomment this
+    { "path": "./tsconfig.node.json" },
     { "path": "./tsconfig.test.json" }
-    */
   ]
 }

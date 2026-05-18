@@ -1,21 +1,20 @@
-import { PropertyEditorService } from "@/components";
-import { EntryViewType } from "@/constants";
-import { EntryPropertyResponse } from "@/interface";
+import { EntryType, EntryViewType } from "@/constants";
+import type { EntryPropertyResponse, PersonProperties } from "@/interface";
+import type { PropertyEditorService } from "@/ui/centre/entry-editor/property-editor";
+import { test as baseTest } from "../fixtures";
 import { mockGetEntryProperties } from "@tests/utils/mocks";
 
-import { test as baseTest } from "../fixtures";
-
 export interface BasePropertyEditorFixtures {
-    entryProperties: Record<string, any>;
+    entryType: EntryType.Person;
+    entryProperties: PersonProperties;
     mockedEntryProperties: EntryPropertyResponse;
     propertyEditorService: PropertyEditorService;
 }
 
 export const test = baseTest.extend<BasePropertyEditorFixtures>({
-    // data
-    entryProperties: async ({}, use) => use({}),
+    entryType: EntryType.Person,
+    entryProperties: async ({}, use) => use({ name: "" }),
 
-    // mocking
     mockedEntryProperties: async (
         { mockedInvoker, mockedEntryInfo, entryProperties },
         use,
@@ -28,7 +27,6 @@ export const test = baseTest.extend<BasePropertyEditorFixtures>({
         use(entryWithProperties);
     },
 
-    // services
     propertyEditorService: [
         async ({ clientManager, entryId, mockedEntryProperties }, use) => {
             const service = await clientManager.central.openEntryEditor({
