@@ -25,20 +25,14 @@
     "eslint:fix": "eslint --fix .",
     "stylelint": "stylelint **/*.css",
     "stylelint:fix": "stylelint --fix **/*.css",
-    "prettier": "prettier --check \"**/*.{ts,tsx}\"",
-    "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
+    "prettier": "prettier --check \"**/*.ts\"",
+    "prettier:write": "prettier --write \"**/*.ts\"",
     "prepare": "husky"
   },
   "engines": {
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "@mantine/core": "^8.3",
-    "@mantine/hooks": "^8.3",
-    "@mantine/tiptap": "^8.3",
-    "@minoru/react-dnd-treeview": "^3.5.3",
-    "@react-hook/resize-observer": "^2.0.2",
-    "@tabler/icons-react": "^3.34.1",
     "@tauri-apps/api": "^2.7.0",
     "@tauri-apps/plugin-dialog": "^2.3.2",
     "@tauri-apps/plugin-shell": "^2.3.0",
@@ -50,14 +44,7 @@
     "@tiptap/starter-kit": "^3.20.0",
     "@tiptap/suggestion": "^3.20.0",
     "clsx": "^2.1.1",
-    "consolidated-events": "^2.0.2",
-    "mobx": "^6.13.7",
-    "mobx-react-lite": "^4.1.0",
-    "prosemirror-model": "^1.25.2",
-    "react": "^18.3.1",
-    "react-dnd": "^16.0.1",
-    "react-dom": "^18.3.1",
-    "tippy.js": "^6.3.7"
+    "prosemirror-model": "^1.25.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.*",
@@ -74,11 +61,7 @@
     "@testing-library/svelte": "^5.3.1",
     "@testing-library/user-event": "^14.6.1",
     "@tsconfig/svelte": "^5.0.7",
-    "@types/consolidated-events": "^2.0.0",
-    "@types/react": "^18.3.23",
-    "@types/react-dom": "^18.3.7",
     "@typescript-eslint/parser": "^8.55.0",
-    "@vitejs/plugin-react": "^4.7.0",
     "bits-ui": "^2.16.3",
     "env-cmd": "^10.1.0",
     "eslint": "^9.*",
