@@ -3,6 +3,7 @@ import { SvelteMap } from "svelte/reactivity";
 import { ROOT_FOLDER_ID, SidebarSectionType, SyncType } from "@/constants";
 import type {
     BulkFileResponse,
+    DeleteEntryEvent,
     EntryChangeEvent,
     DeleteFolderEvent,
     FolderResponse,
@@ -24,6 +25,7 @@ import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
 import type { SpotlightNodeData } from "./entry-spotlight-interface";
 import type {
+    DeleteNodeResult,
     NodeTextValidationResult,
     TreeNodeInfo,
     TreeNodeTextEdit,
@@ -53,6 +55,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         DeleteFolderEvent,
         Promise<BulkFileResponse | null>
     >;
+    onDeleteEntry: EventProducer<DeleteEntryEvent, Promise<boolean>>;
     onChangeTitle: EventProducer<EntryChangeEvent, unknown>;
 
     constructor(domain: DomainManager) {
@@ -62,6 +65,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         this.onOpenEntry = new EventProducer();
         this.onMoveFolder = new EventProducer();
         this.onDeleteFolder = new EventProducer();
+        this.onDeleteEntry = new EventProducer();
 
         this.onChangeTitle = new EventProducer();
         this.fileTree = new FileTreeService<SpotlightNodeData>({
@@ -79,6 +83,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         this.fileTree.onValidateNodeText.subscribe(({ node, text }) =>
             this.validateName(node, text),
         );
+        this.fileTree.onDeleteNode.subscribe((node) => this.deleteNode(node));
         this.fileTree.onSelectLeafNode.subscribe((node) =>
             this.selectEntry(node),
         );
@@ -180,6 +185,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         this.onOpenEntry.clear();
         this.onMoveFolder.clear();
         this.onDeleteFolder.clear();
+        this.onDeleteEntry.clear();
         this.onChangeTitle.clear();
         this._entryTitleChanges.clear();
     }
@@ -240,6 +246,49 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     deleteEntryNode(id: Id) {
         this.fileTree.removeNodeById(this.toEntryNodeId(id));
+    }
+
+    async deleteNode(
+        node: TreeNode<SpotlightNodeData>,
+    ): Promise<DeleteNodeResult> {
+        if (node.id === ROOT_NODE_ID)
+            return {
+                canDelete: false,
+                reason: "The root node cannot be deleted.",
+            };
+
+        const id = node.data.id;
+        if (id === null)
+            return {
+                canDelete: false,
+                reason: "The selected node cannot be deleted yet.",
+            };
+
+        if (node.isFolder) {
+            const response = await this.onDeleteFolder.produce({
+                id,
+                name: node.text,
+            });
+
+            if (!response)
+                return {
+                    canDelete: false,
+                    reason: `Failed to delete folder ${id}.`,
+                };
+        } else {
+            const success = await this.onDeleteEntry.produce({
+                id,
+                title: node.text,
+            });
+
+            if (!success)
+                return {
+                    canDelete: false,
+                    reason: `Failed to delete entry ${id}.`,
+                };
+        }
+
+        return { canDelete: true };
     }
 
     // MOVE NODE
@@ -451,6 +500,10 @@ export class EntrySpotlightService implements ISidebarSectionService {
     handleContextMenuItemRename(node: TreeNode<SpotlightNodeData>) {
         this.fileTree.onCloseContextMenu = () =>
             this.fileTree.makeNodeEditable(node);
+    }
+
+    handleContextMenuItemDelete(node: TreeNode<SpotlightNodeData>) {
+        void this.fileTree.handleContextMenuItemDelete(node);
     }
 
     // UTILITY

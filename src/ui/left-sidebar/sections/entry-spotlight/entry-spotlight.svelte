@@ -52,6 +52,11 @@
                 >
                     Rename
                 </ContextMenu.Item>
+                <ContextMenu.Item
+                    onclick={() => service.handleContextMenuItemDelete(node)}
+                >
+                    Delete
+                </ContextMenu.Item>
             {/snippet}
         </FileTree>
     </div>

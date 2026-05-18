@@ -9,6 +9,7 @@ import {
 import { EventProducer } from "@/utils/event-producer";
 
 import type {
+    DeleteNodeResult,
     FinalizeNodeMoveEvent,
     NodeTextValidationResult,
     TreeNode,
@@ -54,6 +55,7 @@ export class FileTreeService<T> implements IComponentService {
         ValidateNodeTextEvent<T>,
         Promise<NodeTextValidationResult>
     >;
+    onDeleteNode: EventProducer<TreeNode<T>, Promise<DeleteNodeResult>>;
     onSelectLeafNode: EventProducer<TreeNode<T>, void>;
     onCloseContextMenu: (() => void) | null = null;
 
@@ -64,6 +66,7 @@ export class FileTreeService<T> implements IComponentService {
         this.onFinalizeNodeMove = new EventProducer();
         this.onFinalizeNodeTextEdit = new EventProducer();
         this.onValidateNodeText = new EventProducer();
+        this.onDeleteNode = new EventProducer();
         this.onSelectLeafNode = new EventProducer();
 
         this._validationDebouncer = new ReplaceDebouncer(
@@ -560,6 +563,18 @@ export class FileTreeService<T> implements IComponentService {
             e.stopPropagation();
             await this.commitNodeTextEdit(node.id);
         }
+    }
+
+    async handleContextMenuItemDelete(node: TreeNode<T>) {
+        if (!this.onDeleteNode.hasConsumer) {
+            console.error(
+                "Cannot delete node. Event handler is not configured.",
+            );
+            return;
+        }
+
+        const result = await this.onDeleteNode.produce(node);
+        if (!result.canDelete && result.reason) console.warn(result.reason);
     }
 
     handleContextMenuStatusChange(open: boolean) {

@@ -133,6 +133,9 @@ export class ClientManager implements IComponentService {
         this.leftSideBar.onDeleteFolder.subscribe(({ id, confirm }) =>
             this.deleteFolder(id, confirm),
         );
+        this.leftSideBar.onDeleteEntry.subscribe(({ id, title }) =>
+            this.deleteEntry(id, title),
+        );
         // spotlight.onOpenFolderContext.subscribe((args) =>
         //     this.contextMenu.openForNavBarFolderNode(args),
         // );
