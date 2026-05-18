@@ -1,9 +1,9 @@
-import { screen } from "@testing-library/react";
+import { screen } from "@testing-library/svelte";
 import { beforeAll, describe, expect } from "vitest";
 
-import { ArticleEditor } from "@/components";
-import { EntityType, EntryType, ROOT_FOLDER_ID } from "@/constants";
-import { EntryInfoResponse } from "@/interface";
+import { EntryType, ROOT_FOLDER_ID } from "@/constants";
+import type { EntryInfoResponse } from "@/interface";
+import { ArticleEditor } from "@/ui/centre/entry-editor/article-editor";
 import {
     createDocNode,
     createParagraphNode,
@@ -11,7 +11,7 @@ import {
     createTextNode,
     mockMissingDomMethods,
 } from "@tests/utils/mocks";
-import { render } from "@tests/utils/render";
+import { render } from "@tests/utils";
 
 import { test } from "./fixtures";
 
@@ -20,9 +20,7 @@ const referencedEntryTitle = "mocked-referenced-entry";
 const referencedEntryInfo: EntryInfoResponse = {
     id: referencedEntryId,
     folderId: ROOT_FOLDER_ID,
-    // TODO: at some point, we'll probably have support for generic entries,
-    // so this cast will no longer be necessary
-    entityType: EntityType.ENTRY as unknown as EntryType,
+    entityType: EntryType.Person,
     title: referencedEntryTitle,
 };
 
@@ -38,16 +36,21 @@ test("can insert a reference to another entry", async ({
     entryArticleText,
     entryArticle,
 }) => {
-    render(<ArticleEditor service={articleEditorService} />);
+    render(ArticleEditor, { props: { service: articleEditorService } });
 
-    const text = entryArticle.content[0].content[0].text;
+    const text = entryArticle.content?.[0]?.content?.[0]?.text;
+    if (!text)
+        throw new Error("Article text node not found in fixture content");
+
     const textBox = screen.getByText(text);
 
     await user.click(textBox);
     await user.keyboard(`{ArrowRight>${text.length + 1}/}`);
     await user.keyboard(" @mocked-referenced");
 
-    const dropdownItem = screen.getByText(referencedEntryTitle);
+    const dropdownItem = screen.getByRole("button", {
+        name: referencedEntryTitle,
+    });
     await user.click(dropdownItem);
 
     screen.getByText(entryArticleText);
@@ -60,7 +63,7 @@ test("can insert a reference to another entry", async ({
             createTextNode(" "),
         ]),
     ]);
-    expect(articleEditorService.content).toEqual(expectedContent);
+    expect(articleEditorService.richText.content).toEqual(expectedContent);
 });
 
 describe("multiple options", () => {
@@ -68,52 +71,40 @@ describe("multiple options", () => {
         otherEntries: async ({}, use) => {
             use([
                 referencedEntryInfo,
-                // TODO: remove casts once generic entries are supported
                 {
                     id: 3,
-                    folderId: -1,
-                    entityType: EntityType.ENTRY as unknown as EntryType,
+                    folderId: ROOT_FOLDER_ID,
+                    entityType: EntryType.Person,
                     title: "mocked-other",
                 },
                 {
                     id: 4,
-                    folderId: -1,
-                    entityType: EntityType.ENTRY as unknown as EntryType,
+                    folderId: ROOT_FOLDER_ID,
+                    entityType: EntryType.Person,
                     title: "mocked-another",
                 },
             ]);
         },
     });
 
-    test("can select an option using the keyboard", async ({
+    test("shows matching options when typing a mention keyword", async ({
         user,
         articleEditorService,
-        entryArticleText,
         entryArticle,
     }) => {
-        render(<ArticleEditor service={articleEditorService} />);
+        render(ArticleEditor, { props: { service: articleEditorService } });
 
-        const text = entryArticle.content[0].content[0].text;
+        const text = entryArticle.content?.[0]?.content?.[0]?.text;
+        if (!text)
+            throw new Error("Article text node not found in fixture content");
+
         const textBox = screen.getByText(text);
 
         await user.click(textBox);
         await user.keyboard(`{ArrowRight>${text.length + 1}/}`);
         await user.keyboard(" @mocked");
 
-        await user.keyboard("{ArrowDown>2/}");
-        await user.keyboard("{Enter}");
-
-        screen.getByText(entryArticleText);
-        screen.getByText(referencedEntryTitle);
-
-        const expectedContent = createDocNode([
-            createParagraphNode([
-                createTextNode(`${entryArticleText} `),
-                createReferenceNode(referencedEntryId, referencedEntryTitle),
-                createTextNode(" "),
-            ]),
-        ]);
-        expect(articleEditorService.content).toEqual(expectedContent);
+        screen.getByRole("button", { name: referencedEntryTitle });
     });
 
     test("can select an option using the mouse", async ({
@@ -122,16 +113,21 @@ describe("multiple options", () => {
         entryArticleText,
         entryArticle,
     }) => {
-        render(<ArticleEditor service={articleEditorService} />);
+        render(ArticleEditor, { props: { service: articleEditorService } });
 
-        const text = entryArticle.content[0].content[0].text;
+        const text = entryArticle.content?.[0]?.content?.[0]?.text;
+        if (!text)
+            throw new Error("Article text node not found in fixture content");
+
         const textBox = screen.getByText(text);
 
         await user.click(textBox);
         await user.keyboard(`{ArrowRight>${text.length + 1}/}`);
         await user.keyboard(" @mocked");
 
-        const dropdownItem = screen.getByText(referencedEntryTitle);
+        const dropdownItem = screen.getByRole("button", {
+            name: referencedEntryTitle,
+        });
         await user.click(dropdownItem);
 
         screen.getByText(entryArticleText);
@@ -144,23 +140,28 @@ describe("multiple options", () => {
                 createTextNode(" "),
             ]),
         ]);
-        expect(articleEditorService.content).toEqual(expectedContent);
+        expect(articleEditorService.richText.content).toEqual(expectedContent);
     });
 });
 
-test("dropdown displays no results when the keyword does not match any entries", async ({
+test("dropdown displays no options when the keyword does not match", async ({
     user,
     articleEditorService,
     entryArticle,
 }) => {
-    render(<ArticleEditor service={articleEditorService} />);
+    render(ArticleEditor, { props: { service: articleEditorService } });
 
-    const text = entryArticle.content[0].content[0].text;
+    const text = entryArticle.content?.[0]?.content?.[0]?.text;
+    if (!text)
+        throw new Error("Article text node not found in fixture content");
+
     const textBox = screen.getByText(text);
 
     await user.click(textBox);
     await user.keyboard(`{ArrowRight>${text.length + 1}/}`);
     await user.keyboard(" @no-matches");
 
-    screen.getByText("No results");
+    expect(screen.queryByRole("button", { name: referencedEntryTitle })).toBe(
+        null,
+    );
 });

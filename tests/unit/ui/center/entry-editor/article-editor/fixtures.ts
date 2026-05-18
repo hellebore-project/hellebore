@@ -1,14 +1,13 @@
-import { ArticleEditorService } from "@/components";
+import type { ArticleEditorService } from "@/ui/centre/entry-editor/article-editor";
 import { EntryViewType } from "@/constants";
 
 import { test as baseTest } from "../fixtures";
 
-export interface BasePropertyEditorFixtures {
+export interface BaseArticleEditorFixtures {
     articleEditorService: ArticleEditorService;
 }
 
-export const test = baseTest.extend<BasePropertyEditorFixtures>({
-    // services
+export const test = baseTest.extend<BaseArticleEditorFixtures>({
     articleEditorService: [
         async (
             {

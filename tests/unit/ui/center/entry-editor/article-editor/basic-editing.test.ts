@@ -1,14 +1,14 @@
-import { screen } from "@testing-library/react";
+import { screen } from "@testing-library/svelte";
 import { beforeAll, expect } from "vitest";
 
-import { ArticleEditor } from "@/components";
+import { ArticleEditor } from "@/ui/centre/entry-editor/article-editor";
 import {
     createDocNode,
     createParagraphNode,
     createTextNode,
     mockMissingDomMethods,
 } from "@tests/utils/mocks";
-import { render } from "@tests/utils/render";
+import { render } from "@tests/utils";
 
 import { test } from "./fixtures";
 
@@ -18,9 +18,12 @@ test("display article content", async ({
     articleEditorService,
     entryArticle,
 }) => {
-    render(<ArticleEditor service={articleEditorService} />);
+    render(ArticleEditor, { props: { service: articleEditorService } });
 
-    const text = entryArticle.content[0].content[0].text;
+    const text = entryArticle.content?.[0]?.content?.[0]?.text;
+    if (!text)
+        throw new Error("Article text node not found in fixture content");
+
     screen.getByText(text);
 });
 
@@ -29,9 +32,12 @@ test("edit article content", async ({
     articleEditorService,
     entryArticle,
 }) => {
-    render(<ArticleEditor service={articleEditorService} />);
+    render(ArticleEditor, { props: { service: articleEditorService } });
 
-    const text = entryArticle.content[0].content[0].text;
+    const text = entryArticle.content?.[0]?.content?.[0]?.text;
+    if (!text)
+        throw new Error("Article text node not found in fixture content");
+
     const textBox = screen.getByText(text);
 
     await user.click(textBox);
@@ -44,5 +50,7 @@ test("edit article content", async ({
     const expectedContent = createDocNode([
         createParagraphNode([createTextNode(expectedText)]),
     ]);
-    expect(articleEditorService.content).toStrictEqual(expectedContent);
+    expect(articleEditorService.richText.content).toStrictEqual(
+        expectedContent,
+    );
 });

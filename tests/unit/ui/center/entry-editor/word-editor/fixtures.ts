@@ -1,6 +1,6 @@
-import { WordEditorService } from "@/components";
-import { EntryViewType, EntityType, WordType } from "@/constants";
-import { Id, WordResponse } from "@/interface";
+import { EntryType, EntryViewType, WordType } from "@/constants";
+import type { Id, WordResponse } from "@/interface";
+import type { WordEditorService } from "@/ui/centre/entry-editor/word-editor";
 import { mockGetWords } from "@tests/utils/mocks";
 
 import { test as baseTest } from "../fixtures";
@@ -17,7 +17,8 @@ export interface BaseWordEditorFixtures {
 }
 
 export const test = baseTest.extend<BaseWordEditorFixtures>({
-    // data
+    entryType: EntryType.Language,
+
     wordId: 1,
     wordType: WordType.Noun,
     wordSpelling: "test-word",
@@ -37,30 +38,29 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
         const word: WordResponse = {
             id: wordId,
             languageId: entryId,
-            wordType: wordType,
+            wordType,
             spelling: wordSpelling,
             definition: wordDefinition,
             translations: wordTranslations,
         };
         use(word);
     },
-    mockedWord: async ({ mockedInvoker, mockedEntryInfo, word }, use) => {
+    mockedWord: async ({ mockedInvoker, word }, use) => {
         mockGetWords(mockedInvoker, [word]);
         use(word);
     },
 
-    // services
     wordEditorService: [
-        async ({ clientManager, entryId, wordType }, use) => {
+        async (
+            { clientManager, entryId, mockedEntryInfo, mockedWord },
+            use,
+        ) => {
             const service = await clientManager.central.openEntryEditor({
                 id: entryId,
                 viewKey: EntryViewType.WordEditor,
-                wordType,
             });
             await use(service.lexicon);
         },
         { auto: true },
     ],
 });
-
-test.scoped({ entryType: EntityType.LANGUAGE });

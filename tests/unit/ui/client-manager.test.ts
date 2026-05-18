@@ -1,14 +1,19 @@
+import { ask } from "@tauri-apps/plugin-dialog";
 import { describe, expect, vi } from "vitest";
 
-import { FolderResponse, FolderValidateResponse, Id } from "@/interface";
-import { test as baseTest } from "@tests/unit/components/fixtures";
+import type { FolderResponse, FolderValidateResponse, Id } from "@/interface";
+import { test as baseTest } from "@tests/unit/ui/fixtures";
 import {
+    mockGetFolder,
     mockDeleteFolder,
     mockUpdateFolder,
     mockValidateFolder,
 } from "@tests/utils/mocks";
 
-vi.mock("@tauri-apps/plugin-dialog");
+vi.mock("@tauri-apps/plugin-dialog", () => ({
+    ask: vi.fn(),
+    open: vi.fn(),
+}));
 
 describe("moving folders", () => {
     interface MoveFolderFixtures {
@@ -21,13 +26,11 @@ describe("moving folders", () => {
     }
 
     const test = baseTest.extend<MoveFolderFixtures>({
-        // data
         isUnique: true,
         parentFolder: null,
         collidingFolder: null,
         deletedFolderIds: async ({}, use) => use([]),
 
-        // mocking
         mockFolderValidation: [
             async (
                 { mockedInvoker, folder, collidingFolder, isUnique },
@@ -35,14 +38,18 @@ describe("moving folders", () => {
             ) => {
                 const response: FolderValidateResponse = {
                     ...folder,
+                    id: folder.id,
                     nameCollision: null,
                 };
 
-                if (!isUnique)
+                if (!isUnique) {
                     response.nameCollision = {
                         isUnique: false,
                         collidingFolder,
                     };
+
+                    mockGetFolder(mockedInvoker, collidingFolder);
+                }
 
                 mockValidateFolder(mockedInvoker, response);
                 use(response);
@@ -150,19 +157,18 @@ describe("moving folders", () => {
     test("user confirms move on name collision", async ({
         mockedInvoker,
         clientManager,
-        mockedFolder,
+        folder,
     }) => {
-        const plugin = await import("@tauri-apps/plugin-dialog");
-        plugin.ask = vi.fn().mockResolvedValue(true);
+        vi.mocked(ask).mockResolvedValue(true);
 
-        const updatedFolder = { ...mockedFolder, parentId: 2 };
+        const updatedFolder = { ...folder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
-                id: mockedFolder.id,
-                title: mockedFolder.name,
-                sourceParentId: mockedFolder.parentId,
+                id: folder.id,
+                title: folder.name,
+                sourceParentId: folder.parentId,
                 destParentId: 2,
                 confirm: true,
             });
@@ -180,19 +186,18 @@ describe("moving folders", () => {
     test("user cancels move on name collision", async ({
         mockedInvoker,
         clientManager,
-        mockedFolder,
+        folder,
     }) => {
-        const plugin = await import("@tauri-apps/plugin-dialog");
-        plugin.ask = vi.fn().mockResolvedValue(false);
+        vi.mocked(ask).mockResolvedValue(false);
 
-        const updatedFolder = { ...mockedFolder, parentId: 2 };
+        const updatedFolder = { ...folder, parentId: 2 };
         mockUpdateFolder(mockedInvoker, updatedFolder);
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
-                id: mockedFolder.id,
-                title: mockedFolder.name,
-                sourceParentId: mockedFolder.parentId,
+                id: folder.id,
+                title: folder.name,
+                sourceParentId: folder.parentId,
                 destParentId: 2,
                 confirm: true,
             });
