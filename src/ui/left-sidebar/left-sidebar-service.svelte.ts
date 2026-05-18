@@ -3,6 +3,7 @@ import { SvelteMap } from "svelte/reactivity";
 import type {
     BulkFileResponse,
     ChangeEntryEditorViewEvent,
+    DeleteEntryEvent,
     DeleteFolderEvent,
     EntryInfoResponse,
     IComponentService,
@@ -51,6 +52,7 @@ export class LeftSidebarService implements IComponentService {
         DeleteFolderEvent,
         Promise<BulkFileResponse | null>
     >;
+    onDeleteEntry: EventProducer<DeleteEntryEvent, Promise<boolean>>;
     onDataChange: EventProducer<DataChangeEvent, unknown>;
 
     constructor({ domain }: LeftSidebarServiceArgs) {
@@ -59,6 +61,7 @@ export class LeftSidebarService implements IComponentService {
         this.onOpenEntry = new EventProducer();
         this.onMoveFolder = new EventProducer();
         this.onDeleteFolder = new EventProducer();
+        this.onDeleteEntry = new EventProducer();
         this.onDataChange = new EventProducer();
     }
 
@@ -80,6 +83,7 @@ export class LeftSidebarService implements IComponentService {
         section.onOpenEntry.broker = this.onOpenEntry;
         section.onMoveFolder.broker = this.onMoveFolder;
         section.onDeleteFolder.broker = this.onDeleteFolder;
+        section.onDeleteEntry.broker = this.onDeleteEntry;
         section.onChangeTitle.subscribe((event) =>
             this.onDataChange.produce({ entries: [event] }),
         );

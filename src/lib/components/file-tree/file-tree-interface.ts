@@ -37,6 +37,11 @@ export interface NodeTextValidationResult {
     error?: string | null;
 }
 
+export interface DeleteNodeResult {
+    canDelete: boolean;
+    reason?: string | null;
+}
+
 export interface EditableLabelProps<T> {
     service: FileTreeService<T>;
     node: TreeNode<T>;
