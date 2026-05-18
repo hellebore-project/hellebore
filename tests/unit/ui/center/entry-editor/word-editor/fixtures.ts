@@ -1,11 +1,11 @@
 import { EntryType, EntryViewType, WordType } from "@/constants";
 import type { Id, WordResponse } from "@/interface";
 import type { WordEditorService } from "@/ui/centre/entry-editor/word-editor";
+import { test as baseTest } from "../fixtures";
 import { mockGetWords } from "@tests/utils/mocks";
 
-import { test as baseTest } from "../fixtures";
-
 export interface BaseWordEditorFixtures {
+    entryType: EntryType.Language;
     wordId: Id;
     wordType: WordType;
     wordSpelling: string;
@@ -43,11 +43,11 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
             definition: wordDefinition,
             translations: wordTranslations,
         };
-        use(word);
+        await use(word);
     },
     mockedWord: async ({ mockedInvoker, word }, use) => {
         mockGetWords(mockedInvoker, [word]);
-        use(word);
+        await use(word);
     },
 
     wordEditorService: [

@@ -16,35 +16,27 @@ beforeAll(async () => mockMissingDomMethods());
 
 test("display article content", async ({
     articleEditorService,
-    entryArticle,
+    entryArticleText,
 }) => {
     render(ArticleEditor, { props: { service: articleEditorService } });
 
-    const text = entryArticle.content?.[0]?.content?.[0]?.text;
-    if (!text)
-        throw new Error("Article text node not found in fixture content");
-
-    screen.getByText(text);
+    screen.getByText(entryArticleText);
 });
 
 test("edit article content", async ({
     user,
     articleEditorService,
-    entryArticle,
+    entryArticleText,
 }) => {
     render(ArticleEditor, { props: { service: articleEditorService } });
 
-    const text = entryArticle.content?.[0]?.content?.[0]?.text;
-    if (!text)
-        throw new Error("Article text node not found in fixture content");
-
-    const textBox = screen.getByText(text);
+    const textBox = screen.getByText(entryArticleText);
 
     await user.click(textBox);
-    await user.keyboard(`{ArrowRight>${text.length + 1}/}`);
+    await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
     await user.keyboard(" edited");
 
-    const expectedText = `${text} edited`;
+    const expectedText = `${entryArticleText} edited`;
     screen.getByText(expectedText);
 
     const expectedContent = createDocNode([

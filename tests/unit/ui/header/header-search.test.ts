@@ -2,8 +2,6 @@ import { waitFor } from "@testing-library/svelte";
 import { describe, expect, vi } from "vitest";
 
 import { EntryType } from "@/constants";
-import { DomainManager } from "@/services";
-import { HeaderManager } from "@/ui/header/header-service.svelte";
 
 import { test } from "./fixtures";
 
@@ -40,8 +38,10 @@ describe("search service", () => {
         expect(labels).toContain("mocked-entry-2");
     });
 
-    test("selecting an entry emits open-entry event", async ({}) => {
-        const headerManager = new HeaderManager(new DomainManager());
+    test("selecting an entry emits open-entry event", async ({
+        standaloneHeaderManager,
+    }) => {
+        const headerManager = standaloneHeaderManager;
 
         const onOpenEntry = vi.fn();
         headerManager.onOpenEntry.subscribe(onOpenEntry);

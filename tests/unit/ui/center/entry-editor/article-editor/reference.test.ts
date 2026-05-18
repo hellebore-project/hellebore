@@ -28,18 +28,13 @@ test("can insert a reference to another entry", async ({
     user,
     articleEditorService,
     entryArticleText,
-    entryArticle,
 }) => {
     render(ArticleEditor, { props: { service: articleEditorService } });
 
-    const text = entryArticle.content?.[0]?.content?.[0]?.text;
-    if (!text)
-        throw new Error("Article text node not found in fixture content");
-
-    const textBox = screen.getByText(text);
+    const textBox = screen.getByText(entryArticleText);
 
     await user.click(textBox);
-    await user.keyboard(`{ArrowRight>${text.length + 1}/}`);
+    await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
     await user.keyboard(" @mocked-referenced");
 
     const dropdownItem = screen.getByRole("button", {

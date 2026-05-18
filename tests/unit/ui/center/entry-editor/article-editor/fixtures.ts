@@ -1,7 +1,6 @@
 import type { ArticleEditorService } from "@/ui/centre/entry-editor/article-editor";
 import { EntryType, EntryViewType, ROOT_FOLDER_ID } from "@/constants";
 import type { EntryInfoResponse } from "@/interface";
-
 import { test as baseTest } from "../fixtures";
 
 export interface BaseArticleEditorFixtures {

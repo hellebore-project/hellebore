@@ -2,7 +2,6 @@ import { screen } from "@testing-library/svelte";
 import { beforeAll, describe, expect } from "vitest";
 
 import { ROOT_FOLDER_ID, EntryType } from "@/constants";
-import type { EntryInfoResponse } from "@/interface";
 import { ArticleEditor } from "@/ui/centre/entry-editor/article-editor";
 import { mockMissingDomMethods } from "@tests/utils/mocks";
 import { render } from "@tests/utils";
@@ -40,18 +39,14 @@ describe("multiple options", () => {
     test("shows matching options when typing a mention keyword", async ({
         user,
         articleEditorService,
-        entryArticle,
+        entryArticleText,
     }) => {
         render(ArticleEditor, { props: { service: articleEditorService } });
 
-        const text = entryArticle.content?.[0]?.content?.[0]?.text;
-        if (!text)
-            throw new Error("Article text node not found in fixture content");
-
-        const textBox = screen.getByText(text);
+        const textBox = screen.getByText(entryArticleText);
 
         await user.click(textBox);
-        await user.keyboard(`{ArrowRight>${text.length + 1}/}`);
+        await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
         await user.keyboard(" @mocked");
 
         screen.getByRole("button", { name: referencedEntryTitle });
@@ -61,18 +56,13 @@ describe("multiple options", () => {
         user,
         articleEditorService,
         entryArticleText,
-        entryArticle,
     }) => {
         render(ArticleEditor, { props: { service: articleEditorService } });
 
-        const text = entryArticle.content?.[0]?.content?.[0]?.text;
-        if (!text)
-            throw new Error("Article text node not found in fixture content");
-
-        const textBox = screen.getByText(text);
+        const textBox = screen.getByText(entryArticleText);
 
         await user.click(textBox);
-        await user.keyboard(`{ArrowRight>${text.length + 1}/}`);
+        await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
         await user.keyboard(" @mocked");
 
         const dropdownItem = screen.getByRole("button", {
@@ -88,18 +78,14 @@ describe("multiple options", () => {
 test("dropdown displays no options when the keyword does not match", async ({
     user,
     articleEditorService,
-    entryArticle,
+    entryArticleText,
 }) => {
     render(ArticleEditor, { props: { service: articleEditorService } });
 
-    const text = entryArticle.content?.[0]?.content?.[0]?.text;
-    if (!text)
-        throw new Error("Article text node not found in fixture content");
-
-    const textBox = screen.getByText(text);
+    const textBox = screen.getByText(entryArticleText);
 
     await user.click(textBox);
-    await user.keyboard(`{ArrowRight>${text.length + 1}/}`);
+    await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
     await user.keyboard(" @no-matches");
 
     expect(screen.queryByRole("button", { name: referencedEntryTitle })).toBe(

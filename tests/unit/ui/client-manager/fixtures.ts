@@ -11,11 +11,11 @@ import {
 
 export interface MoveFolderFixtures {
     isUnique: boolean;
-    parentFolder: FolderResponse;
-    collidingFolder: FolderResponse;
+    parentFolder: FolderResponse | null;
+    collidingFolder: FolderResponse | null;
     deletedFolderIds: Id[];
-    mockFolderValidation: FolderValidateResponse;
-    mockFolderDeletion: null;
+    folderValidation: FolderValidateResponse;
+    folderDeletion: null;
 }
 
 export const test = baseTest.extend<MoveFolderFixtures>({
@@ -24,7 +24,7 @@ export const test = baseTest.extend<MoveFolderFixtures>({
     collidingFolder: null,
     deletedFolderIds: async ({}, use) => use([]),
 
-    mockFolderValidation: [
+    folderValidation: [
         async ({ mockedInvoker, folder, collidingFolder, isUnique }, use) => {
             const response: FolderValidateResponse = {
                 ...folder,
@@ -33,6 +33,10 @@ export const test = baseTest.extend<MoveFolderFixtures>({
             };
 
             if (!isUnique) {
+                if (!collidingFolder) {
+                    throw new Error("Colliding folder fixture is required");
+                }
+
                 response.nameCollision = {
                     isUnique: false,
                     collidingFolder,
@@ -46,7 +50,7 @@ export const test = baseTest.extend<MoveFolderFixtures>({
         },
         { auto: true },
     ],
-    mockFolderDeletion: [
+    folderDeletion: [
         async ({ mockedInvoker, deletedFolderIds }, use) => {
             mockDeleteFolder(mockedInvoker, deletedFolderIds, []);
             use(null);
