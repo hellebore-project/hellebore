@@ -58,54 +58,33 @@ export class SynchronizationService {
     }
 
     requestPeriodicSynchronization() {
-        console.log(
-            "[SynchronizationService] requestPeriodicSynchronization called",
-        );
         this._lastFullRequestTime = Date.now();
 
         if (this._waitingForSync) {
-            console.log(
-                "[SynchronizationService] Already waiting for sync, exiting",
-            );
             return;
         }
         this._waitingForSync = true;
 
         this._requestPeriodicSynchronization().finally(() => {
-            console.log("[SynchronizationService] Periodic sync completed");
             this._waitingForSync = false;
         });
     }
 
     private async _requestPeriodicSynchronization(): Promise<SyncEvent | null> {
-        console.log(
-            "[SynchronizationService] _requestPeriodicSynchronization started",
-        );
         while (true) {
-            console.log("[SynchronizationService] Waiting for sync period");
             await new Promise((r) => setTimeout(r, this.syncPeriod));
             if (this._lastFullSyncTime > this._lastFullRequestTime) {
-                console.log(
-                    "[SynchronizationService] Last full sync time is more recent, exiting",
-                );
                 return null;
             }
             if (Date.now() - this._lastFullRequestTime < this.syncPeriod) {
-                console.log(
-                    "[SynchronizationService] Sync period not elapsed, continuing",
-                );
                 continue;
             }
             if (this._syncing) {
-                console.log(
-                    "[SynchronizationService] Already syncing, continuing",
-                );
                 continue;
             }
             break;
         }
 
-        console.log("[SynchronizationService] Requesting full synchronization");
         return this.requestFullSynchronization();
     }
 
