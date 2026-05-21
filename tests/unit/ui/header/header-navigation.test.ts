@@ -1,4 +1,5 @@
 import { screen } from "@testing-library/svelte";
+import { waitFor } from "@testing-library/svelte";
 import { expect, vi } from "vitest";
 
 import { Header } from "@/ui/header";
@@ -42,4 +43,28 @@ test("project loaded state controls file menu items", async ({
     expect(unloadedLabels).not.toContain("New Entry");
 
     headerManager.handleProjectChange({ loaded: true, project });
+});
+
+test("project load toggles the header search field", async ({
+    standaloneHeaderManager,
+    project,
+}) => {
+    render(Header, { props: { service: standaloneHeaderManager } });
+
+    expect(screen.queryByRole("combobox")).toBeNull();
+
+    standaloneHeaderManager.handleProjectChange({ loaded: true, project });
+
+    await waitFor(() => {
+        expect(screen.getByRole("combobox")).toBeTruthy();
+    });
+
+    standaloneHeaderManager.handleProjectChange({
+        loaded: false,
+        project: null,
+    });
+
+    await waitFor(() => {
+        expect(screen.queryByRole("combobox")).toBeNull();
+    });
 });
