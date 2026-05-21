@@ -1,0 +1,139 @@
+import { waitFor } from "@testing-library/svelte";
+import { describe, expect, vi } from "vitest";
+
+import { CommandNames, SyncType } from "@/constants";
+
+import { test } from "./fixtures";
+
+describe("entry spotlight interactions", () => {
+    test.scoped({
+        otherFolders: async ({}, use) => {
+            use([
+                {
+                    id: 2,
+                    parentId: -1,
+                    name: "other-folder",
+                },
+            ]);
+        },
+    });
+
+    test("selecting a leaf node focuses spotlight and emits open-entry", async ({
+        standaloneLeftSidebar,
+        entryId,
+    }) => {
+        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const onOpenEntry = vi.fn();
+        spotlight.onOpenEntry.subscribe(onOpenEntry);
+
+        await waitFor(() => {
+            expect(
+                spotlight.fileTree.getNode(spotlight.toEntryNodeId(entryId)),
+            ).toBeTruthy();
+        });
+
+        const node = spotlight.fileTree.getNode(
+            spotlight.toEntryNodeId(entryId),
+        );
+        expect(node).toBeTruthy();
+
+        spotlight.selectEntry(node!);
+
+        expect(spotlight.focused).toBe(true);
+        expect(onOpenEntry).toHaveBeenCalledWith({ id: entryId });
+    });
+
+    test("tracks renamed entries for polling and clears synced changes", async ({
+        standaloneLeftSidebar,
+        entryId,
+    }) => {
+        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        standaloneLeftSidebar.onDataChange.subscribe(() => undefined);
+
+        await waitFor(() => {
+            expect(
+                spotlight.fileTree.getNode(spotlight.toEntryNodeId(entryId)),
+            ).toBeTruthy();
+        });
+
+        const node = spotlight.fileTree.getNode(
+            spotlight.toEntryNodeId(entryId),
+        );
+        expect(node).toBeTruthy();
+
+        node!.text = "renamed title";
+        await spotlight.updateName(node!);
+
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual([
+            { id: entryId, title: "renamed title" },
+        ]);
+        expect(
+            spotlight.fetchChanges({
+                type: SyncType.PARTIAL,
+                entries: [{ id: entryId }],
+            }),
+        ).toStrictEqual([{ id: entryId, title: "renamed title" }]);
+
+        spotlight.handleSynchronization([
+            {
+                request: {
+                    id: entryId,
+                    title: "renamed title",
+                    words: null,
+                },
+                response: {
+                    entry: {
+                        id: entryId,
+                        folderId: { updated: false },
+                        title: { updated: true, isUnique: true },
+                        properties: { updated: false },
+                        text: { updated: false },
+                        words: [],
+                    },
+                },
+            },
+        ]);
+
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual(
+            [],
+        );
+    });
+
+    test("finalizing an entry move calls backend update and succeeds", async ({
+        standaloneLeftSidebar,
+        mockedInvoker,
+        entryId,
+    }) => {
+        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        mockedInvoker.mockCommand(CommandNames.Entry.Update, async () => ({
+            data: {
+                id: entryId,
+                folderId: { updated: true },
+                title: { updated: false, isUnique: true },
+                properties: { updated: false },
+                text: { updated: false },
+                words: [],
+            },
+            errors: [],
+        }));
+
+        await waitFor(() => {
+            expect(
+                spotlight.fileTree.getNode(spotlight.toEntryNodeId(entryId)),
+            ).toBeTruthy();
+        });
+
+        const node = spotlight.fileTree.getNode(
+            spotlight.toEntryNodeId(entryId),
+        );
+        expect(node).toBeTruthy();
+
+        const moved = await spotlight.finalizeMove(
+            node!,
+            spotlight.toFolderNodeId(2),
+        );
+
+        expect(moved).toBe(true);
+        mockedInvoker.expectCalled(CommandNames.Entry.Update);
+    });
+});
