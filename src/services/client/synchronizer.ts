@@ -69,8 +69,6 @@ export class SynchronizationService {
     }
 
     private async _requestPeriodicSynchronization(): Promise<SyncEvent | null> {
-        // we don't want too many IPC calls being sent to the backend,
-        // so we space them out via a debouncer
         while (true) {
             await new Promise((r) => setTimeout(r, this.syncPeriod));
             if (this._lastFullSyncTime > this._lastFullRequestTime) return null;
@@ -80,7 +78,7 @@ export class SynchronizationService {
             break;
         }
 
-        // when requesting a delayed synchronization, all data has to be retrieved
+        // when requesting a periodic synchronization, all data has to be retrieved
         // since there's no guarantee that the request will get picked up due to the debouncer
         return this.requestFullSynchronization();
     }
