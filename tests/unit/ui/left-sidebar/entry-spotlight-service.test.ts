@@ -70,7 +70,7 @@ describe("entry spotlight interactions", () => {
         expect(
             spotlight.fetchChanges({
                 type: SyncType.PARTIAL,
-                entries: [{ id: entryId }],
+                entries: [{ id: entryId, syncTitle: true }],
             }),
         ).toStrictEqual([{ id: entryId, title: "renamed title" }]);
 

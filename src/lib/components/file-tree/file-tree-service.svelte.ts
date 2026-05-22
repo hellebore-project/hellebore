@@ -191,6 +191,14 @@ export class FileTreeService<T> implements IComponentService {
         return this._nodes[nodeId];
     }
 
+    findNode(predicate: (node: TreeNode<T>) => boolean): TreeNode<T> | null {
+        for (const node of Object.values(this._nodes)) {
+            if (predicate(node)) return node;
+        }
+
+        return null;
+    }
+
     getChildNodes(parentId: string): TreeNode<T>[] {
         return (this._structure.get(parentId) ?? [])
             .map((id) => this._nodes[id])
