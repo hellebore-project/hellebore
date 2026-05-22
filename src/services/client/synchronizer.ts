@@ -60,31 +60,26 @@ export class SynchronizationService {
     requestPeriodicSynchronization() {
         this._lastFullRequestTime = Date.now();
 
-        if (this._waitingForSync) {
-            return;
-        }
+        if (this._waitingForSync) return;
         this._waitingForSync = true;
 
-        this._requestPeriodicSynchronization().finally(() => {
-            this._waitingForSync = false;
-        });
+        this._requestPeriodicSynchronization().finally(
+            () => (this._waitingForSync = false),
+        );
     }
 
     private async _requestPeriodicSynchronization(): Promise<SyncEvent | null> {
         while (true) {
             await new Promise((r) => setTimeout(r, this.syncPeriod));
-            if (this._lastFullSyncTime > this._lastFullRequestTime) {
-                return null;
-            }
-            if (Date.now() - this._lastFullRequestTime < this.syncPeriod) {
+            if (this._lastFullSyncTime > this._lastFullRequestTime) return null;
+            if (Date.now() - this._lastFullRequestTime < this.syncPeriod)
                 continue;
-            }
-            if (this._syncing) {
-                continue;
-            }
+            if (this._syncing) continue;
             break;
         }
 
+        // when requesting a periodic synchronization, all data has to be retrieved
+        // since there's no guarantee that the request will get picked up due to the debouncer
         return this.requestFullSynchronization();
     }
 
