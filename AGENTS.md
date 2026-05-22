@@ -24,3 +24,8 @@ Tauri app with a typescript frontend and a rust backend.
 ## Backend
 
 - Use snake-case for file names.
+
+## Tests
+
+- Tests must be kept separate from production code.
+- Test folder structure should mirror the production code folder structure.
