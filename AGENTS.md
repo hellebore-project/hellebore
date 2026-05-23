@@ -9,7 +9,7 @@ Tauri app with a typescript frontend and a rust backend.
 - Don't add doc-strings or in-line comments unless instructed.
 - Imports at the top of the file.
 - Organize imports into groups: standard libraries, 3rd party libraries, aliased imports, relative imports.
-- Avoid deleting my comments; only delete them when the associated code is also being deleted.
+- Avoid deleting existing comments; only delete them when the associated code is also being deleted.
 
 ## Frontend
 
@@ -29,3 +29,5 @@ Tauri app with a typescript frontend and a rust backend.
 
 - Tests must be kept separate from production code.
 - Test folder structure should mirror the production code folder structure.
+- Add/modify tests when adding or enhancing app features.
+- All (FE or BE) tests must pass after making functional changes.

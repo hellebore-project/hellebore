@@ -127,7 +127,11 @@ export class EntrySpotlightService implements ISidebarSectionService {
                 id: this.toFolderNodeId(folder.id),
                 parentId: this.toFolderNodeId(folder.parentId),
                 text: folder.name,
-                data: { id: folder.id, titleChanged: false },
+                data: {
+                    id: folder.id,
+                    titleChanged: false,
+                    folderIdChanged: false,
+                },
             };
             folderNodes.push(node);
         }
@@ -139,7 +143,11 @@ export class EntrySpotlightService implements ISidebarSectionService {
                 parentId: this.toFolderNodeId(entry.folderId),
                 text: entry.title,
                 isFolder: false,
-                data: { id: entry.id, titleChanged: false },
+                data: {
+                    id: entry.id,
+                    titleChanged: false,
+                    folderIdChanged: false,
+                },
             };
             entryNodes.push(node);
         }
@@ -155,27 +163,39 @@ export class EntrySpotlightService implements ISidebarSectionService {
         if (event.type === SyncType.FULL) {
             for (const nodeId of this._modifiedEntryNodeIds) {
                 const node = this.fileTree.getNode(nodeId);
-                if (!node || node.data.id === null || !node.data.titleChanged)
+                if (
+                    !node ||
+                    node.data.id === null ||
+                    (!node.data.titleChanged && !node.data.folderIdChanged)
+                )
                     continue;
 
                 const result: PollResultEntryData = { id: node.data.id };
 
                 if (node.data.titleChanged) result.title = node.text;
+                if (node.data.folderIdChanged)
+                    result.folderId = this.toFolderId(node.parentId);
 
                 results.push(result);
             }
         } else if (event.type === SyncType.PARTIAL && event.entries) {
             for (const entry of event.entries) {
-                if (!entry.syncTitle) continue;
+                if (!entry.syncTitle && !entry.syncFolderId) continue;
 
                 const node = this._getEntryNodeByDataId(entry.id);
-                if (!node || node.data.id === null || !node.data.titleChanged)
+                if (
+                    !node ||
+                    node.data.id === null ||
+                    (!node.data.titleChanged && !node.data.folderIdChanged)
+                )
                     continue;
 
                 const result: PollResultEntryData = { id: node.data.id };
 
                 if (entry.syncTitle && node.data.titleChanged)
                     result.title = node.text;
+                if (entry.syncFolderId && node.data.folderIdChanged)
+                    result.folderId = this.toFolderId(node.parentId);
 
                 results.push(result);
             }
@@ -191,8 +211,13 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
             if (request.title && response.entry?.title.updated)
                 node.data.titleChanged = false;
+            if (
+                request.folderId !== undefined &&
+                response.entry?.folderId.updated
+            )
+                node.data.folderIdChanged = false;
 
-            if (!node.data.titleChanged)
+            if (!node.data.titleChanged && !node.data.folderIdChanged)
                 this._modifiedEntryNodeIds.delete(node.id);
         }
     }
@@ -247,7 +272,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
             id: placeholderId,
             parentId,
             text: "",
-            data: { id: null, titleChanged: false },
+            data: { id: null, titleChanged: false, folderIdChanged: false },
         });
         this.fileTree.makeNodeEditable(node);
     }
@@ -265,7 +290,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
             id: this.toEntryNodeId(entry.id),
             parentId: parentNode.id,
             text: entry.title,
-            data: { id: entry.id, titleChanged: false },
+            data: { id: entry.id, titleChanged: false, folderIdChanged: false },
         });
     }
 
@@ -370,13 +395,14 @@ export class EntrySpotlightService implements ISidebarSectionService {
             if (node.data.id === null) {
                 console.error(`Leaf node ${node.id} has null entry id.`);
             } else {
-                const response = await this._domain.entries.update({
+                node.data.folderIdChanged = true;
+                this._modifiedEntryNodeIds.add(node.id);
+                this.onChangeTitle.produce({
                     id: node.data.id,
-                    folderId: destParentFolderId,
+                    folderIdChanged: true,
+                    syncImmediately: false,
                 });
-
-                if (response) moved = response.folderId.updated;
-                else moved = false;
+                moved = true;
             }
         }
 
@@ -431,7 +457,11 @@ export class EntrySpotlightService implements ISidebarSectionService {
             return {
                 id: node.id,
                 text: name,
-                data: { id: createResponse.id, titleChanged: false },
+                data: {
+                    id: createResponse.id,
+                    titleChanged: false,
+                    folderIdChanged: false,
+                },
             };
         }
 
