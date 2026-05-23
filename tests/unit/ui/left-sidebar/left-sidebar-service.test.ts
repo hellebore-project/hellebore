@@ -85,14 +85,16 @@ describe("left sidebar spotlight wiring", () => {
 
         await waitFor(() => {
             expect(
-                spotlight.fileTree.getNode(spotlight.toEntryNodeId(entryId)),
+                spotlight.fileTree.getNode(
+                    spotlight.generateEntryNodeId(entryId),
+                ),
             ).toBeTruthy();
         });
 
         standaloneLeftSidebar.updateDisplayedEntryTitle(entryId, "renamed");
 
         const node = spotlight.fileTree.getNode(
-            spotlight.toEntryNodeId(entryId),
+            spotlight.generateEntryNodeId(entryId),
         );
         expect(node?.text).toBe("renamed");
         expect(navigator.title).toBe("renamed");
