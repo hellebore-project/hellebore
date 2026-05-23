@@ -124,8 +124,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
         const folderNodes = [];
         for (const folder of folders) {
             const node: TreeNodeInfo<SpotlightNodeData> = {
-                id: this.toFolderNodeId(folder.id),
-                parentId: this.toFolderNodeId(folder.parentId),
+                id: this.generateFolderNodeId(folder.id),
+                parentId: this.generateFolderNodeId(folder.parentId),
                 text: folder.name,
                 data: {
                     id: folder.id,
@@ -139,8 +139,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
         const entryNodes = [];
         for (const entry of entries) {
             const node: TreeNode<SpotlightNodeData> = {
-                id: this.toEntryNodeId(entry.id),
-                parentId: this.toFolderNodeId(entry.folderId),
+                id: this.generateEntryNodeId(entry.id),
+                parentId: this.generateFolderNodeId(entry.folderId),
                 text: entry.title,
                 isFolder: false,
                 data: {
@@ -173,8 +173,13 @@ export class EntrySpotlightService implements ISidebarSectionService {
                 const result: PollResultEntryData = { id: node.data.id };
 
                 if (node.data.titleChanged) result.title = node.text;
-                if (node.data.folderIdChanged)
-                    result.folderId = this.toFolderId(node.parentId);
+                if (node.data.folderIdChanged) {
+                    const parentFolderId = this._getFolderIdFromNodeId(
+                        node.parentId,
+                    );
+                    if (parentFolderId !== null)
+                        result.folderId = parentFolderId;
+                }
 
                 results.push(result);
             }
@@ -194,8 +199,13 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
                 if (entry.syncTitle && node.data.titleChanged)
                     result.title = node.text;
-                if (entry.syncFolderId && node.data.folderIdChanged)
-                    result.folderId = this.toFolderId(node.parentId);
+                if (entry.syncFolderId && node.data.folderIdChanged) {
+                    const parentFolderId = this._getFolderIdFromNodeId(
+                        node.parentId,
+                    );
+                    if (parentFolderId !== null)
+                        result.folderId = parentFolderId;
+                }
 
                 results.push(result);
             }
@@ -267,7 +277,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     addPlaceholderForNewFolder() {
         const parentId = this.fileTree.selectedFolderId;
-        const placeholderId = this._createPlaceholderId();
+        const placeholderId = this._generatePlaceholderNodeId();
         const node = this.fileTree.addFolderNode({
             id: placeholderId,
             parentId,
@@ -287,7 +297,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         }
 
         this.fileTree.addLeafNode({
-            id: this.toEntryNodeId(entry.id),
+            id: this.generateEntryNodeId(entry.id),
             parentId: parentNode.id,
             text: entry.title,
             data: { id: entry.id, titleChanged: false, folderIdChanged: false },
@@ -380,7 +390,16 @@ export class EntrySpotlightService implements ISidebarSectionService {
             if (node.data.id === null)
                 console.error(`Folder node ${node.id} has null folder id.`);
             else {
-                const sourceParentFolderId = this.toFolderId(node.parentId);
+                const sourceParentFolderId = this._getFolderIdFromNodeId(
+                    node.parentId,
+                );
+                if (sourceParentFolderId === null) {
+                    console.error(
+                        `Source parent node ${node.parentId} has null folder id.`,
+                    );
+                    return false;
+                }
+
                 const result = await this.onMoveFolder.produce({
                     id: node.data.id,
                     title: node.text,
@@ -447,7 +466,14 @@ export class EntrySpotlightService implements ISidebarSectionService {
                 `Creating new folder for node ${node.id} with name "${name}"`,
             );
 
-            const parentFolderId = this.toFolderId(node.parentId);
+            const parentFolderId = this._getFolderIdFromNodeId(node.parentId);
+            if (parentFolderId === null) {
+                console.error(
+                    `Parent folder node ${node.parentId} has null folder id.`,
+                );
+                return null;
+            }
+
             const createResponse = await this._domain.folders.create(
                 name,
                 parentFolderId,
@@ -525,7 +551,13 @@ export class EntrySpotlightService implements ISidebarSectionService {
         const id = node.data.id;
 
         if (this.fileTree.isFolderNode(node)) {
-            const parentFolderId = this.toFolderId(node.parentId);
+            const parentFolderId = this._getFolderIdFromNodeId(node.parentId);
+            if (parentFolderId === null)
+                return {
+                    valid: false,
+                    error: "Parent folder is not available yet.",
+                };
+
             const validationResponse = await this._domain.folders.validate(
                 id,
                 parentFolderId,
@@ -586,25 +618,25 @@ export class EntrySpotlightService implements ISidebarSectionService {
         );
     }
 
-    toFolderNodeId(id: Id) {
+    private _getFolderIdFromNodeId(nodeId: string): Id | null {
+        if (nodeId === ROOT_NODE_ID) return ROOT_FOLDER_ID;
+
+        const node = this.fileTree.getNode(nodeId);
+        if (!node || !node.isFolder || node.data.id === null) return null;
+
+        return node.data.id;
+    }
+
+    generateFolderNodeId(id: Id) {
         if (id === ROOT_FOLDER_ID) return ROOT_NODE_ID;
         return `folder-${id}`;
     }
 
-    toFolderId(nodeId: string) {
-        if (nodeId === ROOT_NODE_ID) return ROOT_FOLDER_ID;
-        return parseInt(nodeId.replace("folder-", ""));
-    }
-
-    toEntryNodeId(id: Id) {
+    generateEntryNodeId(id: Id) {
         return `entry-${id}`;
     }
 
-    toEntryId(nodeId: string) {
-        return parseInt(nodeId.replace("entry-", ""));
-    }
-
-    private _createPlaceholderId() {
+    private _generatePlaceholderNodeId() {
         return `new-${Date.now()}`;
     }
 }
