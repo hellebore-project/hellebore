@@ -1,7 +1,7 @@
 import { waitFor } from "@testing-library/svelte";
 import { describe, expect, vi } from "vitest";
 
-import { CommandNames, SyncType } from "@/constants";
+import { SyncType } from "@/constants";
 
 import { test } from "./fixtures";
 
@@ -99,23 +99,13 @@ describe("entry spotlight interactions", () => {
         );
     });
 
-    test("finalizing an entry move calls backend update and succeeds", async ({
+    test("moving an entry emits deferred folder sync changes", async ({
         standaloneLeftSidebar,
-        mockedInvoker,
         entryId,
     }) => {
         const spotlight = standaloneLeftSidebar.addSpotlight("owner");
-        mockedInvoker.mockCommand(CommandNames.Entry.Update, async () => ({
-            data: {
-                id: entryId,
-                folderId: { updated: true },
-                title: { updated: false, isUnique: true },
-                properties: { updated: false },
-                text: { updated: false },
-                words: [],
-            },
-            errors: [],
-        }));
+        const onDataChange = vi.fn();
+        standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
 
         await waitFor(() => {
             expect(
@@ -128,12 +118,46 @@ describe("entry spotlight interactions", () => {
         );
         expect(node).toBeTruthy();
 
-        const moved = await spotlight.finalizeMove(
-            node!,
+        await spotlight.fileTree.moveNode(
+            node!.id,
             spotlight.toFolderNodeId(2),
         );
 
-        expect(moved).toBe(true);
-        mockedInvoker.expectCalled(CommandNames.Entry.Update);
+        expect(onDataChange).toHaveBeenCalledWith({
+            entries: [
+                {
+                    id: entryId,
+                    folderIdChanged: true,
+                    syncImmediately: false,
+                },
+            ],
+        });
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual([
+            { id: entryId, folderId: 2 },
+        ]);
+
+        spotlight.handleSynchronization([
+            {
+                request: {
+                    id: entryId,
+                    folderId: 2,
+                    words: null,
+                },
+                response: {
+                    entry: {
+                        id: entryId,
+                        folderId: { updated: true },
+                        title: { updated: false, isUnique: true },
+                        properties: { updated: false },
+                        text: { updated: false },
+                        words: [],
+                    },
+                },
+            },
+        ]);
+
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual(
+            [],
+        );
     });
 });

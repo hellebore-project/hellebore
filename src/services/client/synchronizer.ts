@@ -47,6 +47,7 @@ export class SynchronizationService {
         for (const entryPoll of poll.entries ?? []) {
             if (
                 entryPoll.syncTitle ||
+                entryPoll.syncFolderId ||
                 entryPoll.syncProperties ||
                 entryPoll.syncText ||
                 entryPoll.syncLexicon
@@ -119,6 +120,7 @@ export class SynchronizationService {
             result.entries?.map((entry) => ({
                 id: entry.id,
                 entryType: entry.entryType,
+                folderId: entry.folderId ?? null,
                 title: entry.title ?? null,
                 properties: entry.properties ?? null,
                 text: entry.text ?? null,

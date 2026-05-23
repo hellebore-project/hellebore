@@ -77,6 +77,7 @@ export interface CreateEntryEvent {
 export interface EntryChangeEvent {
     id: Id;
     titleChanged?: boolean;
+    folderIdChanged?: boolean;
     propertiesChanged?: boolean;
     textChanged?: boolean;
     lexiconChanged?: boolean;
@@ -109,6 +110,7 @@ export interface PollProjectEvent {
 export interface PollEntryEvent {
     id: Id;
     syncTitle?: boolean;
+    syncFolderId?: boolean;
     syncProperties?: boolean;
     syncText?: boolean;
     syncLexicon?: boolean;
@@ -138,6 +140,7 @@ export interface PollResultProjectData {
 export interface PollResultEntryData {
     id: Id;
     entryType?: EntryType | null;
+    folderId?: Id;
     title?: string;
     properties?: BaseEntity;
     text?: string;

@@ -491,6 +491,7 @@ export class ClientManager implements IComponentService {
                 entryPolls.push({
                     id: entryEvent.id,
                     syncTitle: entryEvent.titleChanged ?? false,
+                    syncFolderId: entryEvent.folderIdChanged ?? false,
                     syncProperties: entryEvent.propertiesChanged ?? false,
                     syncText: entryEvent.textChanged ?? false,
                     syncLexicon: entryEvent.lexiconChanged ?? false,
