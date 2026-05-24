@@ -17,6 +17,11 @@ export interface PollEntryEvent {
     syncLexicon?: boolean;
 }
 
+export interface PollFolderEvent {
+    id: Id | null;
+    syncTitle?: boolean;
+}
+
 export interface BasePollEvent {
     type: SyncType;
     immediate?: boolean;
@@ -25,6 +30,7 @@ export interface BasePollEvent {
 export interface PartialPollEvent extends BasePollEvent {
     type: SyncType.PARTIAL;
     project?: PollProjectEvent;
+    folders?: PollFolderEvent[];
     entries?: PollEntryEvent[];
 }
 
@@ -48,7 +54,14 @@ export interface PollResultEntryData {
     words?: Word[];
 }
 
+export interface PollResultFolderData {
+    id: Id | null;
+    parentId: Id;
+    name: string;
+}
+
 export interface PollResult {
     project?: PollResultProjectData;
     entries?: PollResultEntryData[];
+    folders?: PollResultFolderData[];
 }

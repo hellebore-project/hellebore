@@ -4,10 +4,13 @@ import type {
     PollResult,
     SyncEntryEvent,
     SyncEntryRequest,
+    SyncFolderEvent,
+    SyncFolderRequest,
     SyncEvent,
     SyncProjectEvent,
     SyncProjectRequest,
     SyncRequest,
+    FolderUpdateResponse,
 } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
@@ -43,6 +46,10 @@ export class SynchronizationService {
         if (poll.type === SyncType.FULL) return false;
 
         if (poll.project && poll.project.syncName) return false;
+
+        for (const folderPoll of poll.folders ?? []) {
+            if (folderPoll.syncTitle) return false;
+        }
 
         for (const entryPoll of poll.entries ?? []) {
             if (
@@ -99,7 +106,11 @@ export class SynchronizationService {
 
         const result = this.onPoll.produce(poll);
 
-        if (!result.project && (!result.entries || result.entries.length == 0))
+        if (
+            !result.project &&
+            (!result.entries || result.entries.length == 0) &&
+            (!result.folders || result.folders.length == 0)
+        )
             return new Promise(() => null);
 
         if (poll.type === SyncType.FULL)
@@ -116,6 +127,13 @@ export class SynchronizationService {
             name: result.project?.name ?? null,
         };
 
+        const folderRequests: SyncFolderRequest[] =
+            result.folders?.map((folder) => ({
+                id: folder.id,
+                parentId: folder.parentId,
+                name: folder.name,
+            })) ?? [];
+
         const entryRequests: SyncEntryRequest[] =
             result.entries?.map((entry) => ({
                 id: entry.id,
@@ -129,6 +147,7 @@ export class SynchronizationService {
 
         return this._synchronize({
             project: projectRequest,
+            folders: folderRequests,
             entries: entryRequests,
         }).then((event) => {
             this._syncing = false;
@@ -139,10 +158,12 @@ export class SynchronizationService {
 
     private async _synchronize({
         project: projectRequest = null,
+        folders: folderRequests = null,
         entries: entryRequests = null,
     }: SyncRequest): Promise<SyncEvent> {
         const syncEvent: SyncEvent = {
             project: null,
+            folders: [],
             entries: [],
         };
 
@@ -158,6 +179,42 @@ export class SynchronizationService {
                 projectEvent.response.project = projectResponse;
 
             syncEvent.project = projectEvent;
+        }
+
+        if (folderRequests) {
+            const folderEvents: SyncFolderEvent[] = folderRequests.map((r) => ({
+                request: r,
+                response: { folder: null },
+            }));
+
+            for (let i = 0; i < folderRequests.length; i++) {
+                const request = folderRequests[i];
+                let folderResponse: FolderUpdateResponse | null = null;
+
+                if (request.id === null) {
+                    const folderCreateResponse =
+                        await this._domain.folders.create(
+                            request.name,
+                            request.parentId,
+                        );
+                    if (folderCreateResponse)
+                        folderResponse = {
+                            ...folderCreateResponse,
+                            parentChanged: true,
+                            nameChanged: true,
+                        };
+                } else
+                    folderResponse = await this._domain.folders.update({
+                        id: request.id,
+                        name: request.name,
+                        parentId: request.parentId,
+                        oldParentId: request.parentId,
+                    });
+
+                folderEvents[i].response.folder = folderResponse;
+            }
+
+            syncEvent.folders = folderEvents;
         }
 
         if (entryRequests) {

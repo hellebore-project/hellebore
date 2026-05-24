@@ -4,6 +4,7 @@ import type { Id } from "../../common";
 import type {
     BaseEntity,
     EntryUpdateResponse,
+    FolderUpdateResponse,
     ProjectResponse,
 } from "../../domain";
 import type { Word } from "../word";
@@ -40,12 +41,29 @@ export interface SyncEntryEvent {
     response: SyncEntryResponse;
 }
 
+export interface SyncFolderRequest {
+    id: Id | null;
+    parentId: Id;
+    name: string;
+}
+
+export interface SyncFolderResponse {
+    folder: FolderUpdateResponse | null;
+}
+
+export interface SyncFolderEvent {
+    request: SyncFolderRequest;
+    response: SyncFolderResponse;
+}
+
 export interface SyncRequest {
     project?: SyncProjectRequest | null;
     entries?: SyncEntryRequest[] | null;
+    folders?: SyncFolderRequest[] | null;
 }
 
 export interface SyncEvent {
     project?: SyncProjectEvent | null;
     entries?: SyncEntryEvent[];
+    folders?: SyncFolderEvent[];
 }

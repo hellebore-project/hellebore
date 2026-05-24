@@ -44,6 +44,10 @@ describe("SynchronizationService", () => {
             entries: {
                 bulkUpdate: vi.fn().mockResolvedValue([]),
             },
+            folders: {
+                create: vi.fn().mockResolvedValue(null),
+                update: vi.fn().mockResolvedValue(null),
+            },
         } as unknown as DomainManager;
 
         syncService = new SynchronizationService(domainManagerMock);
@@ -80,6 +84,66 @@ describe("SynchronizationService", () => {
 
         syncService.requestSynchronization(pollEvent);
         expect(onPollSpy).toHaveBeenCalledWith(pollEvent);
+    });
+
+    it("should sync folder creates and updates through the backend", async () => {
+        vi.spyOn(syncService.onPoll, "produce").mockReturnValue({
+            entries: [],
+            folders: [
+                { id: null, parentId: -1, name: "new folder" },
+                { id: 7, parentId: 3, name: "renamed folder" },
+            ],
+        });
+
+        (
+            domainManagerMock.folders.create as ReturnType<typeof vi.fn>
+        ).mockResolvedValueOnce({
+            id: 20,
+            parentId: -1,
+            name: "new folder",
+        });
+        (
+            domainManagerMock.folders.update as ReturnType<typeof vi.fn>
+        ).mockResolvedValueOnce({
+            id: 7,
+            parentId: 3,
+            name: "renamed folder",
+        });
+
+        const event = await syncService.requestSynchronization({
+            type: SyncType.FULL,
+        });
+
+        expect(domainManagerMock.folders.create).toHaveBeenCalledWith(
+            "new folder",
+            -1,
+        );
+        expect(domainManagerMock.folders.update).toHaveBeenCalledWith({
+            id: 7,
+            name: "renamed folder",
+            parentId: 3,
+            oldParentId: 3,
+        });
+        expect(event?.folders).toStrictEqual([
+            {
+                request: { id: null, parentId: -1, name: "new folder" },
+                response: {
+                    folder: {
+                        id: 20,
+                        parentId: -1,
+                        name: "new folder",
+                        parentChanged: true,
+                        nameChanged: true,
+                    },
+                },
+            },
+            {
+                request: { id: 7, parentId: 3, name: "renamed folder" },
+                response: {
+                    folder: { id: 7, parentId: 3, name: "renamed folder" },
+                },
+            },
+        ]);
     });
 
     it("should clean up fake timers and listeners", async () => {

@@ -68,39 +68,46 @@ describe("entry spotlight interactions", () => {
         node!.text = "renamed title";
         await spotlight.updateName(node!);
 
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual([
-            { id: entryId, title: "renamed title" },
-        ]);
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+            entries: [{ id: entryId, title: "renamed title" }],
+            folders: [],
+        });
         expect(
             spotlight.fetchChanges({
                 type: SyncType.PARTIAL,
                 entries: [{ id: entryId, syncTitle: true }],
             }),
-        ).toStrictEqual([{ id: entryId, title: "renamed title" }]);
+        ).toStrictEqual({
+            entries: [{ id: entryId, title: "renamed title" }],
+            folders: [],
+        });
 
-        spotlight.handleSynchronization([
-            {
-                request: {
-                    id: entryId,
-                    title: "renamed title",
-                    words: null,
-                },
-                response: {
-                    entry: {
+        spotlight.handleSynchronization({
+            entries: [
+                {
+                    request: {
                         id: entryId,
-                        folderId: { updated: false },
-                        title: { updated: true, isUnique: true },
-                        properties: { updated: false },
-                        text: { updated: false },
-                        words: [],
+                        title: "renamed title",
+                        words: null,
+                    },
+                    response: {
+                        entry: {
+                            id: entryId,
+                            folderId: { updated: false },
+                            title: { updated: true, isUnique: true },
+                            properties: { updated: false },
+                            text: { updated: false },
+                            words: [],
+                        },
                     },
                 },
-            },
-        ]);
+            ],
+        });
 
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual(
-            [],
-        );
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+            entries: [],
+            folders: [],
+        });
     });
 
     test("moving an entry emits deferred folder sync changes", async ({
@@ -138,33 +145,165 @@ describe("entry spotlight interactions", () => {
                 },
             ],
         });
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual([
-            { id: entryId, folderId: 2 },
-        ]);
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+            entries: [{ id: entryId, folderId: 2 }],
+            folders: [],
+        });
 
-        spotlight.handleSynchronization([
-            {
-                request: {
-                    id: entryId,
-                    folderId: 2,
-                    words: null,
-                },
-                response: {
-                    entry: {
+        spotlight.handleSynchronization({
+            entries: [
+                {
+                    request: {
                         id: entryId,
-                        folderId: { updated: true },
-                        title: { updated: false, isUnique: true },
-                        properties: { updated: false },
-                        text: { updated: false },
-                        words: [],
+                        folderId: 2,
+                        words: null,
+                    },
+                    response: {
+                        entry: {
+                            id: entryId,
+                            folderId: { updated: true },
+                            title: { updated: false, isUnique: true },
+                            properties: { updated: false },
+                            text: { updated: false },
+                            words: [],
+                        },
                     },
                 },
-            },
-        ]);
+            ],
+        });
 
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual(
-            [],
-        );
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+            entries: [],
+            folders: [],
+        });
+    });
+
+    test("tracks new folders for immediate sync and clears them after sync", async ({
+        standaloneLeftSidebar,
+    }) => {
+        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const onDataChange = vi.fn();
+        standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
+
+        const placeholderFolder = spotlight.fileTree.addFolderNode({
+            id: "new-folder",
+            parentId: spotlight.fileTree.rootNodeId,
+            text: "new folder",
+            data: { id: null, titleChanged: false, folderIdChanged: false },
+        });
+
+        await spotlight.updateName(placeholderFolder);
+
+        expect(onDataChange).toHaveBeenCalledWith({
+            folders: [
+                {
+                    id: null,
+                    titleChanged: true,
+                    syncImmediately: true,
+                },
+            ],
+        });
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+            entries: [],
+            folders: [
+                {
+                    id: null,
+                    parentId: -1,
+                    name: "new folder",
+                },
+            ],
+        });
+
+        spotlight.handleSynchronization({
+            folders: [
+                {
+                    request: {
+                        id: null,
+                        parentId: -1,
+                        name: "new folder",
+                    },
+                    response: {
+                        folder: {
+                            id: 99,
+                            parentId: -1,
+                            name: "new folder",
+                            parentChanged: true,
+                            nameChanged: true,
+                        },
+                    },
+                },
+            ],
+        });
+
+        expect(spotlight.fileTree.getNode("new-folder")?.data.id).toBe(99);
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+            entries: [],
+            folders: [],
+        });
+    });
+
+    test("tracks renamed folders for deferred sync and clears them after sync", async ({
+        standaloneLeftSidebar,
+    }) => {
+        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const onDataChange = vi.fn();
+        standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
+
+        const folderNode = spotlight.fileTree.addFolderNode({
+            id: spotlight.generateFolderNodeId(7),
+            parentId: spotlight.fileTree.rootNodeId,
+            text: "old folder",
+            data: { id: 7, titleChanged: false, folderIdChanged: false },
+        });
+
+        folderNode.text = "renamed folder";
+        await spotlight.updateName(folderNode);
+
+        expect(onDataChange).toHaveBeenCalledWith({
+            folders: [
+                {
+                    id: 7,
+                    titleChanged: true,
+                    syncImmediately: false,
+                },
+            ],
+        });
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+            entries: [],
+            folders: [
+                {
+                    id: 7,
+                    parentId: -1,
+                    name: "renamed folder",
+                },
+            ],
+        });
+
+        spotlight.handleSynchronization({
+            folders: [
+                {
+                    request: {
+                        id: 7,
+                        parentId: -1,
+                        name: "renamed folder",
+                    },
+                    response: {
+                        folder: {
+                            id: 7,
+                            parentId: -1,
+                            name: "renamed folder",
+                            nameChanged: true,
+                            parentChanged: false,
+                        },
+                    },
+                },
+            ],
+        });
+
+        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+            entries: [],
+            folders: [],
+        });
     });
 
     test("rejects folder validation when parent is a placeholder node", async ({

@@ -12,7 +12,7 @@ import type {
     MoveFolderEvent,
     MoveFolderResult,
     PollEvent,
-    PollResultEntryData,
+    PollResult,
     ReleaseSidebarSectionEvent,
     Id,
     OpenEntryEditorEvent,
@@ -84,8 +84,11 @@ export class LeftSidebarService implements IComponentService {
         section.onMoveFolder.broker = this.onMoveFolder;
         section.onDeleteFolder.broker = this.onDeleteFolder;
         section.onDeleteEntry.broker = this.onDeleteEntry;
-        section.onChangeTitle.subscribe((event) =>
+        section.onChangeEntry.subscribe((event) =>
             this.onDataChange.produce({ entries: [event] }),
+        );
+        section.onChangeFolder.subscribe((event) =>
+            this.onDataChange.produce({ folders: [event] }),
         );
 
         this._addSection(section);
@@ -221,17 +224,20 @@ export class LeftSidebarService implements IComponentService {
         section?.deleteEntryNode(id);
     }
 
-    fetchChanges(event: PollEvent): PollResultEntryData[] {
+    fetchChanges(event: PollEvent): PollResult {
         const spotlight = this.getSectionByType<EntrySpotlightService>(
             SidebarSectionType.EntrySpotlight,
         );
-        return spotlight?.fetchChanges(event) ?? [];
+        return spotlight?.fetchChanges(event) ?? { entries: [], folders: [] };
     }
 
     handleSynchronization(event: SyncEvent) {
         const spotlight = this.getSectionByType<EntrySpotlightService>(
             SidebarSectionType.EntrySpotlight,
         );
-        spotlight?.handleSynchronization(event.entries ?? []);
+        spotlight?.handleSynchronization({
+            folders: event.folders ?? [],
+            entries: event.entries ?? [],
+        });
     }
 }

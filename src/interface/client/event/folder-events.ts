@@ -5,6 +5,12 @@ export interface EditFolderNameEvent {
     id: Id;
 }
 
+export interface FolderChangeEvent {
+    id: Id | null;
+    titleChanged?: boolean;
+    syncImmediately?: boolean;
+}
+
 export interface MoveFolderEvent {
     id: Id;
     title: string;
