@@ -17,6 +17,7 @@ import type {
     PollResult,
     DataChangeEvent,
     PollEntryEvent,
+    PollFolderEvent,
     PartialPollEvent,
 } from "@/interface";
 import {
@@ -481,6 +482,22 @@ export class ClientManager implements IComponentService {
             };
         }
 
+        if (event.folders) {
+            const folderPolls: PollFolderEvent[] = [];
+
+            for (const folderEvent of event.folders) {
+                if (!(folderEvent.syncImmediately ?? false))
+                    return { type: SyncType.FULL, immediate: false };
+
+                folderPolls.push({
+                    id: folderEvent.id,
+                    syncTitle: folderEvent.titleChanged ?? false,
+                });
+            }
+
+            poll.folders = folderPolls;
+        }
+
         if (event.entries) {
             const entryPolls: PollEntryEvent[] = [];
 
@@ -515,7 +532,11 @@ export class ClientManager implements IComponentService {
             project: centralChanges.project,
             entries: [
                 ...(centralChanges.entries ?? []),
-                ...(sidebarChanges ?? []),
+                ...(sidebarChanges.entries ?? []),
+            ],
+            folders: [
+                ...(centralChanges.folders ?? []),
+                ...(sidebarChanges.folders ?? []),
             ],
         };
     }
