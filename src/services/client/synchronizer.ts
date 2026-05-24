@@ -10,7 +10,6 @@ import type {
     SyncProjectEvent,
     SyncProjectRequest,
     SyncRequest,
-    FolderUpdateResponse,
 } from "@/interface";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
@@ -189,28 +188,12 @@ export class SynchronizationService {
 
             for (let i = 0; i < folderRequests.length; i++) {
                 const request = folderRequests[i];
-                let folderResponse: FolderUpdateResponse | null = null;
-
-                if (request.id === null) {
-                    const folderCreateResponse =
-                        await this._domain.folders.create(
-                            request.name,
-                            request.parentId,
-                        );
-                    if (folderCreateResponse)
-                        folderResponse = {
-                            ...folderCreateResponse,
-                            parentChanged: true,
-                            nameChanged: true,
-                        };
-                } else
-                    folderResponse = await this._domain.folders.update({
-                        id: request.id,
-                        name: request.name,
-                        parentId: request.parentId,
-                        oldParentId: request.parentId,
-                    });
-
+                const folderResponse = await this._domain.folders.update({
+                    id: request.id,
+                    name: request.name,
+                    parentId: request.parentId,
+                    oldParentId: request.parentId,
+                });
                 folderEvents[i].response.folder = folderResponse;
             }
 

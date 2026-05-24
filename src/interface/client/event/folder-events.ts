@@ -5,8 +5,13 @@ export interface EditFolderNameEvent {
     id: Id;
 }
 
+export interface FolderCreationEvent {
+    name: string;
+    parentFolderId: Id;
+}
+
 export interface FolderChangeEvent {
-    id: Id | null;
+    id: Id;
     titleChanged?: boolean;
     syncImmediately?: boolean;
 }

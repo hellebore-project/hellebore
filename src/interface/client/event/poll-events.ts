@@ -18,7 +18,7 @@ export interface PollEntryEvent {
 }
 
 export interface PollFolderEvent {
-    id: Id | null;
+    id: Id;
     syncTitle?: boolean;
 }
 
@@ -55,7 +55,7 @@ export interface PollResultEntryData {
 }
 
 export interface PollResultFolderData {
-    id: Id | null;
+    id: Id;
     parentId: Id;
     name: string;
 }
