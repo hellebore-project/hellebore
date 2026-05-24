@@ -42,7 +42,7 @@ export interface SyncEntryEvent {
 }
 
 export interface SyncFolderRequest {
-    id: Id | null;
+    id: Id;
     parentId: Id;
     name: string;
 }

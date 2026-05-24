@@ -178,12 +178,14 @@ describe("entry spotlight interactions", () => {
         });
     });
 
-    test("tracks new folders for immediate sync and clears them after sync", async ({
+    test("awaits folder creation and sets node id from response", async ({
         standaloneLeftSidebar,
     }) => {
         const spotlight = standaloneLeftSidebar.addSpotlight("owner");
-        const onDataChange = vi.fn();
-        standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
+        const onCreateFolder = vi
+            .fn()
+            .mockResolvedValue({ id: 99, parentId: -1, name: "new folder" });
+        standaloneLeftSidebar.onCreateFolder.subscribe(onCreateFolder);
 
         const placeholderFolder = spotlight.fileTree.addFolderNode({
             id: "new-folder",
@@ -194,47 +196,10 @@ describe("entry spotlight interactions", () => {
 
         await spotlight.updateName(placeholderFolder);
 
-        expect(onDataChange).toHaveBeenCalledWith({
-            folders: [
-                {
-                    id: null,
-                    titleChanged: true,
-                    syncImmediately: true,
-                },
-            ],
+        expect(onCreateFolder).toHaveBeenCalledWith({
+            name: "new folder",
+            parentFolderId: -1,
         });
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
-            entries: [],
-            folders: [
-                {
-                    id: null,
-                    parentId: -1,
-                    name: "new folder",
-                },
-            ],
-        });
-
-        spotlight.handleSynchronization({
-            folders: [
-                {
-                    request: {
-                        id: null,
-                        parentId: -1,
-                        name: "new folder",
-                    },
-                    response: {
-                        folder: {
-                            id: 99,
-                            parentId: -1,
-                            name: "new folder",
-                            parentChanged: true,
-                            nameChanged: true,
-                        },
-                    },
-                },
-            ],
-        });
-
         expect(spotlight.fileTree.getNode("new-folder")?.data.id).toBe(99);
         expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
             entries: [],
@@ -332,14 +297,12 @@ describe("entry spotlight interactions", () => {
         });
     });
 
-    test("does not create folder when parent is a placeholder node", async ({
+    test("does not emit folder creation when parent is a placeholder node", async ({
         standaloneLeftSidebar,
     }) => {
         const spotlight = standaloneLeftSidebar.addSpotlight("owner");
-        const createFolderSpy = vi.spyOn(
-            (spotlight as any)._domain.folders,
-            "create",
-        );
+        const onCreateFolder = vi.fn();
+        standaloneLeftSidebar.onCreateFolder.subscribe(onCreateFolder);
 
         const placeholderParent = spotlight.fileTree.addFolderNode({
             id: "new-parent",
@@ -357,7 +320,7 @@ describe("entry spotlight interactions", () => {
         const textEdit = await spotlight.updateName(childPlaceholder);
 
         expect(textEdit).toBeNull();
-        expect(createFolderSpy).not.toHaveBeenCalled();
+        expect(onCreateFolder).not.toHaveBeenCalled();
     });
 
     test("does not emit folder move when source parent is a placeholder node", async ({

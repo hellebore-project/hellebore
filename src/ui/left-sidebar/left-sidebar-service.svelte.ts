@@ -6,6 +6,8 @@ import type {
     DeleteEntryEvent,
     DeleteFolderEvent,
     EntryInfoResponse,
+    FolderCreationEvent,
+    FolderResponse,
     IComponentService,
     ISidebarSectionService,
     AddEntryEditorNavigatorEvent,
@@ -47,6 +49,10 @@ export class LeftSidebarService implements IComponentService {
         unknown
     >;
     onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
+    onCreateFolder: EventProducer<
+        FolderCreationEvent,
+        Promise<FolderResponse | null>
+    >;
     onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
     onDeleteFolder: EventProducer<
         DeleteFolderEvent,
@@ -59,6 +65,7 @@ export class LeftSidebarService implements IComponentService {
         this.domain = domain;
         this.onSelectEntryEditorNavItem = new EventProducer();
         this.onOpenEntry = new EventProducer();
+        this.onCreateFolder = new EventProducer();
         this.onMoveFolder = new EventProducer();
         this.onDeleteFolder = new EventProducer();
         this.onDeleteEntry = new EventProducer();
@@ -81,6 +88,7 @@ export class LeftSidebarService implements IComponentService {
         section.ownership.add(ownerId);
 
         section.onOpenEntry.broker = this.onOpenEntry;
+        section.onCreateFolder.broker = this.onCreateFolder;
         section.onMoveFolder.broker = this.onMoveFolder;
         section.onDeleteFolder.broker = this.onDeleteFolder;
         section.onDeleteEntry.broker = this.onDeleteEntry;

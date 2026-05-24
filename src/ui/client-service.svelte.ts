@@ -4,6 +4,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import type {
     BulkFileResponse,
+    FolderCreationEvent,
     FolderUpdateResponse,
     Id,
     MoveFolderEvent,
@@ -30,7 +31,6 @@ import {
 import { DomainManager, SynchronizationService } from "@/services";
 
 import { CentralPanelManager } from "./centre";
-// import { ContextMenuManager } from "./context-menu";
 import { FooterManager } from "./footer";
 import { HeaderManager } from "./header";
 import { ModalManager } from "./modal";
@@ -51,7 +51,6 @@ export class ClientManager implements IComponentService {
     leftSideBar: LeftSidebarService;
     footer: FooterManager;
     modal: ModalManager;
-    // contextMenu: ContextMenuManager;
 
     // CONSTRUCTION
 
@@ -71,7 +70,6 @@ export class ClientManager implements IComponentService {
 
         // overlays
         this.modal = new ModalManager();
-        // this.contextMenu = new ContextMenuManager();
 
         this._createSubscriptions();
         this.load();
@@ -128,6 +126,9 @@ export class ClientManager implements IComponentService {
         this.leftSideBar.onDataChange.subscribe((event) =>
             this._requestSynchronization(event),
         );
+        this.leftSideBar.onCreateFolder.subscribe((event) =>
+            this.createFolder(event),
+        );
         this.leftSideBar.onMoveFolder.subscribe((args) =>
             this.moveFolder(args),
         );
@@ -137,12 +138,6 @@ export class ClientManager implements IComponentService {
         this.leftSideBar.onDeleteEntry.subscribe(({ id, title }) =>
             this.deleteEntry(id, title),
         );
-        // spotlight.onOpenFolderContext.subscribe((args) =>
-        //     this.contextMenu.openForNavBarFolderNode(args),
-        // );
-        // spotlight.onOpenEntryContext.subscribe((args) =>
-        //     this.contextMenu.openForNavBarEntryNode(args),
-        // );
 
         this.modal.onCreateProject.subscribe(({ name, dbFilePath }) =>
             this.createProject(name, dbFilePath),
@@ -151,16 +146,6 @@ export class ClientManager implements IComponentService {
             ({ entryType: entityType, title, folderId }) =>
                 this.createEntry(entityType, title, folderId),
         );
-
-        // this.contextMenu.onEditFolderName.subscribe(({ id }) =>
-        //     this.editFolderName(id),
-        // );
-        // this.contextMenu.onDeleteFolder.subscribe(({ id }) =>
-        //     this.deleteFolder(id),
-        // );
-        // this.contextMenu.onDeleteEntry.subscribe(({ id, title }) =>
-        //     this.deleteEntry(id, title),
-        // );
 
         this.synchronizer.onPoll.subscribe((event) =>
             this._collectChanges(event),
@@ -256,6 +241,10 @@ export class ClientManager implements IComponentService {
     }
 
     // FOLDER HANDLING
+
+    async createFolder({ name, parentFolderId }: FolderCreationEvent) {
+        return await this.domain.folders.create(name, parentFolderId);
+    }
 
     editFolderName(id: number) {
         // this.leftSideBar.spotlight.toggleFolderAsEditable(id);
