@@ -1,7 +1,9 @@
 import { CommandNames } from "@/constants";
 import {
     BulkFileResponse,
+    DiagnosticResponse,
     FolderResponse,
+    FolderUpsertResponse,
     FolderValidateResponse,
     Id,
 } from "@/interface";
@@ -48,4 +50,16 @@ export function mockDeleteFolder(
         folders: folderIds,
     };
     mockedInvoker.mockCommand(CommandNames.Folder.Delete, async () => response);
+}
+
+export function mockBulkUpsertFolders(
+    mockedInvoker: MockedInvoker,
+    responses: FolderUpsertResponse[],
+) {
+    const diagnostics: DiagnosticResponse<FolderUpsertResponse>[] =
+        responses.map((data) => ({ data, errors: [] }));
+    mockedInvoker.mockCommand(
+        CommandNames.Folder.BulkUpsert,
+        async () => diagnostics,
+    );
 }

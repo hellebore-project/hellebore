@@ -2,6 +2,7 @@ import { describe, expect, vi } from "vitest";
 
 import { CommandNames, ROOT_FOLDER_ID } from "@/constants";
 import {
+    mockBulkUpsertFolders,
     mockDeleteFolder,
     mockGetFolder,
     mockGetFolders,
@@ -157,6 +158,47 @@ describe("folder manager contracts", () => {
 
         const failure = await folderManager.delete(folder.id);
 
+        expect(failure).toBeNull();
+        expect(errorSpy).toHaveBeenCalled();
+    });
+
+    test("bulkUpsert returns mapped response data and null on backend failure", async ({
+        mockedInvoker,
+        folderManager,
+        folder,
+    }) => {
+        const createResponse = {
+            id: 42,
+            status: { created: true, updated: false },
+        };
+        const updateResponse = {
+            id: folder.id,
+            status: { created: false, updated: true },
+        };
+        mockBulkUpsertFolders(mockedInvoker, [createResponse, updateResponse]);
+
+        const payloads = [
+            { id: null, parentId: ROOT_FOLDER_ID, name: "new folder" },
+            { id: folder.id, parentId: folder.parentId, name: "renamed" },
+        ];
+
+        const result = await folderManager.bulkUpsert(payloads);
+
+        expect(result).toStrictEqual([createResponse, updateResponse]);
+        expectInvokePayloadMatch(
+            mockedInvoker.spy.mock.calls,
+            CommandNames.Folder.BulkUpsert,
+            { folders: payloads },
+        );
+
+        mockedInvoker.mockCommand(CommandNames.Folder.BulkUpsert, async () => {
+            throw new Error("bulk upsert failed");
+        });
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => undefined);
+
+        const failure = await folderManager.bulkUpsert(payloads);
         expect(failure).toBeNull();
         expect(errorSpy).toHaveBeenCalled();
     });

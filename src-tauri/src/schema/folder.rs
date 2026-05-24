@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::schema::common::UpsertResponseSchema;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderCreateSchema {
@@ -13,6 +15,21 @@ pub struct FolderUpdateSchema {
     pub id: i32,
     pub parent_id: Option<i32>,
     pub name: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FolderUpsertSchema {
+    pub id: Option<i32>,
+    pub parent_id: Option<i32>,
+    pub name: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FolderUpsertResponseSchema {
+    pub id: Option<i32>,
+    pub status: UpsertResponseSchema,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

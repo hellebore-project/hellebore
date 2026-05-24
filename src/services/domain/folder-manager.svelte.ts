@@ -1,4 +1,4 @@
-// eslint-disable-next-line
+ 
 import { invoke } from "@tauri-apps/api/core";
 
 import { CommandNames, ROOT_FOLDER_ID } from "@/constants";
@@ -8,6 +8,8 @@ import type {
     FolderResponse,
     FolderUpdate,
     FolderUpdateResponse,
+    FolderUpsert,
+    FolderUpsertResponse,
     FolderValidateResponse,
     Id,
 } from "@/interface";
@@ -114,6 +116,21 @@ export class FolderManager {
         return response;
     }
 
+    async bulkUpsert(
+        folders: FolderUpsert[],
+    ): Promise<FolderUpsertResponse[] | null> {
+        let responses: DiagnosticResponse<FolderUpsertResponse>[];
+
+        try {
+            responses = await this._bulkUpsert(folders);
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+
+        return responses.map((r) => r.data);
+    }
+
     async _create(parentId: Id, name: string): Promise<FolderResponse> {
         return invoke<FolderResponse>(CommandNames.Folder.Create, {
             info: { parentId, name },
@@ -147,5 +164,14 @@ export class FolderManager {
 
     async _delete(id: Id): Promise<BulkFileResponse> {
         return invoke<BulkFileResponse>(CommandNames.Folder.Delete, { id });
+    }
+
+    async _bulkUpsert(
+        folders: FolderUpsert[],
+    ): Promise<DiagnosticResponse<FolderUpsertResponse>[]> {
+        return invoke<DiagnosticResponse<FolderUpsertResponse>[]>(
+            CommandNames.Folder.BulkUpsert,
+            { folders },
+        );
     }
 }

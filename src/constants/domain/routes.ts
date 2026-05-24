@@ -12,6 +12,7 @@ export const CommandNames = {
     Folder: {
         Create: "create_folder",
         Update: "update_folder",
+        BulkUpsert: "upsert_folders",
         Validate: "validate_folder_name",
         Get: "get_folder",
         GetAll: "get_folders",

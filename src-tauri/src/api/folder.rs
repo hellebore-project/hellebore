@@ -4,7 +4,8 @@ use crate::schema::{
     common::DiagnosticResponseSchema,
     file::BulkFileResponseSchema,
     folder::{
-        FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema, FolderValidationSchema,
+        FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema, FolderUpsertResponseSchema,
+        FolderUpsertSchema, FolderValidationSchema,
     },
 };
 use crate::services::folder_service;
@@ -26,6 +27,15 @@ pub async fn update_folder(
 ) -> Result<FolderResponseSchema, ApiError> {
     let state = state.lock().await;
     folder_service::update(utils::get_database(&state)?, folder).await
+}
+
+#[tauri::command]
+pub async fn upsert_folders(
+    state: tauri::State<'_, State>,
+    folders: Vec<FolderUpsertSchema>,
+) -> Result<Vec<DiagnosticResponseSchema<FolderUpsertResponseSchema>>, ApiError> {
+    let state = state.lock().await;
+    folder_service::bulk_upsert(utils::get_database(&state)?, folders).await
 }
 
 #[tauri::command]
