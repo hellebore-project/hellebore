@@ -29,8 +29,11 @@ describe("moving folders", () => {
         clientManager,
         folder,
     }) => {
-        const updatedFolder = { ...folder, parentId: 2 };
-        mockUpdateFolder(mockedInvoker, updatedFolder);
+        mockUpdateFolder(mockedInvoker, {
+            id: folder.id,
+            parentChanged: true,
+            nameChanged: false,
+        });
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
@@ -44,7 +47,9 @@ describe("moving folders", () => {
         expect(moved).toBe(true);
         expect(cancelled).toBe(false);
         expect(update).toStrictEqual({
-            ...updatedFolder,
+            id: folder.id,
+            parentId: 2,
+            name: null,
             nameChanged: false,
             parentChanged: true,
         });
@@ -78,8 +83,11 @@ describe("moving folders", () => {
         clientManager,
         folder,
     }) => {
-        const updatedFolder = { ...folder, parentId: 2 };
-        mockUpdateFolder(mockedInvoker, updatedFolder);
+        mockUpdateFolder(mockedInvoker, {
+            id: folder.id,
+            parentChanged: true,
+            nameChanged: false,
+        });
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
@@ -93,7 +101,9 @@ describe("moving folders", () => {
         expect(moved).toBe(true);
         expect(cancelled).toBe(false);
         expect(update).toStrictEqual({
-            ...updatedFolder,
+            id: folder.id,
+            parentId: 2,
+            name: null,
             nameChanged: false,
             parentChanged: true,
         });
@@ -107,8 +117,11 @@ describe("moving folders", () => {
     }) => {
         vi.mocked(ask).mockResolvedValue(true);
 
-        const updatedFolder = { ...folder, parentId: 2 };
-        mockUpdateFolder(mockedInvoker, updatedFolder);
+        mockUpdateFolder(mockedInvoker, {
+            id: folder.id,
+            parentChanged: true,
+            nameChanged: false,
+        });
 
         const { moved, cancelled, update, deletion } =
             await clientManager.moveFolder({
@@ -122,7 +135,9 @@ describe("moving folders", () => {
         expect(moved).toBe(true);
         expect(cancelled).toBe(false);
         expect(update).toStrictEqual({
-            ...updatedFolder,
+            id: folder.id,
+            parentId: 2,
+            name: null,
             nameChanged: false,
             parentChanged: true,
         });

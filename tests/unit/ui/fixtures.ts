@@ -19,6 +19,7 @@ import {
     createTextNode,
     MockedInvoker,
     mockBulkUpdateEntries,
+    mockBulkUpdateFolders,
     mockGetEntries,
     mockGetEntryArticle,
     mockGetEntryInfo,
@@ -55,6 +56,7 @@ export interface BaseUnitTestFixtures {
     mockedEntries: EntryInfoResponse[];
     mockedSearchedEntries: EntryInfoResponse[];
     mockedBulkEntryUpdate: null;
+    mockedBulkFolderUpdate: null;
     clientManager: ClientManager;
     user: UserEvent;
     setup: null;
@@ -161,6 +163,10 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         mockBulkUpdateEntries(mockedInvoker);
         await use(null);
     },
+    mockedBulkFolderUpdate: async ({ mockedInvoker }, use) => {
+        mockBulkUpdateFolders(mockedInvoker, []);
+        await use(null);
+    },
 
     user: [
         async ({}, use) => {
@@ -176,6 +182,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
                 mockedFolders,
                 mockedEntries,
                 mockedBulkEntryUpdate,
+                mockedBulkFolderUpdate,
             },
             use,
         ) => {

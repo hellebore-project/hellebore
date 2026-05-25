@@ -9,9 +9,7 @@ use crate::{
 
 use hellebore::{
     database::file_manager::ROOT_FOLDER_ID,
-    schema::folder::{
-        FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema, FolderUpsertSchema,
-    },
+    schema::folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
     services::folder_service,
     settings::Settings,
 };
@@ -173,16 +171,16 @@ async fn test_update_folder(
         parent_id: Some(folder.parent_id),
         name: Some(updated_name.clone()),
     };
-    let updated_folder = folder_service::update(&database, update_payload).await;
+    let response = folder_service::update(&database, update_payload).await;
 
-    assert!(updated_folder.is_ok());
-    let updated_folder = updated_folder.unwrap();
-    validate_folder_response(
-        &updated_folder,
-        Some(folder.id),
-        parent_folder_id,
-        &updated_name,
-    );
+    assert!(response.errors.is_empty());
+    assert_eq!(response.data.id, folder.id);
+    assert!(response.data.name_changed);
+    assert!(response.data.parent_changed);
+
+    let updated = folder_service::get(&database, folder.id).await.unwrap();
+    assert_eq!(updated.name, updated_name);
+    assert_eq!(updated.parent_id, parent_folder_id);
 }
 
 #[rstest]
@@ -220,42 +218,13 @@ async fn test_error_on_updating_folder_with_same_name_as_sibling(
         parent_id: None,
         name: Some(folder_2.name),
     };
-    let updated_folder = folder_service::update(&database, update_payload).await;
-    assert!(updated_folder.is_err());
+    let response = folder_service::update(&database, update_payload).await;
+    assert!(!response.errors.is_empty());
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_bulk_upsert_creates_folder(settings: &Settings, folder_name: String) {
-    let database = database(settings).await;
-
-    let payload = FolderUpsertSchema {
-        id: None,
-        parent_id: Some(ROOT_FOLDER_ID),
-        name: Some(folder_name.clone()),
-    };
-
-    let responses = folder_service::bulk_upsert(&database, vec![payload]).await;
-    assert!(responses.is_ok());
-
-    let responses = responses.unwrap();
-    assert_eq!(responses.len(), 1);
-
-    let response = &responses[0];
-    assert!(response.errors.is_empty());
-    assert!(response.data.id.is_some());
-    assert!(response.data.status.created);
-    assert!(!response.data.status.updated);
-
-    let id = response.data.id.unwrap();
-    let folder = folder_service::get(&database, id).await;
-    assert!(folder.is_ok());
-    assert_eq!(folder.unwrap().name, folder_name);
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_bulk_upsert_updates_folder(
+async fn test_bulk_update_updates_folder(
     settings: &Settings,
     folder_create_payload: FolderCreateSchema,
 ) {
@@ -265,23 +234,20 @@ async fn test_bulk_upsert_updates_folder(
         .unwrap();
 
     let new_name = "updated name".to_owned();
-    let payload = FolderUpsertSchema {
-        id: Some(folder.id),
+    let payload = FolderUpdateSchema {
+        id: folder.id,
         parent_id: Some(ROOT_FOLDER_ID),
         name: Some(new_name.clone()),
     };
 
-    let responses = folder_service::bulk_upsert(&database, vec![payload]).await;
-    assert!(responses.is_ok());
-
-    let responses = responses.unwrap();
+    let responses = folder_service::bulk_update(&database, vec![payload]).await;
     assert_eq!(responses.len(), 1);
 
     let response = &responses[0];
     assert!(response.errors.is_empty());
-    assert_eq!(response.data.id, Some(folder.id));
-    assert!(!response.data.status.created);
-    assert!(response.data.status.updated);
+    assert_eq!(response.data.id, folder.id);
+    assert!(response.data.name_changed);
+    assert!(response.data.parent_changed);
 
     let updated = folder_service::get(&database, folder.id).await.unwrap();
     assert_eq!(updated.name, new_name);
@@ -289,50 +255,59 @@ async fn test_bulk_upsert_updates_folder(
 
 #[rstest]
 #[tokio::test]
-async fn test_bulk_upsert_mixed_creates_and_updates(settings: &Settings) {
+async fn test_bulk_update_updates_multiple_folders(settings: &Settings) {
     let database = database(settings).await;
 
-    let existing = folder_service::create(
+    let folder_a = folder_service::create(
         &database,
         FolderCreateSchema {
             parent_id: ROOT_FOLDER_ID,
-            name: "existing".to_owned(),
+            name: "folder a".to_owned(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let folder_b = folder_service::create(
+        &database,
+        FolderCreateSchema {
+            parent_id: ROOT_FOLDER_ID,
+            name: "folder b".to_owned(),
         },
     )
     .await
     .unwrap();
 
     let payloads = vec![
-        FolderUpsertSchema {
-            id: None,
+        FolderUpdateSchema {
+            id: folder_a.id,
             parent_id: Some(ROOT_FOLDER_ID),
-            name: Some("new folder".to_owned()),
+            name: Some("renamed a".to_owned()),
         },
-        FolderUpsertSchema {
-            id: Some(existing.id),
+        FolderUpdateSchema {
+            id: folder_b.id,
             parent_id: Some(ROOT_FOLDER_ID),
-            name: Some("renamed".to_owned()),
+            name: Some("renamed b".to_owned()),
         },
     ];
 
-    let responses = folder_service::bulk_upsert(&database, payloads).await;
-    assert!(responses.is_ok());
-
-    let responses = responses.unwrap();
+    let responses = folder_service::bulk_update(&database, payloads).await;
     assert_eq!(responses.len(), 2);
 
-    assert!(responses[0].data.status.created);
-    assert!(!responses[0].data.status.updated);
-    assert!(responses[0].data.id.is_some());
+    assert!(responses[0].errors.is_empty());
+    assert_eq!(responses[0].data.id, folder_a.id);
+    assert!(responses[0].data.name_changed);
+    assert!(responses[0].data.parent_changed);
 
-    assert!(!responses[1].data.status.created);
-    assert!(responses[1].data.status.updated);
-    assert_eq!(responses[1].data.id, Some(existing.id));
+    assert!(responses[1].errors.is_empty());
+    assert_eq!(responses[1].data.id, folder_b.id);
+    assert!(responses[1].data.name_changed);
+    assert!(responses[1].data.parent_changed);
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_bulk_upsert_partial_failure(settings: &Settings) {
+async fn test_bulk_update_partial_failure(settings: &Settings) {
     let database = database(settings).await;
 
     let valid = folder_service::create(
@@ -346,38 +321,30 @@ async fn test_bulk_upsert_partial_failure(settings: &Settings) {
     .unwrap();
 
     let payloads = vec![
-        FolderUpsertSchema {
-            id: None,
-            parent_id: Some(ROOT_FOLDER_ID),
-            name: Some("new folder".to_owned()),
-        },
-        FolderUpsertSchema {
-            id: Some(9999),
+        FolderUpdateSchema {
+            id: 9999,
             parent_id: Some(ROOT_FOLDER_ID),
             name: Some("nonexistent".to_owned()),
         },
-        FolderUpsertSchema {
-            id: Some(valid.id),
+        FolderUpdateSchema {
+            id: valid.id,
             parent_id: Some(ROOT_FOLDER_ID),
             name: Some("renamed".to_owned()),
         },
     ];
 
-    let responses = folder_service::bulk_upsert(&database, payloads).await;
-    assert!(responses.is_ok());
+    let responses = folder_service::bulk_update(&database, payloads).await;
+    assert_eq!(responses.len(), 2);
 
-    let responses = responses.unwrap();
-    assert_eq!(responses.len(), 3);
+    assert!(!responses[0].errors.is_empty());
+    assert_eq!(responses[0].data.id, 9999);
+    assert!(!responses[0].data.parent_changed);
+    assert!(!responses[0].data.name_changed);
 
-    assert!(responses[0].errors.is_empty());
-    assert!(responses[0].data.status.created);
-
-    assert!(!responses[1].errors.is_empty());
-    assert!(!responses[1].data.status.created);
-    assert!(!responses[1].data.status.updated);
-
-    assert!(responses[2].errors.is_empty());
-    assert!(responses[2].data.status.updated);
+    assert!(responses[1].errors.is_empty());
+    assert_eq!(responses[1].data.id, valid.id);
+    assert!(responses[1].data.name_changed);
+    assert!(responses[1].data.parent_changed);
 }
 
 #[rstest]

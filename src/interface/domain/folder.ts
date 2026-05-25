@@ -5,11 +5,6 @@ interface FolderProperties {
     name: string;
 }
 
-interface OptionalFolderProperties {
-    parentId: Id | null;
-    name: string | null;
-}
-
 export type FolderCreate = FolderProperties;
 
 export interface FolderUpdate extends IdentifiedObject {
@@ -17,8 +12,10 @@ export interface FolderUpdate extends IdentifiedObject {
     name: string | null;
 }
 
-export interface FolderUpsert extends OptionalFolderProperties {
-    id: Id | null;
+export interface FolderBulkUpdateData {
+    id: Id;
+    parentChanged: boolean;
+    nameChanged: boolean;
 }
 
 export interface FolderUpdateResponse extends FolderUpdate {
@@ -36,12 +33,4 @@ export interface FolderNameCollisionResponse {
 export interface FolderValidateResponse extends FolderProperties {
     id: number | null;
     nameCollision: FolderNameCollisionResponse | null;
-}
-
-export interface FolderUpsertResponse {
-    id: Id | null;
-    status: {
-        created: boolean;
-        updated: boolean;
-    };
 }

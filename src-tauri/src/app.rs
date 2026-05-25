@@ -58,7 +58,7 @@ where
         // folder API
         api::folder::create_folder,
         api::folder::update_folder,
-        api::folder::upsert_folders,
+        api::folder::update_folders,
         api::folder::validate_folder_name,
         api::folder::get_folder,
         api::folder::get_folders,

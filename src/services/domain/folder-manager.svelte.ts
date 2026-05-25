@@ -1,15 +1,13 @@
- 
 import { invoke } from "@tauri-apps/api/core";
 
 import { CommandNames, ROOT_FOLDER_ID } from "@/constants";
 import type {
     BulkFileResponse,
     DiagnosticResponse,
+    FolderBulkUpdateData,
     FolderResponse,
     FolderUpdate,
     FolderUpdateResponse,
-    FolderUpsert,
-    FolderUpsertResponse,
     FolderValidateResponse,
     Id,
 } from "@/interface";
@@ -54,15 +52,8 @@ export class FolderManager {
         id,
         name = null,
         parentId = null,
-        oldParentId = null,
     }: FolderUpdateArgs): Promise<FolderUpdateResponse | null> {
-        const nameChanged = name !== null;
-        const parentChanged =
-            parentId !== null &&
-            oldParentId !== null &&
-            parentId != oldParentId;
-
-        let response: FolderResponse | null;
+        let response: DiagnosticResponse<FolderBulkUpdateData>;
         try {
             response = await this._update({ id, parentId, name });
         } catch (error) {
@@ -71,9 +62,11 @@ export class FolderManager {
         }
 
         return {
-            ...response,
-            parentChanged,
-            nameChanged,
+            id: response.data.id,
+            parentId,
+            name,
+            parentChanged: response.data.parentChanged,
+            nameChanged: response.data.nameChanged,
         };
     }
 
@@ -116,19 +109,23 @@ export class FolderManager {
         return response;
     }
 
-    async bulkUpsert(
-        folders: FolderUpsert[],
-    ): Promise<FolderUpsertResponse[] | null> {
-        let responses: DiagnosticResponse<FolderUpsertResponse>[];
+    async bulkUpdate(
+        folders: FolderUpdate[],
+    ): Promise<FolderUpdateResponse[] | null> {
+        let responses: DiagnosticResponse<FolderBulkUpdateData>[];
 
         try {
-            responses = await this._bulkUpsert(folders);
+            responses = await this._bulkUpdate(folders);
         } catch (error) {
             console.error(error);
             return null;
         }
 
-        return responses.map((r) => r.data);
+        return responses.map((r, i) => ({
+            ...folders[i],
+            parentChanged: r.data.parentChanged,
+            nameChanged: r.data.nameChanged,
+        }));
     }
 
     async _create(parentId: Id, name: string): Promise<FolderResponse> {
@@ -137,10 +134,15 @@ export class FolderManager {
         });
     }
 
-    async _update(update: FolderUpdate): Promise<FolderResponse> {
-        return invoke<FolderResponse>(CommandNames.Folder.Update, {
-            folder: update,
-        });
+    async _update(
+        update: FolderUpdate,
+    ): Promise<DiagnosticResponse<FolderBulkUpdateData>> {
+        return invoke<DiagnosticResponse<FolderBulkUpdateData>>(
+            CommandNames.Folder.Update,
+            {
+                folder: update,
+            },
+        );
     }
 
     async _validate_name(
@@ -166,11 +168,11 @@ export class FolderManager {
         return invoke<BulkFileResponse>(CommandNames.Folder.Delete, { id });
     }
 
-    async _bulkUpsert(
-        folders: FolderUpsert[],
-    ): Promise<DiagnosticResponse<FolderUpsertResponse>[]> {
-        return invoke<DiagnosticResponse<FolderUpsertResponse>[]>(
-            CommandNames.Folder.BulkUpsert,
+    async _bulkUpdate(
+        folders: FolderUpdate[],
+    ): Promise<DiagnosticResponse<FolderBulkUpdateData>[]> {
+        return invoke<DiagnosticResponse<FolderBulkUpdateData>[]>(
+            CommandNames.Folder.BulkUpdate,
             { folders },
         );
     }

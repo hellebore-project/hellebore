@@ -187,20 +187,11 @@ export class SynchronizationService {
             }));
 
             const folderResponses =
-                await this._domain.folders.bulkUpsert(folderRequests);
+                await this._domain.folders.bulkUpdate(folderRequests);
 
             if (folderResponses) {
                 for (let i = 0; i < folderEvents.length; i++) {
-                    const upsertResponse = folderResponses[i];
-                    if (!upsertResponse || upsertResponse.id === null) continue;
-                    const request = folderRequests[i];
-                    folderEvents[i].response.folder = {
-                        id: upsertResponse.id,
-                        parentId: request.parentId,
-                        name: request.name,
-                        parentChanged: request.id === null,
-                        nameChanged: true,
-                    };
+                    folderEvents[i].response.folder = folderResponses[i];
                 }
             }
 

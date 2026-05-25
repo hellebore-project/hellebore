@@ -2,7 +2,7 @@ import { describe, expect, vi } from "vitest";
 
 import { CommandNames, ROOT_FOLDER_ID } from "@/constants";
 import {
-    mockBulkUpsertFolders,
+    mockBulkUpdateFolders,
     mockDeleteFolder,
     mockGetFolder,
     mockGetFolders,
@@ -85,7 +85,11 @@ describe("folder manager contracts", () => {
         folder,
     }) => {
         const updatedFolder = { ...folder, parentId: 25, name: "renamed" };
-        mockUpdateFolder(mockedInvoker, updatedFolder);
+        mockUpdateFolder(mockedInvoker, {
+            id: folder.id,
+            parentChanged: true,
+            nameChanged: true,
+        });
 
         const response = await folderManager.update({
             id: folder.id,
@@ -162,43 +166,47 @@ describe("folder manager contracts", () => {
         expect(errorSpy).toHaveBeenCalled();
     });
 
-    test("bulkUpsert returns mapped response data and null on backend failure", async ({
+    test("bulkUpdate returns mapped response data and null on backend failure", async ({
         mockedInvoker,
         folderManager,
         folder,
     }) => {
-        const createResponse = {
-            id: 42,
-            status: { created: true, updated: false },
-        };
         const updateResponse = {
             id: folder.id,
-            status: { created: false, updated: true },
+            parentChanged: false,
+            nameChanged: true,
         };
-        mockBulkUpsertFolders(mockedInvoker, [createResponse, updateResponse]);
+        mockBulkUpdateFolders(mockedInvoker, [updateResponse]);
 
         const payloads = [
-            { id: null, parentId: ROOT_FOLDER_ID, name: "new folder" },
             { id: folder.id, parentId: folder.parentId, name: "renamed" },
         ];
 
-        const result = await folderManager.bulkUpsert(payloads);
+        const result = await folderManager.bulkUpdate(payloads);
 
-        expect(result).toStrictEqual([createResponse, updateResponse]);
+        expect(result).toStrictEqual([
+            {
+                id: folder.id,
+                parentId: folder.parentId,
+                name: "renamed",
+                parentChanged: false,
+                nameChanged: true,
+            },
+        ]);
         expectInvokePayloadMatch(
             mockedInvoker.spy.mock.calls,
-            CommandNames.Folder.BulkUpsert,
+            CommandNames.Folder.BulkUpdate,
             { folders: payloads },
         );
 
-        mockedInvoker.mockCommand(CommandNames.Folder.BulkUpsert, async () => {
-            throw new Error("bulk upsert failed");
+        mockedInvoker.mockCommand(CommandNames.Folder.BulkUpdate, async () => {
+            throw new Error("bulk update failed");
         });
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => undefined);
 
-        const failure = await folderManager.bulkUpsert(payloads);
+        const failure = await folderManager.bulkUpdate(payloads);
         expect(failure).toBeNull();
         expect(errorSpy).toHaveBeenCalled();
     });

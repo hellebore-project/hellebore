@@ -45,7 +45,7 @@ describe("SynchronizationService", () => {
                 bulkUpdate: vi.fn().mockResolvedValue([]),
             },
             folders: {
-                bulkUpsert: vi.fn().mockResolvedValue([]),
+                bulkUpdate: vi.fn().mockResolvedValue([]),
             },
         } as unknown as DomainManager;
 
@@ -92,18 +92,22 @@ describe("SynchronizationService", () => {
         });
 
         (
-            domainManagerMock.folders.bulkUpsert as ReturnType<typeof vi.fn>
+            domainManagerMock.folders.bulkUpdate as ReturnType<typeof vi.fn>
         ).mockResolvedValueOnce([
-            { id: 20, status: { created: true, updated: false } },
-            { id: 7, status: { created: false, updated: true } },
+            {
+                id: 7,
+                parentId: 3,
+                name: "renamed folder",
+                parentChanged: false,
+                nameChanged: true,
+            },
         ]);
 
         const event = await syncService.requestSynchronization({
             type: SyncType.FULL,
         });
 
-        expect(domainManagerMock.folders.bulkUpsert).toHaveBeenCalledWith([
-            { id: null, parentId: -1, name: "new folder" },
+        expect(domainManagerMock.folders.bulkUpdate).toHaveBeenCalledWith([
             { id: 7, parentId: 3, name: "renamed folder" },
         ]);
         expect(event?.folders).toStrictEqual([

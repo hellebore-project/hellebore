@@ -1,3 +1,4 @@
+use futures::future;
 use sea_orm::DatabaseConnection;
 
 use ::entity::folder::Model as Folder;
@@ -5,11 +6,11 @@ use ::entity::folder::Model as Folder;
 use crate::database::{file_manager, folder_manager};
 use crate::model::errors::api_error::ApiError;
 use crate::schema::{
-    common::{DiagnosticResponseSchema, UpsertResponseSchema},
+    common::DiagnosticResponseSchema,
     file::BulkFileResponseSchema,
     folder::{
-        FolderCreateSchema, FolderNameCollisionSchema, FolderResponseSchema, FolderUpdateSchema,
-        FolderUpsertResponseSchema, FolderUpsertSchema, FolderValidationSchema,
+        FolderCreateSchema, FolderNameCollisionSchema, FolderResponseSchema,
+        FolderUpdateResponseSchema, FolderUpdateSchema, FolderValidationSchema,
     },
 };
 use crate::services::file_service;
@@ -28,65 +29,35 @@ pub async fn create(
 pub async fn update(
     database: &DatabaseConnection,
     folder: FolderUpdateSchema,
-) -> Result<FolderResponseSchema, ApiError> {
-    return match folder_manager::update(database, folder.id, folder.parent_id, folder.name).await {
-        Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_updated("Folder not updated.", FOLDER).from_error(e)),
-    };
-}
+) -> DiagnosticResponseSchema<FolderUpdateResponseSchema> {
+    let mut response = FolderUpdateResponseSchema::new(&folder);
+    let mut errors: Vec<ApiError> = Vec::new();
 
-pub async fn bulk_upsert(
-    database: &DatabaseConnection,
-    folders: Vec<FolderUpsertSchema>,
-) -> Result<Vec<DiagnosticResponseSchema<FolderUpsertResponseSchema>>, ApiError> {
-    let mut responses: Vec<DiagnosticResponseSchema<FolderUpsertResponseSchema>> = Vec::new();
-
-    for folder in folders {
-        let mut created = false;
-        let mut updated = false;
-        let mut result_id: Option<i32> = folder.id;
-        let mut errors: Vec<ApiError> = Vec::new();
-
-        let result = match folder.id {
-            None => {
-                created = true;
-                folder_manager::insert(
-                    database,
-                    folder.parent_id.unwrap_or(file_manager::ROOT_FOLDER_ID),
-                    folder.name.as_deref().unwrap_or_default(),
-                )
-                .await
-                .map_err(|e| ApiError::not_created("Folder not created.", FOLDER).from_error(e))
-            }
-            Some(id) => {
-                updated = true;
-                folder_manager::update(database, id, folder.parent_id, folder.name)
-                    .await
-                    .map_err(|e| ApiError::not_updated("Folder not updated.", FOLDER).from_error(e))
-            }
-        };
-
-        match result {
-            Ok(entity) => {
-                result_id = Some(entity.id);
-            }
-            Err(e) => {
-                created = false;
-                updated = false;
-                errors.push(e);
-            }
-        };
-
-        responses.push(DiagnosticResponseSchema {
-            data: FolderUpsertResponseSchema {
-                id: result_id,
-                status: UpsertResponseSchema { created, updated },
-            },
-            errors,
-        });
+    if let Err(e) = folder_manager::update(database, folder.id, folder.parent_id, folder.name)
+        .await
+        .map_err(|e| ApiError::not_updated("Folder not updated.", FOLDER).from_error(e))
+    {
+        response.parent_changed = false;
+        response.name_changed = false;
+        errors.push(e);
     }
 
-    Ok(responses)
+    DiagnosticResponseSchema {
+        data: response,
+        errors,
+    }
+}
+
+pub async fn bulk_update(
+    database: &DatabaseConnection,
+    folders: Vec<FolderUpdateSchema>,
+) -> Vec<DiagnosticResponseSchema<FolderUpdateResponseSchema>> {
+    future::join_all(
+        folders
+            .into_iter()
+            .map(async |folder| update(database, folder).await),
+    )
+    .await
 }
 
 pub async fn validate_name(
