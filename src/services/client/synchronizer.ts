@@ -186,15 +186,13 @@ export class SynchronizationService {
                 response: { folder: null },
             }));
 
-            for (let i = 0; i < folderRequests.length; i++) {
-                const request = folderRequests[i];
-                const folderResponse = await this._domain.folders.update({
-                    id: request.id,
-                    name: request.name,
-                    parentId: request.parentId,
-                    oldParentId: request.parentId,
-                });
-                folderEvents[i].response.folder = folderResponse;
+            const folderResponses =
+                await this._domain.folders.bulkUpdate(folderRequests);
+
+            if (folderResponses) {
+                for (let i = 0; i < folderEvents.length; i++) {
+                    folderEvents[i].response.folder = folderResponses[i];
+                }
             }
 
             syncEvent.folders = folderEvents;

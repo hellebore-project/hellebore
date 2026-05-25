@@ -2,6 +2,7 @@ import { describe, expect, vi } from "vitest";
 
 import { CommandNames, ROOT_FOLDER_ID } from "@/constants";
 import {
+    mockBulkUpdateFolders,
     mockDeleteFolder,
     mockGetFolder,
     mockGetFolders,
@@ -84,7 +85,11 @@ describe("folder manager contracts", () => {
         folder,
     }) => {
         const updatedFolder = { ...folder, parentId: 25, name: "renamed" };
-        mockUpdateFolder(mockedInvoker, updatedFolder);
+        mockUpdateFolder(mockedInvoker, {
+            id: folder.id,
+            parentChanged: true,
+            nameChanged: true,
+        });
 
         const response = await folderManager.update({
             id: folder.id,
@@ -157,6 +162,51 @@ describe("folder manager contracts", () => {
 
         const failure = await folderManager.delete(folder.id);
 
+        expect(failure).toBeNull();
+        expect(errorSpy).toHaveBeenCalled();
+    });
+
+    test("bulkUpdate returns mapped response data and null on backend failure", async ({
+        mockedInvoker,
+        folderManager,
+        folder,
+    }) => {
+        const updateResponse = {
+            id: folder.id,
+            parentChanged: false,
+            nameChanged: true,
+        };
+        mockBulkUpdateFolders(mockedInvoker, [updateResponse]);
+
+        const payloads = [
+            { id: folder.id, parentId: folder.parentId, name: "renamed" },
+        ];
+
+        const result = await folderManager.bulkUpdate(payloads);
+
+        expect(result).toStrictEqual([
+            {
+                id: folder.id,
+                parentId: folder.parentId,
+                name: "renamed",
+                parentChanged: false,
+                nameChanged: true,
+            },
+        ]);
+        expectInvokePayloadMatch(
+            mockedInvoker.spy.mock.calls,
+            CommandNames.Folder.BulkUpdate,
+            { folders: payloads },
+        );
+
+        mockedInvoker.mockCommand(CommandNames.Folder.BulkUpdate, async () => {
+            throw new Error("bulk update failed");
+        });
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => undefined);
+
+        const failure = await folderManager.bulkUpdate(payloads);
         expect(failure).toBeNull();
         expect(errorSpy).toHaveBeenCalled();
     });

@@ -1,3 +1,4 @@
+use futures::future;
 use sea_orm::DatabaseConnection;
 
 use ::entity::folder::Model as Folder;
@@ -8,8 +9,8 @@ use crate::schema::{
     common::DiagnosticResponseSchema,
     file::BulkFileResponseSchema,
     folder::{
-        FolderCreateSchema, FolderNameCollisionSchema, FolderResponseSchema, FolderUpdateSchema,
-        FolderValidationSchema,
+        FolderCreateSchema, FolderNameCollisionSchema, FolderResponseSchema,
+        FolderUpdateResponseSchema, FolderUpdateSchema, FolderValidationSchema,
     },
 };
 use crate::services::file_service;
@@ -28,11 +29,35 @@ pub async fn create(
 pub async fn update(
     database: &DatabaseConnection,
     folder: FolderUpdateSchema,
-) -> Result<FolderResponseSchema, ApiError> {
-    return match folder_manager::update(database, folder.id, folder.parent_id, folder.name).await {
-        Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_updated("Folder not updated.", FOLDER).from_error(e)),
-    };
+) -> DiagnosticResponseSchema<FolderUpdateResponseSchema> {
+    let mut response = FolderUpdateResponseSchema::new(&folder);
+    let mut errors: Vec<ApiError> = Vec::new();
+
+    if let Err(e) = folder_manager::update(database, folder.id, folder.parent_id, folder.name)
+        .await
+        .map_err(|e| ApiError::not_updated("Folder not updated.", FOLDER).from_error(e))
+    {
+        response.parent_changed = false;
+        response.name_changed = false;
+        errors.push(e);
+    }
+
+    DiagnosticResponseSchema {
+        data: response,
+        errors,
+    }
+}
+
+pub async fn bulk_update(
+    database: &DatabaseConnection,
+    folders: Vec<FolderUpdateSchema>,
+) -> Vec<DiagnosticResponseSchema<FolderUpdateResponseSchema>> {
+    future::join_all(
+        folders
+            .into_iter()
+            .map(async |folder| update(database, folder).await),
+    )
+    .await
 }
 
 pub async fn validate_name(

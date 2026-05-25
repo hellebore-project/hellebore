@@ -1,15 +1,21 @@
-import type { IdentifiedObject } from "../common";
+import type { Id, IdentifiedObject } from "../common";
 
 interface FolderProperties {
-    parentId: number;
+    parentId: Id;
     name: string;
 }
 
 export type FolderCreate = FolderProperties;
 
 export interface FolderUpdate extends IdentifiedObject {
-    parentId: number | null;
+    parentId: Id | null;
     name: string | null;
+}
+
+export interface FolderBulkUpdateData {
+    id: Id;
+    parentChanged: boolean;
+    nameChanged: boolean;
 }
 
 export interface FolderUpdateResponse extends FolderUpdate {

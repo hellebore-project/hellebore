@@ -666,7 +666,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         return { valid: true };
     }
 
-    // HANDLERS
+    // CONTEXT MENU
 
     handleContextMenuItemRename(node: TreeNode<SpotlightNodeData>) {
         this.fileTree.onCloseContextMenu = () =>
