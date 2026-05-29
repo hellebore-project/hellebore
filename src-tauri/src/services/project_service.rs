@@ -12,11 +12,15 @@ use crate::types::entity::PROJECT;
 pub async fn create(
     state: &mut MutexGuard<'_, StateData>,
     name: &str,
-    db_path: &str,
+    folder_path: &str,
 ) -> Result<ProjectLoadResponseSchema, ApiError> {
     println!("Initializing project");
 
-    state.settings.database.file_path = Some(db_path.to_string());
+    std::fs::create_dir_all(folder_path).map_err(|e| {
+        ApiError::not_created("Failed to create project directory.", PROJECT).from_error(e)
+    })?;
+
+    state.settings.folder_path = Some(folder_path.to_string());
     state.settings.write_config_file();
 
     let db = setup::setup(&state.settings).await?;
@@ -43,9 +47,9 @@ pub async fn create(
 
 pub async fn load(
     state: &mut MutexGuard<'_, StateData>,
-    db_path: &str,
+    folder_path: &str,
 ) -> Result<ProjectLoadResponseSchema, ApiError> {
-    state.settings.database.file_path = Some(db_path.to_string());
+    state.settings.folder_path = Some(folder_path.to_string());
     state.settings.write_config_file();
 
     let db = setup::setup(&state.settings).await?;
@@ -59,7 +63,7 @@ pub async fn load(
 }
 
 pub async fn close(state: &mut MutexGuard<'_, StateData>) -> Result<(), ApiError> {
-    state.settings.database.file_path = None;
+    state.settings.folder_path = None;
     state.settings.write_config_file();
     state.database = None;
     Ok(())

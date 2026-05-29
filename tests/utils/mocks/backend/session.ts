@@ -5,7 +5,7 @@ import { MockedInvoker } from "./invoker";
 
 export interface MockGetSessionArgs {
     project: ProjectResponse;
-    dbFilePath: string;
+    folderPath: string;
 }
 
 export interface MockUpdateProjectArgs {
@@ -14,11 +14,11 @@ export interface MockUpdateProjectArgs {
 
 export function mockGetSession(
     mockedInvoker: MockedInvoker,
-    { project, dbFilePath }: MockGetSessionArgs,
+    { project, folderPath }: MockGetSessionArgs,
 ) {
     const response: SessionResponse = {
         project,
-        dbFilePath,
+        folderPath,
     };
     mockedInvoker.mockCommand(CommandNames.Session.Get, async () => response);
 }

@@ -11,11 +11,11 @@ pub async fn setup(settings: Settings) -> Result<State, ApiError> {
     // lock the state for the duration of this function
     let mut state_data = state.lock().await;
 
-    let db_file_path = state_data.settings.database.file_path.clone();
-    state_data.database = match db_file_path {
+    let folder_path = state_data.settings.folder_path.clone();
+    state_data.database = match folder_path {
         Some(path) => {
             // try to load the last project from the previous session
-            match project_service::create(&mut state_data, "New Project", &path).await {
+            match project_service::load(&mut state_data, &path).await {
                 Ok(project) => Some(project.db),
                 Err(e) => match e {
                     ApiError::ProjectNotLoaded => None,

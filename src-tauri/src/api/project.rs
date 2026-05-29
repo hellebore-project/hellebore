@@ -9,20 +9,20 @@ use crate::types::entity::PROJECT;
 pub async fn create_project(
     state: tauri::State<'_, State>,
     name: &str,
-    db_path: &str,
+    folder_path: &str,
 ) -> Result<ProjectResponseSchema, ApiError> {
     let mut state = state.lock().await;
-    let load_response = project_service::create(&mut state, name, db_path).await?;
+    let load_response = project_service::create(&mut state, name, folder_path).await?;
     Ok(load_response.info)
 }
 
 #[tauri::command]
 pub async fn load_project(
     state: tauri::State<'_, State>,
-    db_path: &str,
+    folder_path: &str,
 ) -> Result<ProjectResponseSchema, ApiError> {
     let mut state = state.lock().await;
-    let load_response = project_service::load(&mut state, db_path).await?;
+    let load_response = project_service::load(&mut state, folder_path).await?;
     Ok(load_response.info)
 }
 

@@ -22,7 +22,7 @@ pub fn generate_response(
     settings: &Settings,
 ) -> SessionResponseSchema {
     SessionResponseSchema {
-        db_file_path: settings.database.file_path.clone(),
+        folder_path: settings.folder_path.clone(),
         project: project.clone(),
     }
 }

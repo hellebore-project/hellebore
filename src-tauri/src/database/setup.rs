@@ -6,7 +6,7 @@ use crate::{model::errors::api_error::ApiError, settings::Settings};
 
 pub async fn setup(settings: &Settings) -> Result<DatabaseConnection, ApiError> {
     // connect to the DB
-    let conn_str = match settings.database.get_connection_string() {
+    let conn_str = match settings.get_connection_string() {
         Some(conn_str) => conn_str,
         None => return Err(ApiError::ProjectNotLoaded),
     };

@@ -2,7 +2,7 @@ import type { ProjectResponse } from "../../domain";
 
 export interface CreateProjectEvent {
     name: string;
-    dbFilePath: string;
+    folderPath: string;
 }
 
 export interface ProjectChangeEvent {

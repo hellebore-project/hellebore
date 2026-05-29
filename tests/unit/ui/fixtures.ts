@@ -30,7 +30,7 @@ import {
 } from "@tests/utils/mocks";
 
 export interface BaseUnitTestFixtures {
-    dbFilePath: string;
+    folderPath: string;
     project: ProjectResponse;
     session: SessionResponse;
     folderId: Id;
@@ -63,11 +63,11 @@ export interface BaseUnitTestFixtures {
 }
 
 export const test = baseTest.extend<BaseUnitTestFixtures>({
-    dbFilePath: "mocked/db/file/path",
+    folderPath: "mocked/db/file/path",
     project: { id: 1, name: "mocked-project" },
-    session: async ({ dbFilePath, project }, use) => {
+    session: async ({ folderPath, project }, use) => {
         const session: SessionResponse = {
-            dbFilePath,
+            folderPath,
             project,
         };
         use(session);
@@ -123,7 +123,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     ],
     mockedSession: async ({ mockedInvoker, session }, use) => {
         mockGetSession(mockedInvoker, {
-            dbFilePath: session.dbFilePath as string,
+            folderPath: session.folderPath as string,
             project: session.project as ProjectResponse,
         });
         await use(session);

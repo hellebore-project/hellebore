@@ -7,7 +7,7 @@ export class ProjectCreatorService implements IModalContentManager {
     readonly title = "Create a new project";
 
     private _name = $state("");
-    private _dbFilePath = $state("");
+    private _parentFolderPath = $state("");
 
     onCreateProject: MultiEventProducer<CreateProjectEvent, unknown>;
     onClose: MultiEventProducer<void, unknown>;
@@ -29,23 +29,23 @@ export class ProjectCreatorService implements IModalContentManager {
         this._name = name;
     }
 
-    get dbFilePath() {
-        return this._dbFilePath;
+    get parentFolderPath() {
+        return this._parentFolderPath;
     }
 
-    set dbFilePath(path: string) {
-        this._dbFilePath = path;
+    set parentFolderPath(path: string) {
+        this._parentFolderPath = path;
     }
 
     initialize() {
         this._name = "";
-        this._dbFilePath = "";
+        this._parentFolderPath = "";
     }
 
     async submit() {
         this.onCreateProject.produce({
             name: this.name,
-            dbFilePath: this.dbFilePath,
+            folderPath: `${this.parentFolderPath}/${this.name}`,
         });
         this.onClose.produce();
     }

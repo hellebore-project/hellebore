@@ -5,7 +5,7 @@ They are not intended to be used by the API.
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct SessionSchema {
-    pub db_file_path: Option<String>,
+    pub folder_path: Option<String>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
