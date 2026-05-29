@@ -7,6 +7,7 @@ import {
     EntryTypeLabel,
     ROOT_FOLDER_ID,
 } from "@/constants";
+import type { Id } from "@/interface";
 import type {
     BackendEntryPropertyResponse,
     BackendEntryUpdate,
@@ -19,10 +20,9 @@ import type {
     EntryUpdate,
     EntryUpdateResponse,
     DiagnosticResponse,
-    Id,
     LanguageProperties,
     PersonProperties,
-} from "@/interface";
+} from "@/api/interface";
 
 export class EntryManager {
     async create(

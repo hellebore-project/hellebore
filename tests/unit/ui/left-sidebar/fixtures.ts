@@ -1,4 +1,4 @@
-import { DomainManager } from "@/services";
+import { DomainManager } from "@/api";
 import type { LeftSidebarService } from "@/ui/left-sidebar";
 import { LeftSidebarService as StandaloneLeftSidebarService } from "@/ui/left-sidebar/left-sidebar-service.svelte";
 import { test as baseTest } from "@tests/unit/ui/fixtures";

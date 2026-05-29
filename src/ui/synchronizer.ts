@@ -11,9 +11,8 @@ import type {
     SyncProjectRequest,
     SyncRequest,
 } from "@/interface";
+import { DomainManager } from "@/api/client";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
-
-import { DomainManager } from "../domain";
 
 export class SynchronizationService {
     /** Minimum amount of time to wait between full syncs in milliseconds */

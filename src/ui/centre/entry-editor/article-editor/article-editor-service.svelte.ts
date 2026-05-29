@@ -6,13 +6,13 @@ import type {
     IComponentService,
     OpenEntryEditorEvent,
 } from "@/interface";
+import { DomainManager } from "@/api";
 import { RichTextEditorService } from "@/lib/components/rich-text-editor";
-import { DomainManager } from "@/services";
+import type { BaseMentionItemData } from "@/lib/components/rich-text-editor/mention";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info-service.svelte";
 import type { EntryMentionItemData } from "./article-editor-interface";
-import type { BaseMentionItemData } from "@/lib/components/rich-text-editor/mention";
 
 export class ArticleEditorService implements IComponentService {
     private _loaded = false;

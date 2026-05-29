@@ -1,4 +1,4 @@
-// eslint-disable-next-line
+ 
 import { invoke } from "@tauri-apps/api/core";
 
 import { CommandNames, WordType } from "@/constants";
@@ -7,7 +7,7 @@ import type {
     WordResponse,
     WordUpsert,
     WordUpsertResponse,
-} from "@/interface";
+} from "@/api/interface";
 
 type _WordBulkUpsertResponse = DiagnosticResponse<WordUpsertResponse>[];
 

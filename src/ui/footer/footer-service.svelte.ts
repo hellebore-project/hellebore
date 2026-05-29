@@ -1,9 +1,9 @@
-import { DomainManager } from "@/services";
 import type {
     IComponentService,
     LoadProjectEvent,
     SyncEvent,
 } from "@/interface";
+import { DomainManager } from "@/api";
 
 export class FooterManager implements IComponentService {
     readonly id = "footer";

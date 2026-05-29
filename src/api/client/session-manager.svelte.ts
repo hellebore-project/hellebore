@@ -5,7 +5,7 @@ import type {
     ProjectResponse,
     ProjectUpdate,
     SessionResponse,
-} from "@/interface";
+} from "@/api/interface";
 
 export class SessionManager {
     async getSession() {

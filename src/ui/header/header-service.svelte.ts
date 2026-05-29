@@ -1,9 +1,9 @@
-import { DomainManager } from "@/services";
 import type {
     IComponentService,
     LoadProjectEvent,
     OpenEntryEditorEvent,
 } from "@/interface";
+import { DomainManager } from "@/api";
 import { DIVIDER_DATA, type MenubarItemData } from "@/lib/components/menubar";
 import { MultiEventProducer } from "@/utils/event-producer";
 

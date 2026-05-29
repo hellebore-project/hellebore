@@ -12,9 +12,8 @@ import type {
     SyncEvent,
     DataChangeEvent,
     LoadProjectEvent,
-    ProjectResponse,
 } from "@/interface";
-import { DomainManager } from "@/services";
+import { DomainManager, type ProjectResponse } from "@/api";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home";

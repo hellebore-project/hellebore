@@ -1,17 +1,12 @@
 import { WordType } from "@/constants";
-import type {
-    IComponentService,
-    Word,
-    WordKey,
-    WordResponse,
-} from "@/interface";
-import { DomainManager } from "@/services";
+import type { IComponentService, Word, WordKey } from "@/interface";
+import { DomainManager, type WordResponse } from "@/api";
 import { DataTableService } from "@/lib/components/data-table";
 import type { ColumnDef } from "@/lib/components/data-table";
+import { MultiEventProducer } from "@/utils/event-producer";
 
 import { WordColumnKey, WORD_TYPE_SELECT_ITEMS } from "./word-table-constants";
 import type { WordRow } from "./word-table-interface";
-import { MultiEventProducer } from "@/utils/event-producer";
 
 const WORD_COLUMNS: ColumnDef<WordColumnKey>[] = [
     {

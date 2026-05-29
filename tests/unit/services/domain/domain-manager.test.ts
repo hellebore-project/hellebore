@@ -1,10 +1,12 @@
 import { describe, expect, test } from "vitest";
 
-import { DomainManager } from "@/services/domain/domain-manager.svelte";
-import { EntryManager } from "@/services/domain/entry-manager.svelte";
-import { FolderManager } from "@/services/domain/folder-manager.svelte";
-import { SessionManager } from "@/services/domain/session-manager.svelte";
-import { WordManager } from "@/services/domain/word-manager.svelte";
+import {
+    DomainManager,
+    EntryManager,
+    FolderManager,
+    SessionManager,
+    WordManager,
+} from "@/api";
 
 describe("domain manager contracts", () => {
     test("constructor wires all manager services", () => {

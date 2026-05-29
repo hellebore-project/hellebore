@@ -1,7 +1,7 @@
-import { describe, it, vi, beforeEach, afterEach } from "vitest";
-import { SynchronizationService } from "@/services/client/synchronizer";
-import { DomainManager } from "@/services/domain";
-import { expect } from "vitest";
+import { describe, it, vi, beforeEach, afterEach, expect } from "vitest";
+
+import { DomainManager } from "@/api";
+import { SynchronizationService } from "@/ui/synchronizer";
 
 vi.mock("@/utils/event-producer", () => {
     class MockEventProducer {

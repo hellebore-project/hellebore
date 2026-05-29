@@ -3,15 +3,12 @@ import { ask, open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import type {
-    BulkFileResponse,
     FolderCreationEvent,
-    FolderUpdateResponse,
     Id,
     MoveFolderEvent,
     MoveFolderResult,
     SyncEvent,
     PollEvent,
-    ProjectResponse,
     IComponentService,
     EntryEditorInfo,
     ChangeCentralPanelEvent,
@@ -28,13 +25,19 @@ import {
     SyncType,
     ViewAction,
 } from "@/constants";
-import { DomainManager, SynchronizationService } from "@/services";
+import {
+    DomainManager,
+    type BulkFileResponse,
+    type FolderUpdateResponse,
+    type ProjectResponse,
+} from "@/api";
 
 import { CentralPanelManager } from "./centre";
 import { FooterManager } from "./footer";
 import { HeaderManager } from "./header";
 import { ModalManager } from "./modal";
 import { LeftSidebarService } from "./left-sidebar";
+import { SynchronizationService } from "./synchronizer";
 
 export class ClientManager implements IComponentService {
     // CONSTANTS
