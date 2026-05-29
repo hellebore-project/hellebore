@@ -1,13 +1,10 @@
 import { SvelteMap } from "svelte/reactivity";
 
 import type {
-    BulkFileResponse,
     ChangeEntryEditorViewEvent,
     DeleteEntryEvent,
     DeleteFolderEvent,
-    EntryInfoResponse,
     FolderCreationEvent,
-    FolderResponse,
     IComponentService,
     ISidebarSectionService,
     AddEntryEditorNavigatorEvent,
@@ -21,7 +18,12 @@ import type {
     SyncEvent,
     DataChangeEvent,
 } from "@/interface";
-import { DomainManager } from "@/services";
+import type {
+    DomainManager,
+    BulkFileResponse,
+    EntryInfoResponse,
+    FolderResponse,
+} from "@/api";
 import { SidebarSectionType } from "@/constants";
 
 import { EntryEditorNavigatorService, EntrySpotlightService } from "./sections";

@@ -4,7 +4,7 @@ import type {
     Id,
     Word,
 } from "@/interface";
-import { DomainManager } from "@/services";
+import { DomainManager } from "@/api";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import type { EntryInfoService } from "../entry-info-service.svelte";

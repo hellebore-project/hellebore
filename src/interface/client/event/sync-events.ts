@@ -1,12 +1,12 @@
 import { EntryType } from "@/constants";
-
-import type { Id } from "../../common";
+import type { Id } from "@/interface/common";
 import type {
     BaseEntity,
     EntryUpdateResponse,
     FolderUpdateResponse,
     ProjectResponse,
-} from "../../domain";
+} from "@/api/interface";
+
 import type { Word } from "../word";
 
 export interface SyncProjectRequest {

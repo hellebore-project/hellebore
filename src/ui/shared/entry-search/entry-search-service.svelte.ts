@@ -3,7 +3,7 @@ import type {
     OpenEntryEditorEvent,
     OptionData,
 } from "@/interface";
-import { DomainManager } from "@/services";
+import { DomainManager } from "@/api";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 export class EntrySearchService implements IComponentService {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DomainManager } from "@/services";
+import type { DomainManager } from "@/api";
 import { EntrySearchService } from "@/ui/shared/entry-search/entry-search-service.svelte";
 
 describe("EntrySearchService", () => {

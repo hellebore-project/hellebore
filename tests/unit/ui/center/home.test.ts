@@ -2,7 +2,7 @@ import { screen } from "@testing-library/svelte";
 import { expect } from "vitest";
 
 import { Home } from "@/ui/centre/home";
-import { DomainManager } from "@/services";
+import { DomainManager } from "@/api";
 import { HomeManager } from "@/ui/centre/home/home-service.svelte";
 import { test as baseTest } from "@tests/unit/ui/fixtures";
 import { render } from "@tests/utils";

@@ -1,17 +1,17 @@
 import { test as baseTest, vi } from "vitest";
 
 import { EntryType, WordType } from "@/constants";
-import type {
-    EntryInfoResponse,
-    FolderResponse,
-    ProjectResponse,
-    SessionResponse,
-    WordUpsert,
-} from "@/interface";
-import { EntryManager } from "@/services/domain/entry-manager.svelte";
-import { FolderManager } from "@/services/domain/folder-manager.svelte";
-import { SessionManager } from "@/services/domain/session-manager.svelte";
-import { WordManager } from "@/services/domain/word-manager.svelte";
+import {
+    type EntryInfoResponse,
+    type FolderResponse,
+    type ProjectResponse,
+    type SessionResponse,
+    type WordUpsert,
+    EntryManager,
+    FolderManager,
+    SessionManager,
+    WordManager,
+} from "@/api";
 import { MockedInvoker } from "@tests/utils/mocks";
 
 interface DomainServiceFixtures {

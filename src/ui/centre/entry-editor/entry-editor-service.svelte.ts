@@ -18,7 +18,7 @@ import type {
     SyncEntryEvent,
     Word,
 } from "@/interface";
-import { DomainManager } from "@/services";
+import { DomainManager } from "@/api";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "./entry-info-service.svelte";

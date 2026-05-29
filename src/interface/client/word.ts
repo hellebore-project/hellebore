@@ -1,5 +1,5 @@
-import type { Id } from "../common";
-import type { WordInfo, WordProperties } from "../domain";
+import type { Id } from "@/interface/common";
+import type { WordInfo, WordProperties } from "@/api/interface";
 
 export type WordKey = string;
 

@@ -7,8 +7,9 @@ import type {
     ProjectChangeEvent,
     SyncProjectEvent,
 } from "@/interface";
-import { DomainManager } from "@/services";
+import { DomainManager } from "@/api";
 import { MultiEventProducer } from "@/utils/event-producer";
+
 import type { HomeLoadArgs } from "./home-interface";
 
 export class HomeManager implements ICentralPanelContentService {

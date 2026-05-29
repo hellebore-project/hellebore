@@ -1,4 +1,4 @@
-import { DomainManager } from "@/services";
+import { DomainManager } from "@/api";
 import type { HeaderManager } from "@/ui/header";
 import { HeaderManager as StandaloneHeaderManager } from "@/ui/header/header-service.svelte";
 import { test as baseTest } from "@tests/unit/ui/fixtures";
