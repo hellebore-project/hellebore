@@ -28,7 +28,7 @@ describe("session manager contracts", () => {
     }) => {
         mockGetSession(mockedInvoker, {
             project,
-            dbFilePath: session.dbFilePath ?? "",
+            folderPath: session.folderPath ?? "",
         });
 
         const response = await sessionManager.getSession();
@@ -41,7 +41,7 @@ describe("session manager contracts", () => {
         );
     });
 
-    test("createProject sends name and dbPath and returns project", async ({
+    test("createProject sends name and parentFolderPath and returns project", async ({
         mockedInvoker,
         sessionManager,
         project,
@@ -53,7 +53,7 @@ describe("session manager contracts", () => {
 
         const response = await sessionManager.createProject(
             project.name,
-            "/tmp/new.sqlite",
+            "/tmp/new-project",
         );
 
         expect(response).toStrictEqual(project);
@@ -62,7 +62,7 @@ describe("session manager contracts", () => {
             CommandNames.Project.Create,
             {
                 name: project.name,
-                dbPath: "/tmp/new.sqlite",
+                folderPath: "/tmp/new-project",
             },
         );
     });
@@ -77,14 +77,14 @@ describe("session manager contracts", () => {
             async () => project,
         );
 
-        const response = await sessionManager.loadProject("/tmp/load.sqlite");
+        const response = await sessionManager.loadProject("/tmp/my-project");
 
         expect(response).toStrictEqual(project);
         expectInvokePayloadMatch(
             mockedInvoker.spy.mock.calls,
             CommandNames.Project.Load,
             {
-                dbPath: "/tmp/load.sqlite",
+                folderPath: "/tmp/my-project",
             },
         );
     });

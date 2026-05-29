@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { save } from "@tauri-apps/plugin-dialog";
+    import { open } from "@tauri-apps/plugin-dialog";
 
     import { Button } from "@/lib/components/button";
     import * as Dialog from "@/lib/components/dialog";
@@ -10,9 +10,9 @@
 
     const { service }: ProjectCreatorProps = $props();
 
-    async function openSaveDialog() {
-        const path = await save();
-        if (path) service.dbFilePath = path;
+    async function openFolderDialog() {
+        const path = await open({ directory: true });
+        if (path) service.parentFolderPath = path;
     }
 
     function onNameInput(event: Event) {
@@ -37,16 +37,16 @@
     </div>
 
     <div class="grid gap-2">
-        <Label for="project-path">File</Label>
+        <Label for="project-path">Location</Label>
         <div class="flex gap-2">
             <Input
                 id="project-path"
                 class="cursor-pointer"
                 readonly
-                value={service.dbFilePath}
-                onclick={openSaveDialog}
+                value={service.parentFolderPath}
+                onclick={openFolderDialog}
             />
-            <Button type="button" variant="outline" onclick={openSaveDialog}
+            <Button type="button" variant="outline" onclick={openFolderDialog}
                 >Browse</Button
             >
         </div>

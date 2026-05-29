@@ -18,11 +18,8 @@ pub mod person;
 #[once]
 pub fn settings() -> Settings {
     Settings {
-        data_dir_path: "".to_owned(),
-        database: DatabaseSettings {
-            file_path: Some("".to_owned()),
-            in_memory: true,
-        },
+        folder_path: Some("".to_owned()),
+        database: DatabaseSettings { in_memory: true },
     }
 }
 

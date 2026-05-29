@@ -139,8 +139,8 @@ export class ClientManager implements IComponentService {
             this.deleteEntry(id, title),
         );
 
-        this.modal.onCreateProject.subscribe(({ name, dbFilePath }) =>
-            this.createProject(name, dbFilePath),
+        this.modal.onCreateProject.subscribe(({ name, folderPath }) =>
+            this.createProject(name, folderPath),
         );
         this.modal.onCreateEntry.subscribe(
             ({ entryType: entityType, title, folderId }) =>
@@ -172,13 +172,13 @@ export class ClientManager implements IComponentService {
 
     // PROJECT HANDLING
 
-    async createProject(name: string, dbFilePath: string) {
+    async createProject(name: string, folderPath: string) {
         // save any unsynced data before loading a new project
         this.central.clear();
 
         const response = await this.domain.session.createProject(
             name,
-            dbFilePath,
+            folderPath,
         );
 
         if (response) {
@@ -191,7 +191,7 @@ export class ClientManager implements IComponentService {
     }
 
     async loadProject() {
-        const path = await open();
+        const path = await open({ directory: true });
         if (!path) return null;
 
         // save any unsynced data before loading another project

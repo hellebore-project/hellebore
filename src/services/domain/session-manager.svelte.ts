@@ -19,10 +19,10 @@ export class SessionManager {
         return response;
     }
 
-    async createProject(name: string, dbFilePath: string) {
+    async createProject(name: string, folderPath: string) {
         let response: ProjectResponse | null;
         try {
-            response = await this._createProject(name, dbFilePath);
+            response = await this._createProject(name, folderPath);
         } catch (error) {
             console.error(error);
             return null;
@@ -30,10 +30,10 @@ export class SessionManager {
         return response;
     }
 
-    async loadProject(dbFilePath: string) {
+    async loadProject(folderPath: string) {
         let response: ProjectResponse | null;
         try {
-            response = await this._loadProject(dbFilePath);
+            response = await this._loadProject(folderPath);
         } catch (error) {
             console.error(error);
             return null;
@@ -82,16 +82,18 @@ export class SessionManager {
 
     async _createProject(
         name: string,
-        dbPath: string,
+        folderPath: string,
     ): Promise<ProjectResponse> {
         return invoke<ProjectResponse>(CommandNames.Project.Create, {
             name,
-            dbPath,
+            folderPath,
         });
     }
 
-    async _loadProject(dbPath: string): Promise<ProjectResponse> {
-        return invoke<ProjectResponse>(CommandNames.Project.Load, { dbPath });
+    async _loadProject(folderPath: string): Promise<ProjectResponse> {
+        return invoke<ProjectResponse>(CommandNames.Project.Load, {
+            folderPath,
+        });
     }
 
     async _closeProject(): Promise<void> {

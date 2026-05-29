@@ -54,7 +54,7 @@ export const test = baseTest.extend<DomainServiceFixtures>({
     },
     session: async ({ project }, use) => {
         await use({
-            dbFilePath: "/tmp/mock.sqlite",
+            folderPath: "/tmp/mock-project",
             project,
         });
     },

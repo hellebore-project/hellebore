@@ -8,41 +8,36 @@ pub const DEFAULT_DB_FILE_NAME: &str = "db.sqlite";
 pub const CONFIG_FILE_NAME: &str = "hellebore.config.json";
 
 pub struct DatabaseSettings {
-    pub file_path: Option<String>,
     pub in_memory: bool,
 }
 
-impl DatabaseSettings {
-    pub fn get_connection_string(&self) -> Option<String> {
-        if self.in_memory {
-            return Some("sqlite::memory:".to_string());
-        }
-        match self.file_path {
-            Some(ref path) => Some(format!("sqlite://{0}?mode=rwc", path)),
-            None => None,
-        }
-    }
-}
-
 pub struct Settings {
-    pub data_dir_path: String,
+    pub folder_path: Option<String>,
     pub database: DatabaseSettings,
 }
 
 impl Settings {
+    pub fn get_connection_string(&self) -> Option<String> {
+        if self.database.in_memory {
+            return Some("sqlite::memory:".to_string());
+        }
+        match self.folder_path {
+            Some(ref path) => Some(format!(
+                "sqlite://{0}/{1}?mode=rwc",
+                path, DEFAULT_DB_FILE_NAME
+            )),
+            None => None,
+        }
+    }
+
     pub fn new() -> Self {
         let data_dir_path = Self::get_data_dir_path();
 
         let config = Self::read_config_file(&data_dir_path);
 
-        let db_settings = DatabaseSettings {
-            file_path: config.session.db_file_path,
-            in_memory: false,
-        };
-
         Self {
-            data_dir_path,
-            database: db_settings,
+            folder_path: config.session.folder_path,
+            database: DatabaseSettings { in_memory: false },
         }
     }
 
@@ -61,14 +56,14 @@ impl Settings {
         return data_dir_path;
     }
 
-    fn get_config_file_path(&self) -> String {
-        format!("{0}/{1}", self.data_dir_path, CONFIG_FILE_NAME)
+    fn get_config_file_path() -> String {
+        format!("{0}/{1}", Self::get_data_dir_path(), CONFIG_FILE_NAME)
     }
 
     fn to_config(&self) -> ConfigSchema {
         ConfigSchema {
             session: SessionSchema {
-                db_file_path: self.database.file_path.clone(),
+                folder_path: self.folder_path.clone(),
             },
         }
     }
@@ -87,7 +82,7 @@ impl Settings {
             Err(_e) => {
                 println!("Failed to parse config file at {config_file_path}");
                 ConfigSchema {
-                    session: SessionSchema { db_file_path: None },
+                    session: SessionSchema { folder_path: None },
                 }
             }
         };
@@ -95,7 +90,7 @@ impl Settings {
     }
 
     pub fn write_config_file(&self) {
-        let config_file_path = self.get_config_file_path();
+        let config_file_path = Self::get_config_file_path();
         let config = self.to_config();
         let config_text = match serde_json::to_string(&config) {
             Ok(val) => val,

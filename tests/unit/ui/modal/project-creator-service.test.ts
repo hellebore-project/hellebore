@@ -6,12 +6,12 @@ test("initialize clears project name and file path", async ({
     projectCreatorService,
 }) => {
     projectCreatorService.name = "project-a";
-    projectCreatorService.dbFilePath = "/tmp/one.db";
+    projectCreatorService.parentFolderPath = "/tmp/one";
 
     projectCreatorService.initialize();
 
     expect(projectCreatorService.name).toBe("");
-    expect(projectCreatorService.dbFilePath).toBe("");
+    expect(projectCreatorService.parentFolderPath).toBe("");
 });
 
 test("submit emits create payload and closes modal", async ({
@@ -24,13 +24,13 @@ test("submit emits create payload and closes modal", async ({
     projectCreatorService.onClose.subscribe(onClose);
 
     projectCreatorService.name = "new-project";
-    projectCreatorService.dbFilePath = "/tmp/new-project.db";
+    projectCreatorService.parentFolderPath = "/tmp";
 
     await projectCreatorService.submit();
 
     expect(onCreateProject).toHaveBeenCalledWith({
         name: "new-project",
-        dbFilePath: "/tmp/new-project.db",
+        folderPath: "/tmp/new-project",
     });
     expect(onClose).toHaveBeenCalledOnce();
 });
