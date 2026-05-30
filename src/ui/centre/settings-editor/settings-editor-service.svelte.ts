@@ -1,5 +1,5 @@
-import type { ICentralPanelContentService } from "@/interface";
 import { CentralViewType } from "@/constants";
+import type { ICentralPanelContentService } from "@/interface";
 
 export class SettingsEditorService implements ICentralPanelContentService {
     get id() {

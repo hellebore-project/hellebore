@@ -1,5 +1,6 @@
-import { WordType } from "@/constants";
-import type { Id, IdentifiedObject } from "@/interface/common";
+import type { Id, IdentifiedObject } from "@/interface";
+
+import { WordType } from "../constants";
 
 export interface WordInfo {
     languageId: number;

@@ -1,7 +1,8 @@
 import { waitFor } from "@testing-library/svelte";
 import { describe, expect, vi } from "vitest";
 
-import { EntryType, EntryViewType, SidebarSectionType } from "@/constants";
+import { EntryViewType, SidebarSectionType } from "@/constants";
+import { EntryType } from "@/api";
 
 import { test } from "./fixtures";
 

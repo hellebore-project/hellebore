@@ -3,15 +3,15 @@ import userEvent, { type UserEvent } from "@testing-library/user-event";
 import type { JSONContent } from "@tiptap/core";
 import { test as baseTest } from "vitest";
 
-import { EntryType } from "@/constants";
-import type {
-    EntryArticleResponse,
-    EntryInfoResponse,
-    FolderResponse,
-    Id,
-    ProjectResponse,
-    SessionResponse,
-} from "@/interface";
+import type { Id } from "@/interface";
+import {
+    type EntryArticleResponse,
+    type EntryInfoResponse,
+    type FolderResponse,
+    type ProjectResponse,
+    type SessionResponse,
+    EntryType,
+} from "@/api";
 import { ClientManager } from "@/ui";
 import {
     createDocNode,

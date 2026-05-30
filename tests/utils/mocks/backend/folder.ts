@@ -1,12 +1,12 @@
-import { CommandNames } from "@/constants";
+import { Id } from "@/interface";
 import {
-    BulkFileResponse,
-    DiagnosticResponse,
-    FolderBulkUpdateData,
-    FolderResponse,
-    FolderValidateResponse,
-    Id,
-} from "@/interface";
+    CommandNames,
+    type BulkFileResponse,
+    type DiagnosticResponse,
+    type FolderBulkUpdateData,
+    type FolderResponse,
+    type FolderValidateResponse,
+} from "@/api";
 
 import { MockedInvoker } from "./invoker";
 

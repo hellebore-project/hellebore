@@ -1,5 +1,4 @@
 import type { JSONContent } from "@tiptap/core";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ARTICLE_REFERENCE_PREFIX } from "@/constants";

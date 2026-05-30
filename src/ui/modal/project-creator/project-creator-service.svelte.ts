@@ -17,7 +17,7 @@ export class ProjectCreatorService implements IModalContentManager {
         this.onClose = new MultiEventProducer();
     }
 
-    get key() {
+    get type() {
         return ModalType.ProjectCreator;
     }
 

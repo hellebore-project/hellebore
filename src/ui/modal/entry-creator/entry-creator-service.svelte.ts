@@ -1,10 +1,6 @@
-import { EntryType, ModalType, ROOT_FOLDER_ID } from "@/constants";
-import type {
-    CreateEntryEvent,
-    EntryInfoResponse,
-    Id,
-    IModalContentManager,
-} from "@/interface";
+import { ModalType } from "@/constants";
+import type { CreateEntryEvent, Id, IModalContentManager } from "@/interface";
+import { EntryType, ROOT_FOLDER_ID, type EntryInfoResponse } from "@/api";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 export class EntryCreatorService implements IModalContentManager {
@@ -27,7 +23,7 @@ export class EntryCreatorService implements IModalContentManager {
         this.onClose = new MultiEventProducer();
     }
 
-    get key() {
+    get type() {
         return ModalType.EntryCreator;
     }
 

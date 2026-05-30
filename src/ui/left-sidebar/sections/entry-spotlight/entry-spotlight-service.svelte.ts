@@ -1,6 +1,6 @@
 import { SvelteSet } from "svelte/reactivity";
 
-import { ROOT_FOLDER_ID, SidebarSectionType, SyncType } from "@/constants";
+import { SidebarSectionType, SyncType } from "@/constants";
 import type {
     FolderChangeEvent,
     FolderCreationEvent,
@@ -18,15 +18,15 @@ import type {
     PollResultFolderData,
     SyncEvent,
 } from "@/interface";
-import type {
+import {
+    ROOT_FOLDER_ID,
     DomainManager,
-    BulkFileResponse,
-    FolderResponse,
-    EntryInfoResponse,
+    type BulkFileResponse,
+    type FolderResponse,
+    type EntryInfoResponse,
 } from "@/api";
 import type { TreeNode } from "@/lib/components/file-tree";
 import { FileTreeService } from "@/lib/components/file-tree";
-
 import { EventProducer } from "@/utils/event-producer";
 import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 

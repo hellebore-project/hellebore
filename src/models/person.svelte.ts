@@ -1,5 +1,5 @@
-import { PersonProperty, PropertyFieldType } from "@/constants";
-import type { PersonProperties } from "@/interface";
+import { PropertyFieldType } from "@/constants";
+import { PersonProperty, type PersonProperties } from "@/api";
 import type {
     PropertyChangeEvent,
     PropertyFieldData,

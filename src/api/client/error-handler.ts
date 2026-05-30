@@ -1,9 +1,9 @@
-import { DomainErrorType } from "@/constants";
+import { DomainErrorType } from "../constants";
 import type {
     BackendApiError,
     BaseDomainError,
     DomainMessageError,
-} from "@/api/interface";
+} from "../interface";
 
 export function process_backend_api_error(
     api_error: BackendApiError,

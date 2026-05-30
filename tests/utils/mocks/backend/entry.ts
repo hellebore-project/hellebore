@@ -1,15 +1,15 @@
-import { CommandNames } from "@/constants";
 import {
-    EntryArticleResponse,
-    EntryInfoResponse,
-    EntryPropertyResponse,
-    BackendEntryPropertyResponse,
-    BackendEntryUpdate,
-    EntryUpdateResponse,
-    DiagnosticResponse,
-    WordUpsertResponse,
-    EntrySearch,
-} from "@/interface";
+    CommandNames,
+    type EntryArticleResponse,
+    type EntryInfoResponse,
+    type EntryPropertyResponse,
+    type BackendEntryPropertyResponse,
+    type BackendEntryUpdate,
+    type EntryUpdateResponse,
+    type DiagnosticResponse,
+    type WordUpsertResponse,
+    type EntrySearch,
+} from "@/api";
 import { compareStrings } from "@/utils/string";
 
 import { MockedCommand, MockedInvoker } from "./invoker";

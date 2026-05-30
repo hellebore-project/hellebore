@@ -1,5 +1,5 @@
 import type { EntryChangeEvent, Id } from "@/interface";
-import { ENTITY_TYPE_LABELS, ENTRY_ID_SENTINEL, EntryType } from "@/constants";
+import { ENTITY_TYPE_LABELS, ENTRY_ID_SENTINEL, EntryType } from "@/api";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 export class EntryInfoService {

@@ -1,6 +1,5 @@
-import { WordType } from "@/constants";
 import type { IComponentService, Word, WordKey } from "@/interface";
-import { DomainManager, type WordResponse } from "@/api";
+import { WordType, DomainManager, type WordResponse } from "@/api";
 import { DataTableService } from "@/lib/components/data-table";
 import type { ColumnDef } from "@/lib/components/data-table";
 import { MultiEventProducer } from "@/utils/event-producer";

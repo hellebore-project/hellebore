@@ -1,17 +1,12 @@
 import { screen } from "@testing-library/svelte";
 import { beforeAll, describe, expect } from "vitest";
 
-import { ROOT_FOLDER_ID, EntryType } from "@/constants";
+import { ROOT_FOLDER_ID, EntryType } from "@/api";
 import { ArticleEditor } from "@/ui/centre/entry-editor/article-editor";
 import { mockMissingDomMethods } from "@tests/utils/mocks";
 import { render } from "@tests/utils";
 
-import {
-    test,
-    referencedEntryId,
-    referencedEntryTitle,
-    referencedEntryInfo,
-} from "./fixtures";
+import { test, referencedEntryTitle, referencedEntryInfo } from "./fixtures";
 
 beforeAll(async () => mockMissingDomMethods());
 

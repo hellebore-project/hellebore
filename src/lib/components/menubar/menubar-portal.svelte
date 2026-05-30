@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Menubar as MenubarPrimitive } from "bits-ui";
-    import { SHARED_PORTAL_SELECTOR } from "@/constants/client";
+
+    import { SHARED_PORTAL_SELECTOR } from "@/constants";
 
     let {
         to = SHARED_PORTAL_SELECTOR,

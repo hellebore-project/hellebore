@@ -2,26 +2,22 @@ import { ModalType } from "@/constants";
 import type {
     CreateEntryEvent,
     CreateProjectEvent,
-    EntryInfoResponse,
     IComponentService,
     IModalContentManager,
     OpenEntryCreatorEvent,
 } from "@/interface";
+import type { EntryInfoResponse } from "@/api";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryCreatorService } from "./entry-creator";
 import { ProjectCreatorService } from "./project-creator";
-
-interface ModalContentManager extends IModalContentManager {
-    key: ModalType;
-}
 
 export class ModalManager implements IComponentService {
     readonly id = "modal";
 
     open = $state(false);
     private _modalKey: ModalType | null = $state(null);
-    content: ModalContentManager | null = $state(null);
+    content: IModalContentManager | null = $state(null);
 
     onCreateProject: MultiEventProducer<CreateProjectEvent, unknown>;
     onCreateEntry: EventProducer<
@@ -52,10 +48,10 @@ export class ModalManager implements IComponentService {
         this._open(modal);
     }
 
-    private _open(modal: ModalContentManager) {
+    private _open(modal: IModalContentManager) {
         modal.onClose.subscribe(() => this.close());
         this.content = modal;
-        this._modalKey = modal.key;
+        this._modalKey = modal.type;
         this.open = true;
     }
 

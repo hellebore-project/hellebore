@@ -1,12 +1,13 @@
 import { test as baseTest, vi } from "vitest";
 
-import { EntryType, WordType } from "@/constants";
 import {
     type EntryInfoResponse,
     type FolderResponse,
     type ProjectResponse,
     type SessionResponse,
     type WordUpsert,
+    EntryType,
+    WordType,
     EntryManager,
     FolderManager,
     SessionManager,

@@ -1,6 +1,5 @@
 import {
     ENTRY_VIEW_LABELS,
-    EntryType,
     EntryViewType,
     SidebarSectionType,
 } from "@/constants";
@@ -9,6 +8,7 @@ import type {
     Id,
     ISidebarSectionService,
 } from "@/interface";
+import { EntryType } from "@/api";
 import { EventProducer } from "@/utils/event-producer";
 import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 

@@ -1,5 +1,6 @@
 import { SvelteMap } from "svelte/reactivity";
 
+import { SidebarSectionType } from "@/constants";
 import type {
     ChangeEntryEditorViewEvent,
     DeleteEntryEvent,
@@ -24,10 +25,9 @@ import type {
     EntryInfoResponse,
     FolderResponse,
 } from "@/api";
-import { SidebarSectionType } from "@/constants";
+import { EventProducer } from "@/utils/event-producer";
 
 import { EntryEditorNavigatorService, EntrySpotlightService } from "./sections";
-import { EventProducer } from "@/utils/event-producer";
 
 interface LeftSidebarServiceArgs {
     domain: DomainManager;

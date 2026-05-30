@@ -11,7 +11,7 @@ import type {
     SyncProjectRequest,
     SyncRequest,
 } from "@/interface";
-import { DomainManager } from "@/api/client";
+import { DomainManager } from "@/api";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 export class SynchronizationService {

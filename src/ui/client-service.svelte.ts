@@ -1,7 +1,12 @@
 import { ask, open } from "@tauri-apps/plugin-dialog";
-
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
+import {
+    CentralViewType,
+    SidebarSectionType,
+    SyncType,
+    ViewAction,
+} from "@/constants";
 import type {
     FolderCreationEvent,
     Id,
@@ -19,14 +24,8 @@ import type {
     PartialPollEvent,
 } from "@/interface";
 import {
-    CentralViewType,
-    EntryType,
-    SidebarSectionType,
-    SyncType,
-    ViewAction,
-} from "@/constants";
-import {
     DomainManager,
+    type EntryType,
     type BulkFileResponse,
     type FolderUpdateResponse,
     type ProjectResponse,

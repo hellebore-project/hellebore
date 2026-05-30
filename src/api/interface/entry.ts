@@ -1,8 +1,8 @@
 import type { JSONContent } from "@tiptap/core";
 
-import { EntryType, EntryTypeLabel } from "@/constants";
-import type { Id, IdentifiedObject } from "@/interface/common";
+import type { Id, IdentifiedObject } from "@/interface";
 
+import { EntryType, EntryTypeLabel } from "../constants";
 import type { BaseEntity } from "./base-entity";
 import type { WordUpsert, WordUpsertResponse } from "./word";
 

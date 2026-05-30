@@ -1,4 +1,4 @@
-import type { IdentifiedObject } from "@/interface/common";
+import type { IdentifiedObject } from "@/interface";
 
 export interface ProjectUpdate {
     name?: string | null;

@@ -1,6 +1,8 @@
 import { expect, vi } from "vitest";
 
-import { EntryType, ModalType } from "@/constants";
+import { ModalType } from "@/constants";
+import { EntryType } from "@/api";
+import { EntryCreatorService } from "@/ui/modal/entry-creator/entry-creator-service.svelte";
 
 import { test } from "./fixtures";
 
@@ -52,7 +54,7 @@ test("switches from project to entry creator and wires create entry broker", asy
         folderId: 8,
     });
 
-    const content = standaloneModalManager.content;
+    const content = standaloneModalManager.content as EntryCreatorService;
     expect(standaloneModalManager.modalKey).toBe(ModalType.EntryCreator);
     expect(content).toBeTruthy();
 
@@ -81,7 +83,7 @@ test("keeps modal open when entry creation fails validation", async ({
         folderId: 2,
     });
 
-    const content = standaloneModalManager.content;
+    const content = standaloneModalManager.content as EntryCreatorService;
     expect(content).toBeTruthy();
 
     if (content) {

@@ -1,13 +1,12 @@
- 
 import { invoke } from "@tauri-apps/api/core";
 
-import { CommandNames, WordType } from "@/constants";
+import { CommandNames, WordType } from "../constants";
 import type {
     DiagnosticResponse,
     WordResponse,
     WordUpsert,
     WordUpsertResponse,
-} from "@/api/interface";
+} from "../interface";
 
 type _WordBulkUpsertResponse = DiagnosticResponse<WordUpsertResponse>[];
 

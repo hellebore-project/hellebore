@@ -1,5 +1,11 @@
-import { CommandNames, WordType } from "@/constants";
-import { BackendApiError, WordResponse, WordUpsert, Id } from "@/interface";
+import { Id } from "@/interface";
+import {
+    CommandNames,
+    WordType,
+    type BackendApiError,
+    type WordResponse,
+    type WordUpsert,
+} from "@/api";
 
 import { MockedCommand, MockedInvoker } from "./invoker";
 

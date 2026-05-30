@@ -1,8 +1,8 @@
 import { waitFor } from "@testing-library/svelte";
 import { expect } from "vitest";
 
-import { CommandNames, EntryViewType } from "@/constants";
-import type { EntryPropertyResponse } from "@/interface";
+import { EntryViewType } from "@/constants";
+import { CommandNames, type EntryPropertyResponse } from "@/api";
 import {
     mockGetEntryArticle,
     mockGetEntryProperties,

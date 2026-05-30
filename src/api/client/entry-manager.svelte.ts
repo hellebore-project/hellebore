@@ -1,13 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 
+import type { Id } from "@/interface";
+
 import {
     CommandNames,
     ENTRY_TYPE_LABEL_MAPPING,
     EntryType,
     EntryTypeLabel,
     ROOT_FOLDER_ID,
-} from "@/constants";
-import type { Id } from "@/interface";
+} from "../constants";
 import type {
     BackendEntryPropertyResponse,
     BackendEntryUpdate,
@@ -22,7 +23,7 @@ import type {
     DiagnosticResponse,
     LanguageProperties,
     PersonProperties,
-} from "@/api/interface";
+} from "../interface";
 
 export class EntryManager {
     async create(

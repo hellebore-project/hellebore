@@ -1,9 +1,5 @@
-import {
-    EntryType,
-    EntryViewType,
-    SidebarSectionType,
-    ViewAction,
-} from "@/constants";
+import { EntryViewType, SidebarSectionType, ViewAction } from "@/constants";
+import type { EntryType } from "@/api";
 
 import type { Id, Point } from "../../common";
 import type { CentralPanelInfo } from "../service";

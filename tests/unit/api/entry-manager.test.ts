@@ -1,6 +1,6 @@
 import { describe, expect, vi } from "vitest";
 
-import { CommandNames, EntryType, EntryTypeLabel } from "@/constants";
+import { CommandNames, EntryType, EntryTypeLabel } from "@/api";
 import { createDocNode } from "@tests/utils/mocks";
 
 import { test } from "./fixtures";

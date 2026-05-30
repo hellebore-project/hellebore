@@ -1,7 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import { CommandNames, ROOT_FOLDER_ID } from "@/constants";
 import type { Id } from "@/interface";
+
+import { CommandNames, ROOT_FOLDER_ID } from "../constants";
 import type {
     BulkFileResponse,
     DiagnosticResponse,
@@ -10,7 +11,7 @@ import type {
     FolderUpdate,
     FolderUpdateResponse,
     FolderValidateResponse,
-} from "@/api/interface";
+} from "../interface";
 
 export interface FolderUpdateArgs {
     id: number;

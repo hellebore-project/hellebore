@@ -1,10 +1,10 @@
 <script lang="ts">
     import { PropertyFieldType } from "@/constants";
-    import { Card } from "@/lib/components/card";
     import type {
         TextPropertyFieldData,
         SelectPropertyFieldData,
     } from "@/interface";
+    import { Card } from "@/lib/components/card";
 
     import type { PropertyTableProps } from "./property-table-interface";
     import { TextFieldRow, SelectFieldRow } from "./rows";

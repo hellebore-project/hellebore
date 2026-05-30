@@ -1,5 +1,6 @@
-import type { EntryType, EntryViewType } from "@/constants";
+import type { EntryViewType } from "@/constants";
 import type { Id } from "@/interface";
+import type { EntryType } from "@/api";
 
 export interface EntryEditorNavigatorItem {
     label: string;
