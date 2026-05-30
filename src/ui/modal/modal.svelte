@@ -1,6 +1,6 @@
 <script lang="ts">
-    import * as Dialog from "@/lib/components/dialog";
     import { ModalType } from "@/constants";
+    import * as Dialog from "@/lib/components/dialog";
 
     import type { ModalProps } from "./modal-interface";
     import { EntryCreator } from "./entry-creator";

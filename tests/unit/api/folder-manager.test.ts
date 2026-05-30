@@ -1,6 +1,6 @@
 import { describe, expect, vi } from "vitest";
 
-import { CommandNames, ROOT_FOLDER_ID } from "@/constants";
+import { CommandNames, ROOT_FOLDER_ID } from "@/api";
 import {
     mockBulkUpdateFolders,
     mockDeleteFolder,

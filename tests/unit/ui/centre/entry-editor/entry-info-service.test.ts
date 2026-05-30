@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { EntryType } from "@/constants";
+import { EntryType } from "@/api";
 import { EntryInfoService } from "@/ui/centre/entry-editor/entry-info-service.svelte";
 
 describe("EntryInfoService", () => {

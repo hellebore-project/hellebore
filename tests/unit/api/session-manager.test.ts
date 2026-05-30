@@ -1,6 +1,6 @@
 import { describe, expect, vi } from "vitest";
 
-import { CommandNames } from "@/constants";
+import { CommandNames } from "@/api";
 import { mockCloseProject, mockGetSession } from "@tests/utils/mocks";
 
 import { test } from "./fixtures";

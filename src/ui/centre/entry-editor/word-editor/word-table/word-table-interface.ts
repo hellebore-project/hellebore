@@ -4,6 +4,7 @@ import type { CellState } from "@/lib/components/data-table";
 import type { WordTableService } from "./word-table-service.svelte";
 import type { WordColumnKey } from "./word-table-constants";
 
+// TODO: collapse this into DataRow
 export interface WordRow {
     id: Id | null;
     key: WordKey;

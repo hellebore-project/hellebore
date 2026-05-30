@@ -1,4 +1,4 @@
-import type { Id } from "@/interface/common";
+import type { Id } from "@/interface";
 
 export interface BulkFileResponse {
     entries: Id[];

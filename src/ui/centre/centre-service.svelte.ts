@@ -18,10 +18,7 @@ import { MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home";
 import { SettingsEditorService } from "./settings-editor";
-import {
-    EntryEditorService,
-    // type WordColumnKeys,
-} from "./entry-editor";
+import { EntryEditorService } from "./entry-editor";
 
 export class CentralPanelManager implements IComponentService {
     // CONSTANTS

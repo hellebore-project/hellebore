@@ -1,5 +1,7 @@
 import { describe, it, vi, beforeEach, afterEach, expect } from "vitest";
 
+import { SyncType } from "@/constants";
+import { PollEvent } from "@/interface";
 import { DomainManager } from "@/api";
 import { SynchronizationService } from "@/ui/synchronizer";
 
@@ -28,9 +30,6 @@ vi.mock("@/utils/event-producer", () => {
         MultiEventProducer: MockMultiEventProducer,
     };
 });
-
-import { SyncType } from "@/constants";
-import { PollEvent } from "@/interface";
 
 describe("SynchronizationService", () => {
     let domainManagerMock: DomainManager;

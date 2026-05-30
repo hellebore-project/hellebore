@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Tooltip as TooltipPrimitive } from "bits-ui";
-    import { SHARED_PORTAL_SELECTOR } from "@/constants/client";
+
+    import { SHARED_PORTAL_SELECTOR } from "@/constants";
 
     let {
         to = SHARED_PORTAL_SELECTOR,

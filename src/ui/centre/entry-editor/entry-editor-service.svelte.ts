@@ -1,7 +1,6 @@
 import {
     CentralViewType,
     ENTRY_VIEW_LABELS,
-    EntryType,
     EntryViewType,
     SyncType,
 } from "@/constants";
@@ -18,7 +17,7 @@ import type {
     SyncEntryEvent,
     Word,
 } from "@/interface";
-import { DomainManager } from "@/api";
+import { EntryType, DomainManager } from "@/api";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "./entry-info-service.svelte";

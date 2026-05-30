@@ -1,4 +1,4 @@
-import type { DomainErrorType } from "@/constants";
+import type { DomainErrorType } from "../constants";
 
 export type BackendApiError = Record<DomainErrorType, object>;
 

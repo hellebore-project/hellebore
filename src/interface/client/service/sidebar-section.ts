@@ -1,7 +1,7 @@
 import type { SidebarSectionType } from "@/constants";
+import type { BaseOwnership } from "@/utils/ownership";
 
 import type { IComponentService } from "./component";
-import type { BaseOwnership } from "@/utils/ownership";
 
 export interface ISidebarSectionService extends IComponentService {
     readonly type: SidebarSectionType;

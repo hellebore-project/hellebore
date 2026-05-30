@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { EntryType } from "@/constants";
+import { TextPropertyFieldData } from "@/interface";
+import { EntryType } from "@/api";
 import { Language, Person } from "@/models";
 import { EntryInfoService } from "@/ui/centre/entry-editor/entry-info-service.svelte";
 import { PropertyEditorService } from "@/ui/centre/entry-editor/property-editor/property-editor-service.svelte";
@@ -29,10 +30,7 @@ describe("PropertyEditorService", () => {
         expect(service.tableService.rows).toBe(service.fieldData);
         expect(service.changed).toBe(false);
 
-        const nameField = service.fieldData[0] as {
-            getValue: () => string;
-            setValue: (value: string) => void;
-        };
+        const nameField = service.fieldData[0] as TextPropertyFieldData;
 
         expect(nameField.getValue()).toBe("Ada");
 
@@ -52,9 +50,7 @@ describe("PropertyEditorService", () => {
         service.onChange.subscribe(onChange);
 
         service.load({ name: "Alice" });
-        const nameField = service.fieldData[0] as {
-            setValue: (value: string) => void;
-        };
+        const nameField = service.fieldData[0] as TextPropertyFieldData;
 
         nameField.setValue("Alicia");
 
@@ -72,9 +68,7 @@ describe("PropertyEditorService", () => {
         const service = new PropertyEditorService({ info });
 
         service.load({ name: "Bob" });
-        (
-            service.fieldData[0] as { setValue: (value: string) => void }
-        ).setValue("Bobby");
+        (service.fieldData[0] as TextPropertyFieldData).setValue("Bobby");
 
         expect(service.changed).toBe(true);
 

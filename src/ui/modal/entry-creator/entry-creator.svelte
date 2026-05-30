@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "@/constants";
+    import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "@/api";
     import { Button } from "@/lib/components/button";
     import * as Dialog from "@/lib/components/dialog";
     import { Input } from "@/lib/components/input";

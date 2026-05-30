@@ -1,8 +1,10 @@
-import { EntryType, EntryViewType, WordType } from "@/constants";
-import type { Id, WordResponse } from "@/interface";
+import { EntryViewType } from "@/constants";
+import type { Id } from "@/interface";
+import { EntryType, type WordResponse, WordType } from "@/api";
 import type { WordEditorService } from "@/ui/centre/entry-editor/word-editor";
-import { test as baseTest } from "../fixtures";
 import { mockGetWords } from "@tests/utils/mocks";
+
+import { test as baseTest } from "../fixtures";
 
 export interface BaseWordEditorFixtures {
     entryType: EntryType.Language;

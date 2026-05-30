@@ -7,7 +7,8 @@ import type {
     SuggestionProps,
     SuggestionKeyDownProps,
 } from "@tiptap/suggestion";
-import { SHARED_PORTAL_SELECTOR } from "@/constants/client";
+
+import { SHARED_PORTAL_SELECTOR } from "@/constants";
 
 import MentionComponent from "./mention-dropdown.svelte";
 import type {

@@ -1,7 +1,7 @@
-import { EntryType, SyncType } from "@/constants";
-import type { Id } from "@/interface/common";
-import type { BaseEntity } from "@/api/interface";
+import { SyncType } from "@/constants";
+import type { BaseEntity, EntryType } from "@/api";
 
+import type { Id } from "../../common";
 import type { Word } from "../word";
 
 export interface PollProjectEvent {

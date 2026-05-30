@@ -1,6 +1,6 @@
 import { describe, expect, vi } from "vitest";
 
-import { CommandNames, WordType } from "@/constants";
+import { CommandNames, WordType } from "@/api";
 
 import { test } from "./fixtures";
 

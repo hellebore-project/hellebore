@@ -1,4 +1,4 @@
-import { EntryType } from "@/constants";
+import { EntryType } from "@/api";
 
 import type { Id } from "../../common";
 

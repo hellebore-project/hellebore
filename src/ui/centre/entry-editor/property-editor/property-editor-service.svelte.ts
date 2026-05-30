@@ -1,15 +1,17 @@
-import { EntryType } from "@/constants";
 import type {
-    BaseEntity,
     EntryChangeEvent,
     IComponentService,
-    LanguageProperties,
-    PersonProperties,
     PropertyFieldData,
 } from "@/interface";
+import {
+    EntryType,
+    type BaseEntity,
+    type LanguageProperties,
+    type PersonProperties,
+} from "@/api";
+import { Language, Person } from "@/models";
 import { MultiEventProducer } from "@/utils/event-producer";
 
-import { Language, Person } from "@/models";
 import type { EntryInfoService } from "../entry-info-service.svelte";
 import { PropertyTableService } from "./property-table";
 

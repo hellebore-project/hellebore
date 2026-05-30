@@ -1,6 +1,6 @@
 import { expect, vi } from "vitest";
 
-import { EntryType, ROOT_FOLDER_ID } from "@/constants";
+import { EntryType, ROOT_FOLDER_ID } from "@/api";
 
 import { test } from "./fixtures";
 

@@ -1,7 +1,7 @@
 import { expect } from "vitest";
 
 import { CentralViewType, EntryViewType, ViewAction } from "@/constants";
-import type { EntryPropertyResponse } from "@/interface";
+import type { EntryPropertyResponse } from "@/api";
 import { mockGetEntryProperties } from "@tests/utils/mocks";
 import { test } from "@tests/unit/ui/fixtures";
 

@@ -1,4 +1,4 @@
-import { WordType } from "@/constants";
+import { WordType } from "@/api";
 
 export enum WordColumnKey {
     WordType = "wordType",

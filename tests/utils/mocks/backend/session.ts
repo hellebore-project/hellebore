@@ -1,5 +1,8 @@
-import { CommandNames } from "@/constants";
-import { ProjectResponse, SessionResponse } from "@/interface";
+import {
+    CommandNames,
+    type ProjectResponse,
+    type SessionResponse,
+} from "@/api";
 
 import { MockedInvoker } from "./invoker";
 

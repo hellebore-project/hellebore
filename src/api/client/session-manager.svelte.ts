@@ -1,11 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import { CommandNames } from "@/constants";
+import { CommandNames } from "../constants";
 import type {
     ProjectResponse,
     ProjectUpdate,
     SessionResponse,
-} from "@/api/interface";
+} from "../interface";
 
 export class SessionManager {
     async getSession() {

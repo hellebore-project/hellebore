@@ -1,8 +1,13 @@
-import { EntryType, EntryViewType } from "@/constants";
-import type { EntryPropertyResponse, PersonProperties } from "@/interface";
+import { EntryViewType } from "@/constants";
+import {
+    EntryType,
+    type EntryPropertyResponse,
+    type PersonProperties,
+} from "@/api";
 import type { PropertyEditorService } from "@/ui/centre/entry-editor/property-editor";
-import { test as baseTest } from "../fixtures";
 import { mockGetEntryProperties } from "@tests/utils/mocks";
+
+import { test as baseTest } from "../fixtures";
 
 export interface BasePropertyEditorFixtures {
     entryType: EntryType.Person;

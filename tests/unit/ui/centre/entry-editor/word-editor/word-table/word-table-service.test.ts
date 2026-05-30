@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { WordType } from "@/constants";
-import type { WordResponse } from "@/interface";
+import { WordType, type WordResponse } from "@/api";
 import { WordTableService } from "@/ui/centre/entry-editor/word-editor/word-table/word-table-service.svelte";
 import { WordColumnKey } from "@/ui/centre/entry-editor/word-editor/word-table/word-table-constants";
 
