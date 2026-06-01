@@ -1,4 +1,4 @@
-import type { ProjectResponse } from "@/api/interface";
+import type { ProjectResponse } from "@/api";
 
 export interface CreateProjectEvent {
     name: string;

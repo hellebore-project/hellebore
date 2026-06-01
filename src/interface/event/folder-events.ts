@@ -1,5 +1,6 @@
-import type { Id } from "@/interface/common";
-import type { BulkFileResponse, FolderUpdateResponse } from "@/api/interface";
+import type { BulkFileResponse, FolderUpdateResponse } from "@/api";
+
+import type { Id } from "../common";
 
 export interface EditFolderNameEvent {
     id: Id;
