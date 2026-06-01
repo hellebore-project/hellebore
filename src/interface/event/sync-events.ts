@@ -1,6 +1,6 @@
 import { EntryType } from "@/api";
 
-import type { Id } from "../../common";
+import type { Id } from "../common";
 import type {
     BaseEntity,
     EntryUpdateResponse,

@@ -1,9 +1,9 @@
 import type { JSONContent } from "@tiptap/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
 import { MultiEventProducer } from "@/utils/event-producer";
 import { EntryInfoService } from "@/ui/centre/entry-editor/entry-info-service.svelte";
+import { ARTICLE_REFERENCE_PREFIX } from "@/ui/centre/entry-editor/article-editor";
 
 const mocks = vi.hoisted(() => {
     interface MockRichTextArgs<M> {

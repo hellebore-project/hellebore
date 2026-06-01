@@ -1,7 +1,8 @@
 import { JSONContent } from "@tiptap/core";
 
-import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
 import { Id } from "@/interface";
+
+import { ARTICLE_REFERENCE_PREFIX } from "@/ui/centre/entry-editor/article-editor";
 
 export function createDocNode(content: JSONContent[]): JSONContent {
     return { type: "doc", content };

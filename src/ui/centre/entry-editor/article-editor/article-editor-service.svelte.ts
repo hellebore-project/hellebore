@@ -1,6 +1,5 @@
 import type { JSONContent } from "@tiptap/core";
 
-import { ARTICLE_REFERENCE_PREFIX } from "@/constants";
 import type {
     EntryChangeEvent,
     IComponentService,
@@ -12,7 +11,10 @@ import type { BaseMentionItemData } from "@/lib/components/rich-text-editor/ment
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "../entry-info-service.svelte";
-import type { EntryMentionItemData } from "./article-editor-interface";
+import {
+    ARTICLE_REFERENCE_PREFIX,
+    type EntryMentionItemData,
+} from "./article-editor-interface";
 
 export class ArticleEditorService implements IComponentService {
     private _loaded = false;

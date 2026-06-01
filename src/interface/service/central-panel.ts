@@ -1,7 +1,7 @@
 import { CentralViewType, EntryViewType } from "@/constants";
 import type { EntryType } from "@/api";
 
-import type { Id } from "../../common";
+import type { Id } from "../common";
 import type { IComponentService } from "./component";
 
 export interface CentralPanelEntryInfo {
