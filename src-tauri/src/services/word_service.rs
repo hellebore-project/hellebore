@@ -4,7 +4,7 @@ use ::entity::word::Model as Word;
 use serde_json;
 
 use crate::database::word_manager;
-use crate::model::errors::api_error::ApiError;
+use crate::model::errors::error::Error;
 use crate::schema::{
     common::DiagnosticResponseSchema,
     word::{WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
@@ -15,16 +15,16 @@ use crate::types::grammar::WordType;
 pub async fn bulk_upsert(
     database: &DatabaseConnection,
     words: Vec<WordUpsertSchema>,
-) -> Result<Vec<DiagnosticResponseSchema<WordUpsertResponseSchema>>, ApiError> {
+) -> Result<Vec<DiagnosticResponseSchema<WordUpsertResponseSchema>>, Error> {
     let mut responses: Vec<DiagnosticResponseSchema<WordUpsertResponseSchema>> = Vec::new();
 
     for word in words {
         let mut created = false;
         let mut updated = false;
         let mut data = WordUpsertResponseSchema::new(&word);
-        let mut errors: Vec<ApiError> = Vec::new();
+        let mut errors: Vec<Error> = Vec::new();
 
-        let result: Result<Word, ApiError> = match word.id {
+        let result: Result<Word, Error> = match word.id {
             Some(_) => {
                 updated = true;
                 _update(database, word, &mut errors).await
@@ -55,16 +55,12 @@ pub async fn bulk_upsert(
     return Ok(responses);
 }
 
-async fn _create<C>(
-    con: &C,
-    word: WordUpsertSchema,
-    errors: &mut Vec<ApiError>,
-) -> Result<Word, ApiError>
+async fn _create<C>(con: &C, word: WordUpsertSchema, errors: &mut Vec<Error>) -> Result<Word, Error>
 where
     C: ConnectionTrait,
 {
     if word.language_id.is_none() {
-        return Err(ApiError::field_invalid(
+        return Err(Error::field_invalid(
             "Language ID of new word cannot be none.",
             WORD,
             None,
@@ -72,7 +68,7 @@ where
             "None",
         ));
     } else if word.word_type.is_none() {
-        return Err(ApiError::field_invalid(
+        return Err(Error::field_invalid(
             "Type of new word cannot be none.",
             WORD,
             None,
@@ -98,19 +94,15 @@ where
         translations,
     )
     .await
-    .map_err(|e| ApiError::not_created("Word not created.", WORD).from_error(e));
+    .map_err(|e| Error::not_created("Word not created.", WORD).from_error(e));
 }
 
-async fn _update<C>(
-    con: &C,
-    word: WordUpsertSchema,
-    errors: &mut Vec<ApiError>,
-) -> Result<Word, ApiError>
+async fn _update<C>(con: &C, word: WordUpsertSchema, errors: &mut Vec<Error>) -> Result<Word, Error>
 where
     C: ConnectionTrait,
 {
     if word.id.is_none() {
-        return Err(ApiError::field_invalid(
+        return Err(Error::field_invalid(
             "Word ID cannot be none.",
             WORD,
             None,
@@ -137,16 +129,16 @@ where
         translations,
     )
     .await
-    .map_err(|e| ApiError::not_updated("Word not updated.", WORD).from_error(e))
+    .map_err(|e| Error::not_updated("Word not updated.", WORD).from_error(e))
 }
 
 pub fn _serialize_translations(
     translations: &Option<Vec<String>>,
-) -> Result<Option<serde_json::Value>, ApiError> {
+) -> Result<Option<serde_json::Value>, Error> {
     match translations {
         Some(t) => match serde_json::to_value(&t) {
             Ok(_t) => Ok(Some(_t)),
-            Err(e) => Err(ApiError::field_not_updated(
+            Err(e) => Err(Error::field_not_updated(
                 "Failed to serialize word translations.",
                 WORD,
                 String::from("translations"),
@@ -157,16 +149,16 @@ pub fn _serialize_translations(
     }
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<WordResponseSchema, ApiError> {
+pub async fn get(database: &DatabaseConnection, id: i32) -> Result<WordResponseSchema, Error> {
     let word = word_manager::get(database, id).await.map_err(|e| {
-        ApiError::db(
+        Error::db(
             "Failed to query the word table while fetching a word by ID.",
             e,
         )
     })?;
     return match word {
         Some(word) => Ok(generate_response(&word)?),
-        None => Err(ApiError::not_found("Word not found", WORD)),
+        None => Err(Error::not_found("Word not found", WORD)),
     };
 }
 
@@ -174,11 +166,11 @@ pub async fn get_all_for_language(
     database: &DatabaseConnection,
     language_id: i32,
     word_type: Option<WordType>,
-) -> Result<Vec<WordResponseSchema>, ApiError> {
+) -> Result<Vec<WordResponseSchema>, Error> {
     let words = word_manager::get_all_for_language(database, language_id, word_type)
         .await
         .map_err(|e| {
-            ApiError::db(
+            Error::db(
                 "Failed to query the word table while fetching all words.",
                 e,
             )
@@ -196,14 +188,14 @@ pub async fn get_all_for_language(
     return Ok(word_responses);
 }
 
-pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), ApiError> {
+pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), Error> {
     word_manager::delete(database, id)
         .await
-        .map_err(|e| ApiError::not_deleted("Word not deleted.", WORD).from_error(e))?;
+        .map_err(|e| Error::not_deleted("Word not deleted.", WORD).from_error(e))?;
     return Ok(());
 }
 
-fn generate_response(word: &Word) -> Result<WordResponseSchema, ApiError> {
+fn generate_response(word: &Word) -> Result<WordResponseSchema, Error> {
     return Ok(WordResponseSchema {
         id: word.id,
         language_id: word.language_id,
@@ -217,11 +209,11 @@ fn generate_response(word: &Word) -> Result<WordResponseSchema, ApiError> {
 fn _convert_translations_to_vec(
     id: i32,
     translations: &serde_json::Value,
-) -> Result<Vec<String>, ApiError> {
+) -> Result<Vec<String>, Error> {
     let generic_array = match translations.as_array() {
         Some(array) => array,
         None => {
-            return Err(ApiError::field_invalid(
+            return Err(Error::field_invalid(
                 "Failed to deserialize word translations into a vector.",
                 WORD,
                 Some(id),
@@ -236,7 +228,7 @@ fn _convert_translations_to_vec(
         let str_value = match value.as_str() {
             Some(v) => v.to_string(),
             None => {
-                return Err(ApiError::field_invalid(
+                return Err(Error::field_invalid(
                     "Failed to deserialize word translation into a string.",
                     WORD,
                     Some(id),

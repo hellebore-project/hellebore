@@ -1,16 +1,16 @@
 use sea_orm::DatabaseConnection;
 
 use crate::database::file_manager;
-use crate::model::errors::api_error::ApiError;
+use crate::model::errors::error::Error;
 use crate::schema::file::BulkFileResponseSchema;
 
 pub async fn get_folder_contents(
     database: &DatabaseConnection,
     folder_id: i32,
-) -> Result<BulkFileResponseSchema, ApiError> {
+) -> Result<BulkFileResponseSchema, Error> {
     let contents = file_manager::get_folder_contents(database, folder_id)
         .await
-        .map_err(|e| ApiError::db("Failed to query the contents of a folder.", e))?;
+        .map_err(|e| Error::db("Failed to query the contents of a folder.", e))?;
 
     return Ok(generate_bulk_file_response(contents));
 }

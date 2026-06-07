@@ -1,5 +1,5 @@
 use crate::api::utils;
-use crate::model::errors::api_error::ApiError;
+use crate::model::errors::error::Error;
 use crate::schema::{
     common::DiagnosticResponseSchema,
     file::BulkFileResponseSchema,
@@ -15,7 +15,7 @@ use crate::state::State;
 pub async fn create_folder(
     state: tauri::State<'_, State>,
     info: FolderCreateSchema,
-) -> Result<FolderResponseSchema, ApiError> {
+) -> Result<FolderResponseSchema, Error> {
     let state = state.lock().await;
     folder_service::create(utils::get_database(&state)?, info).await
 }
@@ -24,7 +24,7 @@ pub async fn create_folder(
 pub async fn update_folder(
     state: tauri::State<'_, State>,
     folder: FolderUpdateSchema,
-) -> Result<DiagnosticResponseSchema<FolderUpdateResponseSchema>, ApiError> {
+) -> Result<DiagnosticResponseSchema<FolderUpdateResponseSchema>, Error> {
     let state = state.lock().await;
     Ok(folder_service::update(utils::get_database(&state)?, folder).await)
 }
@@ -33,7 +33,7 @@ pub async fn update_folder(
 pub async fn update_folders(
     state: tauri::State<'_, State>,
     folders: Vec<FolderUpdateSchema>,
-) -> Result<Vec<DiagnosticResponseSchema<FolderUpdateResponseSchema>>, ApiError> {
+) -> Result<Vec<DiagnosticResponseSchema<FolderUpdateResponseSchema>>, Error> {
     let state = state.lock().await;
     Ok(folder_service::bulk_update(utils::get_database(&state)?, folders).await)
 }
@@ -44,7 +44,7 @@ pub async fn validate_folder_name(
     id: Option<i32>,
     parent_id: i32,
     name: &str,
-) -> Result<DiagnosticResponseSchema<FolderValidationSchema>, ApiError> {
+) -> Result<DiagnosticResponseSchema<FolderValidationSchema>, Error> {
     let state = state.lock().await;
     folder_service::validate_name(utils::get_database(&state)?, id, parent_id, name).await
 }
@@ -53,7 +53,7 @@ pub async fn validate_folder_name(
 pub async fn get_folder(
     state: tauri::State<'_, State>,
     id: i32,
-) -> Result<FolderResponseSchema, ApiError> {
+) -> Result<FolderResponseSchema, Error> {
     let state = state.lock().await;
     folder_service::get(utils::get_database(&state)?, id).await
 }
@@ -61,7 +61,7 @@ pub async fn get_folder(
 #[tauri::command]
 pub async fn get_folders(
     state: tauri::State<'_, State>,
-) -> Result<Vec<FolderResponseSchema>, ApiError> {
+) -> Result<Vec<FolderResponseSchema>, Error> {
     let state = state.lock().await;
     folder_service::get_all(utils::get_database(&state)?).await
 }
@@ -70,7 +70,7 @@ pub async fn get_folders(
 pub async fn delete_folder(
     state: tauri::State<'_, State>,
     id: i32,
-) -> Result<BulkFileResponseSchema, ApiError> {
+) -> Result<BulkFileResponseSchema, Error> {
     let state = state.lock().await;
     folder_service::delete(utils::get_database(&state)?, id).await
 }

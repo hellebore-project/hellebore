@@ -4,7 +4,7 @@ use tokio::sync::MutexGuard;
 use ::entity::project::Model as Project;
 
 use crate::database::{project_manager, setup};
-use crate::model::errors::api_error::ApiError;
+use crate::model::errors::error::Error;
 use crate::schema::project::{ProjectLoadResponseSchema, ProjectResponseSchema};
 use crate::state::StateData;
 use crate::types::entity::PROJECT;
@@ -13,11 +13,11 @@ pub async fn create(
     state: &mut MutexGuard<'_, StateData>,
     name: &str,
     folder_path: &str,
-) -> Result<ProjectLoadResponseSchema, ApiError> {
+) -> Result<ProjectLoadResponseSchema, Error> {
     println!("Initializing project");
 
     std::fs::create_dir_all(folder_path).map_err(|e| {
-        ApiError::not_created("Failed to create project directory.", PROJECT).from_error(e)
+        Error::not_created("Failed to create project directory.", PROJECT).from_error(e)
     })?;
 
     state.settings.folder_path = Some(folder_path.to_string());
@@ -33,7 +33,7 @@ pub async fn create(
         project = match project_manager::insert(&db, &name).await {
             Ok(entity) => generate_response(&entity),
             Err(e) => {
-                return Err(ApiError::not_created("Project not created.", PROJECT).from_error(e));
+                return Err(Error::not_created("Project not created.", PROJECT).from_error(e));
             }
         };
     } else {
@@ -48,7 +48,7 @@ pub async fn create(
 pub async fn load(
     state: &mut MutexGuard<'_, StateData>,
     folder_path: &str,
-) -> Result<ProjectLoadResponseSchema, ApiError> {
+) -> Result<ProjectLoadResponseSchema, Error> {
     state.settings.folder_path = Some(folder_path.to_string());
     state.settings.write_config_file();
 
@@ -56,13 +56,13 @@ pub async fn load(
     let project = match get(&db).await? {
         Some(project) => project,
         None => {
-            return Err(ApiError::not_found("Project not found.", PROJECT));
+            return Err(Error::not_found("Project not found.", PROJECT));
         }
     };
     Ok(ProjectLoadResponseSchema { info: project, db })
 }
 
-pub async fn close(state: &mut MutexGuard<'_, StateData>) -> Result<(), ApiError> {
+pub async fn close(state: &mut MutexGuard<'_, StateData>) -> Result<(), Error> {
     state.settings.folder_path = None;
     state.settings.write_config_file();
     state.database = None;
@@ -72,20 +72,20 @@ pub async fn close(state: &mut MutexGuard<'_, StateData>) -> Result<(), ApiError
 pub async fn update(
     database: &DatabaseConnection,
     name: &str,
-) -> Result<ProjectResponseSchema, ApiError> {
+) -> Result<ProjectResponseSchema, Error> {
     let project = match get(&database).await? {
         Some(project) => project,
         None => {
-            return Err(ApiError::not_found("Project not found.", PROJECT));
+            return Err(Error::not_found("Project not found.", PROJECT));
         }
     };
     return match project_manager::update(database, project.id, &name).await {
         Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_updated("Project not updated.", PROJECT).from_error(e)),
+        Err(e) => Err(Error::not_updated("Project not updated.", PROJECT).from_error(e)),
     };
 }
 
-pub async fn get(database: &DatabaseConnection) -> Result<Option<ProjectResponseSchema>, ApiError> {
+pub async fn get(database: &DatabaseConnection) -> Result<Option<ProjectResponseSchema>, Error> {
     let mut projects = get_all(&database).await?;
     if projects.is_empty() {
         return Ok(None);
@@ -95,11 +95,9 @@ pub async fn get(database: &DatabaseConnection) -> Result<Option<ProjectResponse
     Ok(Some(project))
 }
 
-pub async fn get_all(
-    database: &DatabaseConnection,
-) -> Result<Vec<ProjectResponseSchema>, ApiError> {
+pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<ProjectResponseSchema>, Error> {
     let projects = project_manager::get_all(database).await.map_err(|e| {
-        ApiError::db(
+        Error::db(
             "Failed to query project table while fetching all projects.",
             e,
         )

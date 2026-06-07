@@ -1,18 +1,18 @@
 use sea_orm::DatabaseConnection;
 
 use crate::database::entry_manager;
-use crate::model::errors::api_error::ApiError;
+use crate::model::errors::error::Error;
 use crate::model::{errors::text_error::TextError, text::TextNode};
 
 pub async fn sync_text(
     database: &DatabaseConnection,
     text: &String,
-    errors: &mut Vec<ApiError>,
+    errors: &mut Vec<Error>,
 ) -> TextNode {
     let mut text = match _parse_text(&text) {
         Ok(text) => text,
         Err(e) => {
-            errors.push(ApiError::bad_entry_text(e));
+            errors.push(Error::bad_entry_text(e));
             return TextNode::new_doc();
         }
     };
@@ -41,7 +41,7 @@ fn _parse_text(text: &str) -> Result<TextNode, TextError> {
 async fn _sync_text_node(
     database: &DatabaseConnection,
     node: &mut TextNode,
-    errors: &mut Vec<ApiError>,
+    errors: &mut Vec<Error>,
 ) {
     if node.is_type("mention") {
         _sync_reference_label(database, node, errors).await;
@@ -59,7 +59,7 @@ async fn _sync_text_node(
 async fn _sync_reference_label(
     database: &DatabaseConnection,
     node: &mut TextNode,
-    errors: &mut Vec<ApiError>,
+    errors: &mut Vec<Error>,
 ) {
     let ref_id_option = node.get_attr("id");
     if let Some(ref_id_value) = ref_id_option {
@@ -80,7 +80,7 @@ async fn _sync_reference_label(
                             "label",
                             serde_json::Value::String("UNKNOWN REFERENCE".to_owned()),
                         );
-                        errors.push(ApiError::bad_entry_text(TextError::bad_reference_id(
+                        errors.push(Error::bad_entry_text(TextError::bad_reference_id(
                             "Referenced entry does not exist.",
                             ref_id,
                         )))
@@ -88,14 +88,14 @@ async fn _sync_reference_label(
                 },
                 Err(e) => {
                     node.set_attr("label", serde_json::Value::String("ERROR".to_owned()));
-                    errors.push(ApiError::db(
+                    errors.push(Error::db(
                         "Failed to query entry table while fetching referenced entry.",
                         e,
                     ));
                 }
             }
         } else {
-            errors.push(ApiError::bad_entry_text(TextError::bad_value_type(
+            errors.push(Error::bad_entry_text(TextError::bad_value_type(
                 "Reference ID of Mention node is not an integer.",
                 "id".to_owned(),
                 ref_id_value,
@@ -103,7 +103,7 @@ async fn _sync_reference_label(
             )));
         }
     } else {
-        errors.push(ApiError::bad_entry_text(TextError::missing_attr(
+        errors.push(Error::bad_entry_text(TextError::missing_attr(
             "Mention node is missing a reference ID.",
             "id".to_owned(),
         )));

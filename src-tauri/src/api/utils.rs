@@ -1,13 +1,13 @@
 use sea_orm::DatabaseConnection;
 use tokio::sync::MutexGuard;
 
-use crate::{model::errors::api_error::ApiError, state::StateData};
+use crate::{model::errors::error::Error, state::StateData};
 
 pub fn get_database<'a>(
     state: &'a MutexGuard<'_, StateData>,
-) -> Result<&'a DatabaseConnection, ApiError> {
+) -> Result<&'a DatabaseConnection, Error> {
     match state.database.as_ref() {
         Some(database) => Ok(database),
-        None => Err(ApiError::ProjectNotLoaded),
+        None => Err(Error::ProjectNotLoaded),
     }
 }

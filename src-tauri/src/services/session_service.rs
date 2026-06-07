@@ -1,6 +1,6 @@
 use sea_orm::DatabaseConnection;
 
-use crate::model::errors::api_error::ApiError;
+use crate::model::errors::error::Error;
 use crate::schema::project::ProjectResponseSchema;
 use crate::schema::session::SessionResponseSchema;
 use crate::services::project_service;
@@ -9,7 +9,7 @@ use crate::settings::Settings;
 pub async fn get(
     database: Option<&DatabaseConnection>,
     settings: &Settings,
-) -> Result<SessionResponseSchema, ApiError> {
+) -> Result<SessionResponseSchema, Error> {
     let project = match database {
         Some(db) => project_service::get(db).await?,
         None => None,

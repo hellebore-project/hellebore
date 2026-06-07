@@ -5,7 +5,7 @@ use crate::{model::errors::text_error::TextError, types::entity::EntityType};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all_fields = "camelCase")]
-pub enum ApiError {
+pub enum Error {
     ProjectNotLoaded,
     BadEntryText {
         error: TextError,
@@ -62,45 +62,45 @@ pub enum ApiError {
     },
 }
 
-impl ApiError {
-    pub fn bad_entry_text(error: TextError) -> ApiError {
-        ApiError::BadEntryText { error }
+impl Error {
+    pub fn bad_entry_text(error: TextError) -> Error {
+        Error::BadEntryText { error }
     }
 
-    pub fn not_created(msg: &str, entity_type: EntityType) -> ApiError {
-        ApiError::NotCreated {
+    pub fn not_created(msg: &str, entity_type: EntityType) -> Error {
+        Error::NotCreated {
             msg: msg.to_owned(),
             entity_type,
             error: None::<String>,
         }
     }
 
-    pub fn not_updated(msg: &str, entity_type: EntityType) -> ApiError {
-        ApiError::NotUpdated {
+    pub fn not_updated(msg: &str, entity_type: EntityType) -> Error {
+        Error::NotUpdated {
             msg: msg.to_owned(),
             entity_type,
             error: None::<String>,
         }
     }
 
-    pub fn not_found(msg: &str, entity_type: EntityType) -> ApiError {
-        ApiError::NotFound {
+    pub fn not_found(msg: &str, entity_type: EntityType) -> Error {
+        Error::NotFound {
             msg: msg.to_owned(),
             entity_type,
             error: None::<String>,
         }
     }
 
-    pub fn not_deleted(msg: &str, entity_type: EntityType) -> ApiError {
-        ApiError::NotDeleted {
+    pub fn not_deleted(msg: &str, entity_type: EntityType) -> Error {
+        Error::NotDeleted {
             msg: msg.to_owned(),
             entity_type,
             error: None::<String>,
         }
     }
 
-    pub fn field_not_updated(msg: &str, entity_type: EntityType, key: String) -> ApiError {
-        ApiError::FieldNotUpdated {
+    pub fn field_not_updated(msg: &str, entity_type: EntityType, key: String) -> Error {
+        Error::FieldNotUpdated {
             msg: msg.to_owned(),
             entity_type,
             key,
@@ -114,8 +114,8 @@ impl ApiError {
         id: Option<i32>,
         key: String,
         value: V,
-    ) -> ApiError {
-        ApiError::FieldNotUnique {
+    ) -> Error {
+        Error::FieldNotUnique {
             msg: msg.to_owned(),
             entity_type,
             id,
@@ -131,8 +131,8 @@ impl ApiError {
         id: Option<i32>,
         key: &str,
         value: V,
-    ) -> ApiError {
-        ApiError::FieldInvalid {
+    ) -> Error {
+        Error::FieldInvalid {
             msg: msg.to_owned(),
             entity_type,
             id,
@@ -142,81 +142,66 @@ impl ApiError {
         }
     }
 
-    pub fn internal(msg: &str) -> ApiError {
-        ApiError::InternalError {
+    pub fn internal(msg: &str) -> Error {
+        Error::InternalError {
             msg: msg.to_owned(),
             error: None::<String>,
         }
     }
 
-    pub fn db(msg: &str, error: DbErr) -> ApiError {
-        ApiError::internal(msg).from_error(error)
+    pub fn db(msg: &str, error: DbErr) -> Error {
+        Error::internal(msg).from_error(error)
     }
 
     pub fn from_error<E: ToString>(self, error: E) -> Self {
         match self {
-            ApiError::NotCreated {
+            Error::NotCreated {
                 msg, entity_type, ..
-            } => ApiError::NotCreated {
+            } => Error::NotCreated {
                 msg,
                 entity_type,
                 error: Some(error.to_string()),
             },
-            ApiError::NotUpdated {
+            Error::NotUpdated {
                 msg, entity_type, ..
-            } => ApiError::NotUpdated {
+            } => Error::NotUpdated {
                 msg,
                 entity_type,
                 error: Some(error.to_string()),
             },
-            ApiError::NotFound {
+            Error::NotFound {
                 msg, entity_type, ..
-            } => ApiError::NotFound {
+            } => Error::NotFound {
                 msg,
                 entity_type,
                 error: Some(error.to_string()),
             },
-            ApiError::NotDeleted {
+            Error::NotDeleted {
                 msg, entity_type, ..
-            } => ApiError::NotDeleted {
+            } => Error::NotDeleted {
                 msg,
                 entity_type,
                 error: Some(error.to_string()),
             },
-            ApiError::FieldNotUpdated {
+            Error::FieldNotUpdated {
                 msg,
                 entity_type,
                 key,
                 ..
-            } => ApiError::FieldNotUpdated {
+            } => Error::FieldNotUpdated {
                 msg,
                 entity_type,
                 key,
                 error: Some(error.to_string()),
             },
-            ApiError::FieldNotUnique {
-                msg,
-                entity_type,
-                id,
-                key,
-                value,
-                ..
-            } => ApiError::FieldNotUnique {
-                msg,
-                entity_type,
-                id,
-                key,
-                value,
-                error: Some(error.to_string()),
-            },
-            ApiError::FieldInvalid {
+            Error::FieldNotUnique {
                 msg,
                 entity_type,
                 id,
                 key,
                 value,
                 ..
-            } => ApiError::FieldInvalid {
+            } => Error::FieldNotUnique {
                 msg,
                 entity_type,
                 id,
@@ -224,11 +209,26 @@ impl ApiError {
                 value,
                 error: Some(error.to_string()),
             },
-            ApiError::InternalError { msg, .. } => ApiError::InternalError {
+            Error::FieldInvalid {
+                msg,
+                entity_type,
+                id,
+                key,
+                value,
+                ..
+            } => Error::FieldInvalid {
+                msg,
+                entity_type,
+                id,
+                key,
+                value,
+                error: Some(error.to_string()),
+            },
+            Error::InternalError { msg, .. } => Error::InternalError {
                 msg,
                 error: Some(error.to_string()),
             },
-            _ => ApiError::InternalError {
+            _ => Error::InternalError {
                 msg: self.to_string(),
                 error: Some(error.to_string()),
             },
@@ -236,14 +236,14 @@ impl ApiError {
     }
 }
 
-impl std::fmt::Display for ApiError {
+impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ApiError::ProjectNotLoaded => write!(f, "Project not loaded"),
-            ApiError::BadEntryText { error } => {
+            Error::ProjectNotLoaded => write!(f, "Project not loaded"),
+            Error::BadEntryText { error } => {
                 write!(f, "BAD ENTRY TEXT. {}", error)
             }
-            ApiError::NotCreated {
+            Error::NotCreated {
                 msg,
                 entity_type,
                 error,
@@ -254,7 +254,7 @@ impl std::fmt::Display for ApiError {
                     msg, entity_type, error
                 )
             }
-            ApiError::NotUpdated {
+            Error::NotUpdated {
                 msg,
                 entity_type,
                 error,
@@ -265,7 +265,7 @@ impl std::fmt::Display for ApiError {
                     msg, entity_type, error,
                 )
             }
-            ApiError::NotFound {
+            Error::NotFound {
                 msg,
                 entity_type,
                 error,
@@ -276,7 +276,7 @@ impl std::fmt::Display for ApiError {
                     msg, entity_type, error,
                 )
             }
-            ApiError::NotDeleted {
+            Error::NotDeleted {
                 msg,
                 entity_type,
                 error,
@@ -287,7 +287,7 @@ impl std::fmt::Display for ApiError {
                     msg, entity_type, error
                 )
             }
-            ApiError::FieldNotUpdated {
+            Error::FieldNotUpdated {
                 msg,
                 entity_type,
                 key,
@@ -297,7 +297,7 @@ impl std::fmt::Display for ApiError {
                 "FIELD NOT UPDATED. {} Entity: {:?}; key: {}. Error: {:?}",
                 msg, entity_type, key, error
             ),
-            ApiError::FieldNotUnique {
+            Error::FieldNotUnique {
                 msg,
                 entity_type,
                 id,
@@ -309,7 +309,7 @@ impl std::fmt::Display for ApiError {
                 "FIELD NOT UNIQUE. {} Entity: {:?}; id: {:?}; key: {}; value: {}. Error: {:?}",
                 msg, entity_type, id, key, value, error
             ),
-            ApiError::FieldInvalid {
+            Error::FieldInvalid {
                 msg,
                 entity_type,
                 id,
@@ -321,7 +321,7 @@ impl std::fmt::Display for ApiError {
                 "INVALID FIELD. {} Entity: {:?}; id: {:?}; key: {}; value: {}. Error: {:?}",
                 msg, entity_type, id, key, value, error
             ),
-            ApiError::InternalError { msg, error } => {
+            Error::InternalError { msg, error } => {
                 write!(f, "INTERNAL ERROR. {} Error: {:?}", msg, error)
             }
         }
