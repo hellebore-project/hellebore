@@ -22,12 +22,6 @@ pub enum WordType {
     Verb = 61,
 }
 
-impl CodedEnum for WordType {
-    fn code(&self) -> i8 {
-        *self as i8
-    }
-}
-
 impl Default for WordType {
     fn default() -> Self {
         Self::None
@@ -42,6 +36,30 @@ impl From<i8> for WordType {
             }
         }
         panic!("Not implemented")
+    }
+}
+
+impl ToString for WordType {
+    fn to_string(&self) -> String {
+        match self {
+            WordType::None => "None",
+            WordType::RootWord => "RootWord",
+            WordType::Determiner => "Determiner",
+            WordType::Preposition => "Preposition",
+            WordType::Conjunction => "Conjunction",
+            WordType::Pronoun => "Pronoun",
+            WordType::Noun => "Noun",
+            WordType::Adjective => "Adjective",
+            WordType::Adverb => "Adverb",
+            WordType::Verb => "Verb",
+        }
+        .to_string()
+    }
+}
+
+impl CodedEnum for WordType {
+    fn code(&self) -> i8 {
+        *self as i8
     }
 }
 

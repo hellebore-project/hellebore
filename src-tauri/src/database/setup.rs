@@ -2,22 +2,33 @@ use sea_orm::{Database, DatabaseConnection};
 
 use migration::{Migrator, MigratorTrait};
 
-use crate::{model::errors::api_error::ApiError, settings::Settings};
+use crate::{
+    model::errors::{Error, ErrorBuilder},
+    settings::Settings,
+};
 
-pub async fn setup(settings: &Settings) -> Result<DatabaseConnection, ApiError> {
+pub async fn setup(settings: &Settings) -> Result<DatabaseConnection, Error> {
     // connect to the DB
     let conn_str = match settings.get_connection_string() {
         Some(conn_str) => conn_str,
-        None => return Err(ApiError::ProjectNotLoaded),
+        None => return Err(Error::ProjectNotLoaded),
     };
-    let db = Database::connect(&conn_str)
-        .await
-        .map_err(|e| ApiError::db("Failed to connect to the DB.", e))?;
+    let db = Database::connect(&conn_str).await.map_err(|e| {
+        ErrorBuilder::new()
+            .msg("Failed to connect to the DB.")
+            .from_err(e)
+            .db()
+            .connection_failed()
+    })?;
 
     // migrate the DB
-    Migrator::up(&db, None)
-        .await
-        .map_err(|e| ApiError::db("DB migrations failed.", e))?;
+    Migrator::up(&db, None).await.map_err(|e| {
+        ErrorBuilder::new()
+            .msg("DB migrations failed.")
+            .from_err(e)
+            .db()
+            .migration_failed()
+    })?;
 
     Ok(db)
 }

@@ -1,5 +1,5 @@
 use hellebore::{
-    model::{errors::api_error::ApiError, text::TextNode},
+    model::{errors::error::Error, text::TextNode},
     services::entry_text_service,
     settings::Settings,
 };
@@ -22,10 +22,10 @@ async fn test_sync_basic_text(
     let expected_text_node = entry_text_node.clone();
 
     let entry_text_json = serde_json::to_string(&entry_text_node.clone()).unwrap();
-    let mut errors: Vec<ApiError> = Vec::new();
+    let mut errors: Vec<Error> = Vec::new();
 
     let synced_text_node =
-        entry_text_service::sync_text(&database, &entry_text_json, &mut errors).await;
+        entry_text_service::sync_text(&database, 0, &entry_text_json, &mut errors).await;
 
     assert_eq!(expected_text_node, synced_text_node);
 }
@@ -35,10 +35,10 @@ async fn test_sync_basic_text(
 async fn test_sync_empty_text(settings: &Settings) {
     let database = database(settings).await;
 
-    let mut errors: Vec<ApiError> = Vec::new();
+    let mut errors: Vec<Error> = Vec::new();
 
     let synced_text_node =
-        entry_text_service::sync_text(&database, &"".to_string(), &mut errors).await;
+        entry_text_service::sync_text(&database, 0, &"".to_string(), &mut errors).await;
 
     assert_eq!(TextNode::new_doc(), synced_text_node);
     assert!(errors.is_empty());
@@ -58,10 +58,10 @@ async fn test_sync_text_with_reference(settings: &Settings, folder_id: i32) {
     );
 
     let entry_text_json = serde_json::to_string(&entry_text_node).unwrap();
-    let mut errors: Vec<ApiError> = Vec::new();
+    let mut errors: Vec<Error> = Vec::new();
 
     let synced_text_node =
-        entry_text_service::sync_text(&database, &entry_text_json, &mut errors).await;
+        entry_text_service::sync_text(&database, entry.id, &entry_text_json, &mut errors).await;
 
     let expected_text_node = TextNode::new_doc().with_child(
         TextNode::new_paragraph()
@@ -77,14 +77,14 @@ async fn test_sync_text_deserialization_error(settings: &Settings) {
     let database = database(settings).await;
 
     let invalid_json = "this is not json".to_owned();
-    let mut errors: Vec<ApiError> = Vec::new();
+    let mut errors: Vec<Error> = Vec::new();
 
     let synced_text_node =
-        entry_text_service::sync_text(&database, &invalid_json, &mut errors).await;
+        entry_text_service::sync_text(&database, 0, &invalid_json, &mut errors).await;
 
     assert_eq!(TextNode::new_doc(), synced_text_node);
     assert_eq!(errors.len(), 1);
-    assert!(errors[0].to_string().contains("DESERIALIZATION FAILED"));
+    assert!(errors[0].to_string().contains("DESERIALIZATION_FAILED"));
 }
 
 #[rstest]
@@ -98,10 +98,10 @@ async fn test_sync_text_with_missing_referenced_entry(settings: &Settings) {
     );
 
     let entry_text_json = serde_json::to_string(&entry_text_node).unwrap();
-    let mut errors: Vec<ApiError> = Vec::new();
+    let mut errors: Vec<Error> = Vec::new();
 
     let synced_text_node =
-        entry_text_service::sync_text(&database, &entry_text_json, &mut errors).await;
+        entry_text_service::sync_text(&database, 0, &entry_text_json, &mut errors).await;
 
     let expected_text_node = TextNode::new_doc().with_child(TextNode::new_paragraph().with_child(
         TextNode::new_reference(99999, "UNKNOWN REFERENCE".to_owned()),
@@ -129,10 +129,10 @@ async fn test_sync_text_with_bad_reference_id_type(settings: &Settings) {
         TextNode::new_doc().with_child(TextNode::new_paragraph().with_child(mention));
 
     let entry_text_json = serde_json::to_string(&entry_text_node).unwrap();
-    let mut errors: Vec<ApiError> = Vec::new();
+    let mut errors: Vec<Error> = Vec::new();
 
     let _synced_text_node =
-        entry_text_service::sync_text(&database, &entry_text_json, &mut errors).await;
+        entry_text_service::sync_text(&database, 0, &entry_text_json, &mut errors).await;
 
     assert_eq!(errors.len(), 1);
     assert!(

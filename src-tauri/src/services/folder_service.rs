@@ -4,7 +4,7 @@ use sea_orm::DatabaseConnection;
 use ::entity::folder::Model as Folder;
 
 use crate::database::{file_manager, folder_manager};
-use crate::model::errors::api_error::ApiError;
+use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::{
     common::DiagnosticResponseSchema,
     file::BulkFileResponseSchema,
@@ -19,10 +19,14 @@ use crate::types::entity::FOLDER;
 pub async fn create(
     database: &DatabaseConnection,
     folder: FolderCreateSchema,
-) -> Result<FolderResponseSchema, ApiError> {
+) -> Result<FolderResponseSchema, Error> {
     return match folder_manager::insert(database, folder.parent_id, &folder.name).await {
         Ok(entity) => Ok(generate_response(&entity)),
-        Err(e) => Err(ApiError::not_created("Folder not created.", FOLDER).from_error(e)),
+        Err(e) => Err(ErrorBuilder::new()
+            .msg("Folder not created.")
+            .from_err(e)
+            .entity(FOLDER)
+            .not_created()),
     };
 }
 
@@ -31,11 +35,17 @@ pub async fn update(
     folder: FolderUpdateSchema,
 ) -> DiagnosticResponseSchema<FolderUpdateResponseSchema> {
     let mut response = FolderUpdateResponseSchema::new(&folder);
-    let mut errors: Vec<ApiError> = Vec::new();
+    let mut errors: Vec<Error> = Vec::new();
 
     if let Err(e) = folder_manager::update(database, folder.id, folder.parent_id, folder.name)
         .await
-        .map_err(|e| ApiError::not_updated("Folder not updated.", FOLDER).from_error(e))
+        .map_err(|e| {
+            ErrorBuilder::new()
+                .msg("Folder not updated.")
+                .from_err(e)
+                .entity(FOLDER)
+                .not_updated()
+        })
     {
         response.parent_changed = false;
         response.name_changed = false;
@@ -65,16 +75,17 @@ pub async fn validate_name(
     id: Option<i32>,
     parent_id: i32,
     name: &str,
-) -> Result<DiagnosticResponseSchema<FolderValidationSchema>, ApiError> {
-    let mut errors: Vec<ApiError> = Vec::new();
+) -> Result<DiagnosticResponseSchema<FolderValidationSchema>, Error> {
+    let mut errors: Vec<Error> = Vec::new();
 
     let is_unique = folder_manager::is_name_unique_at_location(database, parent_id, name)
         .await
         .map_err(|e| {
-            ApiError::db(
-                "Failed to query the folder table while verifying whether a name is locally unique.",
-                e,
-            )
+            ErrorBuilder::new()
+                .msg("Failed to query the folder table while verifying whether a name is locally unique.")
+                .from_err(e)
+                .db()
+                .query_failed()
         })?;
 
     let mut response = FolderValidationSchema {
@@ -90,10 +101,11 @@ pub async fn validate_name(
                 .all(database)
                 .await
                 .map_err(|e| {
-                    ApiError::db(
-                        "Failed to query the folder table while fetching colliding folders.",
-                        e,
-                    )
+                    ErrorBuilder::new()
+                        .msg("Failed to query the folder table while fetching colliding folders.")
+                        .from_err(e)
+                        .db()
+                        .query_failed()
                 })?;
 
         let sibling_colliding_folder = colliding_folders
@@ -106,13 +118,14 @@ pub async fn validate_name(
                 colliding_folder: generate_response(sibling_colliding_folder.as_ref().unwrap()),
             });
 
-            errors.push(ApiError::field_not_unique(
-                "Folder names must be locally unique.",
-                FOLDER,
-                id,
-                "name".to_owned(),
-                name,
-            ));
+            errors.push(
+                ErrorBuilder::new()
+                    .msg("Folder names must be locally unique.")
+                    .entity(FOLDER)
+                    .with_optional_id(&id)
+                    .attribute("name")
+                    .not_unique(),
+            );
         }
     }
 
@@ -122,27 +135,33 @@ pub async fn validate_name(
     });
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderResponseSchema, ApiError> {
+pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderResponseSchema, Error> {
     let folder = folder_manager::get(database, id).await.map_err(|e| {
-        ApiError::db(
-            "Failed to query the folder table while fetching a folder by ID.",
-            e,
-        )
+        ErrorBuilder::new()
+            .msg("Failed to query the folder table while fetching a folder by ID.")
+            .from_err(e)
+            .db()
+            .query_failed()
     })?;
     return match folder {
         Some(entity) => Ok(generate_response(&entity)),
         None => {
-            return Err(ApiError::not_found("Folder not found.", FOLDER));
+            return Err(ErrorBuilder::new()
+                .msg("Folder not found.")
+                .entity(FOLDER)
+                .with_id(id)
+                .not_found());
         }
     };
 }
 
-pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponseSchema>, ApiError> {
+pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponseSchema>, Error> {
     let folders = folder_manager::get_all(database).await.map_err(|e| {
-        ApiError::db(
-            "Failed to query the folder table while fetching all folders.",
-            e,
-        )
+        ErrorBuilder::new()
+            .msg("Failed to query the folder table while fetching all folders.")
+            .from_err(e)
+            .db()
+            .query_failed()
     })?;
     let folders = folders.iter().map(generate_response).collect();
     return Ok(folders);
@@ -151,22 +170,31 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponse
 pub async fn delete(
     database: &DatabaseConnection,
     id: i32,
-) -> Result<BulkFileResponseSchema, ApiError> {
+) -> Result<BulkFileResponseSchema, Error> {
     let contents = file_service::get_folder_contents(database, id).await?;
 
-    let _ = folder_manager::delete(database, id)
-        .await
-        .map_err(|e| ApiError::not_deleted("Folder not deleted.", FOLDER).from_error(e))?;
+    let _ = folder_manager::delete(database, id).await.map_err(|e| {
+        ErrorBuilder::new()
+            .msg("Folder not deleted.")
+            .from_err(e)
+            .entity(FOLDER)
+            .with_id(id)
+            .not_deleted()
+    })?;
 
     return Ok(contents);
 }
 
-pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result<(), ApiError> {
+pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result<(), Error> {
     folder_manager::delete_many(database, ids)
         .await
         .map(|_| ())
         .map_err(|e| {
-            ApiError::not_deleted("One or more folders not deleted.", FOLDER).from_error(e)
+            ErrorBuilder::new()
+                .msg("One or more folders not deleted.")
+                .from_err(e)
+                .entity(FOLDER)
+                .not_deleted()
         })
 }
 

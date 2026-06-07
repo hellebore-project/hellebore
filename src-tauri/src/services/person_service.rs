@@ -3,41 +3,59 @@ use sea_orm::{ConnectionTrait, DatabaseConnection};
 use ::entity::person::Model as Person;
 
 use crate::database::person_manager;
-use crate::model::errors::api_error::ApiError;
+use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::person::PersonSchema;
 use crate::types::entity::PERSON;
 
-pub async fn create<C>(con: &C, entry_id: i32, properties: &PersonSchema) -> Result<(), ApiError>
+pub async fn create<C>(con: &C, entry_id: i32, properties: &PersonSchema) -> Result<(), Error>
 where
     C: ConnectionTrait,
 {
     person_manager::insert(con, entry_id, &properties.name)
         .await
-        .map_err(|e| ApiError::not_created("Person not created.", PERSON).from_error(e))?;
+        .map_err(|e| {
+            ErrorBuilder::new()
+                .msg("Person not created.")
+                .from_err(e)
+                .entity(PERSON)
+                .not_created()
+        })?;
     Ok(())
 }
 
-pub async fn update<C>(con: &C, id: i32, properties: &PersonSchema) -> Result<(), ApiError>
+pub async fn update<C>(con: &C, id: i32, properties: &PersonSchema) -> Result<(), Error>
 where
     C: ConnectionTrait,
 {
     person_manager::update(con, id, &properties.name)
         .await
         .map(|_| ())
-        .map_err(|e| ApiError::not_updated("Person not updated.", PERSON).from_error(e))
+        .map_err(|e| {
+            ErrorBuilder::new()
+                .msg("Person not updated.")
+                .from_err(e)
+                .entity(PERSON)
+                .with_id(id)
+                .not_updated()
+        })
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<PersonSchema, ApiError> {
+pub async fn get(database: &DatabaseConnection, id: i32) -> Result<PersonSchema, Error> {
     let person = person_manager::get(database, id).await.map_err(|e| {
-        ApiError::db(
-            "Failed to query the person table while fetching a person by ID.",
-            e,
-        )
+        ErrorBuilder::new()
+            .msg("Failed to query the person table while fetching a person by ID.")
+            .from_err(e)
+            .db()
+            .query_failed()
     })?;
-    return match person {
+    match person {
         Some(person) => Ok(generate_response(person)),
-        None => Err(ApiError::not_found("Person not found.", PERSON)),
-    };
+        None => Err(ErrorBuilder::new()
+            .msg("Person not found.")
+            .entity(PERSON)
+            .with_id(id)
+            .not_found()),
+    }
 }
 
 fn generate_response(person: Person) -> PersonSchema {

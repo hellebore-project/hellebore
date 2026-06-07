@@ -1,10 +1,10 @@
 use crate::api;
-use crate::model::errors::api_error::ApiError;
+use crate::model::errors::error::Error;
 use crate::services::project_service;
 use crate::settings::Settings;
 use crate::state::State;
 
-pub async fn setup(settings: Settings) -> Result<State, ApiError> {
+pub async fn setup(settings: Settings) -> Result<State, Error> {
     println!("Setting up backend");
 
     let state = State::new(settings, None);
@@ -18,7 +18,7 @@ pub async fn setup(settings: Settings) -> Result<State, ApiError> {
             match project_service::load(&mut state_data, &path).await {
                 Ok(project) => Some(project.db),
                 Err(e) => match e {
-                    ApiError::ProjectNotLoaded => None,
+                    Error::ProjectNotLoaded => None,
                     _ => return Err(e),
                 },
             }
