@@ -1,7 +1,7 @@
 use sea_orm::ConnectionTrait;
 
 use crate::database::language_manager;
-use crate::model::errors::error::Error;
+use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::language::LanguageSchema;
 use crate::types::entity::LANGUAGE;
 
@@ -10,7 +10,11 @@ where
     C: ConnectionTrait,
 {
     language_manager::insert(con, entry_id).await.map_err(|e| {
-        Error::not_created("Failed to create language record.", LANGUAGE).from_error(e)
+        ErrorBuilder::new()
+            .msg("Failed to create language record.")
+            .from_err(e)
+            .entity(LANGUAGE)
+            .not_created()
     })?;
 
     Ok(())

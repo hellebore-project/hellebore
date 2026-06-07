@@ -8,7 +8,7 @@ use crate::{
 };
 
 use hellebore::{
-    database::file_manager::ROOT_FOLDER_ID,
+    constants::ROOT_FOLDER_ID,
     schema::folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
     services::folder_service,
     settings::Settings,

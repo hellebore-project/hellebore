@@ -1,5 +1,5 @@
 use crate::api::utils;
-use crate::model::errors::error::Error;
+use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::project::ProjectResponseSchema;
 use crate::services::project_service;
 use crate::state::State;
@@ -47,6 +47,9 @@ pub async fn get_project(state: tauri::State<'_, State>) -> Result<ProjectRespon
     let state = state.lock().await;
     match project_service::get(utils::get_database(&state)?).await? {
         Some(project) => Ok(project),
-        None => Err(Error::not_found("Project not found.", PROJECT)),
+        None => Err(ErrorBuilder::new()
+            .msg("Project not found.")
+            .entity(PROJECT)
+            .not_found()),
     }
 }

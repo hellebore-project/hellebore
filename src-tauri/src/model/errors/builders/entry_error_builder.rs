@@ -1,0 +1,66 @@
+use crate::{model::errors::error::Error, types::entity::EntityType};
+
+pub struct EntryErrorBuilder {
+    message: String,
+    error: Option<String>,
+    entity_type: EntityType,
+    id: i32,
+}
+
+impl EntryErrorBuilder {
+    pub fn new(message: &str, error: Option<String>, entity_type: EntityType, id: i32) -> Self {
+        EntryErrorBuilder {
+            message: message.to_owned(),
+            error,
+            entity_type,
+            id,
+        }
+    }
+
+    pub fn with_id(&mut self, id: i32) -> &mut Self {
+        self.id = id;
+        self
+    }
+
+    pub fn unsupported_entry_type(&self) -> Error {
+        Error::UnsupportedEntryType {
+            msg: self.message.clone(),
+            error: self.error.clone(),
+            entity_type: self.entity_type.clone(),
+        }
+    }
+
+    pub fn text_deserialization_failed(&self) -> Error {
+        Error::EntryTextDeserializationFailed {
+            msg: self.message.clone(),
+            error: self.error.clone().unwrap_or(String::new()),
+            id: self.id,
+        }
+    }
+
+    pub fn missing_text_attribute(&self, key: &str) -> Error {
+        Error::MissingEntryTextAttr {
+            msg: self.message.clone(),
+            id: self.id,
+            key: key.to_owned(),
+        }
+    }
+
+    pub fn bad_reference_id(&self, id: i32) -> Error {
+        Error::BadEntryReferenceId {
+            msg: self.message.clone(),
+            id: self.id,
+            reference_id: id,
+        }
+    }
+
+    pub fn bad_text_value_type(&self, key: &str, value: &str, expected_type: &str) -> Error {
+        Error::BadEntryTextValueType {
+            msg: self.message.clone(),
+            id: self.id,
+            key: key.to_owned(),
+            value: value.to_owned(),
+            expected_type: expected_type.to_owned(),
+        }
+    }
+}

@@ -8,7 +8,7 @@ use sea_orm::{
 use ::entity::entry::{Column as EntryColumn, Entity as EntryModel};
 use ::entity::folder::{Column as FolderColumn, Entity as FolderModel};
 
-pub const ROOT_FOLDER_ID: i32 = -1;
+use crate::constants::ROOT_FOLDER_ID;
 
 #[derive(Debug, FromQueryResult)]
 pub struct FileNode {

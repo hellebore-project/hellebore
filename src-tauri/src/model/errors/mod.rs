@@ -1,2 +1,5 @@
+pub mod builders;
 pub mod error;
-pub mod text_error;
+
+pub use crate::model::errors::builders::error_builder::ErrorBuilder;
+pub use crate::model::errors::error::Error;

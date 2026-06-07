@@ -4,7 +4,10 @@ use sea_orm::{ConnectionTrait, DatabaseConnection};
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
-use crate::model::{errors::error::Error, text::TextNode};
+use crate::model::{
+    errors::{Error, ErrorBuilder},
+    text::TextNode,
+};
 use crate::schema::entry::EntrySearchSchema;
 use crate::schema::{
     common::DiagnosticResponseSchema,
@@ -61,7 +64,13 @@ where
         text.to_owned(),
     )
     .await
-    .map_err(|e| Error::not_created("Entry record not created.", ENTRY).from_error(e))?;
+    .map_err(|e| {
+        ErrorBuilder::new()
+            .msg("Entry record not created.")
+            .from_err(e)
+            .entity(ENTRY)
+            .not_created()
+    })?;
 
     Ok(entry)
 }
@@ -98,20 +107,29 @@ pub async fn update(
         let is_unique_result =
             entry_manager::is_title_unique_for_id(database, Some(entry.id), &title_value)
                 .await
-                .map_err(|e| Error::db("Entry title is not unique.", e));
+                .map_err(|e| {
+                    ErrorBuilder::new()
+                        .msg("Entry title is not unique.")
+                        .from_err(e)
+                        .entity(ENTRY)
+                        .attribute("title")
+                        .not_unique()
+                });
 
         match is_unique_result {
             Ok(is_unique) => {
                 if !is_unique {
                     response.title.is_unique = false;
                     entry.title = None;
-                    errors.push(Error::field_not_unique(
-                        "Entry title must be globally unique.",
-                        ENTRY,
-                        Some(entry.id),
-                        "title".to_owned(),
-                        title_value,
-                    ));
+                    errors.push(
+                        ErrorBuilder::new()
+                            .msg("Entry title must be globally unique.")
+                            .entity(ENTRY)
+                            .attribute("title")
+                            .with_id(Some(entry.id))
+                            .with_value(&title_value)
+                            .not_unique(),
+                    );
                 }
             }
             Err(e) => {
@@ -122,11 +140,14 @@ pub async fn update(
 
         if entry.title.is_none() {
             response.title.updated = false;
-            errors.push(Error::field_not_updated(
-                "Unable to update the title.",
-                ENTRY,
-                "title".to_owned(),
-            ));
+            errors.push(
+                ErrorBuilder::new()
+                    .msg("Unable to update the title.")
+                    .entity(ENTRY)
+                    .attribute("title")
+                    .with_id(Some(entry.id))
+                    .not_updated(),
+            );
         }
     }
 
@@ -148,7 +169,14 @@ async fn _update(
         entry_manager::update(database, entry.id, entry.folder_id, entry.title, entry.text)
             .await
             .map(|_| ())
-            .map_err(|e| Error::not_updated("Entry record not updated.", ENTRY).from_error(e));
+            .map_err(|e| {
+                ErrorBuilder::new()
+                    .msg("Entry record not updated.")
+                    .from_err(e)
+                    .entity(ENTRY)
+                    .with_id(entry.id)
+                    .not_updated()
+            });
 
     if let Err(e) = update_result {
         response.folder_id.updated = false;
@@ -217,20 +245,22 @@ pub async fn validate_title(
     let is_unique = entry_manager::is_title_unique_for_id(database, id, title)
         .await
         .map_err(|e| {
-            Error::db(
-                "Failed to query the entry table while checking whether the title is unique.",
-                e,
-            )
+            ErrorBuilder::new()
+                .msg("Failed to query the entry table while checking whether the title is unique.")
+                .from_err(e)
+                .db()
+                .query_failed()
         })?;
 
     if !is_unique {
-        errors.push(Error::field_not_unique(
-            "Entry title must be globally unique.",
-            ENTRY,
-            id,
-            "title".to_owned(),
-            title,
-        ));
+        errors.push(
+            ErrorBuilder::new()
+                .msg("Entry title must be globally unique.")
+                .entity(ENTRY)
+                .attribute("title")
+                .with_value(&title)
+                .not_unique(),
+        );
     }
 
     Ok(DiagnosticResponseSchema {
@@ -243,16 +273,21 @@ pub async fn get_info(
     database: &DatabaseConnection,
     id: i32,
 ) -> Result<EntryInfoResponseSchema, Error> {
-    let info = entry_manager::get_info(database, id).await.map_err(|err| {
-        Error::db(
-            "Failed to query entry table while fetching an entry by id.",
-            err,
-        )
+    let info = entry_manager::get_info(database, id).await.map_err(|e| {
+        ErrorBuilder::new()
+            .msg("Failed to query entry table while fetching an entry by id.")
+            .from_err(e)
+            .db()
+            .query_failed()
     })?;
 
     match info {
         Some(info) => Ok(generate_info_response(&info)),
-        None => return Err(Error::not_found("Entry not found.", ENTRY)),
+        None => Err(ErrorBuilder::new()
+            .msg("Entry not found.")
+            .entity(ENTRY)
+            .with_id(id)
+            .not_found()),
     }
 }
 
@@ -260,15 +295,20 @@ pub async fn get_properties(
     database: &DatabaseConnection,
     id: i32,
 ) -> Result<EntryPropertyResponseSchema, Error> {
-    let info = entry_manager::get_info(database, id).await.map_err(|err| {
-        Error::db(
-            "Failed to query entry table while fetching an entry by id.",
-            err,
-        )
+    let info = entry_manager::get_info(database, id).await.map_err(|e| {
+        ErrorBuilder::new()
+            .msg("Failed to query entry table while fetching an entry by id.")
+            .from_err(e)
+            .db()
+            .query_failed()
     })?;
 
     if info.is_none() {
-        return Err(Error::not_found("Entry not found.", ENTRY));
+        return Err(ErrorBuilder::new()
+            .msg("Entry not found.")
+            .entity(ENTRY)
+            .with_id(id)
+            .not_found());
     }
     let info = info.unwrap();
 
@@ -287,10 +327,14 @@ async fn _get_properties(
         EntityType::Person => Ok(EntryProperties::Person(
             person_service::get(database, id).await?,
         )),
-        _ => Err(Error::internal(&format!(
-            "Entries of type {} are not supported.",
-            entity_type
-        ))),
+        _ => Err(ErrorBuilder::new()
+            .msg(&format!(
+                "Entries of type {} are not supported.",
+                entity_type
+            ))
+            .entity(entity_type)
+            .entry()
+            .unsupported_entry_type()),
     }
 }
 
@@ -299,19 +343,26 @@ pub async fn get_text(
     id: i32,
 ) -> Result<DiagnosticResponseSchema<EntryArticleResponseSchema>, Error> {
     let entry = entry_manager::get(database, id).await.map_err(|e| {
-        Error::db(
-            "Failed to query entry table while fetching an entry by id.",
-            e,
-        )
+        ErrorBuilder::new()
+            .msg("Failed to query entry table while fetching an entry by id.")
+            .from_err(e)
+            .db()
+            .query_failed()
     })?;
 
     let entry = match entry {
         Some(entry) => entry,
-        None => return Err(Error::not_found("Entry not found.", ENTRY)),
+        None => {
+            return Err(ErrorBuilder::new()
+                .msg("Entry not found.")
+                .entity(ENTRY)
+                .with_id(id)
+                .not_found());
+        }
     };
 
     let mut errors: Vec<Error> = Vec::new();
-    let text = entry_text_service::sync_text(database, &entry.text, &mut errors).await;
+    let text = entry_text_service::sync_text(database, id, &entry.text, &mut errors).await;
 
     let text_response = generate_text_response(entry, text);
     let diagnostic_response = DiagnosticResponseSchema {
@@ -323,9 +374,13 @@ pub async fn get_text(
 }
 
 pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<EntryInfoResponseSchema>, Error> {
-    let entries = entry_manager::get_all(database)
-        .await
-        .map_err(|e| Error::db("Failed to query entry table while fetching all entries.", e))?;
+    let entries = entry_manager::get_all(database).await.map_err(|e| {
+        ErrorBuilder::new()
+            .msg("Failed to query entry table while fetching all entries.")
+            .from_err(e)
+            .db()
+            .query_failed()
+    })?;
     let entries = entries.iter().map(generate_info_response).collect();
 
     Ok(entries)
@@ -344,10 +399,11 @@ pub async fn search(
     )
     .await
     .map_err(|e| {
-        Error::db(
-            "Failed to query the entry table while searching for entries.",
-            e,
-        )
+        ErrorBuilder::new()
+            .msg("Failed to query the entry table while searching for entries.")
+            .from_err(e)
+            .db()
+            .query_failed()
     })?;
     let entries = entries.iter().map(generate_info_response).collect();
 
@@ -356,7 +412,12 @@ pub async fn search(
 
 pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), Error> {
     entry_manager::delete(database, id).await.map_err(|e| {
-        Error::not_deleted("Failed to delete an entry record.", ENTRY).from_error(e)
+        ErrorBuilder::new()
+            .msg("Failed to delete an entry record.")
+            .from_err(e)
+            .entity(ENTRY)
+            .with_id(id)
+            .not_deleted()
     })?;
     Ok(())
 }
@@ -366,8 +427,11 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
         .await
         .map(|_| ())
         .map_err(|e| {
-            Error::not_deleted("Failed to bulk delete one or more entry records.", ENTRY)
-                .from_error(e)
+            ErrorBuilder::new()
+                .msg("Failed to bulk delete one or more entry records.")
+                .from_err(e)
+                .entity(ENTRY)
+                .not_deleted()
         })
 }
 

@@ -1,7 +1,7 @@
 use sea_orm::DatabaseConnection;
 
 use crate::database::file_manager;
-use crate::model::errors::error::Error;
+use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::file::BulkFileResponseSchema;
 
 pub async fn get_folder_contents(
@@ -10,7 +10,13 @@ pub async fn get_folder_contents(
 ) -> Result<BulkFileResponseSchema, Error> {
     let contents = file_manager::get_folder_contents(database, folder_id)
         .await
-        .map_err(|e| Error::db("Failed to query the contents of a folder.", e))?;
+        .map_err(|e| {
+            ErrorBuilder::new()
+                .msg("Failed to query the contents of a folder.")
+                .from_err(e)
+                .db()
+                .query_failed()
+        })?;
 
     return Ok(generate_bulk_file_response(contents));
 }
