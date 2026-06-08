@@ -1,1 +1,11 @@
 pnpx lint-staged
+
+# Run clippy on staged .rs files only if any exist
+if git diff --cached --name-only | grep -q '\.rs$'; then
+  pnpm run clippy:fix
+fi
+
+# Run tsc on staged .ts files only if any exist
+if git diff --cached --name-only | grep -q '\.ts$'; then
+    pnpm run tsc:fix
+fi
