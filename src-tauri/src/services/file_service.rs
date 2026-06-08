@@ -18,7 +18,7 @@ pub async fn get_folder_contents(
                 .query_failed()
         })?;
 
-    return Ok(generate_bulk_file_response(contents));
+    Ok(generate_bulk_file_response(contents))
 }
 
 fn generate_bulk_file_response(file_nodes: Vec<file_manager::FileNode>) -> BulkFileResponseSchema {

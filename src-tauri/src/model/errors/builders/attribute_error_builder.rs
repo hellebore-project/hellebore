@@ -44,7 +44,7 @@ impl AttributeErrorBuilder {
         Error::AttributeNotUpdated {
             msg: self.message.clone(),
             error: self.error.clone(),
-            entity_type: self.entity_type.clone(),
+            entity_type: self.entity_type,
             id: self.id,
             key: self.key.clone(),
         }
@@ -54,7 +54,7 @@ impl AttributeErrorBuilder {
         Error::AttributeNotUnique {
             msg: self.message.clone(),
             error: self.error.clone(),
-            entity_type: self.entity_type.clone(),
+            entity_type: self.entity_type,
             id: if self.id == ENTITY_ID_SENTINEL {
                 None
             } else {
@@ -69,7 +69,7 @@ impl AttributeErrorBuilder {
         Error::AttributeInvalid {
             msg: self.message.clone(),
             error: self.error.clone(),
-            entity_type: self.entity_type.clone(),
+            entity_type: self.entity_type,
             id: if self.id == ENTITY_ID_SENTINEL {
                 None
             } else {

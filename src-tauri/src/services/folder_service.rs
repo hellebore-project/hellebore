@@ -112,10 +112,10 @@ pub async fn validate_name(
             .into_iter()
             .find(|candidate| Some(candidate.id) != id);
 
-        if sibling_colliding_folder.is_some() {
+        if let Some(sibling_colliding_folder) = &sibling_colliding_folder {
             response.name_collision = Some(FolderNameCollisionSchema {
                 is_unique,
-                colliding_folder: generate_response(sibling_colliding_folder.as_ref().unwrap()),
+                colliding_folder: generate_response(sibling_colliding_folder),
             });
 
             errors.push(
@@ -129,10 +129,10 @@ pub async fn validate_name(
         }
     }
 
-    return Ok(DiagnosticResponseSchema {
+    Ok(DiagnosticResponseSchema {
         data: response,
         errors,
-    });
+    })
 }
 
 pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderResponseSchema, Error> {
@@ -143,16 +143,14 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderRespons
             .db()
             .query_failed()
     })?;
-    return match folder {
+    match folder {
         Some(entity) => Ok(generate_response(&entity)),
-        None => {
-            return Err(ErrorBuilder::new()
-                .msg("Folder not found.")
-                .entity(FOLDER)
-                .with_id(id)
-                .not_found());
-        }
-    };
+        None => Err(ErrorBuilder::new()
+            .msg("Folder not found.")
+            .entity(FOLDER)
+            .with_id(id)
+            .not_found()),
+    }
 }
 
 pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponseSchema>, Error> {
@@ -164,7 +162,7 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponse
             .query_failed()
     })?;
     let folders = folders.iter().map(generate_response).collect();
-    return Ok(folders);
+    Ok(folders)
 }
 
 pub async fn delete(
@@ -182,7 +180,7 @@ pub async fn delete(
             .not_deleted()
     })?;
 
-    return Ok(contents);
+    Ok(contents)
 }
 
 pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result<(), Error> {
@@ -199,9 +197,9 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result
 }
 
 fn generate_response(folder: &Folder) -> FolderResponseSchema {
-    return FolderResponseSchema {
+    FolderResponseSchema {
         id: folder.id,
         parent_id: file_manager::convert_null_folder_id_to_root(folder.parent_id),
         name: folder.name.to_string(),
-    };
+    }
 }

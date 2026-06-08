@@ -31,12 +31,7 @@ impl EntityErrorBuilder {
     }
 
     pub fn entry(&self) -> EntryErrorBuilder {
-        EntryErrorBuilder::new(
-            &self.message,
-            self.error.clone(),
-            self.entity_type.clone(),
-            self.id,
-        )
+        EntryErrorBuilder::new(&self.message, self.error.clone(), self.entity_type, self.id)
     }
 
     pub fn with_id(&mut self, id: i32) -> &mut Self {
@@ -52,7 +47,7 @@ impl EntityErrorBuilder {
     pub fn not_created(&self) -> Error {
         Error::NotCreated {
             msg: self.message.clone(),
-            entity_type: self.entity_type.clone(),
+            entity_type: self.entity_type,
             error: self.error.clone(),
         }
     }
@@ -61,7 +56,7 @@ impl EntityErrorBuilder {
         Error::NotUpdated {
             msg: self.message.clone(),
             error: self.error.clone(),
-            entity_type: self.entity_type.clone(),
+            entity_type: self.entity_type,
             id: self.id,
         }
     }
@@ -70,7 +65,7 @@ impl EntityErrorBuilder {
         Error::NotFound {
             msg: self.message.clone(),
             error: self.error.clone(),
-            entity_type: self.entity_type.clone(),
+            entity_type: self.entity_type,
             id: self.id,
         }
     }
@@ -79,7 +74,7 @@ impl EntityErrorBuilder {
         Error::NotDeleted {
             msg: self.message.clone(),
             error: self.error.clone(),
-            entity_type: self.entity_type.clone(),
+            entity_type: self.entity_type,
             id: self.id,
         }
     }

@@ -16,28 +16,28 @@ impl DatabaseErrorBuilder {
     pub fn connection_failed(&self) -> Error {
         Error::DatabaseConnectionFailed {
             msg: self.message.clone(),
-            error: self.error.clone().unwrap_or(String::new()),
+            error: self.error.clone().unwrap_or_default(),
         }
     }
 
     pub fn migration_failed(&self) -> Error {
         Error::DatabaseMigrationFailed {
             msg: self.message.clone(),
-            error: self.error.clone().unwrap_or(String::new()),
+            error: self.error.clone().unwrap_or_default(),
         }
     }
 
     pub fn transaction_failed(&self) -> Error {
         Error::DatabaseTransactionFailed {
             msg: self.message.clone(),
-            error: self.error.clone().unwrap_or(String::new()),
+            error: self.error.clone().unwrap_or_default(),
         }
     }
 
     pub fn query_failed(&self) -> Error {
         Error::DatabaseQueryFailed {
             msg: self.message.clone(),
-            error: self.error.clone().unwrap_or(String::new()),
+            error: self.error.clone().unwrap_or_default(),
         }
     }
 }

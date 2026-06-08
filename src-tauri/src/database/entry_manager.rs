@@ -81,13 +81,13 @@ where
     C: ConnectionTrait,
 {
     let entity = get_by_title(con, title).await?;
-    return match entity {
+    match entity {
         Some(a) => match id {
             Some(id) => Ok(a.id == id),
             None => Ok(false),
         },
         None => Ok(true),
-    };
+    }
 }
 
 pub async fn get<C>(con: &C, id: i32) -> Result<Option<entry::Model>, DbErr>

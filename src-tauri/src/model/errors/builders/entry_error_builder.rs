@@ -26,14 +26,14 @@ impl EntryErrorBuilder {
         Error::UnsupportedEntryType {
             msg: self.message.clone(),
             error: self.error.clone(),
-            entity_type: self.entity_type.clone(),
+            entity_type: self.entity_type,
         }
     }
 
     pub fn text_deserialization_failed(&self) -> Error {
         Error::EntryTextDeserializationFailed {
             msg: self.message.clone(),
-            error: self.error.clone().unwrap_or(String::new()),
+            error: self.error.clone().unwrap_or_default(),
             id: self.id,
         }
     }
