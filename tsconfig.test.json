@@ -2,7 +2,6 @@
   "compilerOptions": {
     // LINTING
     // Relaxed linting for tests
-    "skipLibCheck": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
@@ -18,6 +17,8 @@
     },
 
     // EMIT
+    "declaration": false,
+    "declarationMap": false,
     "noEmit": false,
 
     // LANGUAGE & ENVIRONMENT
@@ -26,8 +27,11 @@
     "useDefineForClassFields": true,
 
     // PROJECTS
-    "composite": true,
+    "composite": false,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+
+    // COMPLETENESS
+    "skipLibCheck": true,
   },
   "include": ["src", "tests"],
   "references": [{ "path": "./tsconfig.app.json" }]

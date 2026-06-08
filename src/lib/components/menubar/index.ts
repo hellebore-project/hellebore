@@ -16,9 +16,13 @@ import Label from "./menubar-label.svelte";
 import GroupHeading from "./menubar-group-heading.svelte";
 import Portal from "./menubar-portal.svelte";
 import AutoContent, {
+    // @ts-ignore: TS2614
     type AutoContentProps,
+    // @ts-ignore: TS2614
     type ItemData,
+    // @ts-ignore: TS2614
     type TextItemData,
+    // @ts-ignore: TS2614
     DIVIDER_DATA,
 } from "./menubar-auto-content.svelte";
 

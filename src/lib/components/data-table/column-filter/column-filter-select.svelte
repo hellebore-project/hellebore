@@ -1,18 +1,10 @@
-<script lang="ts" module>
-    import type { DataTableService } from "../data-table-service.svelte";
-    import type { SelectColumn } from "../data-table-interface";
-
-    export interface ColumnSelectFilterProps<TColKey extends string = string> {
-        service: DataTableService<TColKey>;
-        column: SelectColumn<TColKey>;
-    }
-</script>
-
 <script lang="ts" generics="TColKey extends string">
     import FilterIcon from "@lucide/svelte/icons/filter";
 
     import * as DropdownMenu from "@/lib/components/dropdown-menu";
     import { cn } from "@/lib/utils";
+
+    import type { ColumnSelectFilterProps } from "./column-filter-interface";
 
     const { service, column }: ColumnSelectFilterProps<TColKey> = $props();
 </script>

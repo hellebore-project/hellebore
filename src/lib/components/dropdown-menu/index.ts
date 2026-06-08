@@ -16,9 +16,13 @@ import SubTrigger from "./dropdown-menu-sub-trigger.svelte";
 import GroupHeading from "./dropdown-menu-group-heading.svelte";
 import Portal from "./dropdown-menu-portal.svelte";
 import AutoContent, {
+    // @ts-ignore: TS2614
     type AutoContentProps,
+    // @ts-ignore: TS2614
     type ItemData,
+    // @ts-ignore: TS2614
     type TextItemData,
+    // @ts-ignore: TS2614
     DIVIDER_DATA,
 } from "./dropdown-menu-auto-content.svelte";
 

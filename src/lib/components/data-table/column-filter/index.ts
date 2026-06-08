@@ -1,4 +1,2 @@
-export {
-    default as ColumnFilter,
-    type ColumnFilterProps,
-} from "./column-filter.svelte";
+export * from "./column-filter-interface";
+export { default as ColumnFilter } from "./column-filter.svelte";

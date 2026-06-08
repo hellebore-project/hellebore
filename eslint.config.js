@@ -77,6 +77,12 @@ const svelteLintConfigs = [
     },
 ];
 
+const generalLintConfig = {
+    rules: {
+        "@typescript-eslint/ban-ts-comment": "off",
+    }
+}
+
 const testLintConfig = {
     files: ["tests/**"],
     rules: {
@@ -93,6 +99,7 @@ export default defineConfig([
     ts.configs.recommended,
     ts.configs.stylistic,
     ...svelteLintConfigs,
+    generalLintConfig,
     testLintConfig,
     //importLintConfig,
     // the prettier config has to be applied last because
