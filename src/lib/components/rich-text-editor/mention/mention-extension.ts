@@ -54,6 +54,7 @@ export function Mention<T>({ prefix = "@", querier }: MentionExtensionArgs<T>) {
                     service = new MentionDropdownService(props);
 
                     popupElement = document.createElement("div");
+                    // @ts-ignore: TS2635 TS2345
                     component = mount(MentionComponent<T>, {
                         target: popupElement,
                         props: { service },

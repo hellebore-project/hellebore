@@ -78,8 +78,8 @@ where
     let mut query = WordEntity::find()
         .filter(word::Column::LanguageId.eq(language_id))
         .order_by_asc(word::Column::Spelling);
-    if word_type.is_some() {
-        query = query.filter(word::Column::WordType.eq(word_type.unwrap().code()));
+    if let Some(word_type) = word_type {
+        query = query.filter(word::Column::WordType.eq(word_type.code()));
     }
     query.all(con).await
 }

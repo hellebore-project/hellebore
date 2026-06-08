@@ -9,7 +9,9 @@ use crate::utils::CodedEnum;
 
 #[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
 #[repr(i8)]
+#[derive(Default)]
 pub enum WordType {
+    #[default]
     None = 0,
     RootWord = 1,
     Determiner = 11,
@@ -20,12 +22,6 @@ pub enum WordType {
     Adjective = 41,
     Adverb = 51,
     Verb = 61,
-}
-
-impl Default for WordType {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl From<i8> for WordType {
@@ -39,9 +35,9 @@ impl From<i8> for WordType {
     }
 }
 
-impl ToString for WordType {
-    fn to_string(&self) -> String {
-        match self {
+impl std::fmt::Display for WordType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
             WordType::None => "None",
             WordType::RootWord => "RootWord",
             WordType::Determiner => "Determiner",
@@ -52,8 +48,8 @@ impl ToString for WordType {
             WordType::Adjective => "Adjective",
             WordType::Adverb => "Adverb",
             WordType::Verb => "Verb",
-        }
-        .to_string()
+        };
+        write!(f, "{}", s)
     }
 }
 
@@ -65,7 +61,9 @@ impl CodedEnum for WordType {
 
 #[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
 #[repr(i8)]
+#[derive(Default)]
 pub enum GrammaticalNumber {
+    #[default]
     None = 0,
     Singular = 1,
     Dual = 2,
@@ -85,12 +83,6 @@ impl CodedEnum for GrammaticalNumber {
     }
 }
 
-impl Default for GrammaticalNumber {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl From<i8> for GrammaticalNumber {
     fn from(code: i8) -> Self {
         for value in Self::iter() {
@@ -104,7 +96,9 @@ impl From<i8> for GrammaticalNumber {
 
 #[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
 #[repr(i8)]
+#[derive(Default)]
 pub enum GrammaticalGender {
+    #[default]
     None = 0,
     Neutral = 1,
     Masculine = 11,
@@ -114,12 +108,6 @@ pub enum GrammaticalGender {
 impl CodedEnum for GrammaticalGender {
     fn code(&self) -> i8 {
         *self as i8
-    }
-}
-
-impl Default for GrammaticalGender {
-    fn default() -> Self {
-        Self::None
     }
 }
 
@@ -136,7 +124,9 @@ impl From<i8> for GrammaticalGender {
 
 #[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
 #[repr(i8)]
+#[derive(Default)]
 pub enum GrammaticalPerson {
+    #[default]
     None = 0,
     First = 1,
     Second = 2,
@@ -146,12 +136,6 @@ pub enum GrammaticalPerson {
 impl CodedEnum for GrammaticalPerson {
     fn code(&self) -> i8 {
         *self as i8
-    }
-}
-
-impl Default for GrammaticalPerson {
-    fn default() -> Self {
-        Self::None
     }
 }
 
@@ -168,7 +152,9 @@ impl From<i8> for GrammaticalPerson {
 
 #[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
 #[repr(i8)]
+#[derive(Default)]
 pub enum VerbForm {
+    #[default]
     None = 0,
     Infinitive = 1,
     Finite = 2,
@@ -177,12 +163,6 @@ pub enum VerbForm {
 impl CodedEnum for VerbForm {
     fn code(&self) -> i8 {
         *self as i8
-    }
-}
-
-impl Default for VerbForm {
-    fn default() -> Self {
-        Self::None
     }
 }
 
@@ -199,7 +179,9 @@ impl From<i8> for VerbForm {
 
 #[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
 #[repr(i8)]
+#[derive(Default)]
 pub enum VerbTense {
+    #[default]
     None = 0,
     Present = 1,
     Past = 11,
@@ -209,12 +191,6 @@ pub enum VerbTense {
 impl CodedEnum for VerbTense {
     fn code(&self) -> i8 {
         *self as i8
-    }
-}
-
-impl Default for VerbTense {
-    fn default() -> Self {
-        Self::None
     }
 }
 

@@ -34,7 +34,7 @@ pub async fn create(
     let project: ProjectResponseSchema;
     if projects.is_empty() {
         println!("No project found; creating new project '{name}'");
-        project = match project_manager::insert(&db, &name).await {
+        project = match project_manager::insert(&db, name).await {
             Ok(entity) => generate_response(&entity),
             Err(e) => {
                 return Err(ErrorBuilder::new()
@@ -84,7 +84,7 @@ pub async fn update(
     database: &DatabaseConnection,
     name: &str,
 ) -> Result<ProjectResponseSchema, Error> {
-    let project = match get(&database).await? {
+    let project = match get(database).await? {
         Some(project) => project,
         None => {
             return Err(ErrorBuilder::new()
@@ -93,7 +93,7 @@ pub async fn update(
                 .not_found());
         }
     };
-    return match project_manager::update(database, project.id, &name).await {
+    return match project_manager::update(database, project.id, name).await {
         Ok(entity) => Ok(generate_response(&entity)),
         Err(e) => Err(ErrorBuilder::new()
             .msg("Project not updated.")
@@ -105,7 +105,7 @@ pub async fn update(
 }
 
 pub async fn get(database: &DatabaseConnection) -> Result<Option<ProjectResponseSchema>, Error> {
-    let mut projects = get_all(&database).await?;
+    let mut projects = get_all(database).await?;
     if projects.is_empty() {
         return Ok(None);
     }
@@ -123,7 +123,7 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<ProjectRespons
             .query_failed()
     })?;
     let projects = projects.iter().map(generate_response).collect();
-    return Ok(projects);
+    Ok(projects)
 }
 
 pub fn generate_response(project: &Project) -> ProjectResponseSchema {

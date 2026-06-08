@@ -16,18 +16,20 @@ pub struct Settings {
     pub database: DatabaseSettings,
 }
 
+impl Default for Settings {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Settings {
     pub fn get_connection_string(&self) -> Option<String> {
         if self.database.in_memory {
             return Some("sqlite::memory:".to_string());
         }
-        match self.folder_path {
-            Some(ref path) => Some(format!(
-                "sqlite://{0}/{1}?mode=rwc",
-                path, DEFAULT_DB_FILE_NAME
-            )),
-            None => None,
-        }
+        self.folder_path
+            .as_ref()
+            .map(|path| format!("sqlite://{0}/{1}?mode=rwc", path, DEFAULT_DB_FILE_NAME))
     }
 
     pub fn new() -> Self {
@@ -53,7 +55,7 @@ impl Settings {
             }
         };
         fs::create_dir_all(&data_dir_path).expect("Failed to create data directory.");
-        return data_dir_path;
+        data_dir_path
     }
 
     fn get_config_file_path() -> String {
@@ -86,7 +88,7 @@ impl Settings {
                 }
             }
         };
-        return config;
+        config
     }
 
     pub fn write_config_file(&self) {

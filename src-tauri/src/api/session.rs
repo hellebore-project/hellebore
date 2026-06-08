@@ -7,9 +7,6 @@ use crate::state::State;
 #[tauri::command]
 pub async fn get_session(state: tauri::State<'_, State>) -> Result<SessionResponseSchema, Error> {
     let state = state.lock().await;
-    let db = match utils::get_database(&state) {
-        Ok(db) => Some(db),
-        Err(_) => None,
-    };
+    let db = utils::get_database(&state).ok();
     session_service::get(db, &state.settings).await
 }

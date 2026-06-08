@@ -12,6 +12,12 @@ pub struct ErrorBuilder {
     error: Option<String>,
 }
 
+impl Default for ErrorBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ErrorBuilder {
     pub fn new() -> Self {
         ErrorBuilder {
@@ -31,7 +37,7 @@ impl ErrorBuilder {
     }
 
     pub fn project(&self) -> ProjectErrorBuilder {
-        ProjectErrorBuilder::new(&self.message, self.error.clone())
+        ProjectErrorBuilder::new()
     }
 
     pub fn entity(&self, entity_type: EntityType) -> EntityErrorBuilder {

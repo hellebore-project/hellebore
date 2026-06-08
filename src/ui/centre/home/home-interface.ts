@@ -1,4 +1,5 @@
-import type { ProjectResponse } from "@/interface";
+import type { ProjectResponse } from "@/api";
+
 import type { HomeManager } from "./home-service.svelte";
 
 export interface HomeLoadArgs {

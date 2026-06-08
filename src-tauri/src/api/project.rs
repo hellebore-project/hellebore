@@ -39,7 +39,7 @@ pub async fn update_project(
     name: &str,
 ) -> Result<ProjectResponseSchema, Error> {
     let state = state.lock().await;
-    project_service::update(utils::get_database(&state)?, &name).await
+    project_service::update(utils::get_database(&state)?, name).await
 }
 
 #[tauri::command]

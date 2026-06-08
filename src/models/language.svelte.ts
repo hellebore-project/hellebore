@@ -1,5 +1,5 @@
-import type { LanguageProperties } from "@/interface";
 import type { PropertyChangeEvent, PropertyFieldData } from "@/interface";
+import type { LanguageProperties } from "@/api";
 import { EventProducer } from "@/utils/event-producer";
 
 export class Language implements LanguageProperties {

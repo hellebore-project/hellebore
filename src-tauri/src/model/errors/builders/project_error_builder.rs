@@ -1,16 +1,16 @@
 use crate::model::errors::error::Error;
 
-pub struct ProjectErrorBuilder {
-    message: String,
-    error: Option<String>,
+pub struct ProjectErrorBuilder {}
+
+impl Default for ProjectErrorBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ProjectErrorBuilder {
-    pub fn new(message: &str, error: Option<String>) -> Self {
-        ProjectErrorBuilder {
-            message: message.to_owned(),
-            error,
-        }
+    pub fn new() -> Self {
+        ProjectErrorBuilder {}
     }
 
     pub fn not_loaded(&self) -> Error {

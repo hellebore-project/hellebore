@@ -1,15 +1,7 @@
-<script lang="ts" module>
-    import type { DataTableService } from "../data-table-service.svelte";
-
-    export interface ColumnFilterProps<TColKey extends string = string> {
-        service: DataTableService<TColKey>;
-        colKey: TColKey;
-    }
-</script>
-
 <script lang="ts" generics="TColKey extends string">
     import ColumnFilterSelect from "./column-filter-select.svelte";
     import ColumnFilterText from "./column-filter-text.svelte";
+    import type { ColumnFilterProps } from "./column-filter-interface";
 
     const { colKey, service }: ColumnFilterProps<TColKey> = $props();
 

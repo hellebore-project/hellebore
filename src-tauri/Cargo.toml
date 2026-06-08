@@ -36,3 +36,6 @@ sea-orm-cli = "^1"
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
+
+[lints.clippy]
+enum_variant_names = "allow"

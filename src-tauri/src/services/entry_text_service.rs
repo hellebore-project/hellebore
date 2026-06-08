@@ -10,10 +10,10 @@ use crate::types::entity::ENTRY;
 pub async fn sync_text(
     database: &DatabaseConnection,
     id: i32,
-    text: &String,
+    text: &str,
     errors: &mut Vec<Error>,
 ) -> TextNode {
-    let mut text = match _parse_text(id, &text) {
+    let mut text = match _parse_text(id, text) {
         Ok(text) => text,
         Err(e) => {
             errors.push(e);
@@ -31,7 +31,7 @@ fn _parse_text(id: i32, text: &str) -> Result<TextNode, Error> {
         return Ok(TextNode::new_doc());
     }
 
-    let text_result: Result<TextNode, serde_json::Error> = serde_json::from_str(&text);
+    let text_result: Result<TextNode, serde_json::Error> = serde_json::from_str(text);
 
     match text_result {
         Ok(text) => Ok(text),

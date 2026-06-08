@@ -66,7 +66,7 @@ where
 
     let colliding_siblings = query.all(con).await?;
 
-    if colliding_siblings.len() == 0 {
+    if colliding_siblings.is_empty() {
         return Ok(true);
     }
 

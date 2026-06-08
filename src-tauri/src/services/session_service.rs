@@ -14,7 +14,7 @@ pub async fn get(
         Some(db) => project_service::get(db).await?,
         None => None,
     };
-    return Ok(generate_response(&project, settings));
+    Ok(generate_response(&project, settings))
 }
 
 pub fn generate_response(

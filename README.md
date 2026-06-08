@@ -9,6 +9,7 @@ This is just a hobby project, so I don't plan on ever distributing this. However
 ### Dependencies
 
 - rust: https://www.rust-lang.org/tools/install
+- clippy: https://doc.rust-lang.org/clippy/installation.html
 - node.js >=22: https://nodejs.org/en/download
 - pnpm: https://pnpm.io/installation
 - sqlite 3: https://www.sqlite.org/download.html
