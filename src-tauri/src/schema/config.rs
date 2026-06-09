@@ -9,6 +9,6 @@ pub struct SessionSchema {
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
-pub struct ConfigSchema {
+pub struct AppConfigFileSchema {
     pub session: SessionSchema,
 }

@@ -1,17 +1,16 @@
 use crate::{
     fixtures::{
-        database,
+        config, database,
         folder::{folder_create_payload, folder_name, parent_folder_id},
-        settings,
     },
     utils::db::{create_generic_entry, get_entry},
 };
 
 use hellebore::{
     constants::ROOT_FOLDER_ID,
+    model::config::AppConfig,
     schema::folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
     services::folder_service,
-    settings::Settings,
 };
 use rstest::*;
 
@@ -31,11 +30,11 @@ fn validate_folder_response(
 #[rstest]
 #[tokio::test]
 async fn test_create_folder(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
     folder_name: String,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let folder = folder_service::create(&database, folder_create_payload).await;
 
     assert!(folder.is_ok());
@@ -46,11 +45,11 @@ async fn test_create_folder(
 #[rstest]
 #[tokio::test]
 async fn test_create_folder_with_parent(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
     folder_name: String,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let parent_folder = folder_service::create(&database, folder_create_payload.clone())
         .await
         .unwrap();
@@ -68,8 +67,8 @@ async fn test_create_folder_with_parent(
 
 #[rstest]
 #[tokio::test]
-async fn test_create_sibling_folders_in_root_with_different_names(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_create_sibling_folders_in_root_with_different_names(config: &AppConfig) {
+    let database = database(config).await;
 
     let payload_1 = FolderCreateSchema {
         parent_id: ROOT_FOLDER_ID,
@@ -89,10 +88,10 @@ async fn test_create_sibling_folders_in_root_with_different_names(settings: &Set
 #[rstest]
 #[tokio::test]
 async fn test_create_sibling_sub_folders_with_different_names(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
 
     let parent_folder = folder_service::create(&database, folder_create_payload.clone())
         .await
@@ -116,10 +115,10 @@ async fn test_create_sibling_sub_folders_with_different_names(
 #[rstest]
 #[tokio::test]
 async fn test_error_on_creating_sibling_folders_in_root_with_same_name(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let _ = folder_service::create(&database, folder_create_payload.clone()).await;
     let response = folder_service::create(&database, folder_create_payload).await;
     assert!(response.is_err());
@@ -128,10 +127,10 @@ async fn test_error_on_creating_sibling_folders_in_root_with_same_name(
 #[rstest]
 #[tokio::test]
 async fn test_error_on_creating_sibling_sub_folders_with_same_name(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
 
     let parent_folder = folder_service::create(&database, folder_create_payload.clone())
         .await
@@ -156,11 +155,11 @@ async fn test_error_on_creating_sibling_sub_folders_with_same_name(
 #[rstest]
 #[tokio::test]
 async fn test_update_folder(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
     parent_folder_id: i32,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
@@ -188,11 +187,11 @@ async fn test_update_folder(
 #[case(false)]
 #[tokio::test]
 async fn test_error_on_updating_folder_with_same_name_as_sibling(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
     #[case] in_root: bool,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let mut parent_id = ROOT_FOLDER_ID;
     if !in_root {
         let parent_folder = folder_service::create(&database, folder_create_payload.clone())
@@ -225,10 +224,10 @@ async fn test_error_on_updating_folder_with_same_name_as_sibling(
 #[rstest]
 #[tokio::test]
 async fn test_bulk_update_updates_folder(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
@@ -255,8 +254,8 @@ async fn test_bulk_update_updates_folder(
 
 #[rstest]
 #[tokio::test]
-async fn test_bulk_update_updates_multiple_folders(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_bulk_update_updates_multiple_folders(config: &AppConfig) {
+    let database = database(config).await;
 
     let folder_a = folder_service::create(
         &database,
@@ -307,8 +306,8 @@ async fn test_bulk_update_updates_multiple_folders(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_bulk_update_partial_failure(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_bulk_update_partial_failure(config: &AppConfig) {
+    let database = database(config).await;
 
     let valid = folder_service::create(
         &database,
@@ -350,10 +349,10 @@ async fn test_bulk_update_partial_failure(settings: &Settings) {
 #[rstest]
 #[tokio::test]
 async fn test_validate_folder_name_is_unique(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
@@ -372,10 +371,10 @@ async fn test_validate_folder_name_is_unique(
 #[rstest]
 #[tokio::test]
 async fn test_validate_folder_name_collision_in_subfolder(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let parent_folder = folder_service::create(&database, folder_create_payload.clone())
         .await
         .unwrap();
@@ -404,10 +403,10 @@ async fn test_validate_folder_name_collision_in_subfolder(
 #[rstest]
 #[tokio::test]
 async fn test_validate_folder_name_collision_in_root_folder(
-    settings: &Settings,
+    config: &AppConfig,
     folder_create_payload: FolderCreateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let folder = folder_service::create(&database, folder_create_payload.clone())
         .await
         .unwrap();
@@ -427,8 +426,8 @@ async fn test_validate_folder_name_collision_in_root_folder(
 
 #[rstest]
 #[tokio::test]
-async fn test_get_folder(settings: &Settings, folder_create_payload: FolderCreateSchema) {
-    let database = database(settings).await;
+async fn test_get_folder(config: &AppConfig, folder_create_payload: FolderCreateSchema) {
+    let database = database(config).await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
@@ -447,16 +446,16 @@ async fn test_get_folder(settings: &Settings, folder_create_payload: FolderCreat
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_getting_nonexistent_folder(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_error_on_getting_nonexistent_folder(config: &AppConfig) {
+    let database = database(config).await;
     let response = folder_service::get(&database, 0).await;
     assert!(response.is_err());
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_get_all_folders(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_get_all_folders(config: &AppConfig) {
+    let database = database(config).await;
 
     let folder_1_payload = FolderCreateSchema {
         parent_id: -1,
@@ -498,8 +497,8 @@ async fn test_get_all_folders(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_folder_in_root(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_delete_folder_in_root(config: &AppConfig) {
+    let database = database(config).await;
 
     let folder = folder_service::create(
         &database,
@@ -523,8 +522,8 @@ async fn test_delete_folder_in_root(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_subfolder(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_delete_subfolder(config: &AppConfig) {
+    let database = database(config).await;
 
     let folder = folder_service::create(
         &database,
@@ -559,8 +558,8 @@ async fn test_delete_subfolder(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_folder_with_subfolders(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_delete_folder_with_subfolders(config: &AppConfig) {
+    let database = database(config).await;
 
     let folder = folder_service::create(
         &database,
@@ -617,8 +616,8 @@ async fn test_delete_folder_with_subfolders(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_folder_with_entries(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_delete_folder_with_entries(config: &AppConfig) {
+    let database = database(config).await;
 
     let folder = folder_service::create(
         &database,
@@ -650,8 +649,8 @@ async fn test_delete_folder_with_entries(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_folder_and_subfolder_with_entries(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_delete_folder_and_subfolder_with_entries(config: &AppConfig) {
+    let database = database(config).await;
 
     let parent_folder = folder_service::create(
         &database,
@@ -708,8 +707,8 @@ async fn test_delete_folder_and_subfolder_with_entries(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_deep_file_tree(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_delete_deep_file_tree(config: &AppConfig) {
+    let database = database(config).await;
 
     let folder_1 = folder_service::create(
         &database,
@@ -812,8 +811,8 @@ async fn test_delete_deep_file_tree(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_noop_on_deleting_nonexistent_folder(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_noop_on_deleting_nonexistent_folder(config: &AppConfig) {
+    let database = database(config).await;
 
     let response = folder_service::delete(&database, 0).await;
     assert!(response.is_ok());

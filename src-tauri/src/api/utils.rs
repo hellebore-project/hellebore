@@ -1,7 +1,7 @@
 use sea_orm::DatabaseConnection;
 use tokio::sync::MutexGuard;
 
-use crate::{model::errors::error::Error, state::StateData};
+use crate::model::{errors::Error, state::StateData};
 
 pub fn get_database<'a>(
     state: &'a MutexGuard<'_, StateData>,

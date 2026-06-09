@@ -1,17 +1,15 @@
 use crate::api;
-use crate::model::errors::error::Error;
+use crate::model::{config::AppConfig, errors::Error, state::State};
 use crate::services::project_service;
-use crate::settings::Settings;
-use crate::state::State;
 
-pub async fn setup(settings: Settings) -> Result<State, Error> {
+pub async fn setup(config: AppConfig) -> Result<State, Error> {
     println!("Setting up backend");
 
-    let state = State::new(settings, None);
+    let state = State::new(config, None);
     // lock the state for the duration of this function
     let mut state_data = state.lock().await;
 
-    let folder_path = state_data.settings.folder_path.clone();
+    let folder_path = state_data.config.folder_path.clone();
     state_data.database = match folder_path {
         Some(path) => {
             // try to load the last project from the previous session

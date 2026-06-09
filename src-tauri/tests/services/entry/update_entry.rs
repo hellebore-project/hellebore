@@ -1,16 +1,15 @@
 use hellebore::{
+    model::config::AppConfig,
     schema::{entry::EntryUpdateSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
-    settings::Settings,
 };
 use rstest::*;
 
 use crate::{
     fixtures::{
-        database,
+        config, database,
         entry::{entry_text, entry_title, update_entry_payload},
         folder::{folder_create_payload, folder_id},
-        settings,
     },
     utils::{
         db::{create_generic_entry, get_entry},
@@ -21,13 +20,13 @@ use crate::{
 #[rstest]
 #[tokio::test]
 async fn test_update_entry_title(
-    settings: &Settings,
+    config: &AppConfig,
     folder_id: i32,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let entry =
         create_generic_entry(&database, folder_id, entry_title, entry_text.to_owned()).await;
 
@@ -49,14 +48,14 @@ async fn test_update_entry_title(
 #[rstest]
 #[tokio::test]
 async fn test_update_entry_folder(
-    settings: &Settings,
+    config: &AppConfig,
     folder_id: i32,
     folder_create_payload: FolderCreateSchema,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
@@ -85,13 +84,13 @@ async fn test_update_entry_folder(
 #[rstest]
 #[tokio::test]
 async fn test_update_entry_text(
-    settings: &Settings,
+    config: &AppConfig,
     folder_id: i32,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let entry =
         create_generic_entry(&database, folder_id, entry_title.to_owned(), entry_text).await;
 
@@ -118,14 +117,14 @@ async fn test_update_entry_text(
 #[rstest]
 #[tokio::test]
 async fn test_update_entry(
-    settings: &Settings,
+    config: &AppConfig,
     folder_id: i32,
     folder_create_payload: FolderCreateSchema,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
@@ -152,10 +151,10 @@ async fn test_update_entry(
 #[rstest]
 #[tokio::test]
 async fn test_error_on_updating_nonexistent_entry(
-    settings: &Settings,
+    config: &AppConfig,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
 
     update_entry_payload.title = Some("edited-title".to_owned());
     let response = entry_service::update(&database, update_entry_payload).await;
@@ -167,12 +166,12 @@ async fn test_error_on_updating_nonexistent_entry(
 #[rstest]
 #[tokio::test]
 async fn test_error_on_updating_entry_with_duplicate_name(
-    settings: &Settings,
+    config: &AppConfig,
     folder_id: i32,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
 
     let entry_1 = create_generic_entry(
         &database,
@@ -199,10 +198,10 @@ async fn test_error_on_updating_entry_with_duplicate_name(
 #[rstest]
 #[tokio::test]
 async fn test_noop_on_updating_entry_with_empty_payload(
-    settings: &Settings,
+    config: &AppConfig,
     update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
 
     let id = update_entry_payload.id;
     let response = entry_service::update(&database, update_entry_payload).await;

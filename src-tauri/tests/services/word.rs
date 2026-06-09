@@ -1,8 +1,7 @@
 use crate::{
     fixtures::{
-        database,
+        config, database,
         language::create_language_payload,
-        settings,
         word::{create_word_payload, expected_word_response},
     },
     utils::{db::upsert_word, validation::validate_word_response},
@@ -10,12 +9,12 @@ use crate::{
 
 use hellebore::{
     database::{language_manager, word_manager},
+    model::config::AppConfig,
     schema::{
         entry::EntryCreateSchema,
         word::{WordResponseSchema, WordUpsertSchema},
     },
     services::{entry_service, word_service},
-    settings::Settings,
     types::grammar::WordType,
 };
 use rstest::*;
@@ -23,12 +22,12 @@ use rstest::*;
 #[rstest]
 #[tokio::test]
 async fn test_create_word(
-    settings: &Settings,
+    config: &AppConfig,
     create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpsertSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
-    let db = database(settings).await;
+    let db = database(config).await;
     let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
@@ -58,11 +57,11 @@ async fn test_create_word(
 #[rstest]
 #[tokio::test]
 async fn test_create_duplicate_word(
-    settings: &Settings,
+    config: &AppConfig,
     create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpsertSchema,
 ) {
-    let db = database(settings).await;
+    let db = database(config).await;
     let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
@@ -90,12 +89,12 @@ async fn test_create_duplicate_word(
 #[rstest]
 #[tokio::test]
 async fn test_update_word(
-    settings: &Settings,
+    config: &AppConfig,
     mut create_word_payload: WordUpsertSchema,
     create_language_payload: EntryCreateSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
-    let db = database(settings).await;
+    let db = database(config).await;
     let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
@@ -141,12 +140,12 @@ async fn test_update_word(
 #[rstest]
 #[tokio::test]
 async fn test_update_word_atomically(
-    settings: &Settings,
+    config: &AppConfig,
     mut create_word_payload: WordUpsertSchema,
     create_language_payload: EntryCreateSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
-    let db = database(settings).await;
+    let db = database(config).await;
     let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
@@ -194,10 +193,10 @@ async fn test_update_word_atomically(
 #[rstest]
 #[tokio::test]
 async fn test_error_on_updating_nonexistent_word(
-    settings: &Settings,
+    config: &AppConfig,
     create_language_payload: EntryCreateSchema,
 ) {
-    let db = database(settings).await;
+    let db = database(config).await;
     let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
@@ -225,12 +224,12 @@ async fn test_error_on_updating_nonexistent_word(
 #[rstest]
 #[tokio::test]
 async fn test_get_word(
-    settings: &Settings,
+    config: &AppConfig,
     create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpsertSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
-    let db = database(settings).await;
+    let db = database(config).await;
     let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
@@ -251,8 +250,8 @@ async fn test_get_word(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_getting_nonexistent_word(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_error_on_getting_nonexistent_word(config: &AppConfig) {
+    let database = database(config).await;
     let response = word_service::get(&database, 0).await;
     assert!(response.is_err());
 }
@@ -260,10 +259,10 @@ async fn test_error_on_getting_nonexistent_word(settings: &Settings) {
 #[rstest]
 #[tokio::test]
 async fn test_get_all_words_for_a_language(
-    settings: &Settings,
+    config: &AppConfig,
     create_language_payload: EntryCreateSchema,
 ) {
-    let db = database(settings).await;
+    let db = database(config).await;
     let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
@@ -307,11 +306,11 @@ async fn test_get_all_words_for_a_language(
 #[rstest]
 #[tokio::test]
 async fn test_delete_word(
-    settings: &Settings,
+    config: &AppConfig,
     create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpsertSchema,
 ) {
-    let db = database(settings).await;
+    let db = database(config).await;
     let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
@@ -325,8 +324,8 @@ async fn test_delete_word(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_deleting_nonexistent_word(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_error_on_deleting_nonexistent_word(config: &AppConfig) {
+    let database = database(config).await;
     let response = word_service::delete(&database, 0).await;
     assert!(response.is_err());
 }
@@ -334,11 +333,11 @@ async fn test_error_on_deleting_nonexistent_word(settings: &Settings) {
 #[rstest]
 #[tokio::test]
 async fn test_all_words_deleted_on_delete_language(
-    settings: &Settings,
+    config: &AppConfig,
     create_language_payload: EntryCreateSchema,
     mut create_word_payload: WordUpsertSchema,
 ) {
-    let db = database(settings).await;
+    let db = database(config).await;
 
     let entry = entry_service::create(&db, create_language_payload)
         .await

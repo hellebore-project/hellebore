@@ -1,8 +1,10 @@
 use crate::api::utils;
-use crate::model::errors::{Error, ErrorBuilder};
+use crate::model::{
+    errors::{Error, ErrorBuilder},
+    state::State,
+};
 use crate::schema::project::ProjectResponseSchema;
 use crate::services::project_service;
-use crate::state::State;
 use crate::types::entity::PROJECT;
 
 #[tauri::command]

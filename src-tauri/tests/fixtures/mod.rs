@@ -3,7 +3,7 @@ use sea_orm::DatabaseConnection;
 
 use hellebore::{
     database::setup,
-    settings::{DatabaseSettings, Settings},
+    model::config::{AppConfig, DatabaseConfig},
 };
 
 pub mod entry;
@@ -16,10 +16,10 @@ pub mod person;
 
 #[fixture]
 #[once]
-pub fn settings() -> Settings {
-    Settings {
+pub fn config() -> AppConfig {
+    AppConfig {
         folder_path: Some("".to_owned()),
-        database: DatabaseSettings { in_memory: true },
+        database: DatabaseConfig { in_memory: true },
     }
 }
 
@@ -28,6 +28,6 @@ pub fn settings() -> Settings {
 // since the [once] macro creates session-scoped static fixtures.
 // It's not ideal, but we have to call the database fixture as an
 // ordinary function inside the body of each test.
-pub async fn database(settings: &Settings) -> DatabaseConnection {
-    setup::setup(settings).await.unwrap()
+pub async fn database(config: &AppConfig) -> DatabaseConnection {
+    setup::setup(config).await.unwrap()
 }

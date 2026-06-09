@@ -5,6 +5,16 @@ use crate::types::entity::EntityType;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all_fields = "camelCase")]
 pub enum Error {
+    // CONFIG ERRORS
+    ConfigSerializationFailed {
+        msg: String,
+        error: String,
+    },
+    ConfigDeserializationFailed {
+        msg: String,
+        error: String,
+    },
+
     // PROJECT ERRORS
     ProjectNotLoaded,
 
@@ -104,6 +114,12 @@ pub enum Error {
         msg: String,
         error: String,
     },
+
+    // FILE SYSTEM ERRORS
+    FileSystemOperationFailed {
+        msg: String,
+        error: String,
+    },
 }
 
 fn create_formatted_error_string(
@@ -124,6 +140,19 @@ fn create_formatted_error_string(
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let formatted_string = match self {
+            Error::ConfigDeserializationFailed { msg, error } => create_formatted_error_string(
+                "CONFIG_DESERIALIZATION_FAILED",
+                &"",
+                msg,
+                &Some(error.to_owned()),
+            ),
+            Error::ConfigSerializationFailed { msg, error } => create_formatted_error_string(
+                "CONFIG_SERIALIZATION_FAILED",
+                &"",
+                msg,
+                &Some(error.to_owned()),
+            ),
+
             Error::ProjectNotLoaded => "Project not loaded".to_owned(),
 
             Error::NotCreated {
@@ -279,6 +308,13 @@ impl std::fmt::Display for Error {
             Error::DatabaseQueryFailed { msg, error } => {
                 create_formatted_error_string("DB_QUERY_FAILED", &"", msg, &Some(error.to_owned()))
             }
+
+            Error::FileSystemOperationFailed { msg, error } => create_formatted_error_string(
+                "FILESYSTEM_OPERATION_FAILED",
+                &"",
+                msg,
+                &Some(error.to_owned()),
+            ),
         };
 
         write!(f, "{}", formatted_string)

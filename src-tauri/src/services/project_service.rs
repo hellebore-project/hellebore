@@ -4,9 +4,12 @@ use tokio::sync::MutexGuard;
 use ::entity::project::Model as Project;
 
 use crate::database::{project_manager, setup};
-use crate::model::errors::{Error, ErrorBuilder};
+use crate::model::{
+    errors::{Error, ErrorBuilder},
+    state::StateData,
+};
 use crate::schema::project::{ProjectLoadResponseSchema, ProjectResponseSchema};
-use crate::state::StateData;
+use crate::services::config_service;
 use crate::types::entity::PROJECT;
 
 pub async fn create(
@@ -24,10 +27,10 @@ pub async fn create(
             .not_created()
     })?;
 
-    state.settings.folder_path = Some(folder_path.to_string());
-    state.settings.write_config_file();
+    state.config.folder_path = Some(folder_path.to_string());
+    config_service::write_app_config_to_file(&state.config)?;
 
-    let db = setup::setup(&state.settings).await?;
+    let db = setup::setup(&state.config).await?;
 
     let mut projects = get_all(&db).await?;
 
@@ -57,10 +60,10 @@ pub async fn load(
     state: &mut MutexGuard<'_, StateData>,
     folder_path: &str,
 ) -> Result<ProjectLoadResponseSchema, Error> {
-    state.settings.folder_path = Some(folder_path.to_string());
-    state.settings.write_config_file();
+    state.config.folder_path = Some(folder_path.to_string());
+    config_service::write_app_config_to_file(&state.config)?;
 
-    let db = setup::setup(&state.settings).await?;
+    let db = setup::setup(&state.config).await?;
     let project = match get(&db).await? {
         Some(project) => project,
         None => {
@@ -74,8 +77,8 @@ pub async fn load(
 }
 
 pub async fn close(state: &mut MutexGuard<'_, StateData>) -> Result<(), Error> {
-    state.settings.folder_path = None;
-    state.settings.write_config_file();
+    state.config.folder_path = None;
+    config_service::write_app_config_to_file(&state.config)?;
     state.database = None;
     Ok(())
 }
