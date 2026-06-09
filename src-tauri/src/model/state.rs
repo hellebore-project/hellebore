@@ -2,10 +2,10 @@ use tokio::sync::{Mutex, MutexGuard};
 
 use sea_orm::DatabaseConnection;
 
-use crate::settings::Settings;
+use crate::model::config::AppConfig;
 
 pub struct StateData {
-    pub settings: Settings,
+    pub config: AppConfig,
     pub database: Option<DatabaseConnection>,
 }
 
@@ -14,9 +14,9 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(settings: Settings, database: Option<DatabaseConnection>) -> Self {
+    pub fn new(config: AppConfig, database: Option<DatabaseConnection>) -> Self {
         Self {
-            data: Mutex::new(StateData { settings, database }),
+            data: Mutex::new(StateData { config, database }),
         }
     }
 

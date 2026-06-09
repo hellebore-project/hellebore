@@ -1,12 +1,19 @@
 pnpx lint-staged
 
-# Run clippy on staged .rs files only if any exist
 if git diff --cached --name-only | grep -q '\.rs$'; then
-  pnpm run clippy:fix
-  pnpm run clippy:check
-fi
+  git stash push --keep-index --message "pre-commit stash"
+  trap 'git stash pop' EXIT
 
-# Run tsc on staged .ts files only if any exist
-if git diff --cached --name-only | grep -q '\.ts$'; then
-    pnpm run tsc:check
+  # Run clippy on staged .rs files only if any exist
+  if git diff --cached --name-only | grep -q '\.rs$'; then
+    if ! pnpm run clippy:check 2>&1; then
+      pnpm run clippy:fix
+      exit 1
+    fi
+  fi
+
+  # Run tsc on staged .ts files only if any exist
+  if git diff --cached --name-only | grep -q '\.ts$'; then
+      pnpm run tsc:check
+  fi
 fi

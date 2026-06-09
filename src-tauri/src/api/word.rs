@@ -1,12 +1,10 @@
 use crate::api::utils;
-use crate::model::errors::error::Error;
-use crate::schema::word::WordUpsertResponseSchema;
+use crate::model::{errors::Error, state::State};
 use crate::schema::{
     common::DiagnosticResponseSchema,
-    word::{WordResponseSchema, WordUpsertSchema},
+    word::{WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
 use crate::services::word_service;
-use crate::state::State;
 use crate::types::grammar::WordType;
 
 #[tauri::command]

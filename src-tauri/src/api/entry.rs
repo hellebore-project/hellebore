@@ -1,15 +1,14 @@
 use crate::api::utils;
-use crate::model::errors::error::Error;
-use crate::schema::entry::EntrySearchSchema;
+use crate::model::{errors::Error, state::State};
 use crate::schema::{
     common::DiagnosticResponseSchema,
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
-        EntryPropertyResponseSchema, EntryUpdateResponseSchema, EntryUpdateSchema,
+        EntryPropertyResponseSchema, EntrySearchSchema, EntryUpdateResponseSchema,
+        EntryUpdateSchema,
     },
 };
 use crate::services::entry_service;
-use crate::state::State;
 
 #[tauri::command]
 pub async fn create_entry(

@@ -1,5 +1,5 @@
 use crate::api::utils;
-use crate::model::errors::error::Error;
+use crate::model::{errors::Error, state::State};
 use crate::schema::{
     common::DiagnosticResponseSchema,
     file::BulkFileResponseSchema,
@@ -9,7 +9,6 @@ use crate::schema::{
     },
 };
 use crate::services::folder_service;
-use crate::state::State;
 
 #[tauri::command]
 pub async fn create_folder(

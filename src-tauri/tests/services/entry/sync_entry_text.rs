@@ -1,23 +1,22 @@
 use hellebore::{
-    model::{errors::error::Error, text::TextNode},
+    model::{config::AppConfig, errors::Error, text::TextNode},
     services::entry_text_service,
-    settings::Settings,
 };
 use rstest::*;
 use serde_json::Value;
 
 use crate::{
-    fixtures::{database, entry::entry_text_node, folder::folder_id, settings},
+    fixtures::{config, database, entry::entry_text_node, folder::folder_id},
     utils::db::create_generic_entry,
 };
 
 #[rstest]
 #[tokio::test]
 async fn test_sync_basic_text(
-    settings: &Settings,
+    config: &AppConfig,
     #[with("text".to_owned())] entry_text_node: TextNode,
 ) {
-    let database = database(settings).await;
+    let database = database(config).await;
 
     let expected_text_node = entry_text_node.clone();
 
@@ -32,8 +31,8 @@ async fn test_sync_basic_text(
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_empty_text(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_sync_empty_text(config: &AppConfig) {
+    let database = database(config).await;
 
     let mut errors: Vec<Error> = Vec::new();
 
@@ -46,8 +45,8 @@ async fn test_sync_empty_text(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_text_with_reference(settings: &Settings, folder_id: i32) {
-    let database = database(settings).await;
+async fn test_sync_text_with_reference(config: &AppConfig, folder_id: i32) {
+    let database = database(config).await;
 
     let entry =
         create_generic_entry(&database, folder_id, "new title".to_owned(), "".to_owned()).await;
@@ -73,8 +72,8 @@ async fn test_sync_text_with_reference(settings: &Settings, folder_id: i32) {
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_text_deserialization_error(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_sync_text_deserialization_error(config: &AppConfig) {
+    let database = database(config).await;
 
     let invalid_json = "this is not json".to_owned();
     let mut errors: Vec<Error> = Vec::new();
@@ -89,8 +88,8 @@ async fn test_sync_text_deserialization_error(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_text_with_missing_referenced_entry(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_sync_text_with_missing_referenced_entry(config: &AppConfig) {
+    let database = database(config).await;
 
     let entry_text_node = TextNode::new_doc().with_child(
         TextNode::new_paragraph()
@@ -118,8 +117,8 @@ async fn test_sync_text_with_missing_referenced_entry(settings: &Settings) {
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_text_with_bad_reference_id_type(settings: &Settings) {
-    let database = database(settings).await;
+async fn test_sync_text_with_bad_reference_id_type(config: &AppConfig) {
+    let database = database(config).await;
 
     let mut mention = TextNode::new_reference(0, "old title".to_owned());
     // overwrite id with a non-integer value to trigger bad_value_type
