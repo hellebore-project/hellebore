@@ -148,7 +148,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderRespons
         None => Err(ErrorBuilder::new()
             .msg("Folder not found.")
             .entity(FOLDER)
-            .with_id(id)
+            .with_id(&id)
             .not_found()),
     }
 }
@@ -176,7 +176,7 @@ pub async fn delete(
             .msg("Folder not deleted.")
             .from_err(e)
             .entity(FOLDER)
-            .with_id(id)
+            .with_id(&id)
             .not_deleted()
     })?;
 

@@ -2,16 +2,10 @@ use std::env;
 use std::fs;
 
 use crate::{
-    model::{
-        config::{AppConfig, DatabaseConfig},
-        errors::Error,
-    },
-    schema::config::{AppConfigFileSchema, SessionSchema},
+    constants::{APP_CONFIG_FILE_NAME, DATA_DIR_NAME},
+    model::{config::AppConfig, errors::Error},
+    schema::config::AppConfigFileSchema,
 };
-
-pub const DATA_DIR_NAME: &str = ".hellebore";
-pub const DEFAULT_DB_FILE_NAME: &str = "db.sqlite";
-pub const CONFIG_FILE_NAME: &str = "hellebore.config.json";
 
 pub fn get_user_data_dir_path() -> Result<String, Error> {
     let data_dir_path = match env::var("HELLEBORE_DATA_DIR") {
@@ -37,19 +31,18 @@ pub fn get_user_config_file_path() -> Result<String, Error> {
     Ok(format!(
         "{0}/{1}",
         get_user_data_dir_path()?,
-        CONFIG_FILE_NAME
+        APP_CONFIG_FILE_NAME
     ))
 }
 
 pub fn load_app_config() -> Result<AppConfig, Error> {
-    let data_dir_path = get_user_config_file_path()?;
+    let config_file_path = get_user_config_file_path()?;
 
-    let config_file = read_app_config_from_file(&data_dir_path);
+    let config_file = _read_app_config_from_file(&config_file_path);
 
     let config = match config_file {
-        Ok(val) => AppConfig {
-            folder_path: val.session.folder_path,
-            database: DatabaseConfig { in_memory: false },
+        Ok(config_file) => AppConfig {
+            recent_project_paths: config_file.recent_projects,
         },
         Err(_) => AppConfig::default(),
     };
@@ -57,26 +50,16 @@ pub fn load_app_config() -> Result<AppConfig, Error> {
     Ok(config)
 }
 
-pub fn to_app_config_file_schema(config: &AppConfig) -> AppConfigFileSchema {
-    AppConfigFileSchema {
-        session: SessionSchema {
-            folder_path: config.folder_path.clone(),
-        },
-    }
-}
-
-pub fn read_app_config_from_file(data_dir_path: &str) -> Result<AppConfigFileSchema, Error> {
-    let config_file_path = format!("{data_dir_path}/{CONFIG_FILE_NAME}");
-
-    let exists = fs::metadata(&config_file_path).is_ok();
+fn _read_app_config_from_file(config_file_path: &str) -> Result<AppConfigFileSchema, Error> {
+    let exists = fs::metadata(config_file_path).is_ok();
 
     if !exists {
         return Ok(AppConfigFileSchema {
-            session: SessionSchema { folder_path: None },
+            recent_projects: Vec::new(),
         });
     }
 
-    let config_text = match fs::read_to_string(&config_file_path) {
+    let config_text = match fs::read_to_string(config_file_path) {
         Ok(val) => val,
         Err(e) => {
             return Err(Error::FileSystemOperationFailed {
@@ -95,10 +78,17 @@ pub fn read_app_config_from_file(data_dir_path: &str) -> Result<AppConfigFileSch
     }
 }
 
-pub fn write_app_config_to_file(config: &AppConfig) -> Result<(), Error> {
+pub fn save_app_config(config: &AppConfig) -> Result<(), Error> {
     let config_file_path = get_user_config_file_path()?;
 
-    let config = to_app_config_file_schema(config);
+    let config_file = AppConfigFileSchema {
+        recent_projects: config.recent_project_paths.clone(),
+    };
+
+    _write_app_config_to_file(&config_file, &config_file_path)
+}
+
+fn _write_app_config_to_file(config: &AppConfigFileSchema, file_path: &str) -> Result<(), Error> {
     let config_text = match serde_json::to_string(&config) {
         Ok(val) => val,
         Err(e) => {
@@ -109,7 +99,7 @@ pub fn write_app_config_to_file(config: &AppConfig) -> Result<(), Error> {
         }
     };
 
-    match fs::write(&config_file_path, &config_text) {
+    match fs::write(file_path, &config_text) {
         Ok(_) => Ok(()),
         Err(e) => Err(Error::FileSystemOperationFailed {
             msg: "Failed to write app config to file".to_string(),

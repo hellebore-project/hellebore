@@ -9,7 +9,7 @@ import {
     type EntryInfoResponse,
     type FolderResponse,
     type ProjectResponse,
-    type SessionResponse,
+    DomainManager,
     EntryType,
 } from "@/api";
 import { ClientManager } from "@/ui";
@@ -25,14 +25,12 @@ import {
     mockGetEntryInfo,
     mockGetFolder,
     mockGetFolders,
-    mockGetSession,
+    mockLoadProject,
     mockSearchEntries,
 } from "@tests/utils/mocks";
 
 export interface BaseUnitTestFixtures {
-    folderPath: string;
     project: ProjectResponse;
-    session: SessionResponse;
     folderId: Id;
     parentFolderId: Id;
     folderName: string;
@@ -48,7 +46,7 @@ export interface BaseUnitTestFixtures {
     otherEntries: EntryInfoResponse[];
     allEntries: EntryInfoResponse[];
     mockedInvoker: MockedInvoker;
-    mockedSession: SessionResponse;
+    mockedProject: ProjectResponse;
     mockedFolder: FolderResponse;
     mockedFolders: FolderResponse[];
     mockedEntryInfo: EntryInfoResponse;
@@ -57,21 +55,14 @@ export interface BaseUnitTestFixtures {
     mockedSearchedEntries: EntryInfoResponse[];
     mockedBulkEntryUpdate: null;
     mockedBulkFolderUpdate: null;
+    domainManager: DomainManager;
     clientManager: ClientManager;
     user: UserEvent;
     setup: null;
 }
 
 export const test = baseTest.extend<BaseUnitTestFixtures>({
-    folderPath: "mocked/db/file/path",
-    project: { id: 1, name: "mocked-project" },
-    session: async ({ folderPath, project }, use) => {
-        const session: SessionResponse = {
-            folderPath,
-            project,
-        };
-        use(session);
-    },
+    project: { id: "test-project-id", name: "mocked-project" },
 
     folderId: 1,
     parentFolderId: -1,
@@ -121,12 +112,9 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         },
         { auto: true },
     ],
-    mockedSession: async ({ mockedInvoker, session }, use) => {
-        mockGetSession(mockedInvoker, {
-            folderPath: session.folderPath as string,
-            project: session.project as ProjectResponse,
-        });
-        await use(session);
+    mockedProject: async ({ mockedInvoker, project }, use) => {
+        mockLoadProject(mockedInvoker, project);
+        await use(project);
     },
     mockedFolder: async ({ mockedInvoker, folder }, use) => {
         mockGetFolder(mockedInvoker, folder);
@@ -168,6 +156,12 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         await use(null);
     },
 
+    domainManager: async ({ mockedProject }, use) => {
+        const domain = new DomainManager();
+        domain.loadedProjectId = mockedProject.id;
+        await use(domain);
+    },
+
     user: [
         async ({}, use) => {
             await use(userEvent.setup());
@@ -178,7 +172,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
     clientManager: [
         async (
             {
-                mockedSession,
+                mockedProject,
                 mockedFolders,
                 mockedEntries,
                 mockedBulkEntryUpdate,

@@ -1,5 +1,5 @@
 use crate::fixtures::{
-    config, database,
+    database,
     entry::update_entry_payload,
     folder::folder_id,
     person::{create_person_payload, person_name, person_properties},
@@ -7,7 +7,6 @@ use crate::fixtures::{
 use crate::utils::validation::{validate_entry_info_response, validate_person_property_response};
 
 use hellebore::{
-    model::config::AppConfig,
     schema::{
         entry::{EntryCreateSchema, EntryProperties, EntryUpdateSchema},
         person::PersonSchema,
@@ -29,12 +28,11 @@ fn update_payload(
 #[rstest]
 #[tokio::test]
 async fn test_create_person(
-    config: &AppConfig,
     folder_id: i32,
     person_name: String,
     create_person_payload: EntryCreateSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let entry = entry_service::create(&database, create_person_payload).await;
 
     assert!(entry.is_ok());
@@ -43,11 +41,8 @@ async fn test_create_person(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_creating_duplicate_person(
-    config: &AppConfig,
-    create_person_payload: EntryCreateSchema,
-) {
-    let database = database(config).await;
+async fn test_error_on_creating_duplicate_person(create_person_payload: EntryCreateSchema) {
+    let database = database().await;
     let _ = entry_service::create(&database, create_person_payload.clone()).await;
     let response = entry_service::create(&database, create_person_payload).await;
     assert!(response.is_err());
@@ -56,14 +51,13 @@ async fn test_error_on_creating_duplicate_person(
 #[rstest]
 #[tokio::test]
 async fn test_update_person(
-    config: &AppConfig,
     folder_id: i32,
     person_name: String,
     create_person_payload: EntryCreateSchema,
     mut person_properties: PersonSchema,
     mut update_payload: hellebore::schema::entry::EntryUpdateSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let entry = entry_service::create(&database, create_person_payload)
         .await
         .unwrap();
@@ -94,24 +88,20 @@ async fn test_update_person(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_updating_nonexistent_person(
-    config: &AppConfig,
-    update_payload: EntryUpdateSchema,
-) {
-    let database = database(config).await;
+async fn test_error_on_updating_nonexistent_person(update_payload: EntryUpdateSchema) {
+    let database = database().await;
     let response = entry_service::update(&database, update_payload).await;
-    assert!(response.errors.len() > 0);
+    assert!(!response.errors.is_empty());
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_get_person(
-    config: &AppConfig,
     folder_id: i32,
     person_name: String,
     create_person_payload: EntryCreateSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let entry = entry_service::create(&database, create_person_payload)
         .await
         .unwrap();
@@ -133,8 +123,8 @@ async fn test_get_person(
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_person(config: &AppConfig, create_person_payload: EntryCreateSchema) {
-    let database = database(config).await;
+async fn test_delete_person(create_person_payload: EntryCreateSchema) {
+    let database = database().await;
     let entry = entry_service::create(&database, create_person_payload)
         .await
         .unwrap();

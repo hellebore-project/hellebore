@@ -17,7 +17,6 @@
     },
 
     // EMIT
-    "declaration": false,
     "declarationMap": false,
     "noEmit": false,
 
@@ -27,12 +26,11 @@
     "useDefineForClassFields": true,
 
     // PROJECTS
-    "composite": false,
+    "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
 
     // COMPLETENESS
     "skipLibCheck": true,
   },
   "include": ["src", "tests"],
-  "references": [{ "path": "./tsconfig.app.json" }]
 }

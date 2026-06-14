@@ -160,8 +160,7 @@ export class ClientManager implements IComponentService {
     // LOADING
 
     async load() {
-        const session = await this.domain.session.getSession();
-        const project = session?.project ?? null;
+        const project = await this.domain.projects.loadProject();
         if (project) await this.handleLoadProject(project);
     }
 
@@ -178,7 +177,7 @@ export class ClientManager implements IComponentService {
         // save any unsynced data before loading a new project
         this.central.clear();
 
-        const response = await this.domain.session.createProject(
+        const response = await this.domain.projects.createProject(
             name,
             folderPath,
         );
@@ -199,7 +198,7 @@ export class ClientManager implements IComponentService {
         // save any unsynced data before loading another project
         this.central.clear();
 
-        const response = await this.domain.session.loadProject(path);
+        const response = await this.domain.projects.loadProject(path);
         if (response) {
             this.handleLoadProject(response);
         }
@@ -208,6 +207,7 @@ export class ClientManager implements IComponentService {
     }
 
     private async handleLoadProject(project: ProjectResponse) {
+        this.domain.loadedProjectId = project.id;
         this._project = project;
 
         this.header.handleProjectChange({ loaded: true, project });
@@ -222,12 +222,15 @@ export class ClientManager implements IComponentService {
     async closeProject() {
         // save any unsynced data before closing the project
         this.central.clear();
-        const success = await this.domain.session.closeProject();
+        const projectId = this._project?.id;
+        if (!projectId) return false;
+        const success = await this.domain.projects.closeProject(projectId);
         if (success) this.handleCloseProject();
         return success;
     }
 
     private async handleCloseProject() {
+        this.domain.loadedProjectId = null;
         this._project = null;
 
         this.header.handleProjectChange({ loaded: false, project: null });
@@ -245,7 +248,10 @@ export class ClientManager implements IComponentService {
     // FOLDER HANDLING
 
     async createFolder({ name, parentFolderId }: FolderCreationEvent) {
-        return await this.domain.folders.create(name, parentFolderId);
+        return await this.domain.loadedProject.folders.create(
+            name,
+            parentFolderId,
+        );
     }
 
     editFolderName(id: number) {
@@ -264,11 +270,12 @@ export class ClientManager implements IComponentService {
         let deleteResponse: BulkFileResponse | null = null;
         let updateResponse: FolderUpdateResponse | null = null;
 
-        const validateResponse = await this.domain.folders.validate(
-            id,
-            destParentId,
-            title,
-        );
+        const validateResponse =
+            await this.domain.loadedProject.folders.validate(
+                id,
+                destParentId,
+                title,
+            );
 
         if (validateResponse) {
             if (validateResponse.nameCollision) {
@@ -298,11 +305,13 @@ export class ClientManager implements IComponentService {
             }
 
             if (!cancel)
-                updateResponse = await this.domain.folders.update({
-                    id,
-                    parentId: destParentId,
-                    oldParentId: sourceParentId,
-                });
+                updateResponse = await this.domain.loadedProject.folders.update(
+                    {
+                        id,
+                        parentId: destParentId,
+                        oldParentId: sourceParentId,
+                    },
+                );
         }
 
         return {
@@ -315,7 +324,7 @@ export class ClientManager implements IComponentService {
 
     async deleteFolder(id: number, confirm = true) {
         if (confirm) {
-            const folder = await this.domain.folders.get(id);
+            const folder = await this.domain.loadedProject.folders.get(id);
             const folderName = folder?.name ?? "UNKNOWN";
 
             const canDelete = await ask(
@@ -330,7 +339,7 @@ export class ClientManager implements IComponentService {
             if (!canDelete) return null;
         }
 
-        const fileIds = await this.domain.folders.delete(id);
+        const fileIds = await this.domain.loadedProject.folders.delete(id);
         if (!fileIds) return null;
 
         this.leftSideBar.deleteFolderNode(id);
@@ -356,7 +365,7 @@ export class ClientManager implements IComponentService {
     // ENTRY HANDLING
 
     async createEntry(entityType: EntryType, title: string, folderId: Id) {
-        const entry = await this.domain.entries.create(
+        const entry = await this.domain.loadedProject.entries.create(
             entityType,
             title,
             folderId,
@@ -389,7 +398,7 @@ export class ClientManager implements IComponentService {
             if (!canDelete) return false;
         }
 
-        const success = await this.domain.entries.delete(id);
+        const success = await this.domain.loadedProject.entries.delete(id);
         if (!success)
             // failed to delete the entry; aborting
             return false;

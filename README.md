@@ -42,7 +42,6 @@ cargo install sea-orm-cli@^1.1.20
 
 ```sh
 HELLEBORE_DATA_DIR="data"
-HELLEBORE_DEFAULT_DB_FILE="db.sqlite"
 
 # required for sea-orm-cli entity generation
 DATABASE_URL="sqlite://src-tauri/data/db.sqlite?mode=rwc"

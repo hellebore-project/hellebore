@@ -78,7 +78,7 @@ export class EntrySearchService implements IComponentService {
 
         if (keyword === "") return [];
 
-        const entries = await this._domain.entries.search({
+        const entries = await this._domain.loadedProject.entries.search({
             keyword,
             limit: 10,
         });

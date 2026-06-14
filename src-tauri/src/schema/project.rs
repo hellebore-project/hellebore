@@ -1,15 +1,14 @@
-use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProjectResponseSchema {
-    pub id: i32,
+    pub id: String,
     pub name: String,
 }
 
-#[derive(Clone, Debug)]
-pub struct ProjectLoadResponseSchema {
-    pub info: ProjectResponseSchema,
-    pub db: DatabaseConnection,
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct ProjectConfigFileSchema {
+    #[serde(default)]
+    pub name: String,
 }

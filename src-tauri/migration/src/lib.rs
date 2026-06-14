@@ -10,7 +10,6 @@ impl MigratorTrait for Migrator {
         // WARNING: the order matters here
         vec![
             // initial migrations
-            Box::new(init::project::Migration),
             Box::new(init::folder::Migration),
             Box::new(init::entry::Migration),
             Box::new(init::language::Migration),

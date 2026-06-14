@@ -1,7 +1,6 @@
 export * from "./base-entity";
 
 export * from "./project";
-export * from "./session";
 export * from "./folder";
 export * from "./file";
 

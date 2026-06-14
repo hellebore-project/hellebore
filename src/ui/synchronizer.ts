@@ -171,8 +171,10 @@ export class SynchronizationService {
                 response: { project: null },
             };
 
-            const projectResponse =
-                await this._domain.session.updateProject(projectRequest);
+            const projectResponse = await this._domain.projects.updateProject({
+                id: this._domain.loadedProjectId ?? "",
+                ...projectRequest,
+            });
             if (projectResponse)
                 projectEvent.response.project = projectResponse;
 
@@ -186,7 +188,9 @@ export class SynchronizationService {
             }));
 
             const folderResponses =
-                await this._domain.folders.bulkUpdate(folderRequests);
+                await this._domain.loadedProject.folders.bulkUpdate(
+                    folderRequests,
+                );
 
             if (folderResponses) {
                 for (let i = 0; i < folderEvents.length; i++) {
@@ -204,7 +208,9 @@ export class SynchronizationService {
             }));
 
             const entryResponses =
-                await this._domain.entries.bulkUpdate(entryRequests);
+                await this._domain.loadedProject.entries.bulkUpdate(
+                    entryRequests,
+                );
             if (entryResponses) {
                 for (let i = 0; i < entryEvents.length; i++)
                     entryEvents[i].response.entry = entryResponses[i];

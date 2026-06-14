@@ -1,4 +1,3 @@
-import { DomainManager } from "@/api";
 import type { FooterManager } from "@/ui/footer";
 import { FooterManager as StandaloneFooterManager } from "@/ui/footer/footer-service.svelte";
 import { test as baseTest } from "@tests/unit/ui/fixtures";
@@ -12,7 +11,7 @@ export const test = baseTest.extend<FooterFixtures>({
     footerManager: async ({ clientManager }, use) => {
         use(clientManager.footer);
     },
-    standaloneFooterManager: async ({}, use) => {
-        use(new StandaloneFooterManager(new DomainManager()));
+    standaloneFooterManager: async ({ domainManager }, use) => {
+        use(new StandaloneFooterManager(domainManager));
     },
 });

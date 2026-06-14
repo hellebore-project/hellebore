@@ -21,6 +21,12 @@ export interface FolderUpdateArgs {
 }
 
 export class FolderManager {
+    private _projectId: string;
+
+    constructor(projectId: string) {
+        this._projectId = projectId;
+    }
+
     async create(name: string, parentId: number = ROOT_FOLDER_ID) {
         let response: FolderResponse | null;
         try {
@@ -131,6 +137,7 @@ export class FolderManager {
 
     async _create(parentId: Id, name: string): Promise<FolderResponse> {
         return invoke<FolderResponse>(CommandNames.Folder.Create, {
+            projectId: this._projectId,
             info: { parentId, name },
         });
     }
@@ -141,6 +148,7 @@ export class FolderManager {
         return invoke<DiagnosticResponse<FolderBulkUpdateData>>(
             CommandNames.Folder.Update,
             {
+                projectId: this._projectId,
                 folder: update,
             },
         );
@@ -153,20 +161,28 @@ export class FolderManager {
     ): Promise<DiagnosticResponse<FolderValidateResponse>> {
         return invoke<DiagnosticResponse<FolderValidateResponse>>(
             CommandNames.Folder.Validate,
-            { id, parentId, name },
+            { projectId: this._projectId, id, parentId, name },
         );
     }
 
     async _get(id: Id) {
-        return invoke<FolderResponse>(CommandNames.Folder.Get, { id });
+        return invoke<FolderResponse>(CommandNames.Folder.Get, {
+            projectId: this._projectId,
+            id,
+        });
     }
 
     async _getAll() {
-        return invoke<FolderResponse[]>(CommandNames.Folder.GetAll);
+        return invoke<FolderResponse[]>(CommandNames.Folder.GetAll, {
+            projectId: this._projectId,
+        });
     }
 
     async _delete(id: Id): Promise<BulkFileResponse> {
-        return invoke<BulkFileResponse>(CommandNames.Folder.Delete, { id });
+        return invoke<BulkFileResponse>(CommandNames.Folder.Delete, {
+            projectId: this._projectId,
+            id,
+        });
     }
 
     async _bulkUpdate(
@@ -174,7 +190,7 @@ export class FolderManager {
     ): Promise<DiagnosticResponse<FolderBulkUpdateData>[]> {
         return invoke<DiagnosticResponse<FolderBulkUpdateData>[]>(
             CommandNames.Folder.BulkUpdate,
-            { folders },
+            { projectId: this._projectId, folders },
         );
     }
 }

@@ -1,10 +1,8 @@
-use hellebore::{
-    model::config::AppConfig, schema::entry::EntrySearchSchema, services::entry_service,
-};
+use hellebore::{schema::entry::EntrySearchSchema, services::entry_service};
 use rstest::*;
 
 use crate::{
-    fixtures::{config, database, folder::folder_id},
+    fixtures::{database, folder::folder_id},
     utils::db::{create_generic_entries, create_generic_entry},
 };
 
@@ -21,11 +19,10 @@ pub fn search_entry_payload() -> EntrySearchSchema {
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_with_exact_title_match(
-    config: &AppConfig,
     folder_id: i32,
     mut search_entry_payload: EntrySearchSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
 
     let entry = create_generic_entry(
         &database,
@@ -49,11 +46,10 @@ async fn test_search_entry_with_exact_title_match(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_starts_with_keyword(
-    config: &AppConfig,
     folder_id: i32,
     mut search_entry_payload: EntrySearchSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
 
     let entry = create_generic_entry(
         &database,
@@ -76,11 +72,10 @@ async fn test_search_entry_title_starts_with_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_ends_with_keyword(
-    config: &AppConfig,
     folder_id: i32,
     mut search_entry_payload: EntrySearchSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
 
     let entry = create_generic_entry(
         &database,
@@ -103,11 +98,10 @@ async fn test_search_entry_title_ends_with_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_contains_keyword(
-    config: &AppConfig,
     folder_id: i32,
     mut search_entry_payload: EntrySearchSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
 
     let entry = create_generic_entry(
         &database,
@@ -130,11 +124,10 @@ async fn test_search_entry_title_contains_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_does_not_contain_keyword(
-    config: &AppConfig,
     folder_id: i32,
     mut search_entry_payload: EntrySearchSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
 
     let _entry = create_generic_entry(
         &database,
@@ -156,11 +149,10 @@ async fn test_search_entry_title_does_not_contain_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_contains_partial_keyword(
-    config: &AppConfig,
     folder_id: i32,
     mut search_entry_payload: EntrySearchSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
 
     let entry = create_generic_entry(
         &database,
@@ -184,11 +176,10 @@ async fn test_search_entry_title_contains_partial_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_contains_keyword_with_typo(
-    config: &AppConfig,
     folder_id: i32,
     mut search_entry_payload: EntrySearchSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
 
     let _entry = create_generic_entry(
         &database,
@@ -210,11 +201,8 @@ async fn test_search_entry_title_contains_keyword_with_typo(
 
 #[rstest]
 #[tokio::test]
-async fn test_search_entry_with_limit(
-    config: &AppConfig,
-    mut search_entry_payload: EntrySearchSchema,
-) {
-    let database = database(config).await;
+async fn test_search_entry_with_limit(mut search_entry_payload: EntrySearchSchema) {
+    let database = database().await;
 
     let titles = vec![
         "Rust A".to_owned(),
@@ -234,11 +222,8 @@ async fn test_search_entry_with_limit(
 
 #[rstest]
 #[tokio::test]
-async fn test_search_entry_with_after_cursor(
-    config: &AppConfig,
-    mut search_entry_payload: EntrySearchSchema,
-) {
-    let database = database(config).await;
+async fn test_search_entry_with_after_cursor(mut search_entry_payload: EntrySearchSchema) {
+    let database = database().await;
 
     let titles = vec![
         "Rust C".to_owned(),
@@ -264,11 +249,8 @@ async fn test_search_entry_with_after_cursor(
 
 #[rstest]
 #[tokio::test]
-async fn test_search_entry_with_before_cursor(
-    config: &AppConfig,
-    mut search_entry_payload: EntrySearchSchema,
-) {
-    let database = database(config).await;
+async fn test_search_entry_with_before_cursor(mut search_entry_payload: EntrySearchSchema) {
+    let database = database().await;
 
     let titles = vec![
         "Rust C".to_owned(),

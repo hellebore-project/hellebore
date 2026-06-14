@@ -39,7 +39,7 @@ fn _parse_text(id: i32, text: &str) -> Result<TextNode, Error> {
             .msg("Failed to deserialize entry text.")
             .from_err(e)
             .entry(ENTRY)
-            .with_id(id)
+            .with_id(&id)
             .text_deserialization_failed()),
     }
 }
@@ -92,7 +92,7 @@ async fn _sync_reference_label(
                             ErrorBuilder::new()
                                 .msg("Referenced entry does not exist.")
                                 .entry(ENTRY)
-                                .with_id(id)
+                                .with_id(&id)
                                 .bad_reference_id(ref_id),
                         );
                     }
@@ -113,7 +113,7 @@ async fn _sync_reference_label(
                 ErrorBuilder::new()
                     .msg("Reference ID of Mention node is not an integer.")
                     .entry(ENTRY)
-                    .with_id(id)
+                    .with_id(&id)
                     .bad_text_value_type("id", &ref_id_value.to_string(), "i64"),
             );
         }
@@ -122,7 +122,7 @@ async fn _sync_reference_label(
             ErrorBuilder::new()
                 .msg("Mention node is missing a reference ID.")
                 .entry(ENTRY)
-                .with_id(id)
+                .with_id(&id)
                 .missing_text_attribute("id"),
         );
     }

@@ -1,34 +1,17 @@
-import {
-    CommandNames,
-    type ProjectResponse,
-    type SessionResponse,
-} from "@/api";
+import { CommandNames, type ProjectResponse } from "@/api";
 
 import { MockedInvoker } from "./invoker";
 
-export interface MockGetSessionArgs {
-    project: ProjectResponse;
-    folderPath: string;
-}
-
-export interface MockUpdateProjectArgs {
-    id: number;
-}
-
-export function mockGetSession(
+export function mockLoadProject(
     mockedInvoker: MockedInvoker,
-    { project, folderPath }: MockGetSessionArgs,
+    project: ProjectResponse | null,
 ) {
-    const response: SessionResponse = {
-        project,
-        folderPath,
-    };
-    mockedInvoker.mockCommand(CommandNames.Session.Get, async () => response);
+    mockedInvoker.mockCommand(CommandNames.Project.Load, async () => project);
 }
 
 export function mockUpdateProject(
     mockedInvoker: MockedInvoker,
-    { id }: MockUpdateProjectArgs,
+    { id }: { id: number },
 ) {
     mockedInvoker.mockCommand(CommandNames.Project.Update, async (name) => ({
         id,

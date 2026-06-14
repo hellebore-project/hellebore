@@ -1,9 +1,9 @@
-use hellebore::{model::config::AppConfig, services::entry_service};
+use hellebore::services::entry_service;
 use rstest::*;
 
 use crate::{
     fixtures::{
-        config, database,
+        database,
         entry::{entry_text, entry_title},
         folder::folder_id,
     },
@@ -12,13 +12,8 @@ use crate::{
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_entry(
-    config: &AppConfig,
-    folder_id: i32,
-    entry_title: String,
-    entry_text: String,
-) {
-    let database = database(config).await;
+async fn test_delete_entry(folder_id: i32, entry_title: String, entry_text: String) {
+    let database = database().await;
     let entry = create_generic_entry(
         &database,
         folder_id,
@@ -37,8 +32,8 @@ async fn test_delete_entry(
 
 #[rstest]
 #[tokio::test]
-async fn test_noop_on_deleting_nonexistent_entry(config: &AppConfig) {
-    let database = database(config).await;
+async fn test_noop_on_deleting_nonexistent_entry() {
+    let database = database().await;
     let response = entry_service::delete(&database, 0).await;
     assert!(response.is_ok());
 }

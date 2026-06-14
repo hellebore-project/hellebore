@@ -41,7 +41,10 @@ export class WordEditorService implements IComponentService {
     }
 
     async load(languageId: Id) {
-        const words = await this._domain.words.getAllForLanguage(languageId);
+        const words =
+            await this._domain.loadedProject.words.getAllForLanguage(
+                languageId,
+            );
         if (words) {
             this.table.load(words, languageId);
         }

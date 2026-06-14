@@ -1,13 +1,9 @@
 export const CommandNames = {
-    Session: {
-        Get: "get_session",
-    },
     Project: {
         Create: "create_project",
         Load: "load_project",
         Close: "close_project",
         Update: "update_project",
-        Get: "get_project",
     },
     Folder: {
         Create: "create_folder",

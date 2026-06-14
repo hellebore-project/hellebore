@@ -128,8 +128,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     async activate() {
         const [folders, entries] = await Promise.all([
-            this._domain.folders.getAll(),
-            this._domain.entries.getAll(),
+            this._domain.loadedProject.folders.getAll(),
+            this._domain.loadedProject.entries.getAll(),
         ]);
 
         this._load(folders ?? [], entries ?? []);
@@ -633,11 +633,12 @@ export class EntrySpotlightService implements ISidebarSectionService {
                     error: "Parent folder is not available yet.",
                 };
 
-            const validationResponse = await this._domain.folders.validate(
-                id,
-                parentFolderId,
-                trimmed,
-            );
+            const validationResponse =
+                await this._domain.loadedProject.folders.validate(
+                    id,
+                    parentFolderId,
+                    trimmed,
+                );
 
             if (!validationResponse)
                 return { valid: false, error: "Folder validation failed." };
@@ -651,10 +652,11 @@ export class EntrySpotlightService implements ISidebarSectionService {
                     error: `A folder named "${trimmed}" already exists at this location.`,
                 };
         } else {
-            const isValid = await this._domain.entries.validateTitle(
-                id,
-                trimmed,
-            );
+            const isValid =
+                await this._domain.loadedProject.entries.validateTitle(
+                    id,
+                    trimmed,
+                );
 
             if (isValid === null)
                 return { valid: false, error: "Entry validation failed." };

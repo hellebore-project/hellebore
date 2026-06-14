@@ -171,7 +171,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<WordResponseS
         None => Err(ErrorBuilder::new()
             .msg("Word not found")
             .entity(WORD)
-            .with_id(id)
+            .with_id(&id)
             .not_found()),
     }
 }
@@ -209,7 +209,7 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), Error>
             .msg("Word not deleted.")
             .from_err(e)
             .entity(WORD)
-            .with_id(id)
+            .with_id(&id)
             .not_deleted()
     })?;
     Ok(())
@@ -236,7 +236,7 @@ fn _convert_translations_to_vec(
             return Err(ErrorBuilder::new()
                 .msg("Failed to deserialize word translations into a vector.")
                 .entity(WORD)
-                .with_id(id)
+                .with_id(&id)
                 .attribute("translations")
                 .invalid());
         }
@@ -250,7 +250,7 @@ fn _convert_translations_to_vec(
                 return Err(ErrorBuilder::new()
                     .msg("Failed to deserialize word translation into a string.")
                     .entity(WORD)
-                    .with_id(id)
+                    .with_id(&id)
                     .attribute("translations")
                     .invalid());
             }
