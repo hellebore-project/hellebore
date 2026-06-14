@@ -1,18 +1,16 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
 import type { DomainManager } from "@/api";
+import { EntryType } from "@/api";
 import { EntrySearchService } from "@/ui/shared/entry-search/entry-search-service.svelte";
+import { test as baseTest } from "@tests/unit/ui/fixtures";
+
+const test = baseTest;
 
 describe("EntrySearchService", () => {
-    const createService = () => {
-        const search = vi.fn();
-        const domain = {
-            entries: {
-                search,
-            },
-        } as unknown as DomainManager;
-
-        const service = new EntrySearchService(domain);
+    const createService = (serviceDomain: DomainManager) => {
+        const search = vi.spyOn(serviceDomain.loadedProject.entries, "search");
+        const service = new EntrySearchService(serviceDomain);
         service.queryPeriod = 10;
 
         return { service, search };
@@ -27,9 +25,18 @@ describe("EntrySearchService", () => {
         vi.restoreAllMocks();
     });
 
-    it("debounces query requests and searches only with the latest keyword", async () => {
-        const { service, search } = createService();
-        search.mockResolvedValue([{ id: 7, title: "latest-entry" }]);
+    test("debounces query requests and searches only with the latest keyword", async ({
+        domainManager,
+    }) => {
+        const { service, search } = createService(domainManager);
+        search.mockResolvedValue([
+            {
+                id: 7,
+                folderId: 1,
+                entityType: EntryType.Person,
+                title: "latest-entry",
+            },
+        ]);
 
         service.queryString = "fir";
         service.queryString = "first";
@@ -49,11 +56,23 @@ describe("EntrySearchService", () => {
         ]);
     });
 
-    it("returns mapped options from entry search results", async () => {
-        const { service, search } = createService();
+    test("returns mapped options from entry search results", async ({
+        domainManager,
+    }) => {
+        const { service, search } = createService(domainManager);
         search.mockResolvedValue([
-            { id: 1, title: "alpha" },
-            { id: 2, title: "beta" },
+            {
+                id: 1,
+                folderId: 1,
+                entityType: EntryType.Person,
+                title: "alpha",
+            },
+            {
+                id: 2,
+                folderId: 1,
+                entityType: EntryType.Person,
+                title: "beta",
+            },
         ]);
 
         service.queryString = "a";
@@ -72,8 +91,10 @@ describe("EntrySearchService", () => {
         ]);
     });
 
-    it("clears results and skips backend search when query is empty", async () => {
-        const { service, search } = createService();
+    test("clears results and skips backend search when query is empty", async ({
+        domainManager,
+    }) => {
+        const { service, search } = createService(domainManager);
 
         service.queryResults = [
             {
@@ -90,8 +111,10 @@ describe("EntrySearchService", () => {
         expect(service.queryResults).toStrictEqual([]);
     });
 
-    it("handles null backend responses by producing an empty result set", async () => {
-        const { service, search } = createService();
+    test("handles null backend responses by producing an empty result set", async ({
+        domainManager,
+    }) => {
+        const { service, search } = createService(domainManager);
         search.mockResolvedValue(null);
 
         service.queryString = "known";
@@ -102,8 +125,10 @@ describe("EntrySearchService", () => {
         expect(service.queryResults).toStrictEqual([]);
     });
 
-    it("emits open-entry event and cleans up state when selecting a valid id", () => {
-        const { service } = createService();
+    test("emits open-entry event and cleans up state when selecting a valid id", ({
+        domainManager,
+    }) => {
+        const { service } = createService(domainManager);
         const onOpenEntry = vi.fn();
         service.onOpenEntry.subscribe(onOpenEntry);
 
@@ -122,8 +147,8 @@ describe("EntrySearchService", () => {
         expect(service.queryResults).toStrictEqual([]);
     });
 
-    it("ignores null and undefined selections", () => {
-        const { service } = createService();
+    test("ignores null and undefined selections", ({ domainManager }) => {
+        const { service } = createService(domainManager);
         const onOpenEntry = vi.fn();
         service.onOpenEntry.subscribe(onOpenEntry);
 

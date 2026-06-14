@@ -1,5 +1,4 @@
 use crate::{
-    constants::ENTITY_ID_SENTINEL,
     model::errors::{
         builders::{
             attribute_error_builder::AttributeErrorBuilder, entry_error_builder::EntryErrorBuilder,
@@ -13,7 +12,7 @@ pub struct EntityErrorBuilder {
     message: String,
     error: Option<String>,
     entity_type: EntityType,
-    id: i32,
+    id: String,
 }
 
 impl EntityErrorBuilder {
@@ -22,7 +21,7 @@ impl EntityErrorBuilder {
             message: message.to_owned(),
             error,
             entity_type,
-            id: ENTITY_ID_SENTINEL,
+            id: String::new(),
         }
     }
 
@@ -31,16 +30,23 @@ impl EntityErrorBuilder {
     }
 
     pub fn entry(&self) -> EntryErrorBuilder {
-        EntryErrorBuilder::new(&self.message, self.error.clone(), self.entity_type, self.id)
+        EntryErrorBuilder::new(
+            &self.message,
+            self.error.clone(),
+            self.entity_type,
+            &self.id,
+        )
     }
 
-    pub fn with_id(&mut self, id: i32) -> &mut Self {
-        self.id = id;
+    pub fn with_id(&mut self, id: &impl ToString) -> &mut Self {
+        self.id = id.to_string();
         self
     }
 
-    pub fn with_optional_id(&mut self, id: &Option<i32>) -> &mut Self {
-        self.id = id.unwrap_or(ENTITY_ID_SENTINEL);
+    pub fn with_optional_id(&mut self, id: &Option<impl ToString>) -> &mut Self {
+        if let Some(v) = id {
+            self.id = v.to_string();
+        }
         self
     }
 
@@ -57,7 +63,7 @@ impl EntityErrorBuilder {
             msg: self.message.clone(),
             error: self.error.clone(),
             entity_type: self.entity_type,
-            id: self.id,
+            id: self.id.clone(),
         }
     }
 
@@ -66,7 +72,7 @@ impl EntityErrorBuilder {
             msg: self.message.clone(),
             error: self.error.clone(),
             entity_type: self.entity_type,
-            id: self.id,
+            id: self.id.clone(),
         }
     }
 
@@ -75,7 +81,7 @@ impl EntityErrorBuilder {
             msg: self.message.clone(),
             error: self.error.clone(),
             entity_type: self.entity_type,
-            id: self.id,
+            id: self.id.clone(),
         }
     }
 }

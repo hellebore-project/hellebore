@@ -35,7 +35,7 @@ where
                 .msg("Person not updated.")
                 .from_err(e)
                 .entity(PERSON)
-                .with_id(id)
+                .with_id(&id)
                 .not_updated()
         })
 }
@@ -53,7 +53,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<PersonSchema,
         None => Err(ErrorBuilder::new()
             .msg("Person not found.")
             .entity(PERSON)
-            .with_id(id)
+            .with_id(&id)
             .not_found()),
     }
 }

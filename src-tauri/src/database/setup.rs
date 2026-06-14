@@ -2,18 +2,10 @@ use sea_orm::{Database, DatabaseConnection};
 
 use migration::{Migrator, MigratorTrait};
 
-use crate::model::{
-    config::AppConfig,
-    errors::{Error, ErrorBuilder},
-};
+use crate::model::errors::{Error, ErrorBuilder};
 
-pub async fn setup(config: &AppConfig) -> Result<DatabaseConnection, Error> {
-    // connect to the DB
-    let conn_str = match config.get_connection_string() {
-        Some(conn_str) => conn_str,
-        None => return Err(Error::ProjectNotLoaded),
-    };
-    let db = Database::connect(&conn_str).await.map_err(|e| {
+pub async fn setup_db(connection_string: &str) -> Result<DatabaseConnection, Error> {
+    let db = Database::connect(connection_string).await.map_err(|e| {
         ErrorBuilder::new()
             .msg("Failed to connect to the DB.")
             .from_err(e)

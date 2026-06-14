@@ -4,21 +4,26 @@ pub struct EntryErrorBuilder {
     message: String,
     error: Option<String>,
     entity_type: EntityType,
-    id: i32,
+    id: String,
 }
 
 impl EntryErrorBuilder {
-    pub fn new(message: &str, error: Option<String>, entity_type: EntityType, id: i32) -> Self {
+    pub fn new(
+        message: &str,
+        error: Option<String>,
+        entity_type: EntityType,
+        id: &impl ToString,
+    ) -> Self {
         EntryErrorBuilder {
             message: message.to_owned(),
             error,
             entity_type,
-            id,
+            id: id.to_string(),
         }
     }
 
-    pub fn with_id(&mut self, id: i32) -> &mut Self {
-        self.id = id;
+    pub fn with_id(&mut self, id: &impl ToString) -> &mut Self {
+        self.id = id.to_string();
         self
     }
 
@@ -34,14 +39,14 @@ impl EntryErrorBuilder {
         Error::EntryTextDeserializationFailed {
             msg: self.message.clone(),
             error: self.error.clone().unwrap_or_default(),
-            id: self.id,
+            id: self.id.clone(),
         }
     }
 
     pub fn missing_text_attribute(&self, key: &str) -> Error {
         Error::MissingEntryTextAttr {
             msg: self.message.clone(),
-            id: self.id,
+            id: self.id.clone(),
             key: key.to_owned(),
         }
     }
@@ -49,7 +54,7 @@ impl EntryErrorBuilder {
     pub fn bad_reference_id(&self, id: i32) -> Error {
         Error::BadEntryReferenceId {
             msg: self.message.clone(),
-            id: self.id,
+            id: self.id.clone(),
             reference_id: id,
         }
     }
@@ -57,7 +62,7 @@ impl EntryErrorBuilder {
     pub fn bad_text_value_type(&self, key: &str, value: &str, expected_type: &str) -> Error {
         Error::BadEntryTextValueType {
             msg: self.message.clone(),
-            id: self.id,
+            id: self.id.clone(),
             key: key.to_owned(),
             value: value.to_owned(),
             expected_type: expected_type.to_owned(),

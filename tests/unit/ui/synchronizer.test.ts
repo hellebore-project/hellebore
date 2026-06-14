@@ -1,9 +1,12 @@
-import { describe, it, vi, beforeEach, afterEach, expect } from "vitest";
+import { describe, vi, beforeEach, afterEach, expect } from "vitest";
 
 import { SyncType } from "@/constants";
 import { PollEvent } from "@/interface";
-import { DomainManager } from "@/api";
 import { SynchronizationService } from "@/ui/synchronizer";
+import type { ClientManager } from "@/ui";
+import { test as baseTest } from "@tests/unit/ui/fixtures";
+
+const test = baseTest;
 
 vi.mock("@/utils/event-producer", () => {
     class MockEventProducer {
@@ -32,32 +35,35 @@ vi.mock("@/utils/event-producer", () => {
 });
 
 describe("SynchronizationService", () => {
-    let domainManagerMock: DomainManager;
-    let syncService: SynchronizationService;
-
-    beforeEach(() => {
-        domainManagerMock = {
-            session: {
-                updateProject: vi.fn().mockResolvedValue({}), // Ensure mock resolves correctly
+    test.scoped({
+        clientManager: [
+            async ({}, use) => {
+                await use({ cleanUp: () => undefined } as ClientManager);
             },
-            entries: {
-                bulkUpdate: vi.fn().mockResolvedValue([]),
+            { auto: true },
+        ],
+        setup: [
+            async ({}, use) => {
+                await use(null);
             },
-            folders: {
-                bulkUpdate: vi.fn().mockResolvedValue([]),
-            },
-        } as unknown as DomainManager;
-
-        syncService = new SynchronizationService(domainManagerMock);
+            { auto: true },
+        ],
     });
 
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
-    it("should gate periodic/full syncs based on timing", async () => {
-        const pollEvent: PollEvent = { type: SyncType.FULL };
-
+    test("should gate periodic/full syncs based on timing", async ({
+        domainManager,
+    }) => {
+        const syncService = new SynchronizationService(domainManager);
+        const updateProjectSpy = vi
+            .spyOn(domainManager.projects, "updateProject")
+            .mockResolvedValue({
+                id: "test-project-id",
+                name: "mocked-project",
+            });
         await syncService.requestPeriodicSynchronization();
 
         // Wait for the synchronization logic to complete
@@ -65,10 +71,13 @@ describe("SynchronizationService", () => {
             setTimeout(resolve, syncService.DEFAULT_SYNC_PERIOD + 10),
         );
 
-        expect(domainManagerMock.session.updateProject).toHaveBeenCalled();
+        expect(updateProjectSpy).toHaveBeenCalled();
     }, 10000); // Increase timeout to 10 seconds
 
-    it("should debounce/skip sync requests appropriately", async () => {
+    test("should debounce/skip sync requests appropriately", async ({
+        domainManager,
+    }) => {
+        const syncService = new SynchronizationService(domainManager);
         const pollEvent: PollEvent = { type: SyncType.FULL };
         const canSkipSyncSpy = vi.spyOn(syncService, "canSkipSync");
 
@@ -76,7 +85,10 @@ describe("SynchronizationService", () => {
         expect(canSkipSyncSpy).toHaveBeenCalledWith(pollEvent);
     });
 
-    it("should handle producer events correctly", async () => {
+    test("should handle producer events correctly", async ({
+        domainManager,
+    }) => {
+        const syncService = new SynchronizationService(domainManager);
         const onPollSpy = vi.spyOn(syncService.onPoll, "produce");
         const pollEvent: PollEvent = { type: SyncType.FULL };
 
@@ -84,29 +96,32 @@ describe("SynchronizationService", () => {
         expect(onPollSpy).toHaveBeenCalledWith(pollEvent);
     });
 
-    it("should sync folder updates through the backend", async () => {
+    test("should sync folder updates through the backend", async ({
+        domainManager,
+    }) => {
+        const syncService = new SynchronizationService(domainManager);
         vi.spyOn(syncService.onPoll, "produce").mockReturnValue({
             entries: [],
             folders: [{ id: 7, parentId: 3, name: "renamed folder" }],
         });
 
-        (
-            domainManagerMock.folders.bulkUpdate as ReturnType<typeof vi.fn>
-        ).mockResolvedValueOnce([
-            {
-                id: 7,
-                parentId: 3,
-                name: "renamed folder",
-                parentChanged: false,
-                nameChanged: true,
-            },
-        ]);
+        const bulkUpdateSpy = vi
+            .spyOn(domainManager.loadedProject.folders, "bulkUpdate")
+            .mockResolvedValueOnce([
+                {
+                    id: 7,
+                    parentId: 3,
+                    name: "renamed folder",
+                    parentChanged: false,
+                    nameChanged: true,
+                },
+            ]);
 
         const event = await syncService.requestSynchronization({
             type: SyncType.FULL,
         });
 
-        expect(domainManagerMock.folders.bulkUpdate).toHaveBeenCalledWith([
+        expect(bulkUpdateSpy).toHaveBeenCalledWith([
             { id: 7, parentId: 3, name: "renamed folder" },
         ]);
         expect(event?.folders).toStrictEqual([
@@ -125,7 +140,10 @@ describe("SynchronizationService", () => {
         ]);
     });
 
-    it("should clean up fake timers and listeners", async () => {
+    test("should clean up fake timers and listeners", async ({
+        domainManager,
+    }) => {
+        const syncService = new SynchronizationService(domainManager);
         vi.useFakeTimers(); // Use fake timers explicitly for this test
 
         syncService.requestPeriodicSynchronization();

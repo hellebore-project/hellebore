@@ -126,7 +126,9 @@ export class WordTableService implements IComponentService {
 
         // a row will only have an id if it corresponds to an existing word in the backend
         if (row.id !== null) {
-            const success = await this._domain.words.delete(row.id);
+            const success = await this._domain.loadedProject.words.delete(
+                row.id,
+            );
             if (!success) return;
         }
 

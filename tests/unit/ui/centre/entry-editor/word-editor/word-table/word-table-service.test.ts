@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, vi } from "vitest";
 
 import { WordType, type WordResponse } from "@/api";
 import { WordTableService } from "@/ui/centre/entry-editor/word-editor/word-table/word-table-service.svelte";
 import { WordColumnKey } from "@/ui/centre/entry-editor/word-editor/word-table/word-table-constants";
+import type { WordRow } from "@/ui/centre/entry-editor/word-editor/word-table/word-table-interface";
+import { test as baseTest } from "@tests/unit/ui/fixtures";
+
+const test = baseTest;
 
 const buildWord = (overrides: Partial<WordResponse> = {}): WordResponse => ({
     id: 1,
@@ -15,10 +19,10 @@ const buildWord = (overrides: Partial<WordResponse> = {}): WordResponse => ({
 });
 
 describe("WordTableService", () => {
-    it("initializes identity and loads rows with transformed cell values plus a sentinel", () => {
-        const deleteWord = vi.fn();
-        const domain = { words: { delete: deleteWord } };
-        const service = new WordTableService("word-table-7", domain as never);
+    test("initializes identity and loads rows with transformed cell values plus a sentinel", ({
+        domainManager,
+    }) => {
+        const service = new WordTableService("word-table-7", domainManager);
 
         service.load(
             [
@@ -46,7 +50,9 @@ describe("WordTableService", () => {
         const row12 = service.table.findRow("12");
         expect(row12?.cells.translations.value).toBe("two, double");
 
-        const sentinel = service.table.findRow(service.sentinelKey);
+        const sentinel = service.table.findRow(service.sentinelKey) as
+            | WordRow
+            | undefined;
         expect(sentinel).toBeDefined();
         expect(sentinel?.id).toBeNull();
         expect(sentinel?.languageId).toBe(77);
@@ -55,9 +61,10 @@ describe("WordTableService", () => {
         expect(sentinel?.cells.spelling.value).toBe("");
     });
 
-    it("promotes sentinel row on first edit, applies first active type filter, emits change, and appends a new sentinel", () => {
-        const domain = { words: { delete: vi.fn() } };
-        const service = new WordTableService("word-table-1", domain as never);
+    test("promotes sentinel row on first edit, applies first active type filter, emits change, and appends a new sentinel", ({
+        domainManager,
+    }) => {
+        const service = new WordTableService("word-table-1", domainManager);
         const onChange = vi.fn();
         service.onChange.subscribe(onChange);
 
@@ -85,9 +92,10 @@ describe("WordTableService", () => {
         expect(service.changed).toBe(true);
     });
 
-    it("claims modified rows as domain words with parsed translations and clears changed tracking", () => {
-        const domain = { words: { delete: vi.fn() } };
-        const service = new WordTableService("word-table-2", domain as never);
+    test("claims modified rows as domain words with parsed translations and clears changed tracking", ({
+        domainManager,
+    }) => {
+        const service = new WordTableService("word-table-2", domainManager);
 
         service.load([buildWord({ id: 41, wordType: WordType.Adjective })], 10);
         service.table.setValue(
@@ -115,9 +123,10 @@ describe("WordTableService", () => {
         expect(service.table.modifiedKeys.size).toBe(0);
     });
 
-    it("synchronizes backend ids into existing table rows by key", () => {
-        const domain = { words: { delete: vi.fn() } };
-        const service = new WordTableService("word-table-3", domain as never);
+    test("synchronizes backend ids into existing table rows by key", ({
+        domainManager,
+    }) => {
+        const service = new WordTableService("word-table-3", domainManager);
 
         service.load([], 3);
         const createdKey = service.sentinelKey;
@@ -133,13 +142,19 @@ describe("WordTableService", () => {
             },
         ]);
 
-        expect(service.table.findRow(createdKey)?.id).toBe(999);
+        const createdRow = service.table.findRow(createdKey) as
+            | WordRow
+            | undefined;
+        expect(createdRow?.id).toBe(999);
     });
 
-    it("removes transient rows locally and persisted rows via domain delete", async () => {
-        const deleteWord = vi.fn().mockResolvedValue(true);
-        const domain = { words: { delete: deleteWord } };
-        const service = new WordTableService("word-table-4", domain as never);
+    test("removes transient rows locally and persisted rows via domain delete", async ({
+        domainManager,
+    }) => {
+        const deleteWord = vi
+            .spyOn(domainManager.loadedProject.words, "delete")
+            .mockResolvedValue(true);
+        const service = new WordTableService("word-table-4", domainManager);
 
         service.load([buildWord({ id: 5 })], 22);
         const transientKey = service.sentinelKey;
@@ -157,10 +172,13 @@ describe("WordTableService", () => {
         expect(service.table.findRow("5")).toBeUndefined();
     });
 
-    it("keeps persisted row when domain delete fails", async () => {
-        const deleteWord = vi.fn().mockResolvedValue(false);
-        const domain = { words: { delete: deleteWord } };
-        const service = new WordTableService("word-table-5", domain as never);
+    test("keeps persisted row when domain delete fails", async ({
+        domainManager,
+    }) => {
+        const deleteWord = vi
+            .spyOn(domainManager.loadedProject.words, "delete")
+            .mockResolvedValue(false);
+        const service = new WordTableService("word-table-5", domainManager);
 
         service.load([buildWord({ id: 18 })], 8);
 
@@ -170,9 +188,10 @@ describe("WordTableService", () => {
         expect(service.table.findRow("18")).toBeDefined();
     });
 
-    it("cleans up table interaction state by delegating to reset", () => {
-        const domain = { words: { delete: vi.fn() } };
-        const service = new WordTableService("word-table-6", domain as never);
+    test("cleans up table interaction state by delegating to reset", ({
+        domainManager,
+    }) => {
+        const service = new WordTableService("word-table-6", domainManager);
 
         service.load([buildWord({ id: 60 })], 15);
         service.table.selectSingle("60", WordColumnKey.Spelling);

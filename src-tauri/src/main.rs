@@ -11,13 +11,13 @@ async fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init());
 
-    let config = AppConfig::default();
-    match config_service::write_app_config_to_file(&config) {
-        Ok(_) => (),
+    let config = match config_service::load_app_config() {
+        Ok(config) => config,
         Err(e) => {
-            println!("Failed to write app config file: {e}");
+            println!("Failed to load app config: {e}");
+            AppConfig::default()
         }
-    }
+    };
 
     println!("Initializing app state");
     // TODO: fall back to an error state in the UI if setup fails

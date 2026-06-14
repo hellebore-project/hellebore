@@ -26,6 +26,12 @@ import type {
 } from "../interface";
 
 export class EntryManager {
+    private _projectId: string;
+
+    constructor(projectId: string) {
+        this._projectId = projectId;
+    }
+
     async create(
         entityType: EntryType,
         title: string,
@@ -205,7 +211,7 @@ export class EntryManager {
         try {
             const response = await invoke<DiagnosticResponse<boolean>>(
                 CommandNames.Entry.ValidateTitle,
-                { id, title },
+                { projectId: this._projectId, id, title },
             );
             return response.data;
         } catch (error) {
@@ -248,6 +254,7 @@ export class EntryManager {
         const mappedProperties = { [entryTypeLabel]: properties };
 
         const payload = {
+            projectId: this._projectId,
             entry: {
                 folderId,
                 entityType: entryType,
@@ -261,7 +268,7 @@ export class EntryManager {
 
     private async _update<E extends BaseEntity>(entry: EntryUpdate<E>) {
         const entryPayload = this._createUpdateRequestPayload(entry);
-        const payload = { entry: entryPayload };
+        const payload = { projectId: this._projectId, entry: entryPayload };
         return invoke<DiagnosticResponse<EntryUpdateResponse>>(
             CommandNames.Entry.Update,
             payload,
@@ -272,7 +279,7 @@ export class EntryManager {
         const entryPayloads = entries.map((entry) =>
             this._createUpdateRequestPayload(entry),
         );
-        const payload = { entries: entryPayloads };
+        const payload = { projectId: this._projectId, entries: entryPayloads };
         return invoke<DiagnosticResponse<EntryUpdateResponse>[]>(
             CommandNames.Entry.BulkUpdate,
             payload,
@@ -311,7 +318,10 @@ export class EntryManager {
     }
 
     private async _getInfo(id: Id): Promise<EntryInfoResponse> {
-        return invoke<EntryInfoResponse>(CommandNames.Entry.GetInfo, { id });
+        return invoke<EntryInfoResponse>(CommandNames.Entry.GetInfo, {
+            projectId: this._projectId,
+            id,
+        });
     }
 
     private async _getProperties(
@@ -319,7 +329,7 @@ export class EntryManager {
     ): Promise<BackendEntryPropertyResponse> {
         return invoke<BackendEntryPropertyResponse>(
             CommandNames.Entry.GetProperties,
-            { id },
+            { projectId: this._projectId, id },
         );
     }
 
@@ -329,22 +339,29 @@ export class EntryManager {
         return invoke<DiagnosticResponse<EntryArticleResponse>>(
             CommandNames.Entry.GetArticle,
             {
+                projectId: this._projectId,
                 id,
             },
         );
     }
 
     private async _getAll() {
-        return invoke<EntryInfoResponse[]>(CommandNames.Entry.GetAll);
+        return invoke<EntryInfoResponse[]>(CommandNames.Entry.GetAll, {
+            projectId: this._projectId,
+        });
     }
 
     private async _search(payload: EntrySearch) {
         return invoke<EntryInfoResponse[]>(CommandNames.Entry.Search, {
+            projectId: this._projectId,
             query: payload,
         });
     }
 
     private async _delete(id: Id): Promise<void> {
-        return invoke(CommandNames.Entry.Delete, { id });
+        return invoke(CommandNames.Entry.Delete, {
+            projectId: this._projectId,
+            id,
+        });
     }
 }

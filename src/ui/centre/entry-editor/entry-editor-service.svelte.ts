@@ -150,7 +150,8 @@ export class EntryEditorService implements ICentralPanelContentService {
     async loadArticle(id: Id) {
         if (this.isArticleEditorOpen && this.article.loaded) return; // the article is already open
 
-        const response = await this._domain.entries.getArticle(id);
+        const response =
+            await this._domain.loadedProject.entries.getArticle(id);
         if (response) {
             this.currentView = EntryViewType.ArticleEditor;
             this.info.load(id, response.info.entityType, response.info.title);
@@ -161,7 +162,8 @@ export class EntryEditorService implements ICentralPanelContentService {
     async loadProperties(id: Id) {
         if (this.isPropertyEditorOpen) return; // the property editor is already open
 
-        const response = await this._domain.entries.getProperties(id);
+        const response =
+            await this._domain.loadedProject.entries.getProperties(id);
 
         if (response !== null) {
             this.currentView = EntryViewType.PropertyEditor;
@@ -173,7 +175,7 @@ export class EntryEditorService implements ICentralPanelContentService {
     async loadLexicon(languageId: Id) {
         if (this.isWordEditorOpen) return;
 
-        const info = await this._domain.entries.get(languageId);
+        const info = await this._domain.loadedProject.entries.get(languageId);
 
         if (info !== null) {
             this.currentView = EntryViewType.WordEditor;

@@ -1,5 +1,4 @@
 use crate::{
-    constants::ENTITY_ID_SENTINEL,
     model::errors::builders::{
         database_error_builder::DatabaseErrorBuilder, entity_error_builder::EntityErrorBuilder,
         entry_error_builder::EntryErrorBuilder, project_error_builder::ProjectErrorBuilder,
@@ -45,12 +44,7 @@ impl ErrorBuilder {
     }
 
     pub fn entry(&self, entity_type: EntityType) -> EntryErrorBuilder {
-        EntryErrorBuilder::new(
-            &self.message,
-            self.error.clone(),
-            entity_type,
-            ENTITY_ID_SENTINEL,
-        )
+        EntryErrorBuilder::new(&self.message, self.error.clone(), entity_type, &"")
     }
 
     pub fn db(&self) -> DatabaseErrorBuilder {

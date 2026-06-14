@@ -1,7 +1,6 @@
 pub mod config_service;
 
 pub mod project_service;
-pub mod session_service;
 
 pub mod entry_service;
 pub mod entry_text_service;

@@ -2,7 +2,6 @@ use rstest::*;
 
 use hellebore::{
     database::language_manager,
-    model::config::AppConfig,
     schema::{
         entry::{EntryCreateSchema, EntryUpdateSchema},
         word::{WordResponseSchema, WordUpsertSchema},
@@ -13,7 +12,7 @@ use hellebore::{
 
 use crate::{
     fixtures::{
-        config, database,
+        database,
         entry::update_entry_payload,
         folder::folder_id,
         language::{create_language_payload, language_name},
@@ -31,12 +30,11 @@ use crate::{
 #[rstest]
 #[tokio::test]
 async fn test_create_language(
-    config: &AppConfig,
     folder_id: i32,
     language_name: String,
     create_language_payload: EntryCreateSchema,
 ) {
-    let db = database(config).await;
+    let db = database().await;
     let entry = entry_service::create(&db, create_language_payload).await;
 
     assert!(entry.is_ok());
@@ -45,11 +43,8 @@ async fn test_create_language(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_creating_duplicate_language(
-    config: &AppConfig,
-    create_language_payload: EntryCreateSchema,
-) {
-    let db = database(config).await;
+async fn test_error_on_creating_duplicate_language(create_language_payload: EntryCreateSchema) {
+    let db = database().await;
     let _ = entry_service::create(&db, create_language_payload.clone()).await;
     let response = entry_service::create(&db, create_language_payload).await;
     assert!(response.is_err());
@@ -58,12 +53,11 @@ async fn test_error_on_creating_duplicate_language(
 #[rstest]
 #[tokio::test]
 async fn test_get_language(
-    config: &AppConfig,
     folder_id: i32,
     language_name: String,
     create_language_payload: EntryCreateSchema,
 ) {
-    let db = database(config).await;
+    let db = database().await;
     let entry = entry_service::create(&db, create_language_payload).await;
 
     assert!(entry.is_ok());
@@ -86,7 +80,6 @@ async fn test_get_language(
 #[rstest]
 #[tokio::test]
 async fn test_update_language_entry(
-    config: &AppConfig,
     folder_id: i32,
     create_language_payload: EntryCreateSchema,
     mut update_entry_payload: EntryUpdateSchema,
@@ -94,7 +87,7 @@ async fn test_update_language_entry(
     mut update_word_payload: WordUpsertSchema,
     mut expected_word_response: WordResponseSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let entry = entry_service::create(&database, create_language_payload)
         .await
         .unwrap();
@@ -154,8 +147,8 @@ async fn test_update_language_entry(
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_language(config: &AppConfig, create_language_payload: EntryCreateSchema) {
-    let db = database(config).await;
+async fn test_delete_language(create_language_payload: EntryCreateSchema) {
+    let db = database().await;
 
     let entry = entry_service::create(&db, create_language_payload)
         .await

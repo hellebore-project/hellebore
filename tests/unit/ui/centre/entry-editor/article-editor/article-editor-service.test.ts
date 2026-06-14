@@ -1,9 +1,13 @@
 import type { JSONContent } from "@tiptap/core";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, vi } from "vitest";
 
+import { EntryType } from "@/api";
 import { MultiEventProducer } from "@/utils/event-producer";
 import { EntryInfoService } from "@/ui/centre/entry-editor/entry-info-service.svelte";
 import { ARTICLE_REFERENCE_PREFIX } from "@/ui/centre/entry-editor/article-editor";
+import { test as baseTest } from "@tests/unit/ui/fixtures";
+
+const test = baseTest;
 
 const mocks = vi.hoisted(() => {
     interface MockRichTextArgs<M> {
@@ -53,12 +57,12 @@ describe("ArticleEditorService", () => {
         vi.clearAllMocks();
     });
 
-    it("initializes rich-text editor config and exposes expected identity", () => {
-        const search = vi.fn();
-        const domain = { entries: { search } };
+    test("initializes rich-text editor config and exposes expected identity", ({
+        domainManager,
+    }) => {
         const info = new EntryInfoService(7);
 
-        const service = new ArticleEditorService(domain as never, info);
+        const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
 
         expect(service.id).toBe("article-editor-7");
@@ -75,11 +79,12 @@ describe("ArticleEditorService", () => {
         );
     });
 
-    it("proxies changed state to the rich-text service", () => {
-        const domain = { entries: { search: vi.fn() } };
+    test("proxies changed state to the rich-text service", ({
+        domainManager,
+    }) => {
         const info = new EntryInfoService(11);
 
-        const service = new ArticleEditorService(domain as never, info);
+        const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
 
         expect(service.changed).toBe(false);
@@ -90,8 +95,9 @@ describe("ArticleEditorService", () => {
         expect(service.changed).toBe(true);
     });
 
-    it("loads article content and marks the service as loaded", () => {
-        const domain = { entries: { search: vi.fn() } };
+    test("loads article content and marks the service as loaded", ({
+        domainManager,
+    }) => {
         const info = new EntryInfoService(9);
         const payload: JSONContent = {
             type: "doc",
@@ -100,7 +106,7 @@ describe("ArticleEditorService", () => {
             ],
         };
 
-        const service = new ArticleEditorService(domain as never, info);
+        const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
 
         service.load(payload);
@@ -110,12 +116,13 @@ describe("ArticleEditorService", () => {
         expect(service.loaded).toBe(true);
     });
 
-    it("forwards rich-text change notifications as entry change events", () => {
-        const domain = { entries: { search: vi.fn() } };
+    test("forwards rich-text change notifications as entry change events", ({
+        domainManager,
+    }) => {
         const info = new EntryInfoService(13);
         const onChange = vi.fn();
 
-        const service = new ArticleEditorService(domain as never, info);
+        const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
         service.onChange.subscribe(onChange);
 
@@ -128,12 +135,13 @@ describe("ArticleEditorService", () => {
         });
     });
 
-    it("forwards mention selection only when reference id is present", () => {
-        const domain = { entries: { search: vi.fn() } };
+    test("forwards mention selection only when reference id is present", ({
+        domainManager,
+    }) => {
         const info = new EntryInfoService(13);
         const onSelectEntryReference = vi.fn();
 
-        const service = new ArticleEditorService(domain as never, info);
+        const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
         service.onSelectEntryReference.subscribe(onSelectEntryReference);
 
@@ -145,16 +153,34 @@ describe("ArticleEditorService", () => {
         expect(onSelectEntryReference).toHaveBeenCalledWith({ id: 88 });
     });
 
-    it("queries references by title and serializes domain results for mention items", async () => {
-        const search = vi.fn().mockResolvedValue([
-            { id: 10, title: "Self" },
-            { id: 20, title: "Alpha" },
-            { id: 30, title: "Beta" },
-        ]);
-        const domain = { entries: { search } };
+    test("queries references by title and serializes domain results for mention items", async ({
+        domainManager,
+    }) => {
+        const search = vi
+            .spyOn(domainManager.loadedProject.entries, "search")
+            .mockResolvedValue([
+                {
+                    id: 10,
+                    folderId: 1,
+                    entityType: EntryType.Person,
+                    title: "Self",
+                },
+                {
+                    id: 20,
+                    folderId: 1,
+                    entityType: EntryType.Person,
+                    title: "Alpha",
+                },
+                {
+                    id: 30,
+                    folderId: 1,
+                    entityType: EntryType.Person,
+                    title: "Beta",
+                },
+            ]);
         const info = new EntryInfoService(10);
 
-        new ArticleEditorService(domain as never, info);
+        new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
         const querier = richText.args.extensions?.mention?.querier;
 
@@ -170,12 +196,15 @@ describe("ArticleEditorService", () => {
         ]);
     });
 
-    it("returns an empty list when reference query has no backend results", async () => {
-        const search = vi.fn().mockResolvedValue(null);
-        const domain = { entries: { search } };
+    test("returns an empty list when reference query has no backend results", async ({
+        domainManager,
+    }) => {
+        const search = vi
+            .spyOn(domainManager.loadedProject.entries, "search")
+            .mockResolvedValue(null);
         const info = new EntryInfoService(2);
 
-        new ArticleEditorService(domain as never, info);
+        new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
         const querier = richText.args.extensions?.mention?.querier;
 
@@ -185,11 +214,12 @@ describe("ArticleEditorService", () => {
         expect(response).toStrictEqual([]);
     });
 
-    it("cleans up by delegating to the rich-text service", () => {
-        const domain = { entries: { search: vi.fn() } };
+    test("cleans up by delegating to the rich-text service", ({
+        domainManager,
+    }) => {
         const info = new EntryInfoService(15);
 
-        const service = new ArticleEditorService(domain as never, info);
+        const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
 
         service.cleanUp();

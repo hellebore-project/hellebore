@@ -1,12 +1,10 @@
-use crate::{
-    constants::ENTITY_ID_SENTINEL, model::errors::error::Error, types::entity::EntityType,
-};
+use crate::{model::errors::error::Error, types::entity::EntityType};
 
 pub struct AttributeErrorBuilder {
     message: String,
     error: Option<String>,
     entity_type: EntityType,
-    id: i32,
+    id: String,
     key: String,
     value: String,
 }
@@ -17,14 +15,14 @@ impl AttributeErrorBuilder {
             message: message.to_owned(),
             error,
             entity_type,
-            id: ENTITY_ID_SENTINEL,
+            id: String::new(),
             key: key.to_owned(),
             value: String::new(),
         }
     }
 
-    pub fn with_id(&mut self, id: Option<i32>) -> &mut Self {
-        self.id = id.unwrap_or(ENTITY_ID_SENTINEL);
+    pub fn with_id(&mut self, id: Option<&impl ToString>) -> &mut Self {
+        self.id = id.map_or(String::new(), |v| v.to_string());
         self
     }
 
@@ -45,7 +43,7 @@ impl AttributeErrorBuilder {
             msg: self.message.clone(),
             error: self.error.clone(),
             entity_type: self.entity_type,
-            id: self.id,
+            id: self.id.clone(),
             key: self.key.clone(),
         }
     }
@@ -55,10 +53,10 @@ impl AttributeErrorBuilder {
             msg: self.message.clone(),
             error: self.error.clone(),
             entity_type: self.entity_type,
-            id: if self.id == ENTITY_ID_SENTINEL {
+            id: if self.id.is_empty() {
                 None
             } else {
-                Some(self.id)
+                Some(self.id.clone())
             },
             key: self.key.clone(),
             value: self.value.clone(),
@@ -70,10 +68,10 @@ impl AttributeErrorBuilder {
             msg: self.message.clone(),
             error: self.error.clone(),
             entity_type: self.entity_type,
-            id: if self.id == ENTITY_ID_SENTINEL {
+            id: if self.id.is_empty() {
                 None
             } else {
-                Some(self.id)
+                Some(self.id.clone())
             },
             key: self.key.clone(),
             value: self.value.clone(),

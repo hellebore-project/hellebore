@@ -1,4 +1,3 @@
-import { DomainManager } from "@/api";
 import type { HeaderManager } from "@/ui/header";
 import { HeaderManager as StandaloneHeaderManager } from "@/ui/header/header-service.svelte";
 import { test as baseTest } from "@tests/unit/ui/fixtures";
@@ -13,7 +12,7 @@ export const test = baseTest.extend<HeaderFixtures>({
         use(clientManager.header);
     },
 
-    standaloneHeaderManager: async ({}, use) => {
-        use(new StandaloneHeaderManager(new DomainManager()));
+    standaloneHeaderManager: async ({ domainManager }, use) => {
+        use(new StandaloneHeaderManager(domainManager));
     },
 });

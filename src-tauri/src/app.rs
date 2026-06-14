@@ -5,25 +5,19 @@ use crate::services::project_service;
 pub async fn setup(config: AppConfig) -> Result<State, Error> {
     println!("Setting up backend");
 
-    let state = State::new(config, None);
-    // lock the state for the duration of this function
+    let state = State::new(config);
     let mut state_data = state.lock().await;
 
-    let folder_path = state_data.config.folder_path.clone();
-    state_data.database = match folder_path {
-        Some(path) => {
-            // try to load the last project from the previous session
-            match project_service::load(&mut state_data, &path).await {
-                Ok(project) => Some(project.db),
-                Err(e) => match e {
-                    Error::ProjectNotLoaded => None,
-                    _ => return Err(e),
-                },
+    let recent_projects = state_data.config.recent_project_paths.clone();
+    for path in recent_projects {
+        match project_service::load(&mut state_data, &Some(path.clone())).await {
+            Ok(_) => {}
+            Err(e) => {
+                println!("Failed to restore project at '{path}': {e:?}");
             }
         }
-        None => None,
-    };
-    // now that the state has been mutated, drop the guard
+    }
+
     drop(state_data);
 
     Ok(state)
@@ -34,14 +28,11 @@ where
     R: tauri::Runtime,
 {
     builder.invoke_handler(tauri::generate_handler![
-        // session API
-        api::session::get_session,
         // project API
         api::project::create_project,
         api::project::load_project,
         api::project::close_project,
         api::project::update_project,
-        api::project::get_project,
         // entry API
         api::entry::create_entry,
         api::entry::update_entry,

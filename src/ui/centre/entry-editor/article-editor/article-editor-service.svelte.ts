@@ -85,7 +85,7 @@ export class ArticleEditorService implements IComponentService {
     async _queryByTitle(
         titleFragment: string,
     ): Promise<(BaseMentionItemData & EntryMentionItemData)[]> {
-        const results = await this._domain.entries.search({
+        const results = await this._domain.loadedProject.entries.search({
             keyword: titleFragment,
             limit: 5,
         });

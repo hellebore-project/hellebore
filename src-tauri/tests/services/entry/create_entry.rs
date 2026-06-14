@@ -1,9 +1,9 @@
-use hellebore::{model::config::AppConfig, services::entry_service, types::entity::ENTRY};
+use hellebore::{services::entry_service, types::entity::ENTRY};
 use rstest::*;
 
 use crate::{
     fixtures::{
-        config, database,
+        database,
         entry::{entry_text, entry_title},
         folder::folder_id,
     },
@@ -12,13 +12,8 @@ use crate::{
 
 #[rstest]
 #[tokio::test]
-async fn test_create_entry(
-    config: &AppConfig,
-    folder_id: i32,
-    entry_title: String,
-    entry_text: String,
-) {
-    let database = database(config).await;
+async fn test_create_entry(folder_id: i32, entry_title: String, entry_text: String) {
+    let database = database().await;
 
     let entry = entry_service::_create(
         &database,
@@ -37,12 +32,11 @@ async fn test_create_entry(
 #[rstest]
 #[tokio::test]
 async fn test_error_on_creating_entry_with_duplicate_name(
-    config: &AppConfig,
     folder_id: i32,
     entry_title: String,
     entry_text: String,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let _ = entry_service::_create(
         &database,
         ENTRY,

@@ -1,5 +1,4 @@
 use hellebore::{
-    model::config::AppConfig,
     schema::{entry::EntryUpdateSchema, folder::FolderCreateSchema},
     services::{entry_service, folder_service},
 };
@@ -7,7 +6,7 @@ use rstest::*;
 
 use crate::{
     fixtures::{
-        config, database,
+        database,
         entry::{entry_text, entry_title, update_entry_payload},
         folder::{folder_create_payload, folder_id},
     },
@@ -20,13 +19,12 @@ use crate::{
 #[rstest]
 #[tokio::test]
 async fn test_update_entry_title(
-    config: &AppConfig,
     folder_id: i32,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let entry =
         create_generic_entry(&database, folder_id, entry_title, entry_text.to_owned()).await;
 
@@ -48,14 +46,13 @@ async fn test_update_entry_title(
 #[rstest]
 #[tokio::test]
 async fn test_update_entry_folder(
-    config: &AppConfig,
     folder_id: i32,
     folder_create_payload: FolderCreateSchema,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
@@ -84,13 +81,12 @@ async fn test_update_entry_folder(
 #[rstest]
 #[tokio::test]
 async fn test_update_entry_text(
-    config: &AppConfig,
     folder_id: i32,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let entry =
         create_generic_entry(&database, folder_id, entry_title.to_owned(), entry_text).await;
 
@@ -117,14 +113,13 @@ async fn test_update_entry_text(
 #[rstest]
 #[tokio::test]
 async fn test_update_entry(
-    config: &AppConfig,
     folder_id: i32,
     folder_create_payload: FolderCreateSchema,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
         .unwrap();
@@ -150,28 +145,24 @@ async fn test_update_entry(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_updating_nonexistent_entry(
-    config: &AppConfig,
-    mut update_entry_payload: EntryUpdateSchema,
-) {
-    let database = database(config).await;
+async fn test_error_on_updating_nonexistent_entry(mut update_entry_payload: EntryUpdateSchema) {
+    let database = database().await;
 
     update_entry_payload.title = Some("edited-title".to_owned());
     let response = entry_service::update(&database, update_entry_payload).await;
 
     assert!(!response.data.title.updated);
-    assert!(response.errors.len() > 0);
+    assert!(!response.errors.is_empty());
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_error_on_updating_entry_with_duplicate_name(
-    config: &AppConfig,
     folder_id: i32,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {
-    let database = database(config).await;
+    let database = database().await;
 
     let entry_1 = create_generic_entry(
         &database,
@@ -189,7 +180,7 @@ async fn test_error_on_updating_entry_with_duplicate_name(
 
     assert!(!response.data.title.updated);
     assert!(!response.data.title.is_unique);
-    assert!(response.errors.len() > 0);
+    assert!(!response.errors.is_empty());
 
     let entry = get_entry(&database, entry_1.id).await.unwrap();
     assert_eq!(entry.title, entry_1.title);
@@ -197,11 +188,8 @@ async fn test_error_on_updating_entry_with_duplicate_name(
 
 #[rstest]
 #[tokio::test]
-async fn test_noop_on_updating_entry_with_empty_payload(
-    config: &AppConfig,
-    update_entry_payload: EntryUpdateSchema,
-) {
-    let database = database(config).await;
+async fn test_noop_on_updating_entry_with_empty_payload(update_entry_payload: EntryUpdateSchema) {
+    let database = database().await;
 
     let id = update_entry_payload.id;
     let response = entry_service::update(&database, update_entry_payload).await;

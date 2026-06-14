@@ -1,12 +1,42 @@
+use std::collections::HashMap;
+
 use tokio::sync::{Mutex, MutexGuard};
 
-use sea_orm::DatabaseConnection;
-
-use crate::model::config::AppConfig;
+use crate::model::{config::AppConfig, project::Project};
 
 pub struct StateData {
     pub config: AppConfig,
-    pub database: Option<DatabaseConnection>,
+    pub projects: HashMap<String, Project>,
+}
+
+impl StateData {
+    pub fn add_project(&mut self, project: Project) -> String {
+        self.config.add_recent_project(&project.folder_path);
+
+        let id = project.id.clone();
+        self.projects.insert(id.clone(), project);
+
+        id
+    }
+
+    pub fn remove_project(&mut self, id: &str) -> Option<Project> {
+        self.projects.remove(id)
+    }
+
+    pub fn get_project(&self, id: &str) -> Option<&Project> {
+        self.projects.get(id)
+    }
+
+    pub fn get_project_mut(&mut self, id: &str) -> Option<&mut Project> {
+        self.projects.get_mut(id)
+    }
+
+    pub fn get_project_id_of_path(&self, folder_path: &str) -> Option<String> {
+        self.projects
+            .values()
+            .find(|p| p.folder_path == folder_path)
+            .map(|p| p.id.clone())
+    }
 }
 
 pub struct State {
@@ -14,9 +44,12 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(config: AppConfig, database: Option<DatabaseConnection>) -> Self {
+    pub fn new(config: AppConfig) -> Self {
         Self {
-            data: Mutex::new(StateData { config, database }),
+            data: Mutex::new(StateData {
+                config,
+                projects: HashMap::new(),
+            }),
         }
     }
 

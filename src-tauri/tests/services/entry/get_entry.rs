@@ -1,12 +1,9 @@
-use hellebore::{
-    model::{config::AppConfig, text::TextNode},
-    services::entry_service,
-};
+use hellebore::{model::text::TextNode, services::entry_service};
 use rstest::*;
 
 use crate::{
     fixtures::{
-        config, database,
+        database,
         entry::{entry_text, entry_text_json, entry_text_node, entry_title},
         folder::folder_id,
     },
@@ -18,13 +15,8 @@ use crate::{
 
 #[rstest]
 #[tokio::test]
-async fn test_get_entry(
-    config: &AppConfig,
-    folder_id: i32,
-    entry_title: String,
-    entry_text: String,
-) {
-    let database = database(config).await;
+async fn test_get_entry(folder_id: i32, entry_title: String, entry_text: String) {
+    let database = database().await;
     let entry = create_generic_entry(
         &database,
         folder_id,
@@ -39,16 +31,16 @@ async fn test_get_entry(
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_getting_nonexistent_entry(config: &AppConfig) {
-    let database = database(config).await;
+async fn test_error_on_getting_nonexistent_entry() {
+    let database = database().await;
     let response = entry_service::get_info(&database, 0).await;
     assert!(response.is_err());
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_getting_properties_of_nonexistent_entry(config: &AppConfig) {
-    let database = database(config).await;
+async fn test_error_on_getting_properties_of_nonexistent_entry() {
+    let database = database().await;
     let response = entry_service::get_properties(&database, 0).await;
     assert!(response.is_err());
 }
@@ -56,13 +48,12 @@ async fn test_error_on_getting_properties_of_nonexistent_entry(config: &AppConfi
 #[rstest]
 #[tokio::test]
 async fn test_get_entry_text(
-    config: &AppConfig,
     folder_id: i32,
     entry_title: String,
     entry_text_node: TextNode,
     entry_text_json: String,
 ) {
-    let database = database(config).await;
+    let database = database().await;
     let entry = create_generic_entry(
         &database,
         folder_id,
@@ -85,8 +76,8 @@ async fn test_get_entry_text(
 
 #[rstest]
 #[tokio::test]
-async fn test_get_all_entries(config: &AppConfig, folder_id: i32, entry_title: String) {
-    let database = database(config).await;
+async fn test_get_all_entries(folder_id: i32, entry_title: String) {
+    let database = database().await;
     create_generic_entry(&database, folder_id, entry_title.to_owned(), "".to_owned()).await;
 
     let title_2 = format!("{} 2", entry_title);

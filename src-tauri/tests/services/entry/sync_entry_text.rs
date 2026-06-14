@@ -1,22 +1,19 @@
 use hellebore::{
-    model::{config::AppConfig, errors::Error, text::TextNode},
+    model::{errors::Error, text::TextNode},
     services::entry_text_service,
 };
 use rstest::*;
 use serde_json::Value;
 
 use crate::{
-    fixtures::{config, database, entry::entry_text_node, folder::folder_id},
+    fixtures::{database, entry::entry_text_node, folder::folder_id},
     utils::db::create_generic_entry,
 };
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_basic_text(
-    config: &AppConfig,
-    #[with("text".to_owned())] entry_text_node: TextNode,
-) {
-    let database = database(config).await;
+async fn test_sync_basic_text(#[with("text".to_owned())] entry_text_node: TextNode) {
+    let database = database().await;
 
     let expected_text_node = entry_text_node.clone();
 
@@ -31,13 +28,12 @@ async fn test_sync_basic_text(
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_empty_text(config: &AppConfig) {
-    let database = database(config).await;
+async fn test_sync_empty_text() {
+    let database = database().await;
 
     let mut errors: Vec<Error> = Vec::new();
 
-    let synced_text_node =
-        entry_text_service::sync_text(&database, 0, &"".to_string(), &mut errors).await;
+    let synced_text_node = entry_text_service::sync_text(&database, 0, "", &mut errors).await;
 
     assert_eq!(TextNode::new_doc(), synced_text_node);
     assert!(errors.is_empty());
@@ -45,8 +41,8 @@ async fn test_sync_empty_text(config: &AppConfig) {
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_text_with_reference(config: &AppConfig, folder_id: i32) {
-    let database = database(config).await;
+async fn test_sync_text_with_reference(folder_id: i32) {
+    let database = database().await;
 
     let entry =
         create_generic_entry(&database, folder_id, "new title".to_owned(), "".to_owned()).await;
@@ -72,8 +68,8 @@ async fn test_sync_text_with_reference(config: &AppConfig, folder_id: i32) {
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_text_deserialization_error(config: &AppConfig) {
-    let database = database(config).await;
+async fn test_sync_text_deserialization_error() {
+    let database = database().await;
 
     let invalid_json = "this is not json".to_owned();
     let mut errors: Vec<Error> = Vec::new();
@@ -88,8 +84,8 @@ async fn test_sync_text_deserialization_error(config: &AppConfig) {
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_text_with_missing_referenced_entry(config: &AppConfig) {
-    let database = database(config).await;
+async fn test_sync_text_with_missing_referenced_entry() {
+    let database = database().await;
 
     let entry_text_node = TextNode::new_doc().with_child(
         TextNode::new_paragraph()
@@ -117,8 +113,8 @@ async fn test_sync_text_with_missing_referenced_entry(config: &AppConfig) {
 
 #[rstest]
 #[tokio::test]
-async fn test_sync_text_with_bad_reference_id_type(config: &AppConfig) {
-    let database = database(config).await;
+async fn test_sync_text_with_bad_reference_id_type() {
+    let database = database().await;
 
     let mut mention = TextNode::new_reference(0, "old title".to_owned());
     // overwrite id with a non-integer value to trigger bad_value_type

@@ -126,7 +126,7 @@ pub async fn update(
                             .msg("Entry title must be globally unique.")
                             .entity(ENTRY)
                             .attribute("title")
-                            .with_id(Some(entry.id))
+                            .with_id(Some(&entry.id))
                             .with_value(&title_value)
                             .not_unique(),
                     );
@@ -145,7 +145,7 @@ pub async fn update(
                     .msg("Unable to update the title.")
                     .entity(ENTRY)
                     .attribute("title")
-                    .with_id(Some(entry.id))
+                    .with_id(Some(&entry.id))
                     .not_updated(),
             );
         }
@@ -174,7 +174,7 @@ async fn _update(
                     .msg("Entry record not updated.")
                     .from_err(e)
                     .entity(ENTRY)
-                    .with_id(entry.id)
+                    .with_id(&entry.id)
                     .not_updated()
             });
 
@@ -286,7 +286,7 @@ pub async fn get_info(
         None => Err(ErrorBuilder::new()
             .msg("Entry not found.")
             .entity(ENTRY)
-            .with_id(id)
+            .with_id(&id)
             .not_found()),
     }
 }
@@ -307,7 +307,7 @@ pub async fn get_properties(
         return Err(ErrorBuilder::new()
             .msg("Entry not found.")
             .entity(ENTRY)
-            .with_id(id)
+            .with_id(&id)
             .not_found());
     }
     let info = info.unwrap();
@@ -356,7 +356,7 @@ pub async fn get_text(
             return Err(ErrorBuilder::new()
                 .msg("Entry not found.")
                 .entity(ENTRY)
-                .with_id(id)
+                .with_id(&id)
                 .not_found());
         }
     };
@@ -416,7 +416,7 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), Error>
             .msg("Failed to delete an entry record.")
             .from_err(e)
             .entity(ENTRY)
-            .with_id(id)
+            .with_id(&id)
             .not_deleted()
     })?;
     Ok(())

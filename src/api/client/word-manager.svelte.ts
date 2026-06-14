@@ -11,6 +11,12 @@ import type {
 type _WordBulkUpsertResponse = DiagnosticResponse<WordUpsertResponse>[];
 
 export class WordManager {
+    private _projectId: string;
+
+    constructor(projectId: string) {
+        this._projectId = projectId;
+    }
+
     async bulkUpsert(
         words: WordUpsert[],
     ): Promise<WordUpsertResponse[] | null> {
@@ -65,6 +71,7 @@ export class WordManager {
         words: WordUpsert[],
     ): Promise<_WordBulkUpsertResponse> {
         return invoke<_WordBulkUpsertResponse>(CommandNames.Word.BulkUpsert, {
+            projectId: this._projectId,
             words,
         });
     }
@@ -74,12 +81,16 @@ export class WordManager {
         wordType: WordType | null,
     ): Promise<WordResponse[]> {
         return invoke<WordResponse[]>(CommandNames.Word.GetMany, {
+            projectId: this._projectId,
             languageId,
             wordType,
         });
     }
 
     async _deleteWord(id: number): Promise<void> {
-        return invoke<void>(CommandNames.Word.Delete, { id });
+        return invoke<void>(CommandNames.Word.Delete, {
+            projectId: this._projectId,
+            id,
+        });
     }
 }
