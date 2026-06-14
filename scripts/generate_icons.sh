@@ -1,3 +1,5 @@
+#!/bin/bash
+
 magick -background none public/logo.svg -resize 25% public/favicon.ico
 magick -background none public/logo.svg -resize 200% src-tauri/icons/icon.ico
 magick -background none public/logo.svg -resize 400% src-tauri/icons/icon.icns
