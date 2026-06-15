@@ -6,6 +6,7 @@ import type {
     OpenEntryEditorEvent,
 } from "@/interface";
 import { DomainManager } from "@/api";
+import { ClientData } from "@/models";
 import { RichTextEditorService } from "@/lib/components/rich-text-editor";
 import type { BaseMentionItemData } from "@/lib/components/rich-text-editor/mention";
 import { MultiEventProducer } from "@/utils/event-producer";
@@ -20,14 +21,20 @@ export class ArticleEditorService implements IComponentService {
     private _loaded = false;
 
     private _domain: DomainManager;
+    private _data: ClientData;
     info: EntryInfoService;
     richText: RichTextEditorService<EntryMentionItemData>;
 
     onChange: MultiEventProducer<EntryChangeEvent, unknown>;
     onSelectEntryReference: MultiEventProducer<OpenEntryEditorEvent, unknown>;
 
-    constructor(domain: DomainManager, info: EntryInfoService) {
+    constructor(
+        domain: DomainManager,
+        data: ClientData,
+        info: EntryInfoService,
+    ) {
         this._domain = domain;
+        this._data = data;
         this.info = info;
         this.richText = new RichTextEditorService({
             id: `article-rich-text-editor-${info.entryId}`,
@@ -85,7 +92,10 @@ export class ArticleEditorService implements IComponentService {
     async _queryByTitle(
         titleFragment: string,
     ): Promise<(BaseMentionItemData & EntryMentionItemData)[]> {
-        const results = await this._domain.loadedProject.entries.search({
+        const projectId = this._data.loadedProjectId;
+
+        const results = await this._domain.entries.search({
+            projectId,
             keyword: titleFragment,
             limit: 5,
         });

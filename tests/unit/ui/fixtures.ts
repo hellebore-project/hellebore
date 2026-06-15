@@ -13,6 +13,7 @@ import {
     DomainManager,
     EntryType,
 } from "@/api";
+import { ClientData } from "@/models";
 import { ClientManager } from "@/ui";
 import {
     createDocNode,
@@ -56,6 +57,7 @@ export interface BaseUnitTestFixtures {
     mockedSearchedEntries: EntryInfoResponse[];
     mockedBulkEntryUpdate: null;
     mockedBulkFolderUpdate: null;
+    projectState: ClientData;
     domainManager: DomainManager;
     clientManager: ClientManager;
     user: UserEvent;
@@ -157,9 +159,14 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         await use(null);
     },
 
-    domainManager: async ({ mockedProject }, use) => {
+    projectState: async ({ mockedProject }, use) => {
+        const project = new ClientData();
+        project.setProject(mockedProject);
+        await use(project);
+    },
+
+    domainManager: async ({}, use) => {
         const domain = new DomainManager();
-        domain.loadedProjectId = mockedProject.id;
         await use(domain);
     },
 

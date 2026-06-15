@@ -18,6 +18,7 @@ import type {
     Word,
 } from "@/interface";
 import { EntryType, DomainManager } from "@/api";
+import { ClientData } from "@/models";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { EntryInfoService } from "./entry-info-service.svelte";
@@ -36,6 +37,7 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     // SERVICES
     private _domain: DomainManager;
+    private _data: ClientData;
     info: EntryInfoService;
     properties: PropertyEditorService;
     article: ArticleEditorService;
@@ -46,16 +48,18 @@ export class EntryEditorService implements ICentralPanelContentService {
     onChange: MultiEventProducer<EntryChangeEvent, unknown>;
     onDelete: MultiEventProducer<DeleteEntryEvent, unknown>;
 
-    constructor(entryId: Id, domain: DomainManager) {
+    constructor(entryId: Id, domain: DomainManager, data: ClientData) {
         this._domain = domain;
+        this._data = data;
 
         this.info = new EntryInfoService(entryId);
-        this.article = new ArticleEditorService(domain, this.info);
+        this.article = new ArticleEditorService(domain, data, this.info);
         this.properties = new PropertyEditorService({
             info: this.info,
         });
         this.lexicon = new WordEditorService({
             domain,
+            data,
             info: this.info,
         });
 
@@ -150,8 +154,9 @@ export class EntryEditorService implements ICentralPanelContentService {
     async loadArticle(id: Id) {
         if (this.isArticleEditorOpen && this.article.loaded) return; // the article is already open
 
-        const response =
-            await this._domain.loadedProject.entries.getArticle(id);
+        const projectId = this._data.loadedProjectId;
+
+        const response = await this._domain.entries.getArticle(projectId, id);
         if (response) {
             this.currentView = EntryViewType.ArticleEditor;
             this.info.load(id, response.info.entityType, response.info.title);
@@ -162,8 +167,12 @@ export class EntryEditorService implements ICentralPanelContentService {
     async loadProperties(id: Id) {
         if (this.isPropertyEditorOpen) return; // the property editor is already open
 
-        const response =
-            await this._domain.loadedProject.entries.getProperties(id);
+        const projectId = this._data.loadedProjectId;
+
+        const response = await this._domain.entries.getProperties(
+            projectId,
+            id,
+        );
 
         if (response !== null) {
             this.currentView = EntryViewType.PropertyEditor;
@@ -175,7 +184,9 @@ export class EntryEditorService implements ICentralPanelContentService {
     async loadLexicon(languageId: Id) {
         if (this.isWordEditorOpen) return;
 
-        const info = await this._domain.loadedProject.entries.get(languageId);
+        const projectId = this._data.loadedProjectId;
+
+        const info = await this._domain.entries.get(projectId, languageId);
 
         if (info !== null) {
             this.currentView = EntryViewType.WordEditor;

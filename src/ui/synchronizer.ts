@@ -12,6 +12,7 @@ import type {
     SyncRequest,
 } from "@/interface";
 import { DomainManager } from "@/api";
+import { ClientData } from "@/models";
 import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 export class SynchronizationService {
@@ -24,12 +25,14 @@ export class SynchronizationService {
     private _lastFullSyncTime = 0;
 
     private _domain: DomainManager;
+    private _data: ClientData;
 
     onPoll: EventProducer<PollEvent, PollResult>;
     onSync: MultiEventProducer<SyncEvent, void>;
 
-    constructor(domain: DomainManager) {
+    constructor(domain: DomainManager, data: ClientData) {
         this._domain = domain;
+        this._data = data;
 
         this.onPoll = new EventProducer();
         this.onSync = new MultiEventProducer();
@@ -159,6 +162,8 @@ export class SynchronizationService {
         folders: folderRequests = null,
         entries: entryRequests = null,
     }: SyncRequest): Promise<SyncEvent> {
+        const projectId = this._data.loadedProjectId;
+
         const syncEvent: SyncEvent = {
             project: null,
             folders: [],
@@ -172,7 +177,7 @@ export class SynchronizationService {
             };
 
             const projectResponse = await this._domain.projects.updateProject({
-                id: this._domain.loadedProjectId ?? "",
+                id: projectId,
                 ...projectRequest,
             });
             if (projectResponse)
@@ -187,10 +192,10 @@ export class SynchronizationService {
                 response: { folder: null },
             }));
 
-            const folderResponses =
-                await this._domain.loadedProject.folders.bulkUpdate(
-                    folderRequests,
-                );
+            const folderResponses = await this._domain.folders.bulkUpdate(
+                projectId,
+                folderRequests,
+            );
 
             if (folderResponses) {
                 for (let i = 0; i < folderEvents.length; i++) {
@@ -207,10 +212,10 @@ export class SynchronizationService {
                 response: { entry: null },
             }));
 
-            const entryResponses =
-                await this._domain.loadedProject.entries.bulkUpdate(
-                    entryRequests,
-                );
+            const entryResponses = await this._domain.entries.bulkUpdate(
+                projectId,
+                entryRequests,
+            );
             if (entryResponses) {
                 for (let i = 0; i < entryEvents.length; i++)
                     entryEvents[i].response.entry = entryResponses[i];

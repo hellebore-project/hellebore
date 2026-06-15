@@ -2,15 +2,19 @@ import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
 import type { DomainManager } from "@/api";
 import { EntryType } from "@/api";
+import { ClientData } from "@/models";
 import { EntrySearchService } from "@/ui/shared/entry-search/entry-search-service.svelte";
 import { test as baseTest } from "@tests/unit/ui/fixtures";
 
 const test = baseTest;
 
 describe("EntrySearchService", () => {
-    const createService = (serviceDomain: DomainManager) => {
-        const search = vi.spyOn(serviceDomain.loadedProject.entries, "search");
-        const service = new EntrySearchService(serviceDomain);
+    const createService = (
+        serviceDomain: DomainManager,
+        project: ClientData,
+    ) => {
+        const search = vi.spyOn(serviceDomain.entries, "search");
+        const service = new EntrySearchService(serviceDomain, project);
         service.queryPeriod = 10;
 
         return { service, search };
@@ -27,8 +31,9 @@ describe("EntrySearchService", () => {
 
     test("debounces query requests and searches only with the latest keyword", async ({
         domainManager,
+        projectState,
     }) => {
-        const { service, search } = createService(domainManager);
+        const { service, search } = createService(domainManager, projectState);
         search.mockResolvedValue([
             {
                 id: "7",
@@ -45,6 +50,7 @@ describe("EntrySearchService", () => {
 
         expect(search).toHaveBeenCalledOnce();
         expect(search).toHaveBeenCalledWith({
+            projectId: projectState.projectId,
             keyword: "first",
             limit: 10,
         });
@@ -58,8 +64,9 @@ describe("EntrySearchService", () => {
 
     test("returns mapped options from entry search results", async ({
         domainManager,
+        projectState,
     }) => {
-        const { service, search } = createService(domainManager);
+        const { service, search } = createService(domainManager, projectState);
         search.mockResolvedValue([
             {
                 id: "entry1",
@@ -93,8 +100,9 @@ describe("EntrySearchService", () => {
 
     test("clears results and skips backend search when query is empty", async ({
         domainManager,
+        projectState,
     }) => {
-        const { service, search } = createService(domainManager);
+        const { service, search } = createService(domainManager, projectState);
 
         service.queryResults = [
             {
@@ -113,8 +121,9 @@ describe("EntrySearchService", () => {
 
     test("handles null backend responses by producing an empty result set", async ({
         domainManager,
+        projectState,
     }) => {
-        const { service, search } = createService(domainManager);
+        const { service, search } = createService(domainManager, projectState);
         search.mockResolvedValue(null);
 
         service.queryString = "known";
@@ -127,8 +136,9 @@ describe("EntrySearchService", () => {
 
     test("emits open-entry event and cleans up state when selecting a valid id", ({
         domainManager,
+        projectState,
     }) => {
-        const { service } = createService(domainManager);
+        const { service } = createService(domainManager, projectState);
         const onOpenEntry = vi.fn();
         service.onOpenEntry.subscribe(onOpenEntry);
 
@@ -150,8 +160,11 @@ describe("EntrySearchService", () => {
         expect(service.queryResults).toStrictEqual([]);
     });
 
-    test("ignores null and undefined selections", ({ domainManager }) => {
-        const { service } = createService(domainManager);
+    test("ignores null and undefined selections", ({
+        domainManager,
+        projectState,
+    }) => {
+        const { service } = createService(domainManager, projectState);
         const onOpenEntry = vi.fn();
         service.onOpenEntry.subscribe(onOpenEntry);
 

@@ -21,10 +21,12 @@ const buildWord = (overrides: Partial<WordResponse> = {}): WordResponse => ({
 describe("WordTableService", () => {
     test("initializes identity and loads rows with transformed cell values plus a sentinel", ({
         domainManager,
+        projectState,
     }) => {
         const service = new WordTableService(
             "word-table-entry7",
             domainManager,
+            projectState,
         );
 
         service.load(
@@ -66,10 +68,12 @@ describe("WordTableService", () => {
 
     test("promotes sentinel row on first edit, applies first active type filter, emits change, and appends a new sentinel", ({
         domainManager,
+        projectState,
     }) => {
         const service = new WordTableService(
             "word-table-entry1",
             domainManager,
+            projectState,
         );
         const onChange = vi.fn();
         service.onChange.subscribe(onChange);
@@ -100,10 +104,12 @@ describe("WordTableService", () => {
 
     test("claims modified rows as domain words with parsed translations and clears changed tracking", ({
         domainManager,
+        projectState,
     }) => {
         const service = new WordTableService(
             "word-table-entry2",
             domainManager,
+            projectState,
         );
 
         service.load(
@@ -137,10 +143,12 @@ describe("WordTableService", () => {
 
     test("synchronizes backend ids into existing table rows by key", ({
         domainManager,
+        projectState,
     }) => {
         const service = new WordTableService(
             "word-table-entry3",
             domainManager,
+            projectState,
         );
 
         service.load([], "entry3");
@@ -165,13 +173,15 @@ describe("WordTableService", () => {
 
     test("removes transient rows locally and persisted rows via domain delete", async ({
         domainManager,
+        projectState,
     }) => {
         const deleteWord = vi
-            .spyOn(domainManager.loadedProject.words, "delete")
+            .spyOn(domainManager.words, "delete")
             .mockResolvedValue(true);
         const service = new WordTableService(
             "word-table-entry4",
             domainManager,
+            projectState,
         );
 
         service.load([buildWord({ id: "entry5" })], "entry22");
@@ -185,20 +195,25 @@ describe("WordTableService", () => {
         await service.removeRow("entry5");
 
         expect(deleteWord).toHaveBeenCalledOnce();
-        expect(deleteWord).toHaveBeenCalledWith("entry5");
+        expect(deleteWord).toHaveBeenCalledWith(
+            projectState.projectId,
+            "entry5",
+        );
         expect(service.table.findRow(transientKey)).toBeUndefined();
         expect(service.table.findRow("entry5")).toBeUndefined();
     });
 
     test("keeps persisted row when domain delete fails", async ({
         domainManager,
+        projectState,
     }) => {
         const deleteWord = vi
-            .spyOn(domainManager.loadedProject.words, "delete")
+            .spyOn(domainManager.words, "delete")
             .mockResolvedValue(false);
         const service = new WordTableService(
             "word-table-entry5",
             domainManager,
+            projectState,
         );
 
         service.load([buildWord({ id: "entry18" })], "entry8");
@@ -211,10 +226,12 @@ describe("WordTableService", () => {
 
     test("cleans up table interaction state by delegating to reset", ({
         domainManager,
+        projectState,
     }) => {
         const service = new WordTableService(
             "word-table-entry6",
             domainManager,
+            projectState,
         );
 
         service.load([buildWord({ id: "entry60" })], "entry15");

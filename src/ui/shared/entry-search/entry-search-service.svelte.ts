@@ -5,6 +5,7 @@ import type {
     OptionData,
 } from "@/interface";
 import { DomainManager } from "@/api";
+import { ClientData } from "@/models";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 export class EntrySearchService implements IComponentService {
@@ -22,12 +23,14 @@ export class EntrySearchService implements IComponentService {
 
     // SERVICES
     private _domain: DomainManager;
+    private _data: ClientData;
 
     // EVENTS
     onOpenEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
 
-    constructor(domain: DomainManager) {
+    constructor(domain: DomainManager, data: ClientData) {
         this._domain = domain;
+        this._data = data;
 
         this.onOpenEntry = new MultiEventProducer();
     }
@@ -76,10 +79,12 @@ export class EntrySearchService implements IComponentService {
 
     private async _queryEntries(): Promise<OptionData<Id>[]> {
         const keyword = this._queryString;
-
         if (keyword === "") return [];
 
-        const entries = await this._domain.loadedProject.entries.search({
+        const projectId = this._data.loadedProjectId;
+
+        const entries = await this._domain.entries.search({
+            projectId,
             keyword,
             limit: 10,
         });

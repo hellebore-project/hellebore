@@ -25,12 +25,14 @@ import type {
     EntryInfoResponse,
     FolderResponse,
 } from "@/api";
+import { ClientData } from "@/models";
 import { EventProducer } from "@/utils/event-producer";
 
 import { EntryEditorNavigatorService, EntrySpotlightService } from "./sections";
 
 interface LeftSidebarServiceArgs {
     domain: DomainManager;
+    data: ClientData;
 }
 
 export class LeftSidebarService implements IComponentService {
@@ -44,6 +46,7 @@ export class LeftSidebarService implements IComponentService {
 
     // SERVICES
     domain: DomainManager;
+    data: ClientData;
 
     // EVENTS
     onSelectEntryEditorNavItem: EventProducer<
@@ -63,8 +66,9 @@ export class LeftSidebarService implements IComponentService {
     onDeleteEntry: EventProducer<DeleteEntryEvent, Promise<boolean>>;
     onDataChange: EventProducer<DataChangeEvent, unknown>;
 
-    constructor({ domain }: LeftSidebarServiceArgs) {
+    constructor({ domain, data }: LeftSidebarServiceArgs) {
         this.domain = domain;
+        this.data = data;
         this.onSelectEntryEditorNavItem = new EventProducer();
         this.onOpenEntry = new EventProducer();
         this.onCreateFolder = new EventProducer();
@@ -86,7 +90,7 @@ export class LeftSidebarService implements IComponentService {
         );
         if (existing) return existing;
 
-        const section = new EntrySpotlightService(this.domain);
+        const section = new EntrySpotlightService(this.domain, this.data);
         section.ownership.add(ownerId);
 
         section.onOpenEntry.broker = this.onOpenEntry;
