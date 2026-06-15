@@ -5,9 +5,9 @@ import { EntryInfoService } from "@/ui/centre/entry-editor/entry-info-service.sv
 
 describe("EntryInfoService", () => {
     it("initializes with constructor id and default state", () => {
-        const service = new EntryInfoService(42);
+        const service = new EntryInfoService("entry42");
 
-        expect(service.entryId).toBe(42);
+        expect(service.entryId).toBe("entry42");
         expect(service.entryType).toBeNull();
         expect(service.entryTypeLabel).toBeUndefined();
         expect(service.title).toBe("");
@@ -17,7 +17,7 @@ describe("EntryInfoService", () => {
     });
 
     it("updates title and emits change event once for a real change", () => {
-        const service = new EntryInfoService(9);
+        const service = new EntryInfoService("entry9");
         const onChangeTitle = vi.fn();
         service.onChangeTitle.subscribe(onChangeTitle);
 
@@ -27,14 +27,14 @@ describe("EntryInfoService", () => {
         expect(service.titleChanged).toBe(true);
         expect(onChangeTitle).toHaveBeenCalledOnce();
         expect(onChangeTitle).toHaveBeenCalledWith({
-            id: 9,
+            id: "entry9",
             titleChanged: true,
             syncImmediately: true,
         });
     });
 
     it("does not emit or mark changed when setting the same title", () => {
-        const service = new EntryInfoService(5);
+        const service = new EntryInfoService("entry5");
         const onChangeTitle = vi.fn();
         service.onChangeTitle.subscribe(onChangeTitle);
 
@@ -46,7 +46,7 @@ describe("EntryInfoService", () => {
     });
 
     it("computes title validity from title uniqueness and non-empty value", () => {
-        const service = new EntryInfoService(12);
+        const service = new EntryInfoService("entry12");
 
         service.title = "entry";
         expect(service.isTitleValid).toBe(true);
@@ -60,14 +60,14 @@ describe("EntryInfoService", () => {
     });
 
     it("loads id/type/title without producing a title-change event", () => {
-        const service = new EntryInfoService(1);
+        const service = new EntryInfoService("entry1");
         const onChangeTitle = vi.fn();
         service.onChangeTitle.subscribe(onChangeTitle);
 
         service.isTitleUnique = false;
-        service.load(44, EntryType.Person, "Ada");
+        service.load("entry44", EntryType.Person, "Ada");
 
-        expect(service.entryId).toBe(44);
+        expect(service.entryId).toBe("entry44");
         expect(service.entryType).toBe(EntryType.Person);
         expect(service.entryTypeLabel).toBe("Person");
         expect(service.title).toBe("Ada");
@@ -77,11 +77,11 @@ describe("EntryInfoService", () => {
     });
 
     it("handleSynchronization keeps titleChanged false when incoming title is unchanged", () => {
-        const service = new EntryInfoService(7);
+        const service = new EntryInfoService("entry7");
         const onChangeTitle = vi.fn();
         service.onChangeTitle.subscribe(onChangeTitle);
 
-        service.load(7, EntryType.Language, "Greek");
+        service.load("entry7", EntryType.Language, "Greek");
         service.titleChanged = true;
 
         service.handleSynchronization("Greek");
@@ -92,11 +92,11 @@ describe("EntryInfoService", () => {
     });
 
     it("handleSynchronization re-flags and emits when incoming title differs", () => {
-        const service = new EntryInfoService(7);
+        const service = new EntryInfoService("entry7");
         const onChangeTitle = vi.fn();
         service.onChangeTitle.subscribe(onChangeTitle);
 
-        service.load(7, EntryType.Language, "Greek");
+        service.load("entry7", EntryType.Language, "Greek");
 
         service.handleSynchronization("Latin");
 
@@ -104,7 +104,7 @@ describe("EntryInfoService", () => {
         expect(service.titleChanged).toBe(true);
         expect(onChangeTitle).toHaveBeenCalledOnce();
         expect(onChangeTitle).toHaveBeenCalledWith({
-            id: 7,
+            id: "entry7",
             titleChanged: true,
             syncImmediately: true,
         });

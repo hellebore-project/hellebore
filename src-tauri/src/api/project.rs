@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::model::{errors::Error, state::State};
 use crate::schema::project::ProjectResponseSchema;
 use crate::services::project_service;
@@ -25,19 +27,19 @@ pub async fn load_project(
 }
 
 #[tauri::command]
-pub async fn close_project(state: tauri::State<'_, State>, id: String) -> Result<(), Error> {
+pub async fn close_project(state: tauri::State<'_, State>, id: Uuid) -> Result<(), Error> {
     let mut state = state.lock().await;
-    project_service::close(&mut state, &id).await?;
+    project_service::close(&mut state, id).await?;
     Ok(())
 }
 
 #[tauri::command]
 pub async fn update_project(
     state: tauri::State<'_, State>,
-    id: String,
+    id: Uuid,
     name: String,
 ) -> Result<ProjectResponseSchema, Error> {
     let mut state = state.lock().await;
-    let response = project_service::update(&mut state, &id, &name).await?;
+    let response = project_service::update(&mut state, id, &name).await?;
     Ok(response)
 }

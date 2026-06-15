@@ -31,8 +31,8 @@ pub fn updated_project_name() -> String {
 }
 
 #[fixture]
-pub fn missing_project_id() -> String {
-    Uuid::new_v4().to_string()
+pub fn missing_project_id() -> Uuid {
+    Uuid::new_v4()
 }
 
 #[fixture]

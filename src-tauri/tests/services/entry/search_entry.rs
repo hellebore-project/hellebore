@@ -1,5 +1,6 @@
 use hellebore::{schema::entry::EntrySearchSchema, services::entry_service};
 use rstest::*;
+use uuid::Uuid;
 
 use crate::{
     fixtures::{database, folder::folder_id},
@@ -19,7 +20,7 @@ pub fn search_entry_payload() -> EntrySearchSchema {
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_with_exact_title_match(
-    folder_id: i32,
+    folder_id: Uuid,
     mut search_entry_payload: EntrySearchSchema,
 ) {
     let database = database().await;
@@ -46,7 +47,7 @@ async fn test_search_entry_with_exact_title_match(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_starts_with_keyword(
-    folder_id: i32,
+    folder_id: Uuid,
     mut search_entry_payload: EntrySearchSchema,
 ) {
     let database = database().await;
@@ -72,7 +73,7 @@ async fn test_search_entry_title_starts_with_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_ends_with_keyword(
-    folder_id: i32,
+    folder_id: Uuid,
     mut search_entry_payload: EntrySearchSchema,
 ) {
     let database = database().await;
@@ -98,7 +99,7 @@ async fn test_search_entry_title_ends_with_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_contains_keyword(
-    folder_id: i32,
+    folder_id: Uuid,
     mut search_entry_payload: EntrySearchSchema,
 ) {
     let database = database().await;
@@ -124,7 +125,7 @@ async fn test_search_entry_title_contains_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_does_not_contain_keyword(
-    folder_id: i32,
+    folder_id: Uuid,
     mut search_entry_payload: EntrySearchSchema,
 ) {
     let database = database().await;
@@ -149,7 +150,7 @@ async fn test_search_entry_title_does_not_contain_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_contains_partial_keyword(
-    folder_id: i32,
+    folder_id: Uuid,
     mut search_entry_payload: EntrySearchSchema,
 ) {
     let database = database().await;
@@ -176,7 +177,7 @@ async fn test_search_entry_title_contains_partial_keyword(
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_contains_keyword_with_typo(
-    folder_id: i32,
+    folder_id: Uuid,
     mut search_entry_payload: EntrySearchSchema,
 ) {
     let database = database().await;

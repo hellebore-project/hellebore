@@ -7,6 +7,7 @@ use hellebore::{
     types::entity::EntityType,
 };
 use rstest::*;
+use uuid::Uuid;
 
 use crate::fixtures::folder::folder_id;
 
@@ -38,7 +39,7 @@ pub fn entry_text_json(entry_text_node: TextNode) -> String {
 
 #[fixture]
 pub fn create_entry_payload(
-    folder_id: i32,
+    folder_id: Uuid,
     entry_title: String,
     entry_properties: EntryProperties,
 ) -> EntryCreateSchema {
@@ -53,7 +54,7 @@ pub fn create_entry_payload(
 #[fixture]
 pub fn update_entry_payload() -> EntryUpdateSchema {
     EntryUpdateSchema {
-        id: 0,
+        id: Uuid::new_v4(),
         folder_id: None,
         title: None,
         properties: None,

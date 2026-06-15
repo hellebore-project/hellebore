@@ -8,7 +8,7 @@ import type { WordColumnKey } from "./word-table-constants";
 export interface WordRow {
     id: Id | null;
     key: WordKey;
-    languageId: number;
+    languageId: Id;
     filterable?: boolean;
     cells: Record<WordColumnKey, CellState>;
 }

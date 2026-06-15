@@ -1,20 +1,21 @@
 use sea_orm::*;
+use uuid::Uuid;
 
 use ::entity::{person, person::Entity as Person};
 
-pub async fn insert<C>(con: &C, entry_id: i32, name: &str) -> Result<person::Model, DbErr>
+pub async fn insert<C>(con: &C, entry_id: Uuid, name: &str) -> Result<person::Model, DbErr>
 where
     C: ConnectionTrait,
 {
     let person = person::ActiveModel {
-        id: NotSet,
+        id: Set(Uuid::new_v4()),
         entry_id: Set(entry_id),
         name: Set(name.to_string()),
     };
     person.insert(con).await
 }
 
-pub async fn update<C>(con: &C, entry_id: i32, name: &str) -> Result<person::Model, DbErr>
+pub async fn update<C>(con: &C, entry_id: Uuid, name: &str) -> Result<person::Model, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -26,7 +27,7 @@ where
     entity.update(con).await
 }
 
-pub async fn get<C>(con: &C, entry_id: i32) -> Result<Option<person::Model>, DbErr>
+pub async fn get<C>(con: &C, entry_id: Uuid) -> Result<Option<person::Model>, DbErr>
 where
     C: ConnectionTrait,
 {

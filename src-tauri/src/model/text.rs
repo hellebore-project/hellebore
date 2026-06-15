@@ -1,7 +1,8 @@
-use serde_json::Value;
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct TextMark {
@@ -59,10 +60,10 @@ impl TextNode {
         node
     }
 
-    pub fn new_reference(id: i32, label: String) -> Self {
+    pub fn new_reference(id: Uuid, label: String) -> Self {
         let mut node = TextNode::new("mention".to_owned());
         node.attrs = Some(HashMap::from([
-            ("id".to_owned(), id.into()),
+            ("id".to_owned(), id.to_string().into()),
             ("label".to_owned(), label.into()),
             ("mentionSuggestionChar".to_owned(), "@".into()),
         ]));

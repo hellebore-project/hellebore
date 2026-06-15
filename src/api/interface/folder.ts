@@ -31,6 +31,6 @@ export interface FolderNameCollisionResponse {
 }
 
 export interface FolderValidateResponse extends FolderProperties {
-    id: number | null;
+    id: Id | null;
     nameCollision: FolderNameCollisionResponse | null;
 }

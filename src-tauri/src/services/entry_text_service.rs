@@ -1,4 +1,5 @@
 use sea_orm::DatabaseConnection;
+use uuid::Uuid;
 
 use crate::database::entry_manager;
 use crate::model::{
@@ -9,7 +10,7 @@ use crate::types::entity::ENTRY;
 
 pub async fn sync_text(
     database: &DatabaseConnection,
-    id: i32,
+    id: Uuid,
     text: &str,
     errors: &mut Vec<Error>,
 ) -> TextNode {
@@ -26,7 +27,7 @@ pub async fn sync_text(
     text
 }
 
-fn _parse_text(id: i32, text: &str) -> Result<TextNode, Error> {
+fn _parse_text(id: Uuid, text: &str) -> Result<TextNode, Error> {
     if text.is_empty() {
         return Ok(TextNode::new_doc());
     }
@@ -46,7 +47,7 @@ fn _parse_text(id: i32, text: &str) -> Result<TextNode, Error> {
 
 async fn _sync_text_node(
     database: &DatabaseConnection,
-    id: i32,
+    id: Uuid,
     node: &mut TextNode,
     errors: &mut Vec<Error>,
 ) {
@@ -65,65 +66,84 @@ async fn _sync_text_node(
 
 async fn _sync_reference_label(
     database: &DatabaseConnection,
-    id: i32,
+    id: Uuid,
     node: &mut TextNode,
     errors: &mut Vec<Error>,
 ) {
     let ref_id_option = node.get_attr("id");
-    if let Some(ref_id_value) = ref_id_option {
-        if let Some(ref_id) = ref_id_value.as_i64() {
-            // since the DB uses 4-byte integers, we need to cast the ref ID down from 8 bytes to 4;
-            // in practice, this will never lead to dataloss since the DB is responsible for creating IDs
-            let ref_id: i32 = ref_id as i32;
 
-            let entry_result = entry_manager::get(database, ref_id).await;
-
-            match entry_result {
-                Ok(optional_entry) => match optional_entry {
-                    Some(entry) => {
-                        node.set_attr("label", serde_json::Value::String(entry.title));
-                    }
-                    None => {
-                        node.set_attr(
-                            "label",
-                            serde_json::Value::String("UNKNOWN REFERENCE".to_owned()),
-                        );
-                        errors.push(
-                            ErrorBuilder::new()
-                                .msg("Referenced entry does not exist.")
-                                .entry(ENTRY)
-                                .with_id(&id)
-                                .bad_reference_id(ref_id),
-                        );
-                    }
-                },
-                Err(e) => {
-                    node.set_attr("label", serde_json::Value::String("ERROR".to_owned()));
-                    errors.push(
-                        ErrorBuilder::new()
-                            .msg("Failed to query entry table while fetching referenced entry.")
-                            .from_err(e)
-                            .db()
-                            .query_failed(),
-                    );
-                }
-            }
-        } else {
+    let ref_id_value = match ref_id_option {
+        Some(ref_id_value) => ref_id_value,
+        None => {
             errors.push(
                 ErrorBuilder::new()
-                    .msg("Reference ID of Mention node is not an integer.")
+                    .msg("Mention node is missing a reference ID.")
                     .entry(ENTRY)
                     .with_id(&id)
-                    .bad_text_value_type("id", &ref_id_value.to_string(), "i64"),
+                    .missing_text_attribute("id"),
             );
+            return;
         }
+    };
+
+    let ref_id_string = match ref_id_value.as_str() {
+        Some(ref_id) => ref_id,
+        None => {
+            errors.push(
+                ErrorBuilder::new()
+                    .msg("Reference ID of Mention node is not a string.")
+                    .entry(ENTRY)
+                    .with_id(&id)
+                    .bad_text_value_type("id", &ref_id_value.to_string(), "Uuid"),
+            );
+            return;
+        }
+    };
+
+    let ref_id = match Uuid::parse_str(ref_id_string) {
+        Ok(uuid) => uuid,
+        Err(_) => {
+            errors.push(
+                ErrorBuilder::new()
+                    .msg("Reference ID of Mention node is not a valid UUID.")
+                    .entry(ENTRY)
+                    .with_id(&id)
+                    .bad_reference_id(&ref_id_value),
+            );
+            return;
+        }
+    };
+
+    let entry_result = entry_manager::get(database, ref_id).await;
+
+    let optional_entry = match entry_result {
+        Ok(optional_entry) => optional_entry,
+        Err(e) => {
+            node.set_attr("label", serde_json::Value::String("ERROR".to_owned()));
+            errors.push(
+                ErrorBuilder::new()
+                    .msg("Failed to query entry table while fetching referenced entry.")
+                    .from_err(e)
+                    .db()
+                    .query_failed(),
+            );
+            return;
+        }
+    };
+
+    if let Some(entry) = optional_entry {
+        node.set_attr("label", serde_json::Value::String(entry.title));
     } else {
+        node.set_attr(
+            "label",
+            serde_json::Value::String("UNKNOWN REFERENCE".to_owned()),
+        );
         errors.push(
             ErrorBuilder::new()
-                .msg("Mention node is missing a reference ID.")
+                .msg("Referenced entry does not exist.")
                 .entry(ENTRY)
                 .with_id(&id)
-                .missing_text_attribute("id"),
+                .bad_reference_id(&ref_id),
         );
     }
 }

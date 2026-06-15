@@ -3,6 +3,7 @@ use hellebore::{
     services::{entry_service, folder_service},
 };
 use rstest::*;
+use uuid::Uuid;
 
 use crate::{
     fixtures::{
@@ -19,7 +20,7 @@ use crate::{
 #[rstest]
 #[tokio::test]
 async fn test_update_entry_title(
-    folder_id: i32,
+    folder_id: Uuid,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
@@ -46,7 +47,7 @@ async fn test_update_entry_title(
 #[rstest]
 #[tokio::test]
 async fn test_update_entry_folder(
-    folder_id: i32,
+    folder_id: Uuid,
     folder_create_payload: FolderCreateSchema,
     entry_title: String,
     entry_text: String,
@@ -81,7 +82,7 @@ async fn test_update_entry_folder(
 #[rstest]
 #[tokio::test]
 async fn test_update_entry_text(
-    folder_id: i32,
+    folder_id: Uuid,
     entry_title: String,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
@@ -113,7 +114,7 @@ async fn test_update_entry_text(
 #[rstest]
 #[tokio::test]
 async fn test_update_entry(
-    folder_id: i32,
+    folder_id: Uuid,
     folder_create_payload: FolderCreateSchema,
     entry_title: String,
     entry_text: String,
@@ -158,7 +159,7 @@ async fn test_error_on_updating_nonexistent_entry(mut update_entry_payload: Entr
 #[rstest]
 #[tokio::test]
 async fn test_error_on_updating_entry_with_duplicate_name(
-    folder_id: i32,
+    folder_id: Uuid,
     entry_text: String,
     mut update_entry_payload: EntryUpdateSchema,
 ) {

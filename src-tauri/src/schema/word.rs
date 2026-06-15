@@ -1,12 +1,13 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{schema::common::UpsertResponseSchema, types::grammar::WordType};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WordUpsertSchema {
-    pub id: Option<i32>,
-    pub language_id: Option<i32>,
+    pub id: Option<Uuid>,
+    pub language_id: Option<Uuid>,
     pub word_type: Option<WordType>,
     pub spelling: Option<String>,
     pub definition: Option<String>,
@@ -29,7 +30,7 @@ impl WordUpsertSchema {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WordUpsertResponseSchema {
-    pub id: Option<i32>,
+    pub id: Option<Uuid>,
     pub status: UpsertResponseSchema,
 }
 
@@ -48,8 +49,8 @@ impl WordUpsertResponseSchema {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WordResponseSchema {
-    pub id: i32,
-    pub language_id: i32,
+    pub id: Uuid,
+    pub language_id: Uuid,
     pub word_type: WordType,
     pub spelling: String,
     pub definition: String,

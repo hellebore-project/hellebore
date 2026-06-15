@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     model::text::TextNode,
@@ -21,7 +22,7 @@ pub enum EntryProperties {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EntryCreateSchema {
-    pub folder_id: i32,
+    pub folder_id: Uuid,
     pub entity_type: EntityType,
     pub title: String,
     pub properties: EntryProperties,
@@ -30,8 +31,8 @@ pub struct EntryCreateSchema {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EntryUpdateSchema {
-    pub id: i32,
-    pub folder_id: Option<i32>,
+    pub id: Uuid,
+    pub folder_id: Option<Uuid>,
     pub title: Option<String>,
     pub properties: Option<EntryProperties>,
     pub text: Option<String>,
@@ -58,7 +59,7 @@ pub struct EntryTitleUpdateResponseSchema {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EntryUpdateResponseSchema {
-    pub id: i32,
+    pub id: Uuid,
     pub folder_id: UpdateResponseSchema,
     pub title: EntryTitleUpdateResponseSchema,
     pub properties: UpdateResponseSchema,
@@ -98,8 +99,8 @@ impl EntryUpdateResponseSchema {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EntryInfoResponseSchema {
-    pub id: i32,
-    pub folder_id: i32,
+    pub id: Uuid,
+    pub folder_id: Uuid,
     pub entity_type: EntityType,
     pub title: String,
 }

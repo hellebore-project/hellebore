@@ -61,7 +61,7 @@ export interface EntryUpdateResponse extends IdentifiedObject {
 }
 
 export interface EntryInfoResponse extends BaseEntryInfo {
-    folderId: number;
+    folderId: Id;
     title: string;
 }
 

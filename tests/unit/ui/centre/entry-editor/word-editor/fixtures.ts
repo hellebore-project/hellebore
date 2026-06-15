@@ -21,7 +21,7 @@ export interface BaseWordEditorFixtures {
 export const test = baseTest.extend<BaseWordEditorFixtures>({
     entryType: EntryType.Language,
 
-    wordId: 1,
+    wordId: "word1",
     wordType: WordType.Noun,
     wordSpelling: "test-word",
     wordDefinition: "test-definition",

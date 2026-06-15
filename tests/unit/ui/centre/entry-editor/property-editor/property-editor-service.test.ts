@@ -8,10 +8,10 @@ import { PropertyEditorService } from "@/ui/centre/entry-editor/property-editor/
 
 describe("PropertyEditorService", () => {
     it("initializes with default state and identity", () => {
-        const info = new EntryInfoService(42);
+        const info = new EntryInfoService("entry42");
         const service = new PropertyEditorService({ info });
 
-        expect(service.id).toBe("property-editor-42");
+        expect(service.id).toBe("property-editor-entry42");
         expect(service.entity).toBeNull();
         expect(service.fieldData).toStrictEqual([]);
         expect(service.changed).toBe(false);
@@ -19,7 +19,7 @@ describe("PropertyEditorService", () => {
     });
 
     it("loads person properties, wires model field data, and updates through field setter", () => {
-        const info = new EntryInfoService(7);
+        const info = new EntryInfoService("entry7");
         info.entryType = EntryType.Person;
         const service = new PropertyEditorService({ info });
 
@@ -43,7 +43,7 @@ describe("PropertyEditorService", () => {
     });
 
     it("forwards entity onChange to service onChange and marks state as changed", () => {
-        const info = new EntryInfoService(13);
+        const info = new EntryInfoService("entry13");
         info.entryType = EntryType.Person;
         const service = new PropertyEditorService({ info });
         const onChange = vi.fn();
@@ -57,13 +57,13 @@ describe("PropertyEditorService", () => {
         expect(service.changed).toBe(true);
         expect(onChange).toHaveBeenCalledOnce();
         expect(onChange).toHaveBeenCalledWith({
-            id: 13,
+            id: "entry13",
             propertiesChanged: true,
         });
     });
 
     it("supports resetting changed state after edits", () => {
-        const info = new EntryInfoService(3);
+        const info = new EntryInfoService("entry3");
         info.entryType = EntryType.Person;
         const service = new PropertyEditorService({ info });
 
@@ -78,7 +78,7 @@ describe("PropertyEditorService", () => {
     });
 
     it("loads language properties with language entity and empty field rows", () => {
-        const info = new EntryInfoService(8);
+        const info = new EntryInfoService("entry8");
         info.entryType = EntryType.Language;
         const service = new PropertyEditorService({ info });
 
@@ -91,7 +91,7 @@ describe("PropertyEditorService", () => {
     });
 
     it("ignores load when entry type is not supported", () => {
-        const info = new EntryInfoService(99);
+        const info = new EntryInfoService("entry99");
         const service = new PropertyEditorService({ info });
         const onChange = vi.fn();
         service.onChange.subscribe(onChange);

@@ -1,5 +1,6 @@
 use hellebore::services::entry_service;
 use rstest::*;
+use uuid::Uuid;
 
 use crate::{
     fixtures::{
@@ -12,7 +13,7 @@ use crate::{
 
 #[rstest]
 #[tokio::test]
-async fn test_delete_entry(folder_id: i32, entry_title: String, entry_text: String) {
+async fn test_delete_entry(folder_id: Uuid, entry_title: String, entry_text: String) {
     let database = database().await;
     let entry = create_generic_entry(
         &database,
@@ -34,6 +35,6 @@ async fn test_delete_entry(folder_id: i32, entry_title: String, entry_text: Stri
 #[tokio::test]
 async fn test_noop_on_deleting_nonexistent_entry() {
     let database = database().await;
-    let response = entry_service::delete(&database, 0).await;
+    let response = entry_service::delete(&database, Uuid::new_v4()).await;
     assert!(response.is_ok());
 }

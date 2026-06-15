@@ -1,5 +1,6 @@
 use ::entity::{entry, entry::Entity as EntryModel};
 use sea_orm::*;
+use uuid::Uuid;
 
 use crate::{
     database::{file_manager, utils},
@@ -10,8 +11,8 @@ use crate::{
 #[derive(DerivePartialModel, FromQueryResult)]
 #[sea_orm(entity = "EntryModel")]
 pub struct EntityInfo {
-    pub id: i32,
-    pub folder_id: Option<i32>,
+    pub id: Uuid,
+    pub folder_id: Option<Uuid>,
     pub entity_type: i8,
     pub title: String,
 }
@@ -19,7 +20,7 @@ pub struct EntityInfo {
 pub async fn insert<C>(
     con: &C,
     entity_type: EntityType,
-    folder_id: i32,
+    folder_id: Uuid,
     title: String,
     text: String,
 ) -> Result<entry::Model, DbErr>
@@ -27,22 +28,22 @@ where
     C: ConnectionTrait,
 {
     let new_entity = entry::ActiveModel {
-        id: NotSet,
-        folder_id: Set(file_manager::convert_negative_folder_id_to_null(folder_id)),
+        id: Set(Uuid::new_v4()),
+        folder_id: Set(file_manager::convert_root_folder_id_to_null(folder_id)),
         title: Set(title),
         entity_type: Set(entity_type.code()),
         text: Set(text),
     };
     match new_entity.insert(con).await {
         Ok(created_entity) => created_entity.try_into_model(),
-        Err(_e) => Err(DbErr::RecordNotInserted),
+        Err(e) => Err(e),
     }
 }
 
 pub async fn update<C>(
     con: &C,
-    id: i32,
-    folder_id: Option<i32>,
+    id: Uuid,
+    folder_id: Option<Uuid>,
     title: Option<String>,
     text: Option<String>,
 ) -> Result<entry::Model, DbErr>
@@ -62,7 +63,7 @@ where
     updated_entity.update(con).await
 }
 
-pub async fn exists<C>(con: &C, id: i32) -> Result<bool, DbErr>
+pub async fn exists<C>(con: &C, id: Uuid) -> Result<bool, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -76,7 +77,11 @@ where
     return Ok(get_by_title(con, title).await?.is_some());
 }
 
-pub async fn is_title_unique_for_id<C>(con: &C, id: Option<i32>, title: &str) -> Result<bool, DbErr>
+pub async fn is_title_unique_for_id<C>(
+    con: &C,
+    id: Option<Uuid>,
+    title: &str,
+) -> Result<bool, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -90,7 +95,7 @@ where
     }
 }
 
-pub async fn get<C>(con: &C, id: i32) -> Result<Option<entry::Model>, DbErr>
+pub async fn get<C>(con: &C, id: Uuid) -> Result<Option<entry::Model>, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -108,7 +113,7 @@ where
         .await
 }
 
-pub async fn get_info<C>(con: &C, id: i32) -> Result<Option<EntityInfo>, DbErr>
+pub async fn get_info<C>(con: &C, id: Uuid) -> Result<Option<EntityInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -154,14 +159,14 @@ where
     cursor.into_partial_model::<EntityInfo>().all(con).await
 }
 
-pub async fn delete<C>(con: &C, id: i32) -> Result<DeleteResult, DbErr>
+pub async fn delete<C>(con: &C, id: Uuid) -> Result<DeleteResult, DbErr>
 where
     C: ConnectionTrait,
 {
     EntryModel::delete_by_id(id).exec(con).await
 }
 
-pub async fn delete_many<C>(con: &C, ids: Vec<i32>) -> Result<DeleteResult, DbErr>
+pub async fn delete_many<C>(con: &C, ids: Vec<Uuid>) -> Result<DeleteResult, DbErr>
 where
     C: ConnectionTrait,
 {

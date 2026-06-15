@@ -16,27 +16,27 @@ describe("cell selection", () => {
 
         table.handleKeyDown(
             new KeyboardEvent("keydown", { key: "ArrowRight" }),
-            "1",
+            "word1",
             WordColumnKey.Spelling,
         );
         expect(table.activeCell).toStrictEqual({
-            rowKey: "1",
+            rowKey: "word1",
             colKey: WordColumnKey.Definition,
         });
 
         table.handleKeyDown(
             new KeyboardEvent("keydown", { key: "ArrowLeft" }),
-            "1",
+            "word1",
             WordColumnKey.Definition,
         );
         expect(table.activeCell).toStrictEqual({
-            rowKey: "1",
+            rowKey: "word1",
             colKey: WordColumnKey.Spelling,
         });
 
         table.handleKeyDown(
             new KeyboardEvent("keydown", { key: "ArrowDown" }),
-            "1",
+            "word1",
             WordColumnKey.Spelling,
         );
         expect(table.activeCell).toStrictEqual({
@@ -50,7 +50,7 @@ describe("cell selection", () => {
             WordColumnKey.Spelling,
         );
         expect(table.activeCell).toStrictEqual({
-            rowKey: "1",
+            rowKey: "word1",
             colKey: WordColumnKey.Spelling,
         });
     });
@@ -59,17 +59,17 @@ describe("cell selection", () => {
         wordEditorService,
     }) => {
         const table = wordEditorService.table.table;
-        table.selectSingle("1", WordColumnKey.Spelling);
-        table.selectRange("1", WordColumnKey.Definition);
+        table.selectSingle("word1", WordColumnKey.Spelling);
+        table.selectRange("word1", WordColumnKey.Definition);
 
         table.handleKeyDown(
             new KeyboardEvent("keydown", { key: "ArrowRight" }),
-            "1",
+            "word1",
             WordColumnKey.Spelling,
         );
 
         expect(table.selectedCells.size).toBe(1);
-        expect(table.selectedCells.has("1-definition")).toBe(true);
+        expect(table.selectedCells.has("word1-definition")).toBe(true);
     });
 });
 
@@ -83,22 +83,22 @@ describe("cell editing", () => {
         wordEditorService,
     }) => {
         const table = wordEditorService.table.table;
-        table.selectSingle("1", WordColumnKey.Spelling);
+        table.selectSingle("word1", WordColumnKey.Spelling);
 
         table.handleKeyDown(
             new KeyboardEvent("keydown", { key: "Enter" }),
-            "1",
+            "word1",
             WordColumnKey.Spelling,
         );
         expect(table.editCell).toStrictEqual({
-            rowKey: "1",
+            rowKey: "word1",
             colKey: WordColumnKey.Spelling,
         });
 
-        table.setValue("1", WordColumnKey.Spelling, "cell1-edited");
+        table.setValue("word1", WordColumnKey.Spelling, "cell1-edited");
         table.handleKeyDown(
             new KeyboardEvent("keydown", { key: "Enter" }),
-            "1",
+            "word1",
             WordColumnKey.Spelling,
         );
 
@@ -108,8 +108,8 @@ describe("cell editing", () => {
             colKey: WordColumnKey.Spelling,
         });
         expect(
-            (table.findRow("1")?.cells[WordColumnKey.Spelling].value ?? "") ===
-                "cell1-edited",
+            (table.findRow("word1")?.cells[WordColumnKey.Spelling].value ??
+                "") === "cell1-edited",
         ).toBe(true);
     });
 
@@ -117,39 +117,39 @@ describe("cell editing", () => {
         wordEditorService,
     }) => {
         const table = wordEditorService.table.table;
-        table.selectSingle("1", WordColumnKey.Spelling);
-        table.startEdit("1", WordColumnKey.Spelling);
-        table.setValue("1", WordColumnKey.Spelling, "changed");
+        table.selectSingle("word1", WordColumnKey.Spelling);
+        table.startEdit("word1", WordColumnKey.Spelling);
+        table.setValue("word1", WordColumnKey.Spelling, "changed");
 
         table.handleKeyDown(
             new KeyboardEvent("keydown", { key: "Escape" }),
-            "1",
+            "word1",
             WordColumnKey.Spelling,
         );
 
         expect(table.editCell).toBe(null);
-        expect(table.findRow("1")?.cells[WordColumnKey.Spelling].value).toBe(
-            "cell1",
-        );
+        expect(
+            table.findRow("word1")?.cells[WordColumnKey.Spelling].value,
+        ).toBe("cell1");
     });
 
     test("enter reduces selection to a single cell before editing", async ({
         wordEditorService,
     }) => {
         const table = wordEditorService.table.table;
-        table.selectSingle("1", WordColumnKey.Spelling);
-        table.selectRange("1", WordColumnKey.Definition);
+        table.selectSingle("word1", WordColumnKey.Spelling);
+        table.selectRange("word1", WordColumnKey.Definition);
 
         table.handleKeyDown(
             new KeyboardEvent("keydown", { key: "Enter" }),
-            "1",
+            "word1",
             WordColumnKey.Spelling,
         );
 
         expect(table.selectedCells.size).toBe(1);
-        expect(table.selectedCells.has("1-spelling")).toBe(true);
+        expect(table.selectedCells.has("word1-spelling")).toBe(true);
         expect(table.editCell).toStrictEqual({
-            rowKey: "1",
+            rowKey: "word1",
             colKey: WordColumnKey.Spelling,
         });
     });

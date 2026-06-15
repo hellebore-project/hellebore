@@ -8,7 +8,7 @@ import type {
     Id,
     ISidebarSectionService,
 } from "@/interface";
-import { EntryType } from "@/api";
+import { ENTRY_ID_SENTINEL, EntryType } from "@/api";
 import { EventProducer } from "@/utils/event-producer";
 import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
@@ -29,7 +29,7 @@ export class EntryEditorNavigatorService implements ISidebarSectionService {
     readonly type = SidebarSectionType.EntryEditorNavigator;
 
     // STATE VARIABLES
-    entryId: Id = $state(-1); // default to an invalid sentinel value
+    entryId: Id = $state(ENTRY_ID_SENTINEL); // default to an invalid sentinel value
     entryType: EntryType | null = $state(null);
     title: string = $state("Entry");
     activeView: EntryViewType = $state(EntryViewType.ArticleEditor);

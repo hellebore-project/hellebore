@@ -1,4 +1,5 @@
 import { waitFor } from "@testing-library/svelte";
+import { NIL as NIL_UUID } from "uuid";
 import { describe, expect, vi } from "vitest";
 
 import { EntryType } from "@/api";
@@ -10,9 +11,9 @@ describe("search service", () => {
         otherEntries: async ({}, use) => {
             use([
                 {
-                    id: 2,
+                    id: "entry2",
                     entityType: EntryType.Person,
-                    folderId: -1,
+                    folderId: NIL_UUID,
                     title: "mocked-entry-2",
                 },
             ]);
@@ -49,13 +50,13 @@ describe("search service", () => {
         headerManager.entrySearch.queryResults = [
             {
                 label: "mocked-entry",
-                value: 1,
+                value: "entry1",
             },
         ];
 
-        headerManager.entrySearch.selectEntry("1");
+        headerManager.entrySearch.selectEntry("entry1");
 
-        expect(onOpenEntry).toHaveBeenCalledWith({ id: 1, focus: true });
+        expect(onOpenEntry).toHaveBeenCalledWith({ id: "entry1", focus: true });
         expect(headerManager.entrySearch.queryString).toBe("");
         expect(headerManager.entrySearch.queryResults).toStrictEqual([]);
     });

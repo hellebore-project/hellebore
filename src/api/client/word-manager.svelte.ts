@@ -7,6 +7,7 @@ import type {
     WordUpsert,
     WordUpsertResponse,
 } from "../interface";
+import type { Id } from "@/interface/common";
 
 type _WordBulkUpsertResponse = DiagnosticResponse<WordUpsertResponse>[];
 
@@ -45,7 +46,7 @@ export class WordManager {
     }
 
     async getAllForLanguage(
-        languageId: number,
+        languageId: Id,
         wordType?: WordType | null,
     ): Promise<WordResponse[] | null> {
         try {
@@ -56,7 +57,7 @@ export class WordManager {
         }
     }
 
-    async delete(id: number): Promise<boolean> {
+    async delete(id: Id): Promise<boolean> {
         try {
             await this._deleteWord(id);
         } catch (error) {
@@ -77,7 +78,7 @@ export class WordManager {
     }
 
     async _getWords(
-        languageId: number,
+        languageId: Id,
         wordType: WordType | null,
     ): Promise<WordResponse[]> {
         return invoke<WordResponse[]>(CommandNames.Word.GetMany, {
@@ -87,7 +88,7 @@ export class WordManager {
         });
     }
 
-    async _deleteWord(id: number): Promise<void> {
+    async _deleteWord(id: Id): Promise<void> {
         return invoke<void>(CommandNames.Word.Delete, {
             projectId: this._projectId,
             id,

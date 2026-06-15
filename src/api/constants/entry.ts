@@ -1,6 +1,8 @@
+import { NIL as NIL_UUID } from "uuid";
+
 import { EntityType } from "./entity";
 
-export const ENTRY_ID_SENTINEL = -1;
+export const ENTRY_ID_SENTINEL = NIL_UUID;
 
 export enum EntryType {
     Language = EntityType.LANGUAGE,

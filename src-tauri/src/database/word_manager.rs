@@ -1,4 +1,5 @@
 use sea_orm::*;
+use uuid::Uuid;
 
 use ::entity::{word, word::Entity as WordEntity};
 
@@ -9,7 +10,7 @@ use super::utils;
 
 pub async fn insert<C>(
     con: &C,
-    language_id: i32,
+    language_id: Uuid,
     word_type: WordType,
     spelling: Option<String>,
     definition: Option<String>,
@@ -23,7 +24,7 @@ where
         None => NotSet,
     };
     let new_entity = word::ActiveModel {
-        id: NotSet,
+        id: Set(Uuid::new_v4()),
         language_id: Set(language_id),
         word_type: Set(word_type.code()),
         spelling: utils::set_value_or_default(spelling),
@@ -35,8 +36,8 @@ where
 
 pub async fn update<C>(
     con: &C,
-    id: i32,
-    language_id: Option<i32>,
+    id: Uuid,
+    language_id: Option<Uuid>,
     word_type: Option<WordType>,
     spelling: Option<String>,
     definition: Option<String>,
@@ -60,7 +61,7 @@ where
     updated_entity.update(con).await
 }
 
-pub async fn get<C>(con: &C, id: i32) -> Result<Option<word::Model>, DbErr>
+pub async fn get<C>(con: &C, id: Uuid) -> Result<Option<word::Model>, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -69,7 +70,7 @@ where
 
 pub async fn get_all_for_language<C>(
     con: &C,
-    language_id: i32,
+    language_id: Uuid,
     word_type: Option<WordType>,
 ) -> Result<Vec<word::Model>, DbErr>
 where
@@ -84,7 +85,7 @@ where
     query.all(con).await
 }
 
-pub async fn delete<C>(con: &C, id: i32) -> Result<DeleteResult, DbErr>
+pub async fn delete<C>(con: &C, id: Uuid) -> Result<DeleteResult, DbErr>
 where
     C: ConnectionTrait,
 {

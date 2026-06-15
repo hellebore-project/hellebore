@@ -14,10 +14,10 @@ import type {
 } from "../interface";
 
 export interface FolderUpdateArgs {
-    id: number;
+    id: Id;
     name?: string | null;
-    parentId?: number | null;
-    oldParentId?: number | null;
+    parentId?: Id | null;
+    oldParentId?: Id | null;
 }
 
 export class FolderManager {
@@ -27,7 +27,7 @@ export class FolderManager {
         this._projectId = projectId;
     }
 
-    async create(name: string, parentId: number = ROOT_FOLDER_ID) {
+    async create(name: string, parentId: Id = ROOT_FOLDER_ID) {
         let response: FolderResponse | null;
         try {
             response = await this._create(parentId, name);
@@ -40,8 +40,8 @@ export class FolderManager {
     }
 
     async validate(
-        id: number | null,
-        parentId: number,
+        id: Id | null,
+        parentId: Id,
         name: string,
     ): Promise<FolderValidateResponse | null> {
         let response: DiagnosticResponse<FolderValidateResponse> | null;

@@ -1,4 +1,5 @@
 import { ask } from "@tauri-apps/plugin-dialog";
+import { NIL as NIL_UUID } from "uuid";
 import { describe, expect, vi } from "vitest";
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({
@@ -14,8 +15,8 @@ describe("moving folders", () => {
     test.scoped({
         parentFolder: async ({}, use) => {
             use({
-                id: 2,
-                parentId: -1,
+                id: "folder2",
+                parentId: NIL_UUID,
                 name: "mocked-folder-2",
             });
         },
@@ -40,7 +41,7 @@ describe("moving folders", () => {
                 id: folder.id,
                 title: folder.name,
                 sourceParentId: folder.parentId,
-                destParentId: 2,
+                destParentId: "folder2",
                 confirm: false,
             });
 
@@ -48,7 +49,7 @@ describe("moving folders", () => {
         expect(cancelled).toBe(false);
         expect(update).toStrictEqual({
             id: folder.id,
-            parentId: 2,
+            parentId: "folder2",
             name: null,
             nameChanged: false,
             parentChanged: true,
@@ -60,22 +61,22 @@ describe("moving folders", () => {
         isUnique: false,
         parentFolder: async ({}, use) => {
             use({
-                id: 2,
-                parentId: -1,
+                id: "folder2",
+                parentId: NIL_UUID,
                 name: "mocked-folder-2",
             });
         },
         collidingFolder: async ({}, use) => {
             use({
-                id: 3,
-                parentId: 2,
+                id: "folder3",
+                parentId: "folder2",
                 name: "mocked-folder",
             });
         },
         otherFolders: async ({ parentFolder, collidingFolder }, use) => {
             use([parentFolder, collidingFolder]);
         },
-        deletedFolderIds: async ({}, use) => use([3]),
+        deletedFolderIds: async ({}, use) => use(["folder3"]),
     });
 
     test("can delete folder on name collision", async ({
@@ -94,7 +95,7 @@ describe("moving folders", () => {
                 id: folder.id,
                 title: folder.name,
                 sourceParentId: folder.parentId,
-                destParentId: 2,
+                destParentId: "folder2",
                 confirm: false,
             });
 
@@ -102,12 +103,12 @@ describe("moving folders", () => {
         expect(cancelled).toBe(false);
         expect(update).toStrictEqual({
             id: folder.id,
-            parentId: 2,
+            parentId: "folder2",
             name: null,
             nameChanged: false,
             parentChanged: true,
         });
-        expect(deletion).toStrictEqual({ entries: [], folders: [3] });
+        expect(deletion).toStrictEqual({ entries: [], folders: ["folder3"] });
     });
 
     test("user confirms move on name collision", async ({
@@ -128,7 +129,7 @@ describe("moving folders", () => {
                 id: folder.id,
                 title: folder.name,
                 sourceParentId: folder.parentId,
-                destParentId: 2,
+                destParentId: "folder2",
                 confirm: true,
             });
 
@@ -136,12 +137,12 @@ describe("moving folders", () => {
         expect(cancelled).toBe(false);
         expect(update).toStrictEqual({
             id: folder.id,
-            parentId: 2,
+            parentId: "folder2",
             name: null,
             nameChanged: false,
             parentChanged: true,
         });
-        expect(deletion).toStrictEqual({ entries: [], folders: [3] });
+        expect(deletion).toStrictEqual({ entries: [], folders: ["folder3"] });
     });
 
     test("user cancels move on name collision", async ({
@@ -151,7 +152,7 @@ describe("moving folders", () => {
     }) => {
         vi.mocked(ask).mockResolvedValue(false);
 
-        const updatedFolder = { ...folder, parentId: 2 };
+        const updatedFolder = { ...folder, parentId: "folder2" };
         mockUpdateFolder(mockedInvoker, updatedFolder);
 
         const { moved, cancelled, update, deletion } =
@@ -159,7 +160,7 @@ describe("moving folders", () => {
                 id: folder.id,
                 title: folder.name,
                 sourceParentId: folder.parentId,
-                destParentId: 2,
+                destParentId: "folder2",
                 confirm: true,
             });
 

@@ -1,5 +1,6 @@
 use futures::future;
 use sea_orm::{ConnectionTrait, DatabaseConnection};
+use uuid::Uuid;
 
 use ::entity::entry::Model as EntryModel;
 
@@ -49,7 +50,7 @@ pub async fn create(
 pub async fn _create<C>(
     con: &C,
     entity_type: EntityType,
-    folder_id: i32,
+    folder_id: Uuid,
     title: String,
     text: String,
 ) -> Result<EntryModel, Error>
@@ -75,7 +76,7 @@ where
     Ok(entry)
 }
 
-async fn _create_properties<C>(con: &C, id: i32, properties: &EntryProperties) -> Result<(), Error>
+async fn _create_properties<C>(con: &C, id: Uuid, properties: &EntryProperties) -> Result<(), Error>
 where
     C: ConnectionTrait,
 {
@@ -211,7 +212,7 @@ async fn _update(
     }
 }
 
-async fn _update_properties<C>(con: &C, id: i32, properties: &EntryProperties) -> Result<(), Error>
+async fn _update_properties<C>(con: &C, id: Uuid, properties: &EntryProperties) -> Result<(), Error>
 where
     C: ConnectionTrait,
 {
@@ -237,7 +238,7 @@ pub async fn bulk_update(
 
 pub async fn validate_title(
     database: &DatabaseConnection,
-    id: Option<i32>,
+    id: Option<Uuid>,
     title: &str,
 ) -> Result<DiagnosticResponseSchema<bool>, Error> {
     let mut errors: Vec<Error> = Vec::new();
@@ -271,7 +272,7 @@ pub async fn validate_title(
 
 pub async fn get_info(
     database: &DatabaseConnection,
-    id: i32,
+    id: Uuid,
 ) -> Result<EntryInfoResponseSchema, Error> {
     let info = entry_manager::get_info(database, id).await.map_err(|e| {
         ErrorBuilder::new()
@@ -293,7 +294,7 @@ pub async fn get_info(
 
 pub async fn get_properties(
     database: &DatabaseConnection,
-    id: i32,
+    id: Uuid,
 ) -> Result<EntryPropertyResponseSchema, Error> {
     let info = entry_manager::get_info(database, id).await.map_err(|e| {
         ErrorBuilder::new()
@@ -319,7 +320,7 @@ pub async fn get_properties(
 
 async fn _get_properties(
     database: &DatabaseConnection,
-    id: i32,
+    id: Uuid,
     entity_type: EntityType,
 ) -> Result<EntryProperties, Error> {
     match entity_type {
@@ -340,7 +341,7 @@ async fn _get_properties(
 
 pub async fn get_text(
     database: &DatabaseConnection,
-    id: i32,
+    id: Uuid,
 ) -> Result<DiagnosticResponseSchema<EntryArticleResponseSchema>, Error> {
     let entry = entry_manager::get(database, id).await.map_err(|e| {
         ErrorBuilder::new()
@@ -410,7 +411,7 @@ pub async fn search(
     Ok(entries)
 }
 
-pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), Error> {
+pub async fn delete(database: &DatabaseConnection, id: Uuid) -> Result<(), Error> {
     entry_manager::delete(database, id).await.map_err(|e| {
         ErrorBuilder::new()
             .msg("Failed to delete an entry record.")
@@ -422,7 +423,7 @@ pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), Error>
     Ok(())
 }
 
-pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result<(), Error> {
+pub async fn delete_many(database: &DatabaseConnection, ids: Vec<Uuid>) -> Result<(), Error> {
     entry_manager::delete_many(database, ids)
         .await
         .map(|_| ())

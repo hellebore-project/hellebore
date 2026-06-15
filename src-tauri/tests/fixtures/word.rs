@@ -1,4 +1,5 @@
 use rstest::*;
+use uuid::Uuid;
 
 use hellebore::{
     schema::word::{WordResponseSchema, WordUpsertSchema},
@@ -6,8 +7,8 @@ use hellebore::{
 };
 
 #[fixture]
-pub fn word_id() -> i32 {
-    0
+pub fn word_id() -> Uuid {
+    Uuid::nil()
 }
 
 #[fixture]
@@ -39,7 +40,7 @@ pub fn create_word_payload(
 ) -> WordUpsertSchema {
     WordUpsertSchema {
         id: None,
-        language_id: Some(1),
+        language_id: Some(Uuid::new_v4()),
         word_type: Some(word_type),
         spelling: Some(word_spelling),
         definition: Some(word_definition),
@@ -48,10 +49,10 @@ pub fn create_word_payload(
 }
 
 #[fixture]
-pub fn update_word_payload(word_id: i32, word_spelling: String) -> WordUpsertSchema {
+pub fn update_word_payload(word_id: Uuid, word_spelling: String) -> WordUpsertSchema {
     WordUpsertSchema {
         id: Some(word_id),
-        language_id: Some(1),
+        language_id: Some(Uuid::new_v4()),
         word_type: None,
         spelling: Some(format!("{}-modified", word_spelling)),
         definition: None,

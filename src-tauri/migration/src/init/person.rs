@@ -16,8 +16,8 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Person::Table)
                     .if_not_exists()
-                    .col(pk_auto(Person::Id).not_null())
-                    .col(integer(Person::EntryId).not_null())
+                    .col(pk_uuid(Person::Id).not_null())
+                    .col(uuid(Person::EntryId).not_null())
                     .col(string(Person::Name).not_null())
                     .foreign_key(
                         ForeignKey::create()

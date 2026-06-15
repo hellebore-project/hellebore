@@ -1,11 +1,11 @@
 import { expect, vi } from "vitest";
 
-import type { FolderResponse, FolderValidateResponse, Id } from "@/interface";
+import type { Id } from "@/interface";
+import type { FolderResponse, FolderValidateResponse } from "@/api";
 import { test as baseTest } from "@tests/unit/ui/fixtures";
 import {
     mockGetFolder,
     mockDeleteFolder,
-    mockUpdateFolder,
     mockValidateFolder,
 } from "@tests/utils/mocks";
 

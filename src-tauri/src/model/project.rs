@@ -1,4 +1,5 @@
 use sea_orm::DatabaseConnection;
+use uuid::Uuid;
 
 use crate::constants::DEFAULT_DB_FILE_NAME;
 
@@ -8,14 +9,14 @@ pub struct DatabaseConfig {
 }
 
 pub struct Project {
-    pub id: String,
+    pub id: Uuid,
     pub name: String,
     pub folder_path: String,
     pub database: DatabaseConfig,
 }
 
 impl Project {
-    pub fn new(id: String, name: String, folder_path: String, database: DatabaseConfig) -> Self {
+    pub fn new(id: Uuid, name: String, folder_path: String, database: DatabaseConfig) -> Self {
         Self {
             id,
             name,

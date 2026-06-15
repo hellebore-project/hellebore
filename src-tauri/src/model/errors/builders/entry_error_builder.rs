@@ -51,11 +51,11 @@ impl EntryErrorBuilder {
         }
     }
 
-    pub fn bad_reference_id(&self, id: i32) -> Error {
+    pub fn bad_reference_id(&self, id: &impl ToString) -> Error {
         Error::BadEntryReferenceId {
             msg: self.message.clone(),
             id: self.id.clone(),
-            reference_id: id,
+            reference_id: id.to_string(),
         }
     }
 

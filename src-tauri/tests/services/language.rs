@@ -1,4 +1,5 @@
 use rstest::*;
+use uuid::Uuid;
 
 use hellebore::{
     database::language_manager,
@@ -30,7 +31,7 @@ use crate::{
 #[rstest]
 #[tokio::test]
 async fn test_create_language(
-    folder_id: i32,
+    folder_id: Uuid,
     language_name: String,
     create_language_payload: EntryCreateSchema,
 ) {
@@ -53,7 +54,7 @@ async fn test_error_on_creating_duplicate_language(create_language_payload: Entr
 #[rstest]
 #[tokio::test]
 async fn test_get_language(
-    folder_id: i32,
+    folder_id: Uuid,
     language_name: String,
     create_language_payload: EntryCreateSchema,
 ) {
@@ -80,7 +81,7 @@ async fn test_get_language(
 #[rstest]
 #[tokio::test]
 async fn test_update_language_entry(
-    folder_id: i32,
+    folder_id: Uuid,
     create_language_payload: EntryCreateSchema,
     mut update_entry_payload: EntryUpdateSchema,
     mut create_word_payload: WordUpsertSchema,

@@ -1,4 +1,5 @@
 use sea_orm::{ConnectionTrait, DatabaseConnection};
+use uuid::Uuid;
 
 use ::entity::word::Model as Word;
 use serde_json;
@@ -158,7 +159,7 @@ pub fn _serialize_translations(
     }
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<WordResponseSchema, Error> {
+pub async fn get(database: &DatabaseConnection, id: Uuid) -> Result<WordResponseSchema, Error> {
     let word = word_manager::get(database, id).await.map_err(|e| {
         ErrorBuilder::new()
             .msg("Failed to query the word table while fetching a word by ID.")
@@ -178,7 +179,7 @@ pub async fn get(database: &DatabaseConnection, id: i32) -> Result<WordResponseS
 
 pub async fn get_all_for_language(
     database: &DatabaseConnection,
-    language_id: i32,
+    language_id: Uuid,
     word_type: Option<WordType>,
 ) -> Result<Vec<WordResponseSchema>, Error> {
     let words = word_manager::get_all_for_language(database, language_id, word_type)
@@ -203,7 +204,7 @@ pub async fn get_all_for_language(
     Ok(word_responses)
 }
 
-pub async fn delete(database: &DatabaseConnection, id: i32) -> Result<(), Error> {
+pub async fn delete(database: &DatabaseConnection, id: Uuid) -> Result<(), Error> {
     word_manager::delete(database, id).await.map_err(|e| {
         ErrorBuilder::new()
             .msg("Word not deleted.")
@@ -227,7 +228,7 @@ fn generate_response(word: &Word) -> Result<WordResponseSchema, Error> {
 }
 
 fn _convert_translations_to_vec(
-    id: i32,
+    id: Uuid,
     translations: &serde_json::Value,
 ) -> Result<Vec<String>, Error> {
     let generic_array = match translations.as_array() {

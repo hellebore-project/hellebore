@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProjectResponseSchema {
-    pub id: String,
+    pub id: Uuid,
     pub name: String,
 }
 

@@ -1,19 +1,20 @@
 use sea_orm::*;
+use uuid::Uuid;
 
 use ::entity::{language, language::Entity as Language};
 
-pub async fn insert<C>(con: &C, entry_id: i32) -> Result<language::Model, DbErr>
+pub async fn insert<C>(con: &C, entry_id: Uuid) -> Result<language::Model, DbErr>
 where
     C: ConnectionTrait,
 {
     let language = language::ActiveModel {
-        id: NotSet,
+        id: Set(Uuid::new_v4()),
         entry_id: Set(entry_id),
     };
     language.insert(con).await
 }
 
-pub async fn get<C>(con: &C, entry_id: i32) -> Result<Option<language::Model>, DbErr>
+pub async fn get<C>(con: &C, entry_id: Uuid) -> Result<Option<language::Model>, DbErr>
 where
     C: ConnectionTrait,
 {

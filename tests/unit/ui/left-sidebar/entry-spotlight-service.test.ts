@@ -1,5 +1,6 @@
 import { waitFor } from "@testing-library/svelte";
 import { describe, expect, vi } from "vitest";
+import { NIL as NIL_UUID } from "uuid";
 
 import { SyncType } from "@/constants";
 
@@ -10,8 +11,8 @@ describe("entry spotlight interactions", () => {
         otherFolders: async ({}, use) => {
             use([
                 {
-                    id: 2,
-                    parentId: -1,
+                    id: "folder2",
+                    parentId: NIL_UUID,
                     name: "other-folder",
                 },
             ]);
@@ -118,22 +119,17 @@ describe("entry spotlight interactions", () => {
         const onDataChange = vi.fn();
         standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
 
-        await waitFor(() => {
-            expect(
-                spotlight.fileTree.getNode(
-                    spotlight.generateEntryNodeId(entryId),
-                ),
-            ).toBeTruthy();
+        const node = await waitFor(() => {
+            const node = spotlight.fileTree.getNode(
+                spotlight.generateEntryNodeId(entryId),
+            );
+            expect(node).toBeTruthy();
+            return node;
         });
-
-        const node = spotlight.fileTree.getNode(
-            spotlight.generateEntryNodeId(entryId),
-        );
-        expect(node).toBeTruthy();
 
         await spotlight.fileTree.moveNode(
             node!.id,
-            spotlight.generateFolderNodeId(2),
+            spotlight.generateFolderNodeId("folder2"),
         );
 
         expect(onDataChange).toHaveBeenCalledWith({
@@ -146,7 +142,7 @@ describe("entry spotlight interactions", () => {
             ],
         });
         expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
-            entries: [{ id: entryId, folderId: 2 }],
+            entries: [{ id: entryId, folderId: "folder2" }],
             folders: [],
         });
 
@@ -155,7 +151,7 @@ describe("entry spotlight interactions", () => {
                 {
                     request: {
                         id: entryId,
-                        folderId: 2,
+                        folderId: "folder",
                         words: null,
                     },
                     response: {
@@ -184,7 +180,11 @@ describe("entry spotlight interactions", () => {
         const spotlight = standaloneLeftSidebar.addSpotlight("owner");
         const onCreateFolder = vi
             .fn()
-            .mockResolvedValue({ id: 99, parentId: -1, name: "new folder" });
+            .mockResolvedValue({
+                id: "folder99",
+                parentId: NIL_UUID,
+                name: "new folder",
+            });
         standaloneLeftSidebar.onCreateFolder.subscribe(onCreateFolder);
 
         const placeholderFolder = spotlight.fileTree.addFolderNode({
@@ -198,9 +198,11 @@ describe("entry spotlight interactions", () => {
 
         expect(onCreateFolder).toHaveBeenCalledWith({
             name: "new folder",
-            parentFolderId: -1,
+            parentFolderId: NIL_UUID,
         });
-        expect(spotlight.fileTree.getNode("new-folder")?.data.id).toBe(99);
+        expect(spotlight.fileTree.getNode("new-folder")?.data.id).toBe(
+            "folder99",
+        );
         expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
             entries: [],
             folders: [],
@@ -215,10 +217,14 @@ describe("entry spotlight interactions", () => {
         standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
 
         const folderNode = spotlight.fileTree.addFolderNode({
-            id: spotlight.generateFolderNodeId(7),
+            id: spotlight.generateFolderNodeId("folder7"),
             parentId: spotlight.fileTree.rootNodeId,
             text: "old folder",
-            data: { id: 7, titleChanged: false, folderIdChanged: false },
+            data: {
+                id: "folder7",
+                titleChanged: false,
+                folderIdChanged: false,
+            },
         });
 
         folderNode.text = "renamed folder";
@@ -227,7 +233,7 @@ describe("entry spotlight interactions", () => {
         expect(onDataChange).toHaveBeenCalledWith({
             folders: [
                 {
-                    id: 7,
+                    id: "folder7",
                     titleChanged: true,
                     syncImmediately: false,
                 },
@@ -237,8 +243,8 @@ describe("entry spotlight interactions", () => {
             entries: [],
             folders: [
                 {
-                    id: 7,
-                    parentId: -1,
+                    id: "folder7",
+                    parentId: NIL_UUID,
                     name: "renamed folder",
                 },
             ],
@@ -248,14 +254,14 @@ describe("entry spotlight interactions", () => {
             folders: [
                 {
                     request: {
-                        id: 7,
-                        parentId: -1,
+                        id: "folder7",
+                        parentId: NIL_UUID,
                         name: "renamed folder",
                     },
                     response: {
                         folder: {
-                            id: 7,
-                            parentId: -1,
+                            id: "folder7",
+                            parentId: NIL_UUID,
                             name: "renamed folder",
                             nameChanged: true,
                             parentChanged: false,
@@ -286,7 +292,11 @@ describe("entry spotlight interactions", () => {
             id: "folder-child",
             parentId: placeholderParent.id,
             text: "child",
-            data: { id: 99, titleChanged: false, folderIdChanged: false },
+            data: {
+                id: "folder99",
+                titleChanged: false,
+                folderIdChanged: false,
+            },
         });
 
         const result = await spotlight.validateName(childFolder, "renamed");
@@ -345,13 +355,21 @@ describe("entry spotlight interactions", () => {
             id: "folder-child",
             parentId: placeholderParent.id,
             text: "child",
-            data: { id: 99, titleChanged: false, folderIdChanged: false },
+            data: {
+                id: "folder99",
+                titleChanged: false,
+                folderIdChanged: false,
+            },
         });
         const destinationFolder = spotlight.fileTree.addFolderNode({
-            id: spotlight.generateFolderNodeId(2),
+            id: spotlight.generateFolderNodeId("folder2"),
             parentId: spotlight.fileTree.rootNodeId,
             text: "destination",
-            data: { id: 2, titleChanged: false, folderIdChanged: false },
+            data: {
+                id: "folder2",
+                titleChanged: false,
+                folderIdChanged: false,
+            },
         });
 
         const moved = await spotlight.finalizeMove(

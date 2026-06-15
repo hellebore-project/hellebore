@@ -1,5 +1,10 @@
-import type { IComponentService, Word, WordKey } from "@/interface";
-import { WordType, DomainManager, type WordResponse } from "@/api";
+import type { IComponentService, Id, Word, WordKey } from "@/interface";
+import {
+    WordType,
+    DomainManager,
+    type WordResponse,
+    ENTRY_ID_SENTINEL,
+} from "@/api";
 import { DataTableService } from "@/lib/components/data-table";
 import type { ColumnDef } from "@/lib/components/data-table";
 import { MultiEventProducer } from "@/utils/event-producer";
@@ -39,7 +44,7 @@ export class WordTableService implements IComponentService {
     // STATE VARIABLES
     private _id: string;
     private _sentinelKey: WordKey = $state("");
-    private _languageId = -1;
+    private _languageId: Id = $state(ENTRY_ID_SENTINEL);
     private _keyCounter = 0;
     private _domain: DomainManager;
 
@@ -77,7 +82,7 @@ export class WordTableService implements IComponentService {
 
     // LOADING
 
-    load(words: WordResponse[], languageId: number) {
+    load(words: WordResponse[], languageId: Id) {
         this._languageId = languageId;
         this._keyCounter = 0;
         const rows: WordRow[] = words.map((w) => ({
