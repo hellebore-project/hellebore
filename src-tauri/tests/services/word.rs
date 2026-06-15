@@ -1,11 +1,5 @@
-use crate::{
-    fixtures::{
-        database,
-        language::create_language_payload,
-        word::{create_word_payload, expected_word_response},
-    },
-    utils::{db::upsert_word, validation::validate_word_response},
-};
+use rstest::*;
+use uuid::Uuid;
 
 use hellebore::{
     database::{language_manager, word_manager},
@@ -16,7 +10,15 @@ use hellebore::{
     services::{entry_service, word_service},
     types::grammar::WordType,
 };
-use rstest::*;
+
+use crate::{
+    fixtures::{
+        database,
+        language::create_language_payload,
+        word::{create_word_payload, expected_word_response},
+    },
+    utils::{db::upsert_word, validation::validate_word_response},
+};
 
 #[rstest]
 #[tokio::test]
@@ -197,7 +199,7 @@ async fn test_error_on_updating_nonexistent_word(create_language_payload: EntryC
     let new_definition = "Pilot or operator of a vehicle.";
     let new_translations = vec!["driver".to_owned(), "conductor".to_owned()];
     let update_payload = WordUpsertSchema {
-        id: Some(1),
+        id: Some(Uuid::new_v4()),
         language_id: Some(language.id),
         word_type: None,
         spelling: Some(new_spelling.to_owned()),
@@ -243,7 +245,7 @@ async fn test_get_word(
 #[tokio::test]
 async fn test_error_on_getting_nonexistent_word() {
     let database = database().await;
-    let response = word_service::get(&database, 0).await;
+    let response = word_service::get(&database, Uuid::new_v4()).await;
     assert!(response.is_err());
 }
 
@@ -277,7 +279,8 @@ async fn test_get_all_words_for_a_language(create_language_payload: EntryCreateS
 
     assert!(words.is_ok());
     let mut words = words.unwrap();
-    words.sort_by_key(|w| w.id);
+    words.sort_by_key(|w| w.spelling.clone());
+    words.reverse();
 
     let mut expected_response_1 = create_payload_1.to_response();
     expected_response_1.id = id_1;
@@ -313,7 +316,7 @@ async fn test_delete_word(
 #[tokio::test]
 async fn test_error_on_deleting_nonexistent_word() {
     let database = database().await;
-    let response = word_service::delete(&database, 0).await;
+    let response = word_service::delete(&database, Uuid::new_v4()).await;
     assert!(response.is_err());
 }
 

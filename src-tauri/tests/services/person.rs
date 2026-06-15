@@ -1,10 +1,5 @@
-use crate::fixtures::{
-    database,
-    entry::update_entry_payload,
-    folder::folder_id,
-    person::{create_person_payload, person_name, person_properties},
-};
-use crate::utils::validation::{validate_entry_info_response, validate_person_property_response};
+use rstest::*;
+use uuid::Uuid;
 
 use hellebore::{
     schema::{
@@ -14,7 +9,14 @@ use hellebore::{
     services::{entry_service, person_service},
     types::entity::PERSON,
 };
-use rstest::*;
+
+use crate::fixtures::{
+    database,
+    entry::update_entry_payload,
+    folder::folder_id,
+    person::{create_person_payload, person_name, person_properties},
+};
+use crate::utils::validation::{validate_entry_info_response, validate_person_property_response};
 
 #[fixture]
 fn update_payload(
@@ -28,7 +30,7 @@ fn update_payload(
 #[rstest]
 #[tokio::test]
 async fn test_create_person(
-    folder_id: i32,
+    folder_id: Uuid,
     person_name: String,
     create_person_payload: EntryCreateSchema,
 ) {
@@ -51,7 +53,7 @@ async fn test_error_on_creating_duplicate_person(create_person_payload: EntryCre
 #[rstest]
 #[tokio::test]
 async fn test_update_person(
-    folder_id: i32,
+    folder_id: Uuid,
     person_name: String,
     create_person_payload: EntryCreateSchema,
     mut person_properties: PersonSchema,
@@ -97,7 +99,7 @@ async fn test_error_on_updating_nonexistent_person(update_payload: EntryUpdateSc
 #[rstest]
 #[tokio::test]
 async fn test_get_person(
-    folder_id: i32,
+    folder_id: Uuid,
     person_name: String,
     create_person_payload: EntryCreateSchema,
 ) {

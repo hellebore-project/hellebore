@@ -1,3 +1,14 @@
+use std::collections::HashSet;
+
+use rstest::*;
+use uuid::Uuid;
+
+use hellebore::{
+    constants::ROOT_FOLDER_ID,
+    schema::folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
+    services::folder_service,
+};
+
 use crate::{
     fixtures::{
         database,
@@ -6,17 +17,10 @@ use crate::{
     utils::db::{create_generic_entry, get_entry},
 };
 
-use hellebore::{
-    constants::ROOT_FOLDER_ID,
-    schema::folder::{FolderCreateSchema, FolderResponseSchema, FolderUpdateSchema},
-    services::folder_service,
-};
-use rstest::*;
-
 fn validate_folder_response(
     folder: &FolderResponseSchema,
-    id: Option<i32>,
-    parent_id: i32,
+    id: Option<Uuid>,
+    parent_id: Uuid,
     name: &str,
 ) {
     if let Some(expected_id) = id {
@@ -145,7 +149,7 @@ async fn test_error_on_creating_sibling_sub_folders_with_same_name(
 
 #[rstest]
 #[tokio::test]
-async fn test_update_folder(folder_create_payload: FolderCreateSchema, parent_folder_id: i32) {
+async fn test_update_folder(folder_create_payload: FolderCreateSchema, parent_folder_id: Uuid) {
     let database = database().await;
     let folder = folder_service::create(&database, folder_create_payload)
         .await
@@ -302,9 +306,10 @@ async fn test_bulk_update_partial_failure() {
     .await
     .unwrap();
 
+    let bad_id = Uuid::new_v4(); // non-existent id to trigger error
     let payloads = vec![
         FolderUpdateSchema {
-            id: 9999,
+            id: bad_id,
             parent_id: Some(ROOT_FOLDER_ID),
             name: Some("nonexistent".to_owned()),
         },
@@ -319,7 +324,7 @@ async fn test_bulk_update_partial_failure() {
     assert_eq!(responses.len(), 2);
 
     assert!(!responses[0].errors.is_empty());
-    assert_eq!(responses[0].data.id, 9999);
+    assert_eq!(responses[0].data.id, bad_id);
     assert!(!responses[0].data.parent_changed);
     assert!(!responses[0].data.name_changed);
 
@@ -426,7 +431,7 @@ async fn test_get_folder(folder_create_payload: FolderCreateSchema) {
 #[tokio::test]
 async fn test_error_on_getting_nonexistent_folder() {
     let database = database().await;
-    let response = folder_service::get(&database, 0).await;
+    let response = folder_service::get(&database, Uuid::new_v4()).await;
     assert!(response.is_err());
 }
 
@@ -436,7 +441,7 @@ async fn test_get_all_folders() {
     let database = database().await;
 
     let folder_1_payload = FolderCreateSchema {
-        parent_id: -1,
+        parent_id: ROOT_FOLDER_ID,
         name: "folder1".to_owned(),
     };
     let folder_1 = folder_service::create(&database, folder_1_payload)
@@ -444,7 +449,7 @@ async fn test_get_all_folders() {
         .unwrap();
 
     let folder_2_payload = FolderCreateSchema {
-        parent_id: -1,
+        parent_id: ROOT_FOLDER_ID,
         name: "folder2".to_owned(),
     };
     let folder_2 = folder_service::create(&database, folder_2_payload)
@@ -670,8 +675,14 @@ async fn test_delete_folder_and_subfolder_with_entries() {
     assert!(response.is_ok());
 
     let contents = response.unwrap();
-    assert_eq!(contents.folders, vec![parent_folder.id, sub_folder.id]);
-    assert_eq!(contents.entries, vec![entry_in_parent.id, entry_in_sub.id]);
+    assert_eq!(
+        HashSet::<Uuid>::from_iter(contents.folders),
+        HashSet::<Uuid>::from_iter(vec![parent_folder.id, sub_folder.id]),
+    );
+    assert_eq!(
+        HashSet::<Uuid>::from_iter(contents.entries),
+        HashSet::<Uuid>::from_iter(vec![entry_in_parent.id, entry_in_sub.id]),
+    );
 
     assert!(
         folder_service::get(&database, parent_folder.id)
@@ -792,7 +803,7 @@ async fn test_delete_deep_file_tree() {
 async fn test_noop_on_deleting_nonexistent_folder() {
     let database = database().await;
 
-    let response = folder_service::delete(&database, 0).await;
+    let response = folder_service::delete(&database, Uuid::new_v4()).await;
     assert!(response.is_ok());
 
     let contents = response.unwrap();

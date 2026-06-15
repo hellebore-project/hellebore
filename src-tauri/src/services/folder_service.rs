@@ -1,5 +1,6 @@
 use futures::future;
 use sea_orm::DatabaseConnection;
+use uuid::Uuid;
 
 use ::entity::folder::Model as Folder;
 
@@ -72,8 +73,8 @@ pub async fn bulk_update(
 
 pub async fn validate_name(
     database: &DatabaseConnection,
-    id: Option<i32>,
-    parent_id: i32,
+    id: Option<Uuid>,
+    parent_id: Uuid,
     name: &str,
 ) -> Result<DiagnosticResponseSchema<FolderValidationSchema>, Error> {
     let mut errors: Vec<Error> = Vec::new();
@@ -135,7 +136,7 @@ pub async fn validate_name(
     })
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<FolderResponseSchema, Error> {
+pub async fn get(database: &DatabaseConnection, id: Uuid) -> Result<FolderResponseSchema, Error> {
     let folder = folder_manager::get(database, id).await.map_err(|e| {
         ErrorBuilder::new()
             .msg("Failed to query the folder table while fetching a folder by ID.")
@@ -167,7 +168,7 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponse
 
 pub async fn delete(
     database: &DatabaseConnection,
-    id: i32,
+    id: Uuid,
 ) -> Result<BulkFileResponseSchema, Error> {
     let contents = file_service::get_folder_contents(database, id).await?;
 
@@ -183,7 +184,7 @@ pub async fn delete(
     Ok(contents)
 }
 
-pub async fn delete_many(database: &DatabaseConnection, ids: Vec<i32>) -> Result<(), Error> {
+pub async fn delete_many(database: &DatabaseConnection, ids: Vec<Uuid>) -> Result<(), Error> {
     folder_manager::delete_many(database, ids)
         .await
         .map(|_| ())

@@ -3,7 +3,7 @@ import type { Id, IdentifiedObject } from "@/interface";
 import { WordType } from "../constants";
 
 export interface WordInfo {
-    languageId: number;
+    languageId: Id;
     wordType: WordType;
 }
 

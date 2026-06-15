@@ -1,5 +1,6 @@
 use futures::future;
 use sea_orm::*;
+use uuid::Uuid;
 
 use hellebore::database::entry_manager;
 use hellebore::schema::word::WordUpsertSchema;
@@ -11,7 +12,7 @@ use ::entity::word as word_entity;
 
 pub async fn create_generic_entry(
     database: &DatabaseConnection,
-    folder_id: i32,
+    folder_id: Uuid,
     title: String,
     text: String,
 ) -> entry_entity::Model {
@@ -25,20 +26,20 @@ pub async fn create_generic_entries(
     titles: Vec<String>,
 ) -> Vec<entry_entity::Model> {
     future::join_all(
-        titles
-            .into_iter()
-            .map(async |title| create_generic_entry(database, -1, title, "".to_owned()).await),
+        titles.into_iter().map(async |title| {
+            create_generic_entry(database, Uuid::nil(), title, "".to_owned()).await
+        }),
     )
     .await
 }
 
-pub async fn get_entry(database: &DatabaseConnection, id: i32) -> Option<entry_entity::Model> {
+pub async fn get_entry(database: &DatabaseConnection, id: Uuid) -> Option<entry_entity::Model> {
     let entry = entry_manager::get(database, id).await;
     assert!(entry.is_ok());
     entry.unwrap()
 }
 
-pub async fn upsert_word(db: &DatabaseConnection, word_payload: &WordUpsertSchema) -> Option<i32> {
+pub async fn upsert_word(db: &DatabaseConnection, word_payload: &WordUpsertSchema) -> Option<Uuid> {
     let responses = word_service::bulk_upsert(&db, vec![word_payload.clone()])
         .await
         .unwrap();
@@ -48,7 +49,7 @@ pub async fn upsert_word(db: &DatabaseConnection, word_payload: &WordUpsertSchem
 
 pub async fn get_all_words_for_language(
     db: &DatabaseConnection,
-    id: i32,
+    id: Uuid,
 ) -> Vec<word_entity::Model> {
     let words = word_entity::Entity::find()
         .filter(word_entity::Column::LanguageId.eq(id))

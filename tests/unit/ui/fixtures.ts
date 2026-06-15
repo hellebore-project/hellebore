@@ -1,6 +1,7 @@
 import { cleanup } from "@testing-library/svelte";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import type { JSONContent } from "@tiptap/core";
+import { NIL as NIL_UUID } from "uuid";
 import { test as baseTest } from "vitest";
 
 import type { Id } from "@/interface";
@@ -64,8 +65,8 @@ export interface BaseUnitTestFixtures {
 export const test = baseTest.extend<BaseUnitTestFixtures>({
     project: { id: "test-project-id", name: "mocked-project" },
 
-    folderId: 1,
-    parentFolderId: -1,
+    folderId: "folder",
+    parentFolderId: NIL_UUID,
     folderName: "mocked-folder",
     folder: async ({ folderId, parentFolderId, folderName }, use) => {
         const folder: FolderResponse = {
@@ -80,7 +81,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         use([folder, ...otherFolders]);
     },
 
-    entryId: 1,
+    entryId: "entry",
     entryType: EntryType.Person,
     entryTitle: "mocked-title",
     entryArticleText: "mocked article text",

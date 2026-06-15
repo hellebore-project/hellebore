@@ -102,15 +102,17 @@ describe("SynchronizationService", () => {
         const syncService = new SynchronizationService(domainManager);
         vi.spyOn(syncService.onPoll, "produce").mockReturnValue({
             entries: [],
-            folders: [{ id: 7, parentId: 3, name: "renamed folder" }],
+            folders: [
+                { id: "entry7", parentId: "entry3", name: "renamed folder" },
+            ],
         });
 
         const bulkUpdateSpy = vi
             .spyOn(domainManager.loadedProject.folders, "bulkUpdate")
             .mockResolvedValueOnce([
                 {
-                    id: 7,
-                    parentId: 3,
+                    id: "entry7",
+                    parentId: "entry3",
                     name: "renamed folder",
                     parentChanged: false,
                     nameChanged: true,
@@ -122,15 +124,19 @@ describe("SynchronizationService", () => {
         });
 
         expect(bulkUpdateSpy).toHaveBeenCalledWith([
-            { id: 7, parentId: 3, name: "renamed folder" },
+            { id: "entry7", parentId: "entry3", name: "renamed folder" },
         ]);
         expect(event?.folders).toStrictEqual([
             {
-                request: { id: 7, parentId: 3, name: "renamed folder" },
+                request: {
+                    id: "entry7",
+                    parentId: "entry3",
+                    name: "renamed folder",
+                },
                 response: {
                     folder: {
-                        id: 7,
-                        parentId: 3,
+                        id: "entry7",
+                        parentId: "entry3",
                         name: "renamed folder",
                         parentChanged: false,
                         nameChanged: true,

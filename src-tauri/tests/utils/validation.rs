@@ -1,4 +1,5 @@
-use ::entity::entry::Model as EntryModel;
+use uuid::Uuid;
+
 use hellebore::{
     database::file_manager,
     schema::{
@@ -11,10 +12,12 @@ use hellebore::{
     utils::CodedEnum,
 };
 
+use ::entity::entry::Model as EntryModel;
+
 pub fn validate_entry_model(
     entry: &EntryModel,
-    id: Option<i32>,
-    folder_id: i32,
+    id: Option<Uuid>,
+    folder_id: Uuid,
     title: &str,
     text: &str,
 ) {
@@ -31,8 +34,8 @@ pub fn validate_entry_model(
 
 pub fn validate_generic_entry_info_response(
     entry: &EntryInfoResponseSchema,
-    id: Option<i32>,
-    folder_id: i32,
+    id: Option<Uuid>,
+    folder_id: Uuid,
     title: &str,
 ) {
     validate_entry_info_response(entry, id, folder_id, ENTRY, title)
@@ -40,8 +43,8 @@ pub fn validate_generic_entry_info_response(
 
 pub fn validate_entry_info_response(
     response: &EntryInfoResponseSchema,
-    id: Option<i32>,
-    folder_id: i32,
+    id: Option<Uuid>,
+    folder_id: Uuid,
     entity_type: EntityType,
     title: &str,
 ) {
@@ -55,8 +58,8 @@ pub fn validate_entry_info_response(
 
 pub fn validate_language_property_response(
     response: &EntryPropertyResponseSchema,
-    id: Option<i32>,
-    folder_id: i32,
+    id: Option<Uuid>,
+    folder_id: Uuid,
     entity_type: EntityType,
     title: &str,
 ) {
@@ -82,8 +85,8 @@ pub fn validate_word_response(actual: &WordResponseSchema, expected: &WordRespon
 
 pub fn validate_person_property_response(
     response: &EntryPropertyResponseSchema,
-    id: Option<i32>,
-    folder_id: i32,
+    id: Option<Uuid>,
+    folder_id: Uuid,
     entity_type: EntityType,
     title: &str,
     name: &str,

@@ -16,13 +16,13 @@ describe("multiple options", () => {
             use([
                 referencedEntryInfo,
                 {
-                    id: 3,
+                    id: "entry3",
                     folderId: ROOT_FOLDER_ID,
                     entityType: EntryType.Person,
                     title: "mocked-other",
                 },
                 {
-                    id: 4,
+                    id: "entry4",
                     folderId: ROOT_FOLDER_ID,
                     entityType: EntryType.Person,
                     title: "mocked-another",

@@ -39,14 +39,14 @@ pub async fn create(
     };
 
     let project = Project {
-        id: Uuid::new_v4().to_string(),
+        id: Uuid::new_v4(),
         name: name.to_string(),
         folder_path: folder_path.to_string(),
         database: db_config,
     };
 
     let id = state.add_project(project);
-    let project = state.get_project(&id).unwrap();
+    let project = state.get_project(id).unwrap();
 
     if !in_memory {
         _write_project_config_to_file(project)?;
@@ -84,7 +84,7 @@ pub async fn load(
             let db_connection = setup_db(&connection_string).await?;
 
             let project = Project {
-                id: Uuid::new_v4().to_string(),
+                id: Uuid::new_v4(),
                 name: config_file.name,
                 folder_path: folder_path.to_string(),
                 database: DatabaseConfig {
@@ -100,11 +100,11 @@ pub async fn load(
     state.config.add_recent_project(&folder_path);
     let _ = config_service::save_app_config(&state.config);
 
-    let project = state.get_project(&id).unwrap();
+    let project = state.get_project(id).unwrap();
     Ok(generate_response(project))
 }
 
-pub async fn close(state: &mut MutexGuard<'_, StateData>, id: &str) -> Result<(), Error> {
+pub async fn close(state: &mut MutexGuard<'_, StateData>, id: Uuid) -> Result<(), Error> {
     let project = match state.remove_project(id) {
         Some(project) => project,
         None => {
@@ -131,7 +131,7 @@ pub async fn close(state: &mut MutexGuard<'_, StateData>, id: &str) -> Result<()
 
 pub async fn update(
     state: &mut MutexGuard<'_, StateData>,
-    id: &str,
+    id: Uuid,
     name: &str,
 ) -> Result<ProjectResponseSchema, Error> {
     let project = match state.get_project_mut(id) {
@@ -154,7 +154,7 @@ pub async fn update(
 
 pub fn get_database<'a>(
     state: &'a MutexGuard<'_, StateData>,
-    project_id: &str,
+    project_id: Uuid,
 ) -> Result<&'a DatabaseConnection, Error> {
     match state.get_project(project_id) {
         Some(project) => Ok(&project.database.connection),
@@ -223,7 +223,7 @@ fn _write_project_config_to_file(project: &Project) -> Result<(), Error> {
 
 pub fn generate_response(project: &Project) -> ProjectResponseSchema {
     ProjectResponseSchema {
-        id: project.id.clone(),
+        id: project.id,
         name: project.name.to_string(),
     }
 }

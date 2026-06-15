@@ -1,6 +1,9 @@
 use std::fs;
 use std::path::Path;
 
+use rstest::*;
+use uuid::Uuid;
+
 use hellebore::{
     constants::PROJECT_CONFIG_FILE_NAME,
     model::{config::AppConfig, errors::Error, state::State},
@@ -8,7 +11,6 @@ use hellebore::{
     services::project_service,
     types::entity::PROJECT,
 };
-use rstest::*;
 
 use crate::fixtures::project::{
     TempProjectDir, missing_project_id, project_name, temp_project_dir, updated_project_name,
@@ -33,7 +35,7 @@ async fn test_create_project(project_name: String, temp_project_dir: TempProject
     let response = response.unwrap();
     assert_eq!(response.name, project_name);
 
-    let project = state.get_project(&response.id);
+    let project = state.get_project(response.id);
     assert!(project.is_some());
 
     let project = project.unwrap();
@@ -79,14 +81,14 @@ async fn test_update_project(
     assert!(created.is_ok());
     let created = created.unwrap();
 
-    let updated = project_service::update(&mut state, &created.id, &updated_project_name).await;
+    let updated = project_service::update(&mut state, created.id, &updated_project_name).await;
 
     assert!(updated.is_ok());
     let updated = updated.unwrap();
     assert_eq!(updated.id, created.id);
     assert_eq!(updated.name, updated_project_name);
 
-    let project = state.get_project(&created.id);
+    let project = state.get_project(created.id);
     assert!(project.is_some());
     assert_eq!(project.unwrap().name, updated_project_name);
 
@@ -105,13 +107,13 @@ async fn test_update_project(
 #[tokio::test]
 async fn test_error_on_updating_missing_project(
     updated_project_name: String,
-    missing_project_id: String,
+    missing_project_id: Uuid,
 ) {
     let state = create_state();
     let mut state = state.lock().await;
 
     let response =
-        project_service::update(&mut state, &missing_project_id, &updated_project_name).await;
+        project_service::update(&mut state, missing_project_id, &updated_project_name).await;
 
     assert!(response.is_err());
     match response.unwrap_err() {
@@ -119,7 +121,7 @@ async fn test_error_on_updating_missing_project(
             entity_type, id, ..
         } => {
             assert_eq!(entity_type, PROJECT);
-            assert_eq!(id, missing_project_id);
+            assert_eq!(id, missing_project_id.to_string());
         }
         err => panic!("Unexpected error: {err:?}"),
     }
@@ -136,19 +138,19 @@ async fn test_close_project(project_name: String, temp_project_dir: TempProjectD
     assert!(created.is_ok());
     let created = created.unwrap();
 
-    let response = project_service::close(&mut state, &created.id).await;
+    let response = project_service::close(&mut state, created.id).await;
 
     assert!(response.is_ok());
-    assert!(state.get_project(&created.id).is_none());
+    assert!(state.get_project(created.id).is_none());
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_closing_missing_project(missing_project_id: String) {
+async fn test_error_on_closing_missing_project(missing_project_id: Uuid) {
     let state = create_state();
     let mut state = state.lock().await;
 
-    let response = project_service::close(&mut state, &missing_project_id).await;
+    let response = project_service::close(&mut state, missing_project_id).await;
 
     assert!(response.is_err());
     match response.unwrap_err() {
@@ -156,7 +158,7 @@ async fn test_error_on_closing_missing_project(missing_project_id: String) {
             entity_type, id, ..
         } => {
             assert_eq!(entity_type, PROJECT);
-            assert_eq!(id, missing_project_id);
+            assert_eq!(id, missing_project_id.to_string());
         }
         err => panic!("Unexpected error: {err:?}"),
     }
@@ -176,17 +178,17 @@ async fn test_get_database_for_loaded_project(
     assert!(created.is_ok());
     let created = created.unwrap();
 
-    let database = project_service::get_database(&state, &created.id);
+    let database = project_service::get_database(&state, created.id);
     assert!(database.is_ok());
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_error_on_getting_database_for_missing_project(missing_project_id: String) {
+async fn test_error_on_getting_database_for_missing_project(missing_project_id: Uuid) {
     let state = create_state();
     let state = state.lock().await;
 
-    let response = project_service::get_database(&state, &missing_project_id);
+    let response = project_service::get_database(&state, missing_project_id);
 
     assert!(response.is_err());
     match response.unwrap_err() {
@@ -194,7 +196,7 @@ async fn test_error_on_getting_database_for_missing_project(missing_project_id: 
             entity_type, id, ..
         } => {
             assert_eq!(entity_type, PROJECT);
-            assert_eq!(id, missing_project_id);
+            assert_eq!(id, missing_project_id.to_string());
         }
         err => panic!("Unexpected error: {err:?}"),
     }

@@ -9,8 +9,8 @@ import { test as baseTest } from "@tests/unit/ui/fixtures";
 const test = baseTest;
 
 const buildWord = (overrides: Partial<WordResponse> = {}): WordResponse => ({
-    id: 1,
-    languageId: 10,
+    id: "entry1",
+    languageId: "entry10",
     wordType: WordType.Noun,
     spelling: "alpha",
     definition: "first",
@@ -22,32 +22,35 @@ describe("WordTableService", () => {
     test("initializes identity and loads rows with transformed cell values plus a sentinel", ({
         domainManager,
     }) => {
-        const service = new WordTableService("word-table-7", domainManager);
+        const service = new WordTableService(
+            "word-table-entry7",
+            domainManager,
+        );
 
         service.load(
             [
-                buildWord({ id: 11, wordType: WordType.Verb }),
+                buildWord({ id: "entry11", wordType: WordType.Verb }),
                 buildWord({
-                    id: 12,
+                    id: "entry12",
                     spelling: "beta",
                     translations: ["two", "double"],
                 }),
             ],
-            77,
+            "entry77",
         );
 
-        expect(service.id).toBe("word-table-7");
+        expect(service.id).toBe("word-table-entry7");
         expect(service.changed).toBe(false);
         expect(service.table.rows).toHaveLength(3);
 
-        const row11 = service.table.findRow("11");
+        const row11 = service.table.findRow("entry11");
         expect(row11).toBeDefined();
         expect(row11?.cells.wordType.value).toBe(String(WordType.Verb));
         expect(row11?.cells.spelling.value).toBe("alpha");
         expect(row11?.cells.definition.value).toBe("first");
         expect(row11?.cells.translations.value).toBe("one, single");
 
-        const row12 = service.table.findRow("12");
+        const row12 = service.table.findRow("entry12");
         expect(row12?.cells.translations.value).toBe("two, double");
 
         const sentinel = service.table.findRow(service.sentinelKey) as
@@ -55,7 +58,7 @@ describe("WordTableService", () => {
             | undefined;
         expect(sentinel).toBeDefined();
         expect(sentinel?.id).toBeNull();
-        expect(sentinel?.languageId).toBe(77);
+        expect(sentinel?.languageId).toBe("entry77");
         expect(sentinel?.filterable).toBe(false);
         expect(sentinel?.cells.wordType.value).toBe("");
         expect(sentinel?.cells.spelling.value).toBe("");
@@ -64,11 +67,14 @@ describe("WordTableService", () => {
     test("promotes sentinel row on first edit, applies first active type filter, emits change, and appends a new sentinel", ({
         domainManager,
     }) => {
-        const service = new WordTableService("word-table-1", domainManager);
+        const service = new WordTableService(
+            "word-table-entry1",
+            domainManager,
+        );
         const onChange = vi.fn();
         service.onChange.subscribe(onChange);
 
-        service.load([], 12);
+        service.load([], "entry12");
         const firstSentinel = service.sentinelKey;
 
         service.table.setColumnFilter(WordColumnKey.WordType, [
@@ -95,11 +101,17 @@ describe("WordTableService", () => {
     test("claims modified rows as domain words with parsed translations and clears changed tracking", ({
         domainManager,
     }) => {
-        const service = new WordTableService("word-table-2", domainManager);
+        const service = new WordTableService(
+            "word-table-entry2",
+            domainManager,
+        );
 
-        service.load([buildWord({ id: 41, wordType: WordType.Adjective })], 10);
+        service.load(
+            [buildWord({ id: "entry41", wordType: WordType.Adjective })],
+            "entry10",
+        );
         service.table.setValue(
-            "41",
+            "entry41",
             WordColumnKey.Translations,
             " alpha, beta ; gamma ;; , ",
         );
@@ -110,10 +122,10 @@ describe("WordTableService", () => {
 
         expect(claimed).toStrictEqual([
             {
-                key: "41",
-                id: 41,
+                key: "entry41",
+                id: "entry41",
                 wordType: WordType.Adjective,
-                languageId: 10,
+                languageId: "entry10",
                 spelling: "alpha",
                 definition: "first",
                 translations: ["alpha", "beta", "gamma"],
@@ -126,9 +138,12 @@ describe("WordTableService", () => {
     test("synchronizes backend ids into existing table rows by key", ({
         domainManager,
     }) => {
-        const service = new WordTableService("word-table-3", domainManager);
+        const service = new WordTableService(
+            "word-table-entry3",
+            domainManager,
+        );
 
-        service.load([], 3);
+        service.load([], "entry3");
         const createdKey = service.sentinelKey;
         service.table.setValue(createdKey, WordColumnKey.Spelling, "gamma");
 
@@ -138,14 +153,14 @@ describe("WordTableService", () => {
         service.handleSynchronization([
             {
                 ...claimed,
-                id: 999,
+                id: "entry999",
             },
         ]);
 
         const createdRow = service.table.findRow(createdKey) as
             | WordRow
             | undefined;
-        expect(createdRow?.id).toBe(999);
+        expect(createdRow?.id).toBe("entry999");
     });
 
     test("removes transient rows locally and persisted rows via domain delete", async ({
@@ -154,9 +169,12 @@ describe("WordTableService", () => {
         const deleteWord = vi
             .spyOn(domainManager.loadedProject.words, "delete")
             .mockResolvedValue(true);
-        const service = new WordTableService("word-table-4", domainManager);
+        const service = new WordTableService(
+            "word-table-entry4",
+            domainManager,
+        );
 
-        service.load([buildWord({ id: 5 })], 22);
+        service.load([buildWord({ id: "entry5" })], "entry22");
         const transientKey = service.sentinelKey;
         service.table.setValue(transientKey, WordColumnKey.Spelling, "delta");
         const currentSentinel = service.sentinelKey;
@@ -164,12 +182,12 @@ describe("WordTableService", () => {
         await service.removeRow(currentSentinel);
         await service.removeRow("missing");
         await service.removeRow(transientKey);
-        await service.removeRow("5");
+        await service.removeRow("entry5");
 
         expect(deleteWord).toHaveBeenCalledOnce();
-        expect(deleteWord).toHaveBeenCalledWith(5);
+        expect(deleteWord).toHaveBeenCalledWith("entry5");
         expect(service.table.findRow(transientKey)).toBeUndefined();
-        expect(service.table.findRow("5")).toBeUndefined();
+        expect(service.table.findRow("entry5")).toBeUndefined();
     });
 
     test("keeps persisted row when domain delete fails", async ({
@@ -178,25 +196,31 @@ describe("WordTableService", () => {
         const deleteWord = vi
             .spyOn(domainManager.loadedProject.words, "delete")
             .mockResolvedValue(false);
-        const service = new WordTableService("word-table-5", domainManager);
+        const service = new WordTableService(
+            "word-table-entry5",
+            domainManager,
+        );
 
-        service.load([buildWord({ id: 18 })], 8);
+        service.load([buildWord({ id: "entry18" })], "entry8");
 
-        await service.removeRow("18");
+        await service.removeRow("entry18");
 
         expect(deleteWord).toHaveBeenCalledOnce();
-        expect(service.table.findRow("18")).toBeDefined();
+        expect(service.table.findRow("entry18")).toBeDefined();
     });
 
     test("cleans up table interaction state by delegating to reset", ({
         domainManager,
     }) => {
-        const service = new WordTableService("word-table-6", domainManager);
+        const service = new WordTableService(
+            "word-table-entry6",
+            domainManager,
+        );
 
-        service.load([buildWord({ id: 60 })], 15);
-        service.table.selectSingle("60", WordColumnKey.Spelling);
-        service.table.startEdit("60", WordColumnKey.Spelling);
-        service.table.setValue("60", WordColumnKey.Spelling, "updated");
+        service.load([buildWord({ id: "entry60" })], "entry15");
+        service.table.selectSingle("entry60", WordColumnKey.Spelling);
+        service.table.startEdit("entry60", WordColumnKey.Spelling);
+        service.table.setValue("entry60", WordColumnKey.Spelling, "updated");
 
         expect(service.changed).toBe(true);
         expect(service.table.selectedCells.size).toBe(1);

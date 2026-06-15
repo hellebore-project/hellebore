@@ -1,5 +1,6 @@
 use hellebore::{services::entry_service, types::entity::ENTRY};
 use rstest::*;
+use uuid::Uuid;
 
 use crate::{
     fixtures::{
@@ -12,7 +13,7 @@ use crate::{
 
 #[rstest]
 #[tokio::test]
-async fn test_create_entry(folder_id: i32, entry_title: String, entry_text: String) {
+async fn test_create_entry(folder_id: Uuid, entry_title: String, entry_text: String) {
     let database = database().await;
 
     let entry = entry_service::_create(
@@ -32,7 +33,7 @@ async fn test_create_entry(folder_id: i32, entry_title: String, entry_text: Stri
 #[rstest]
 #[tokio::test]
 async fn test_error_on_creating_entry_with_duplicate_name(
-    folder_id: i32,
+    folder_id: Uuid,
     entry_title: String,
     entry_text: String,
 ) {

@@ -1,5 +1,6 @@
 use hellebore::{model::text::TextNode, services::entry_service};
 use rstest::*;
+use uuid::Uuid;
 
 use crate::{
     fixtures::{
@@ -15,7 +16,7 @@ use crate::{
 
 #[rstest]
 #[tokio::test]
-async fn test_get_entry(folder_id: i32, entry_title: String, entry_text: String) {
+async fn test_get_entry(folder_id: Uuid, entry_title: String, entry_text: String) {
     let database = database().await;
     let entry = create_generic_entry(
         &database,
@@ -33,7 +34,7 @@ async fn test_get_entry(folder_id: i32, entry_title: String, entry_text: String)
 #[tokio::test]
 async fn test_error_on_getting_nonexistent_entry() {
     let database = database().await;
-    let response = entry_service::get_info(&database, 0).await;
+    let response = entry_service::get_info(&database, Uuid::new_v4()).await;
     assert!(response.is_err());
 }
 
@@ -41,14 +42,14 @@ async fn test_error_on_getting_nonexistent_entry() {
 #[tokio::test]
 async fn test_error_on_getting_properties_of_nonexistent_entry() {
     let database = database().await;
-    let response = entry_service::get_properties(&database, 0).await;
+    let response = entry_service::get_properties(&database, Uuid::new_v4()).await;
     assert!(response.is_err());
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_get_entry_text(
-    folder_id: i32,
+    folder_id: Uuid,
     entry_title: String,
     entry_text_node: TextNode,
     entry_text_json: String,
@@ -76,7 +77,7 @@ async fn test_get_entry_text(
 
 #[rstest]
 #[tokio::test]
-async fn test_get_all_entries(folder_id: i32, entry_title: String) {
+async fn test_get_all_entries(folder_id: Uuid, entry_title: String) {
     let database = database().await;
     create_generic_entry(&database, folder_id, entry_title.to_owned(), "".to_owned()).await;
 

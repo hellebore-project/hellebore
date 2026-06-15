@@ -35,7 +35,7 @@ export class EntryManager {
     async create(
         entityType: EntryType,
         title: string,
-        folderId: number = ROOT_FOLDER_ID,
+        folderId: Id = ROOT_FOLDER_ID,
     ): Promise<EntryInfoResponse | null> {
         let response: EntryInfoResponse | null;
 
@@ -112,7 +112,7 @@ export class EntryManager {
         }
     }
 
-    async getProperties(id: number): Promise<EntryPropertyResponse | null> {
+    async getProperties(id: Id): Promise<EntryPropertyResponse | null> {
         let response: BackendEntryPropertyResponse | null;
 
         try {
@@ -195,7 +195,7 @@ export class EntryManager {
         return response.slice(0, limit);
     }
 
-    async delete(id: number): Promise<boolean> {
+    async delete(id: Id): Promise<boolean> {
         try {
             await this._delete(id);
         } catch (error) {
@@ -222,7 +222,7 @@ export class EntryManager {
 
     private async _createLanguage(
         name: string,
-        folderId: number,
+        folderId: Id,
     ): Promise<EntryInfoResponse> {
         return this._create<LanguageProperties>({
             entryType: EntryType.Language,
@@ -234,7 +234,7 @@ export class EntryManager {
 
     private async _createPerson(
         name: string,
-        folderId: number,
+        folderId: Id,
     ): Promise<EntryInfoResponse> {
         return this._create<PersonProperties>({
             entryType: EntryType.Person,

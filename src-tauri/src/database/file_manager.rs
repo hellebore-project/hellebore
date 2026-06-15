@@ -1,9 +1,12 @@
+// TODO: rename this file
+
 use sea_orm::{
     sea_query::{
         Alias, CommonTableExpression, Expr, JoinType, SelectStatement, UnionType, WithClause,
     },
     *,
 };
+use uuid::Uuid;
 
 use ::entity::entry::{Column as EntryColumn, Entity as EntryModel};
 use ::entity::folder::{Column as FolderColumn, Entity as FolderModel};
@@ -12,23 +15,23 @@ use crate::constants::ROOT_FOLDER_ID;
 
 #[derive(Debug, FromQueryResult)]
 pub struct FileNode {
-    pub id: i32,
+    pub id: uuid::Uuid,
     pub node_type: String,
 }
 
-/// Cleans negative folder IDs to null.
-/// Negative folder IDs are collectively treated as a sentinel value that corresponds to
-/// the root folder. In the DB, the root folder is denoted by a NULL ID.
-pub fn convert_negative_folder_id_to_null(id: i32) -> Option<i32> {
-    if id > ROOT_FOLDER_ID {
-        Some(id) // ID of existing folder
-    } else {
+/// Cleans root folder IDs to null.
+/// The root folder ID is treated as a sentinel value that corresponds to
+/// the root folder. In the DB, the root folder is denoted by NULL.
+pub fn convert_root_folder_id_to_null(id: Uuid) -> Option<Uuid> {
+    if id == ROOT_FOLDER_ID {
         None // root folder ID
+    } else {
+        Some(id) // ID of existing folder
     }
 }
 
 /// Cleans null folder IDs to the root folder ID.
-pub fn convert_null_folder_id_to_root(id: Option<i32>) -> i32 {
+pub fn convert_null_folder_id_to_root(id: Option<Uuid>) -> Uuid {
     if id.is_none() {
         return ROOT_FOLDER_ID;
     }
@@ -39,14 +42,14 @@ pub fn convert_null_folder_id_to_root(id: Option<i32>) -> i32 {
 /// If `id` is a positive integer, then it is set in the database as is.
 /// If `id` is a negative integer, then `None` is set in the database.
 /// If `id` is `None`, then the value is not set in the database.
-pub fn set_optional_folder_id(id: Option<i32>) -> ActiveValue<Option<i32>> {
+pub fn set_optional_folder_id(id: Option<Uuid>) -> ActiveValue<Option<Uuid>> {
     match id {
-        Some(id) => ActiveValue::Set(convert_negative_folder_id_to_null(id)), // value is set in the DB
+        Some(id) => ActiveValue::Set(convert_root_folder_id_to_null(id)), // value is set in the DB
         None => ActiveValue::NotSet, // no value is set in the DB
     }
 }
 
-pub async fn get_folder_contents<C>(con: &C, root_folder_id: i32) -> Result<Vec<FileNode>, DbErr>
+pub async fn get_folder_contents<C>(con: &C, root_folder_id: Uuid) -> Result<Vec<FileNode>, DbErr>
 where
     C: ConnectionTrait,
 {

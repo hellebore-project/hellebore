@@ -1,15 +1,16 @@
 import { expect, test, vi } from "vitest";
 
+import { Id } from "@/interface";
 import { MentionDropdownService } from "@/lib/components/rich-text-editor/mention/mention-dropdown-service.svelte";
 
 test("keyboard arrows update selected index and enter selects highlighted item", () => {
     const command = vi.fn();
 
-    const service = new MentionDropdownService<{ id: number }>({
+    const service = new MentionDropdownService<{ id: Id }>({
         items: [
-            { label: "first", data: { id: 1 } },
-            { label: "second", data: { id: 2 } },
-            { label: "third", data: { id: 3 } },
+            { label: "first", data: { id: "entry1" } },
+            { label: "second", data: { id: "entry2" } },
+            { label: "third", data: { id: "entry3" } },
         ],
         command,
     } as never);
@@ -29,5 +30,8 @@ test("keyboard arrows update selected index and enter selects highlighted item",
     service.onKeyDown({
         event: new KeyboardEvent("keydown", { key: "Enter" }),
     } as never);
-    expect(command).toHaveBeenCalledWith({ label: "first", data: { id: 1 } });
+    expect(command).toHaveBeenCalledWith({
+        label: "first",
+        data: { id: "entry1" },
+    });
 });

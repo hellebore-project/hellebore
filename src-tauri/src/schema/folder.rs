@@ -1,24 +1,25 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderCreateSchema {
-    pub parent_id: i32,
+    pub parent_id: Uuid,
     pub name: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderUpdateSchema {
-    pub id: i32,
-    pub parent_id: Option<i32>,
+    pub id: Uuid,
+    pub parent_id: Option<Uuid>,
     pub name: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderUpdateResponseSchema {
-    pub id: i32,
+    pub id: Uuid,
     pub parent_changed: bool,
     pub name_changed: bool,
 }
@@ -43,8 +44,8 @@ pub struct FolderNameCollisionSchema {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderValidationSchema {
-    pub id: Option<i32>,
-    pub parent_id: i32,
+    pub id: Option<Uuid>,
+    pub parent_id: Uuid,
     pub name: String,
     pub name_collision: Option<FolderNameCollisionSchema>,
 }
@@ -52,7 +53,7 @@ pub struct FolderValidationSchema {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderResponseSchema {
-    pub id: i32,
-    pub parent_id: i32,
+    pub id: Uuid,
+    pub parent_id: Uuid,
     pub name: String,
 }

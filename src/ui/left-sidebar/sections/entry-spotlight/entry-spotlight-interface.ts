@@ -1,7 +1,8 @@
+import type { Id } from "@/interface/common";
 import type { EntrySpotlightService } from "./entry-spotlight-service.svelte";
 
 export interface SpotlightNodeData {
-    id: number | null;
+    id: Id | null;
     titleChanged: boolean;
     folderIdChanged: boolean;
 }

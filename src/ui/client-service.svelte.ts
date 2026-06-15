@@ -254,7 +254,7 @@ export class ClientManager implements IComponentService {
         );
     }
 
-    editFolderName(id: number) {
+    editFolderName(id: Id) {
         // this.leftSideBar.spotlight.toggleFolderAsEditable(id);
         console.log(id);
     }
@@ -322,7 +322,7 @@ export class ClientManager implements IComponentService {
         };
     }
 
-    async deleteFolder(id: number, confirm = true) {
+    async deleteFolder(id: Id, confirm = true) {
         if (confirm) {
             const folder = await this.domain.loadedProject.folders.get(id);
             const folderName = folder?.name ?? "UNKNOWN";
@@ -379,7 +379,7 @@ export class ClientManager implements IComponentService {
         return entry;
     }
 
-    async deleteEntry(id: number, title: string, confirm = true) {
+    async deleteEntry(id: Id, title: string, confirm = true) {
         // Currently, the title of the entry could be fetched from the cached file structure
         // rather than providing it as an argument. However, in the future, the file tree will
         // only include pinned entries. Once that feature is implemented, there will be no

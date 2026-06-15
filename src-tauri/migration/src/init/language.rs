@@ -16,8 +16,8 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Language::Table)
                     .if_not_exists()
-                    .col(pk_auto(Language::Id).not_null())
-                    .col(integer(Language::EntryId).not_null())
+                    .col(pk_uuid(Language::Id).not_null())
+                    .col(uuid(Language::EntryId).not_null())
                     .foreign_key(
                         ForeignKey::create()
                             .name(LANGUAGE_ENTRY_ID_FK_NAME)

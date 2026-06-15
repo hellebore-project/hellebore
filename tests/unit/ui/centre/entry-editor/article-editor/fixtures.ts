@@ -1,4 +1,5 @@
 import { EntryViewType } from "@/constants";
+import { Id } from "@/interface";
 import { EntryType, ROOT_FOLDER_ID, type EntryInfoResponse } from "@/api";
 import type { ArticleEditorService } from "@/ui/centre/entry-editor/article-editor";
 
@@ -29,7 +30,7 @@ export const test = baseTest.extend<BaseArticleEditorFixtures>({
     ],
 });
 
-export const referencedEntryId = 2;
+export const referencedEntryId: Id = "entry2";
 export const referencedEntryTitle = "mocked-referenced-entry";
 export const referencedEntryInfo: EntryInfoResponse = {
     id: referencedEntryId,

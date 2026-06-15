@@ -4,7 +4,7 @@ import { MultiEventProducer } from "@/utils/event-producer";
 
 export class EntryInfoService {
     // STATE
-    private _entryId: number = $state(ENTRY_ID_SENTINEL);
+    private _entryId: Id = $state(ENTRY_ID_SENTINEL);
     private _entryType: EntryType | null = $state(null);
     private _title: string | null = $state(null);
     private _isTitleUnique = $state(true);
@@ -22,7 +22,7 @@ export class EntryInfoService {
         return this._entryId;
     }
 
-    set entryId(id: number) {
+    set entryId(id: Id) {
         this._entryId = id;
     }
 
@@ -77,7 +77,7 @@ export class EntryInfoService {
         this._titleChanged = changed;
     }
 
-    load(id: number, type: EntryType, title: string) {
+    load(id: Id, type: EntryType, title: string) {
         this.entryId = id;
         this.entryType = type;
         // mutate the private title variable directly to avoid an unnecessary sync

@@ -1,5 +1,6 @@
 import type {
     IComponentService,
+    Id,
     OpenEntryEditorEvent,
     OptionData,
 } from "@/interface";
@@ -15,7 +16,7 @@ export class EntrySearchService implements IComponentService {
 
     // STATE
     private _queryString: string = $state("");
-    private _queryResults: OptionData<number>[] = $state([]);
+    private _queryResults: OptionData<Id>[] = $state([]);
     private _waitingForQuery = false;
     private _lastQueryRequestTime = 0;
 
@@ -44,13 +45,13 @@ export class EntrySearchService implements IComponentService {
         return this._queryResults;
     }
 
-    set queryResults(value: OptionData<number>[]) {
+    set queryResults(value: OptionData<Id>[]) {
         this._queryResults = value;
     }
 
-    selectEntry(entryId?: string | null) {
+    selectEntry(entryId?: Id | null) {
         if (entryId === null || entryId === undefined) return;
-        this.onOpenEntry.produce({ id: Number(entryId), focus: true });
+        this.onOpenEntry.produce({ id: entryId, focus: true });
         this.cleanUp();
     }
 
@@ -73,7 +74,7 @@ export class EntrySearchService implements IComponentService {
             .finally(() => (this._waitingForQuery = false));
     }
 
-    private async _queryEntries(): Promise<OptionData<number>[]> {
+    private async _queryEntries(): Promise<OptionData<Id>[]> {
         const keyword = this._queryString;
 
         if (keyword === "") return [];

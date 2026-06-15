@@ -60,14 +60,14 @@ describe("ArticleEditorService", () => {
     test("initializes rich-text editor config and exposes expected identity", ({
         domainManager,
     }) => {
-        const info = new EntryInfoService(7);
+        const info = new EntryInfoService("entry7");
 
         const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
 
-        expect(service.id).toBe("article-editor-7");
+        expect(service.id).toBe("article-editor-entry7");
         expect(service.loaded).toBe(false);
-        expect(richText.id).toBe("article-rich-text-editor-7");
+        expect(richText.id).toBe("article-rich-text-editor-entry7");
         expect(richText.args.extensions?.placeholder).toBe(
             "Enter a description ...",
         );
@@ -82,7 +82,7 @@ describe("ArticleEditorService", () => {
     test("proxies changed state to the rich-text service", ({
         domainManager,
     }) => {
-        const info = new EntryInfoService(11);
+        const info = new EntryInfoService("entry11");
 
         const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
@@ -98,7 +98,7 @@ describe("ArticleEditorService", () => {
     test("loads article content and marks the service as loaded", ({
         domainManager,
     }) => {
-        const info = new EntryInfoService(9);
+        const info = new EntryInfoService("entry9");
         const payload: JSONContent = {
             type: "doc",
             content: [
@@ -119,7 +119,7 @@ describe("ArticleEditorService", () => {
     test("forwards rich-text change notifications as entry change events", ({
         domainManager,
     }) => {
-        const info = new EntryInfoService(13);
+        const info = new EntryInfoService("entry13");
         const onChange = vi.fn();
 
         const service = new ArticleEditorService(domainManager, info);
@@ -130,7 +130,7 @@ describe("ArticleEditorService", () => {
 
         expect(onChange).toHaveBeenCalledOnce();
         expect(onChange).toHaveBeenCalledWith({
-            id: 13,
+            id: "entry13",
             textChanged: true,
         });
     });
@@ -138,19 +138,19 @@ describe("ArticleEditorService", () => {
     test("forwards mention selection only when reference id is present", ({
         domainManager,
     }) => {
-        const info = new EntryInfoService(13);
+        const info = new EntryInfoService("entry13");
         const onSelectEntryReference = vi.fn();
 
         const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
         service.onSelectEntryReference.subscribe(onSelectEntryReference);
 
-        richText.onSelectMention.produce({ data: { id: 88 } });
+        richText.onSelectMention.produce({ data: { id: "entry88" } });
         richText.onSelectMention.produce({ data: {} });
         richText.onSelectMention.produce({});
 
         expect(onSelectEntryReference).toHaveBeenCalledOnce();
-        expect(onSelectEntryReference).toHaveBeenCalledWith({ id: 88 });
+        expect(onSelectEntryReference).toHaveBeenCalledWith({ id: "entry88" });
     });
 
     test("queries references by title and serializes domain results for mention items", async ({
@@ -160,25 +160,25 @@ describe("ArticleEditorService", () => {
             .spyOn(domainManager.loadedProject.entries, "search")
             .mockResolvedValue([
                 {
-                    id: 10,
-                    folderId: 1,
+                    id: "entry10",
+                    folderId: "folder1",
                     entityType: EntryType.Person,
                     title: "Self",
                 },
                 {
-                    id: 20,
-                    folderId: 1,
+                    id: "entry20",
+                    folderId: "folder1",
                     entityType: EntryType.Person,
                     title: "Alpha",
                 },
                 {
-                    id: 30,
-                    folderId: 1,
+                    id: "entry30",
+                    folderId: "folder1",
                     entityType: EntryType.Person,
                     title: "Beta",
                 },
             ]);
-        const info = new EntryInfoService(10);
+        const info = new EntryInfoService("entry10");
 
         new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
@@ -191,8 +191,8 @@ describe("ArticleEditorService", () => {
         expect(search).toHaveBeenCalledOnce();
         expect(search).toHaveBeenCalledWith({ keyword: "a", limit: 5 });
         expect(response).toStrictEqual([
-            { id: 20, label: "Alpha" },
-            { id: 30, label: "Beta" },
+            { id: "entry20", label: "Alpha" },
+            { id: "entry30", label: "Beta" },
         ]);
     });
 
@@ -202,7 +202,7 @@ describe("ArticleEditorService", () => {
         const search = vi
             .spyOn(domainManager.loadedProject.entries, "search")
             .mockResolvedValue(null);
-        const info = new EntryInfoService(2);
+        const info = new EntryInfoService("entry2");
 
         new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];
@@ -217,7 +217,7 @@ describe("ArticleEditorService", () => {
     test("cleans up by delegating to the rich-text service", ({
         domainManager,
     }) => {
-        const info = new EntryInfoService(15);
+        const info = new EntryInfoService("entry15");
 
         const service = new ArticleEditorService(domainManager, info);
         const richText = mocks.instances[0];

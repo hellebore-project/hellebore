@@ -1,4 +1,5 @@
 use sea_orm::{ConnectionTrait, DatabaseConnection};
+use uuid::Uuid;
 
 use ::entity::person::Model as Person;
 
@@ -7,7 +8,7 @@ use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::person::PersonSchema;
 use crate::types::entity::PERSON;
 
-pub async fn create<C>(con: &C, entry_id: i32, properties: &PersonSchema) -> Result<(), Error>
+pub async fn create<C>(con: &C, entry_id: Uuid, properties: &PersonSchema) -> Result<(), Error>
 where
     C: ConnectionTrait,
 {
@@ -23,7 +24,7 @@ where
     Ok(())
 }
 
-pub async fn update<C>(con: &C, id: i32, properties: &PersonSchema) -> Result<(), Error>
+pub async fn update<C>(con: &C, id: Uuid, properties: &PersonSchema) -> Result<(), Error>
 where
     C: ConnectionTrait,
 {
@@ -40,7 +41,7 @@ where
         })
 }
 
-pub async fn get(database: &DatabaseConnection, id: i32) -> Result<PersonSchema, Error> {
+pub async fn get(database: &DatabaseConnection, id: Uuid) -> Result<PersonSchema, Error> {
     let person = person_manager::get(database, id).await.map_err(|e| {
         ErrorBuilder::new()
             .msg("Failed to query the person table while fetching a person by ID.")

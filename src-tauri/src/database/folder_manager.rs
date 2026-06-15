@@ -1,15 +1,17 @@
-use ::entity::{folder, folder::Entity as FolderModel};
 use sea_orm::*;
+use uuid::Uuid;
+
+use ::entity::{folder, folder::Entity as FolderModel};
 
 use crate::database::{file_manager, utils};
 
-pub async fn insert<C>(con: &C, parent_id: i32, name: &str) -> Result<folder::Model, DbErr>
+pub async fn insert<C>(con: &C, parent_id: Uuid, name: &str) -> Result<folder::Model, DbErr>
 where
     C: ConnectionTrait,
 {
     let new_entity = folder::ActiveModel {
-        id: NotSet,
-        parent_id: Set(file_manager::convert_negative_folder_id_to_null(parent_id)),
+        id: Set(Uuid::new_v4()),
+        parent_id: Set(file_manager::convert_root_folder_id_to_null(parent_id)),
         name: Set(name.to_string()),
     };
     match new_entity.insert(con).await {
@@ -20,8 +22,8 @@ where
 
 pub async fn update<C>(
     con: &C,
-    id: i32,
-    parent_id: Option<i32>,
+    id: Uuid,
+    parent_id: Option<Uuid>,
     name: Option<String>,
 ) -> Result<folder::Model, DbErr>
 where
@@ -38,7 +40,7 @@ where
     updated_entity.update(con).await
 }
 
-pub async fn exists<C>(con: &C, id: i32) -> Result<bool, DbErr>
+pub async fn exists<C>(con: &C, id: Uuid) -> Result<bool, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -47,7 +49,7 @@ where
 
 pub async fn is_name_unique_at_location<C>(
     con: &C,
-    parent_id: i32,
+    parent_id: Uuid,
     name: &str,
 ) -> Result<bool, DbErr>
 where
@@ -55,7 +57,7 @@ where
 {
     let mut query = FolderModel::find().filter(folder::Column::Name.eq(name));
 
-    let parent_id = file_manager::convert_negative_folder_id_to_null(parent_id);
+    let parent_id = file_manager::convert_root_folder_id_to_null(parent_id);
     if parent_id.is_none() {
         // in sqlite3, comparisons involving NULL always resolve to false,
         // so we need to explicitly check whether the value is NULL
@@ -79,18 +81,18 @@ where
     Ok(false)
 }
 
-pub async fn get<C>(con: &C, id: i32) -> Result<Option<folder::Model>, DbErr>
+pub async fn get<C>(con: &C, id: Uuid) -> Result<Option<folder::Model>, DbErr>
 where
     C: ConnectionTrait,
 {
     FolderModel::find_by_id(id).one(con).await
 }
 
-pub fn query(parent_id: Option<i32>, name: Option<String>) -> Select<FolderModel> {
+pub fn query(parent_id: Option<Uuid>, name: Option<String>) -> Select<FolderModel> {
     let mut query = FolderModel::find();
 
     if let Some(parent_id_value) = parent_id {
-        let nullable_parent_id = file_manager::convert_negative_folder_id_to_null(parent_id_value);
+        let nullable_parent_id = file_manager::convert_root_folder_id_to_null(parent_id_value);
         if nullable_parent_id.is_none() {
             query = query.filter(folder::Column::ParentId.is_null());
         } else {
@@ -111,14 +113,14 @@ where
     FolderModel::find().all(con).await
 }
 
-pub async fn delete<C>(con: &C, id: i32) -> Result<DeleteResult, DbErr>
+pub async fn delete<C>(con: &C, id: Uuid) -> Result<DeleteResult, DbErr>
 where
     C: ConnectionTrait,
 {
     FolderModel::delete_by_id(id).exec(con).await
 }
 
-pub async fn delete_many<C>(con: &C, ids: Vec<i32>) -> Result<DeleteResult, DbErr>
+pub async fn delete_many<C>(con: &C, ids: Vec<Uuid>) -> Result<DeleteResult, DbErr>
 where
     C: ConnectionTrait,
 {

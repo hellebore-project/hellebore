@@ -1,4 +1,5 @@
 use sea_orm::DatabaseConnection;
+use uuid::Uuid;
 
 use crate::database::file_manager;
 use crate::model::errors::{Error, ErrorBuilder};
@@ -6,7 +7,7 @@ use crate::schema::file::BulkFileResponseSchema;
 
 pub async fn get_folder_contents(
     database: &DatabaseConnection,
-    folder_id: i32,
+    folder_id: Uuid,
 ) -> Result<BulkFileResponseSchema, Error> {
     let contents = file_manager::get_folder_contents(database, folder_id)
         .await
@@ -22,8 +23,8 @@ pub async fn get_folder_contents(
 }
 
 fn generate_bulk_file_response(file_nodes: Vec<file_manager::FileNode>) -> BulkFileResponseSchema {
-    let mut entries: Vec<i32> = Vec::new();
-    let mut folders: Vec<i32> = Vec::new();
+    let mut entries: Vec<Uuid> = Vec::new();
+    let mut folders: Vec<Uuid> = Vec::new();
 
     for file_node in file_nodes.iter() {
         if file_node.node_type == "folder" {

@@ -1,11 +1,12 @@
 use sea_orm::ConnectionTrait;
+use uuid::Uuid;
 
 use crate::database::language_manager;
 use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::language::LanguageSchema;
 use crate::types::entity::LANGUAGE;
 
-pub async fn create<C>(con: &C, entry_id: i32) -> Result<(), Error>
+pub async fn create<C>(con: &C, entry_id: Uuid) -> Result<(), Error>
 where
     C: ConnectionTrait,
 {

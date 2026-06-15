@@ -87,7 +87,7 @@ pub enum Error {
     BadEntryReferenceId {
         msg: String,
         id: String,
-        reference_id: i32,
+        reference_id: String,
     },
     BadEntryTextValueType {
         msg: String,

@@ -31,8 +31,8 @@ describe("EntrySearchService", () => {
         const { service, search } = createService(domainManager);
         search.mockResolvedValue([
             {
-                id: 7,
-                folderId: 1,
+                id: "7",
+                folderId: "1",
                 entityType: EntryType.Person,
                 title: "latest-entry",
             },
@@ -51,7 +51,7 @@ describe("EntrySearchService", () => {
         expect(service.queryResults).toStrictEqual([
             {
                 label: "latest-entry",
-                value: 7,
+                value: "7",
             },
         ]);
     });
@@ -62,14 +62,14 @@ describe("EntrySearchService", () => {
         const { service, search } = createService(domainManager);
         search.mockResolvedValue([
             {
-                id: 1,
-                folderId: 1,
+                id: "entry1",
+                folderId: "folder",
                 entityType: EntryType.Person,
                 title: "alpha",
             },
             {
-                id: 2,
-                folderId: 1,
+                id: "entry2",
+                folderId: "folder",
                 entityType: EntryType.Person,
                 title: "beta",
             },
@@ -82,11 +82,11 @@ describe("EntrySearchService", () => {
         expect(service.queryResults).toStrictEqual([
             {
                 label: "alpha",
-                value: 1,
+                value: "entry1",
             },
             {
                 label: "beta",
-                value: 2,
+                value: "entry2",
             },
         ]);
     });
@@ -99,7 +99,7 @@ describe("EntrySearchService", () => {
         service.queryResults = [
             {
                 label: "existing",
-                value: 99,
+                value: "entry99",
             },
         ];
 
@@ -136,13 +136,16 @@ describe("EntrySearchService", () => {
         service.queryResults = [
             {
                 label: "entry",
-                value: 11,
+                value: "entry11",
             },
         ];
 
-        service.selectEntry("11");
+        service.selectEntry("entry11");
 
-        expect(onOpenEntry).toHaveBeenCalledWith({ id: 11, focus: true });
+        expect(onOpenEntry).toHaveBeenCalledWith({
+            id: "entry11",
+            focus: true,
+        });
         expect(service.queryString).toBe("");
         expect(service.queryResults).toStrictEqual([]);
     });
@@ -156,7 +159,7 @@ describe("EntrySearchService", () => {
         service.queryResults = [
             {
                 label: "still-set",
-                value: 5,
+                value: "entry5",
             },
         ];
 
@@ -168,7 +171,7 @@ describe("EntrySearchService", () => {
         expect(service.queryResults).toStrictEqual([
             {
                 label: "still-set",
-                value: 5,
+                value: "entry5",
             },
         ]);
     });
