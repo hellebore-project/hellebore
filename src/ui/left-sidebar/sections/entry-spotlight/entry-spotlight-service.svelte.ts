@@ -25,6 +25,7 @@ import {
     type FolderResponse,
     type EntryInfoResponse,
 } from "@/api";
+import { ClientData } from "@/models";
 import type { TreeNode } from "@/lib/components/file-tree";
 import { FileTreeService } from "@/lib/components/file-tree";
 import { EventProducer } from "@/utils/event-producer";
@@ -54,6 +55,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     // SERVICES
     private _domain: DomainManager;
+    private _data: ClientData;
     readonly fileTree: FileTreeService<SpotlightNodeData>;
 
     // EVENTS
@@ -71,8 +73,9 @@ export class EntrySpotlightService implements ISidebarSectionService {
     onChangeEntry: EventProducer<EntryChangeEvent, unknown>;
     onDeleteEntry: EventProducer<DeleteEntryEvent, Promise<boolean>>;
 
-    constructor(domain: DomainManager) {
+    constructor(domain: DomainManager, data: ClientData) {
         this._domain = domain;
+        this._data = data;
 
         this.ownership = new SoleOwnership();
         this.onOpenEntry = new EventProducer();
@@ -127,9 +130,11 @@ export class EntrySpotlightService implements ISidebarSectionService {
     // LOAD
 
     async activate() {
+        const projectId = this._data.loadedProjectId;
+
         const [folders, entries] = await Promise.all([
-            this._domain.loadedProject.folders.getAll(),
-            this._domain.loadedProject.entries.getAll(),
+            this._domain.folders.getAll(projectId),
+            this._domain.entries.getAll(projectId),
         ]);
 
         this._load(folders ?? [], entries ?? []);
@@ -626,6 +631,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
         const id = node.data.id;
 
         if (this.fileTree.isFolderNode(node)) {
+            const projectId = this._data.loadedProjectId;
+
             const parentFolderId = this._getFolderIdFromNodeId(node.parentId);
             if (parentFolderId === null)
                 return {
@@ -633,12 +640,12 @@ export class EntrySpotlightService implements ISidebarSectionService {
                     error: "Parent folder is not available yet.",
                 };
 
-            const validationResponse =
-                await this._domain.loadedProject.folders.validate(
-                    id,
-                    parentFolderId,
-                    trimmed,
-                );
+            const validationResponse = await this._domain.folders.validate(
+                projectId,
+                id,
+                parentFolderId,
+                trimmed,
+            );
 
             if (!validationResponse)
                 return { valid: false, error: "Folder validation failed." };
@@ -652,11 +659,13 @@ export class EntrySpotlightService implements ISidebarSectionService {
                     error: `A folder named "${trimmed}" already exists at this location.`,
                 };
         } else {
-            const isValid =
-                await this._domain.loadedProject.entries.validateTitle(
-                    id,
-                    trimmed,
-                );
+            const projectId = this._data.loadedProjectId;
+
+            const isValid = await this._domain.entries.validateTitle(
+                projectId,
+                id,
+                trimmed,
+            );
 
             if (isValid === null)
                 return { valid: false, error: "Entry validation failed." };

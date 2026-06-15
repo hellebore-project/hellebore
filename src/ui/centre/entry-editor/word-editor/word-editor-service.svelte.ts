@@ -5,6 +5,7 @@ import type {
     Word,
 } from "@/interface";
 import { DomainManager } from "@/api";
+import { ClientData } from "@/models";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import type { EntryInfoService } from "../entry-info-service.svelte";
@@ -13,19 +14,26 @@ import { WordTableService } from "./word-table";
 export interface WordEditorServiceArgs {
     info: EntryInfoService;
     domain: DomainManager;
+    data: ClientData;
 }
 
 export class WordEditorService implements IComponentService {
     private _domain: DomainManager;
+    private _data: ClientData;
     info: EntryInfoService;
     table: WordTableService;
 
     onChange: MultiEventProducer<EntryChangeEvent, unknown>;
 
-    constructor({ info, domain }: WordEditorServiceArgs) {
+    constructor({ info, domain, data }: WordEditorServiceArgs) {
         this._domain = domain;
+        this._data = data;
         this.info = info;
-        this.table = new WordTableService(`${this.id}-word-table`, domain);
+        this.table = new WordTableService(
+            `${this.id}-word-table`,
+            domain,
+            data,
+        );
 
         this.onChange = new MultiEventProducer();
 
@@ -41,10 +49,12 @@ export class WordEditorService implements IComponentService {
     }
 
     async load(languageId: Id) {
-        const words =
-            await this._domain.loadedProject.words.getAllForLanguage(
-                languageId,
-            );
+        const projectId = this._data.loadedProjectId;
+
+        const words = await this._domain.words.getAllForLanguage(
+            projectId,
+            languageId,
+        );
         if (words) {
             this.table.load(words, languageId);
         }

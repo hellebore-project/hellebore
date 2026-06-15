@@ -56,6 +56,12 @@ export class MockedInvoker {
     }
 
     expectCalledWith(name: string, args?: unknown) {
-        expect(this.spy).toHaveBeenCalledWith(name, args);
+        for (const [commandName, commandArgs] of this.spy.mock.calls) {
+            if (commandName !== name) continue;
+            expect(commandArgs).toStrictEqual(args);
+            return;
+        }
+
+        throw `Command ${name} was not called with the expected payload.`;
     }
 }

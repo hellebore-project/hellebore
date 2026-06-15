@@ -26,13 +26,8 @@ import type {
 } from "../interface";
 
 export class EntryManager {
-    private _projectId: string;
-
-    constructor(projectId: string) {
-        this._projectId = projectId;
-    }
-
     async create(
+        projectId: Id,
         entityType: EntryType,
         title: string,
         folderId: Id = ROOT_FOLDER_ID,
@@ -41,9 +36,13 @@ export class EntryManager {
 
         try {
             if (entityType === EntryType.Language)
-                response = await this._createLanguage(title, folderId);
+                response = await this._createLanguage(
+                    projectId,
+                    title,
+                    folderId,
+                );
             else if (entityType === EntryType.Person)
-                response = await this._createPerson(title, folderId);
+                response = await this._createPerson(projectId, title, folderId);
             else {
                 console.error(
                     `Unable to create new entry of type ${entityType}.`,
@@ -59,6 +58,7 @@ export class EntryManager {
     }
 
     async update<E extends BaseEntity>({
+        projectId,
         id,
         entryType,
         folderId = null,
@@ -66,11 +66,14 @@ export class EntryManager {
         properties = null,
         text = null,
         words = null,
-    }: EntryUpdate<E>): Promise<EntryUpdateResponse | null> {
+    }: EntryUpdate<E> & {
+        projectId: Id;
+    }): Promise<EntryUpdateResponse | null> {
         let response: DiagnosticResponse<EntryUpdateResponse>;
 
         try {
             response = await this._update({
+                projectId,
                 id,
                 entryType,
                 folderId,
@@ -88,12 +91,13 @@ export class EntryManager {
     }
 
     async bulkUpdate<E extends BaseEntity>(
+        projectId: Id,
         entries: EntryUpdate<E>[],
     ): Promise<EntryUpdateResponse[] | null> {
         let responses: DiagnosticResponse<EntryUpdateResponse>[];
 
         try {
-            responses = await this._bulkUpdate(entries);
+            responses = await this._bulkUpdate(projectId, entries);
         } catch (error) {
             console.error(error);
             return null;
@@ -102,9 +106,9 @@ export class EntryManager {
         return responses.map((r) => r.data);
     }
 
-    async get(id: Id): Promise<EntryInfoResponse | null> {
+    async get(projectId: Id, id: Id): Promise<EntryInfoResponse | null> {
         try {
-            return await this._getInfo(id);
+            return await this._getInfo(projectId, id);
         } catch (error) {
             console.error(error);
             console.error(`Failed to fetch entry ${id}.`);
@@ -112,11 +116,14 @@ export class EntryManager {
         }
     }
 
-    async getProperties(id: Id): Promise<EntryPropertyResponse | null> {
+    async getProperties(
+        projectId: Id,
+        id: Id,
+    ): Promise<EntryPropertyResponse | null> {
         let response: BackendEntryPropertyResponse | null;
 
         try {
-            response = await this._getProperties(id);
+            response = await this._getProperties(projectId, id);
         } catch (error) {
             console.error(error);
             return null;
@@ -146,11 +153,14 @@ export class EntryManager {
         };
     }
 
-    async getArticle(id: Id): Promise<EntryArticleResponse | null> {
+    async getArticle(
+        projectId: Id,
+        id: Id,
+    ): Promise<EntryArticleResponse | null> {
         let response: DiagnosticResponse<EntryArticleResponse> | null;
 
         try {
-            response = await this._getArticle(id);
+            response = await this._getArticle(projectId, id);
         } catch (error) {
             console.error(error);
             return null;
@@ -163,11 +173,11 @@ export class EntryManager {
         return response.data;
     }
 
-    async getAll(): Promise<EntryInfoResponse[] | null> {
+    async getAll(projectId: Id): Promise<EntryInfoResponse[] | null> {
         let response: EntryInfoResponse[] | null;
 
         try {
-            response = await this._getAll();
+            response = await this._getAll(projectId);
         } catch (error) {
             console.error(error);
             console.error("Failed to fetch all entries.");
@@ -178,14 +188,20 @@ export class EntryManager {
     }
 
     async search({
+        projectId,
         keyword,
         before = null,
         after = null,
         limit = 5,
-    }: EntrySearch): Promise<EntryInfoResponse[] | null> {
+    }: EntrySearch & { projectId: Id }): Promise<EntryInfoResponse[] | null> {
         let response: EntryInfoResponse[];
         try {
-            response = await this._search({ keyword, before, after, limit });
+            response = await this._search(projectId, {
+                keyword,
+                before,
+                after,
+                limit,
+            });
         } catch (error) {
             console.error("Failed to search for entries.");
             console.error(error);
@@ -195,9 +211,9 @@ export class EntryManager {
         return response.slice(0, limit);
     }
 
-    async delete(id: Id): Promise<boolean> {
+    async delete(projectId: Id, id: Id): Promise<boolean> {
         try {
-            await this._delete(id);
+            await this._delete(projectId, id);
         } catch (error) {
             console.error(error);
             console.error(`Failed to delete entry ${id}.`);
@@ -207,11 +223,15 @@ export class EntryManager {
         return true;
     }
 
-    async validateTitle(id: Id | null, title: string): Promise<boolean | null> {
+    async validateTitle(
+        projectId: Id,
+        id: Id | null,
+        title: string,
+    ): Promise<boolean | null> {
         try {
             const response = await invoke<DiagnosticResponse<boolean>>(
                 CommandNames.Entry.ValidateTitle,
-                { projectId: this._projectId, id, title },
+                { projectId, id, title },
             );
             return response.data;
         } catch (error) {
@@ -221,10 +241,12 @@ export class EntryManager {
     }
 
     private async _createLanguage(
+        projectId: Id,
         name: string,
         folderId: Id,
     ): Promise<EntryInfoResponse> {
         return this._create<LanguageProperties>({
+            projectId,
             entryType: EntryType.Language,
             folderId,
             title: name,
@@ -233,10 +255,12 @@ export class EntryManager {
     }
 
     private async _createPerson(
+        projectId: Id,
         name: string,
         folderId: Id,
     ): Promise<EntryInfoResponse> {
         return this._create<PersonProperties>({
+            projectId,
             entryType: EntryType.Person,
             folderId,
             title: name,
@@ -245,16 +269,17 @@ export class EntryManager {
     }
 
     private async _create<E extends BaseEntity>({
+        projectId,
         entryType,
         folderId,
         title,
         properties,
-    }: EntryCreate<E>): Promise<EntryInfoResponse> {
+    }: EntryCreate<E> & { projectId: Id }): Promise<EntryInfoResponse> {
         const entryTypeLabel = ENTRY_TYPE_LABEL_MAPPING[entryType];
         const mappedProperties = { [entryTypeLabel]: properties };
 
         const payload = {
-            projectId: this._projectId,
+            projectId,
             entry: {
                 folderId,
                 entityType: entryType,
@@ -266,20 +291,26 @@ export class EntryManager {
         return invoke<EntryInfoResponse>(CommandNames.Entry.Create, payload);
     }
 
-    private async _update<E extends BaseEntity>(entry: EntryUpdate<E>) {
+    private async _update<E extends BaseEntity>({
+        projectId,
+        ...entry
+    }: EntryUpdate<E> & { projectId: Id }) {
         const entryPayload = this._createUpdateRequestPayload(entry);
-        const payload = { projectId: this._projectId, entry: entryPayload };
+        const payload = { projectId, entry: entryPayload };
         return invoke<DiagnosticResponse<EntryUpdateResponse>>(
             CommandNames.Entry.Update,
             payload,
         );
     }
 
-    private async _bulkUpdate<E extends BaseEntity>(entries: EntryUpdate<E>[]) {
+    private async _bulkUpdate<E extends BaseEntity>(
+        projectId: Id,
+        entries: EntryUpdate<E>[],
+    ) {
         const entryPayloads = entries.map((entry) =>
             this._createUpdateRequestPayload(entry),
         );
-        const payload = { projectId: this._projectId, entries: entryPayloads };
+        const payload = { projectId, entries: entryPayloads };
         return invoke<DiagnosticResponse<EntryUpdateResponse>[]>(
             CommandNames.Entry.BulkUpdate,
             payload,
@@ -317,50 +348,52 @@ export class EntryManager {
         };
     }
 
-    private async _getInfo(id: Id): Promise<EntryInfoResponse> {
+    private async _getInfo(projectId: Id, id: Id): Promise<EntryInfoResponse> {
         return invoke<EntryInfoResponse>(CommandNames.Entry.GetInfo, {
-            projectId: this._projectId,
+            projectId,
             id,
         });
     }
 
     private async _getProperties(
+        projectId: Id,
         id: Id,
     ): Promise<BackendEntryPropertyResponse> {
         return invoke<BackendEntryPropertyResponse>(
             CommandNames.Entry.GetProperties,
-            { projectId: this._projectId, id },
+            { projectId, id },
         );
     }
 
     private async _getArticle(
+        projectId: Id,
         id: Id,
     ): Promise<DiagnosticResponse<EntryArticleResponse>> {
         return invoke<DiagnosticResponse<EntryArticleResponse>>(
             CommandNames.Entry.GetArticle,
             {
-                projectId: this._projectId,
+                projectId,
                 id,
             },
         );
     }
 
-    private async _getAll() {
+    private async _getAll(projectId: Id) {
         return invoke<EntryInfoResponse[]>(CommandNames.Entry.GetAll, {
-            projectId: this._projectId,
+            projectId,
         });
     }
 
-    private async _search(payload: EntrySearch) {
+    private async _search(projectId: Id, payload: EntrySearch) {
         return invoke<EntryInfoResponse[]>(CommandNames.Entry.Search, {
-            projectId: this._projectId,
+            projectId,
             query: payload,
         });
     }
 
-    private async _delete(id: Id): Promise<void> {
+    private async _delete(projectId: Id, id: Id): Promise<void> {
         return invoke(CommandNames.Entry.Delete, {
-            projectId: this._projectId,
+            projectId,
             id,
         });
     }

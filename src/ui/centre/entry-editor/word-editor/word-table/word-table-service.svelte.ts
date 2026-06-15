@@ -5,6 +5,7 @@ import {
     type WordResponse,
     ENTRY_ID_SENTINEL,
 } from "@/api";
+import { ClientData } from "@/models";
 import { DataTableService } from "@/lib/components/data-table";
 import type { ColumnDef } from "@/lib/components/data-table";
 import { MultiEventProducer } from "@/utils/event-producer";
@@ -47,6 +48,7 @@ export class WordTableService implements IComponentService {
     private _languageId: Id = $state(ENTRY_ID_SENTINEL);
     private _keyCounter = 0;
     private _domain: DomainManager;
+    private _data: ClientData;
 
     // SERVICES
     table: DataTableService<WordColumnKey>;
@@ -54,9 +56,10 @@ export class WordTableService implements IComponentService {
     // EVENTS
     onChange: MultiEventProducer<void, unknown>;
 
-    constructor(id: string, domain: DomainManager) {
+    constructor(id: string, domain: DomainManager, data: ClientData) {
         this._id = id;
         this._domain = domain;
+        this._data = data;
         this.table = new DataTableService({
             id: `${this._id}-data-table`,
             columns: WORD_COLUMNS,
@@ -131,9 +134,9 @@ export class WordTableService implements IComponentService {
 
         // a row will only have an id if it corresponds to an existing word in the backend
         if (row.id !== null) {
-            const success = await this._domain.loadedProject.words.delete(
-                row.id,
-            );
+            const projectId = this._data.loadedProjectId;
+
+            const success = await this._domain.words.delete(projectId, row.id);
             if (!success) return;
         }
 

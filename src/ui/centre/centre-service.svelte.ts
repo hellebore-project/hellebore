@@ -14,6 +14,7 @@ import type {
     LoadProjectEvent,
 } from "@/interface";
 import { DomainManager, type ProjectResponse } from "@/api";
+import { ClientData } from "@/models";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { HomeManager } from "./home";
@@ -31,17 +32,19 @@ export class CentralPanelManager implements IComponentService {
 
     // SERVICES
     private _domain: DomainManager;
+    private _data: ClientData;
 
     // EVENTS
     onChangePanel: MultiEventProducer<ChangeCentralPanelEvent, unknown>;
     onChangeData: MultiEventProducer<DataChangeEvent, unknown>;
     onDeleteEntry: MultiEventProducer<DeleteEntryEvent, unknown>;
 
-    constructor(domain: DomainManager) {
+    constructor(domain: DomainManager, data: ClientData) {
         this._panelIds = [];
         this._panelServices = new SvelteMap();
 
         this._domain = domain;
+        this._data = data;
 
         this.onChangePanel = new MultiEventProducer();
         this.onChangeData = new MultiEventProducer();
@@ -114,7 +117,11 @@ export class CentralPanelManager implements IComponentService {
             return this.getPanelByIndex(currentIndex) as EntryEditorService;
         }
 
-        const service = new EntryEditorService(args.id, this._domain);
+        const service = new EntryEditorService(
+            args.id,
+            this._domain,
+            this._data,
+        );
 
         service.onOpenReferencedEntry.subscribe((args) =>
             this.openEntryEditor(args),

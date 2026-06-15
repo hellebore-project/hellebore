@@ -30,6 +30,7 @@ import {
     type FolderUpdateResponse,
     type ProjectResponse,
 } from "@/api";
+import { ClientData } from "@/models";
 
 import { CentralPanelManager } from "./centre";
 import { FooterManager } from "./footer";
@@ -43,7 +44,7 @@ export class ClientManager implements IComponentService {
     readonly id = "client";
 
     // STATE
-    private _project: ProjectResponse | null = $state(null);
+    data: ClientData;
 
     // SERVICES
     domain: DomainManager;
@@ -57,17 +58,20 @@ export class ClientManager implements IComponentService {
     // CONSTRUCTION
 
     constructor() {
+        this.data = new ClientData();
+
         this.domain = new DomainManager();
-        this.synchronizer = new SynchronizationService(this.domain);
+        this.synchronizer = new SynchronizationService(this.domain, this.data);
 
         // central panel
-        this.central = new CentralPanelManager(this.domain);
+        this.central = new CentralPanelManager(this.domain, this.data);
 
         // peripheral panels
-        this.header = new HeaderManager(this.domain);
+        this.header = new HeaderManager(this.domain, this.data);
         this.footer = new FooterManager(this.domain);
         this.leftSideBar = new LeftSidebarService({
             domain: this.domain,
+            data: this.data,
         });
 
         // overlays
@@ -85,7 +89,7 @@ export class ClientManager implements IComponentService {
     }
 
     get project() {
-        return this._project;
+        return this.data.project;
     }
 
     // SUBSCRIPTIONS
@@ -107,7 +111,7 @@ export class ClientManager implements IComponentService {
         this.header.onLoadProject.subscribe(() => this.loadProject());
         this.header.onCloseProject.subscribe(() => this.closeProject());
         this.header.onOpenHome.subscribe(() =>
-            this.central.openHome(this._project),
+            this.central.openHome(this.data.project),
         );
         this.header.onOpenSettings.subscribe(() => this.central.openSettings());
         this.header.onCreateEntry.subscribe(() =>
@@ -183,7 +187,6 @@ export class ClientManager implements IComponentService {
         );
 
         if (response) {
-            this._project = response;
             this.handleLoadProject(response);
             this.central.openHome(response);
         }
@@ -207,8 +210,7 @@ export class ClientManager implements IComponentService {
     }
 
     private async handleLoadProject(project: ProjectResponse) {
-        this.domain.loadedProjectId = project.id;
-        this._project = project;
+        this.data.setProject(project);
 
         this.header.handleProjectChange({ loaded: true, project });
         this.footer.handleProjectChange({ loaded: true, project });
@@ -222,16 +224,14 @@ export class ClientManager implements IComponentService {
     async closeProject() {
         // save any unsynced data before closing the project
         this.central.clear();
-        const projectId = this._project?.id;
-        if (!projectId) return false;
+        const projectId = this.data.loadedProjectId;
         const success = await this.domain.projects.closeProject(projectId);
         if (success) this.handleCloseProject();
         return success;
     }
 
     private async handleCloseProject() {
-        this.domain.loadedProjectId = null;
-        this._project = null;
+        this.data.clear();
 
         this.header.handleProjectChange({ loaded: false, project: null });
         this.footer.handleProjectChange({ loaded: false, project: null });
@@ -248,7 +248,10 @@ export class ClientManager implements IComponentService {
     // FOLDER HANDLING
 
     async createFolder({ name, parentFolderId }: FolderCreationEvent) {
-        return await this.domain.loadedProject.folders.create(
+        const projectId = this.data.loadedProjectId;
+
+        return await this.domain.folders.create(
+            projectId,
             name,
             parentFolderId,
         );
@@ -266,16 +269,18 @@ export class ClientManager implements IComponentService {
         destParentId,
         confirm = true,
     }: MoveFolderEvent): Promise<MoveFolderResult> {
+        const projectId = this.data.loadedProjectId;
+
         let cancel = false;
         let deleteResponse: BulkFileResponse | null = null;
         let updateResponse: FolderUpdateResponse | null = null;
 
-        const validateResponse =
-            await this.domain.loadedProject.folders.validate(
-                id,
-                destParentId,
-                title,
-            );
+        const validateResponse = await this.domain.folders.validate(
+            projectId,
+            id,
+            destParentId,
+            title,
+        );
 
         if (validateResponse) {
             if (validateResponse.nameCollision) {
@@ -305,13 +310,12 @@ export class ClientManager implements IComponentService {
             }
 
             if (!cancel)
-                updateResponse = await this.domain.loadedProject.folders.update(
-                    {
-                        id,
-                        parentId: destParentId,
-                        oldParentId: sourceParentId,
-                    },
-                );
+                updateResponse = await this.domain.folders.update({
+                    projectId,
+                    id,
+                    parentId: destParentId,
+                    oldParentId: sourceParentId,
+                });
         }
 
         return {
@@ -323,8 +327,10 @@ export class ClientManager implements IComponentService {
     }
 
     async deleteFolder(id: Id, confirm = true) {
+        const projectId = this.data.loadedProjectId;
+
         if (confirm) {
-            const folder = await this.domain.loadedProject.folders.get(id);
+            const folder = await this.domain.folders.get(projectId, id);
             const folderName = folder?.name ?? "UNKNOWN";
 
             const canDelete = await ask(
@@ -339,7 +345,7 @@ export class ClientManager implements IComponentService {
             if (!canDelete) return null;
         }
 
-        const fileIds = await this.domain.loadedProject.folders.delete(id);
+        const fileIds = await this.domain.folders.delete(projectId, id);
         if (!fileIds) return null;
 
         this.leftSideBar.deleteFolderNode(id);
@@ -357,7 +363,8 @@ export class ClientManager implements IComponentService {
             panelIndex++;
         }
 
-        if (this.central.panelCount == 0) this.central.openHome(this._project);
+        if (this.central.panelCount == 0)
+            this.central.openHome(this.data.project);
 
         return fileIds;
     }
@@ -365,7 +372,10 @@ export class ClientManager implements IComponentService {
     // ENTRY HANDLING
 
     async createEntry(entityType: EntryType, title: string, folderId: Id) {
-        const entry = await this.domain.loadedProject.entries.create(
+        const projectId = this.data.loadedProjectId;
+
+        const entry = await this.domain.entries.create(
+            projectId,
             entityType,
             title,
             folderId,
@@ -380,6 +390,8 @@ export class ClientManager implements IComponentService {
     }
 
     async deleteEntry(id: Id, title: string, confirm = true) {
+        const projectId = this.data.loadedProjectId;
+
         // Currently, the title of the entry could be fetched from the cached file structure
         // rather than providing it as an argument. However, in the future, the file tree will
         // only include pinned entries. Once that feature is implemented, there will be no
@@ -398,7 +410,7 @@ export class ClientManager implements IComponentService {
             if (!canDelete) return false;
         }
 
-        const success = await this.domain.loadedProject.entries.delete(id);
+        const success = await this.domain.entries.delete(projectId, id);
         if (!success)
             // failed to delete the entry; aborting
             return false;
@@ -417,7 +429,8 @@ export class ClientManager implements IComponentService {
             panelIndex++;
         }
 
-        if (this.central.panelCount == 0) this.central.openHome(this._project);
+        if (this.central.panelCount == 0)
+            this.central.openHome(this.data.project);
 
         return true;
     }
@@ -549,7 +562,7 @@ export class ClientManager implements IComponentService {
         if (event.project) {
             const response = event.project.response;
             if (response.project) {
-                this._project = response.project;
+                this.data.setProject(response.project);
             }
         }
 

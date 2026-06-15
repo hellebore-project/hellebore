@@ -12,18 +12,14 @@ import type { Id } from "@/interface/common";
 type _WordBulkUpsertResponse = DiagnosticResponse<WordUpsertResponse>[];
 
 export class WordManager {
-    private _projectId: string;
-
-    constructor(projectId: string) {
-        this._projectId = projectId;
-    }
-
     async bulkUpsert(
+        projectId: Id,
         words: WordUpsert[],
     ): Promise<WordUpsertResponse[] | null> {
         let responses: _WordBulkUpsertResponse;
         try {
             responses = await this._bulkUpsertWords(
+                projectId,
                 words.map((word) => ({
                     id: word.id,
                     languageId: word.languageId,
@@ -46,20 +42,25 @@ export class WordManager {
     }
 
     async getAllForLanguage(
+        projectId: Id,
         languageId: Id,
         wordType?: WordType | null,
     ): Promise<WordResponse[] | null> {
         try {
-            return await this._getWords(languageId, wordType ?? null);
+            return await this._getWords(
+                projectId,
+                languageId,
+                wordType ?? null,
+            );
         } catch (error) {
             console.error(error);
             return null;
         }
     }
 
-    async delete(id: Id): Promise<boolean> {
+    async delete(projectId: Id, id: Id): Promise<boolean> {
         try {
-            await this._deleteWord(id);
+            await this._deleteWord(projectId, id);
         } catch (error) {
             console.error(error);
             console.error(`Unable to delete word ${id}.`);
@@ -69,28 +70,30 @@ export class WordManager {
     }
 
     async _bulkUpsertWords(
+        projectId: Id,
         words: WordUpsert[],
     ): Promise<_WordBulkUpsertResponse> {
         return invoke<_WordBulkUpsertResponse>(CommandNames.Word.BulkUpsert, {
-            projectId: this._projectId,
+            projectId,
             words,
         });
     }
 
     async _getWords(
+        projectId: Id,
         languageId: Id,
         wordType: WordType | null,
     ): Promise<WordResponse[]> {
         return invoke<WordResponse[]>(CommandNames.Word.GetMany, {
-            projectId: this._projectId,
+            projectId,
             languageId,
             wordType,
         });
     }
 
-    async _deleteWord(id: Id): Promise<void> {
+    async _deleteWord(projectId: Id, id: Id): Promise<void> {
         return invoke<void>(CommandNames.Word.Delete, {
-            projectId: this._projectId,
+            projectId,
             id,
         });
     }

@@ -4,6 +4,7 @@ import type {
     OpenEntryEditorEvent,
 } from "@/interface";
 import { DomainManager } from "@/api";
+import { ClientData } from "@/models";
 import { DIVIDER_DATA, type MenubarItemData } from "@/lib/components/menubar";
 import { MultiEventProducer } from "@/utils/event-producer";
 
@@ -42,8 +43,8 @@ export class HeaderManager implements IComponentService {
     onCreateEntry: MultiEventProducer<void, unknown>;
     onOpenEntry: MultiEventProducer<OpenEntryEditorEvent, unknown>;
 
-    constructor(domain: DomainManager) {
-        this.entrySearch = new EntrySearchService(domain);
+    constructor(domain: DomainManager, data: ClientData) {
+        this.entrySearch = new EntrySearchService(domain, data);
 
         this.onCreateProject = new MultiEventProducer();
         this.onLoadProject = new MultiEventProducer();

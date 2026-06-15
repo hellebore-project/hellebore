@@ -21,16 +21,10 @@ export interface FolderUpdateArgs {
 }
 
 export class FolderManager {
-    private _projectId: string;
-
-    constructor(projectId: string) {
-        this._projectId = projectId;
-    }
-
-    async create(name: string, parentId: Id = ROOT_FOLDER_ID) {
+    async create(projectId: Id, name: string, parentId: Id = ROOT_FOLDER_ID) {
         let response: FolderResponse | null;
         try {
-            response = await this._create(parentId, name);
+            response = await this._create(projectId, parentId, name);
         } catch (error) {
             console.error(error);
             return null;
@@ -40,13 +34,14 @@ export class FolderManager {
     }
 
     async validate(
+        projectId: Id,
         id: Id | null,
         parentId: Id,
         name: string,
     ): Promise<FolderValidateResponse | null> {
         let response: DiagnosticResponse<FolderValidateResponse> | null;
         try {
-            response = await this._validate_name(id, parentId, name);
+            response = await this._validate_name(projectId, id, parentId, name);
         } catch (error) {
             console.error(error);
             return null;
@@ -56,13 +51,16 @@ export class FolderManager {
     }
 
     async update({
+        projectId,
         id,
         name = null,
         parentId = null,
-    }: FolderUpdateArgs): Promise<FolderUpdateResponse | null> {
+    }: FolderUpdateArgs & {
+        projectId: Id;
+    }): Promise<FolderUpdateResponse | null> {
         let response: DiagnosticResponse<FolderBulkUpdateData>;
         try {
-            response = await this._update({ id, parentId, name });
+            response = await this._update(projectId, { id, parentId, name });
         } catch (error) {
             console.error(error);
             return null;
@@ -77,10 +75,10 @@ export class FolderManager {
         };
     }
 
-    async get(id: Id): Promise<FolderResponse | null> {
+    async get(projectId: Id, id: Id): Promise<FolderResponse | null> {
         let response: FolderResponse | null;
         try {
-            response = await this._get(id);
+            response = await this._get(projectId, id);
         } catch (error) {
             console.error(error);
             console.error(`Failed to fetch folder ${id} from the backend.`);
@@ -90,10 +88,10 @@ export class FolderManager {
         return response;
     }
 
-    async getAll(): Promise<FolderResponse[] | null> {
+    async getAll(projectId: Id): Promise<FolderResponse[] | null> {
         let response: FolderResponse[] | null;
         try {
-            response = await this._getAll();
+            response = await this._getAll(projectId);
         } catch (error) {
             console.error(error);
             console.error("Failed to fetch all folders from the backend.");
@@ -103,10 +101,10 @@ export class FolderManager {
         return response;
     }
 
-    async delete(id: Id): Promise<BulkFileResponse | null> {
+    async delete(projectId: Id, id: Id): Promise<BulkFileResponse | null> {
         let response: BulkFileResponse;
         try {
-            response = await this._delete(id);
+            response = await this._delete(projectId, id);
         } catch (error) {
             console.error(error);
             console.error(`Failed to delete folder ${id} and/or its contents.`);
@@ -117,12 +115,13 @@ export class FolderManager {
     }
 
     async bulkUpdate(
+        projectId: Id,
         folders: FolderUpdate[],
     ): Promise<FolderUpdateResponse[] | null> {
         let responses: DiagnosticResponse<FolderBulkUpdateData>[];
 
         try {
-            responses = await this._bulkUpdate(folders);
+            responses = await this._bulkUpdate(projectId, folders);
         } catch (error) {
             console.error(error);
             return null;
@@ -135,62 +134,69 @@ export class FolderManager {
         }));
     }
 
-    async _create(parentId: Id, name: string): Promise<FolderResponse> {
+    async _create(
+        projectId: Id,
+        parentId: Id,
+        name: string,
+    ): Promise<FolderResponse> {
         return invoke<FolderResponse>(CommandNames.Folder.Create, {
-            projectId: this._projectId,
+            projectId,
             info: { parentId, name },
         });
     }
 
     async _update(
+        projectId: Id,
         update: FolderUpdate,
     ): Promise<DiagnosticResponse<FolderBulkUpdateData>> {
         return invoke<DiagnosticResponse<FolderBulkUpdateData>>(
             CommandNames.Folder.Update,
             {
-                projectId: this._projectId,
+                projectId,
                 folder: update,
             },
         );
     }
 
     async _validate_name(
+        projectId: Id,
         id: Id | null,
         parentId: Id,
         name: string,
     ): Promise<DiagnosticResponse<FolderValidateResponse>> {
         return invoke<DiagnosticResponse<FolderValidateResponse>>(
             CommandNames.Folder.Validate,
-            { projectId: this._projectId, id, parentId, name },
+            { projectId, id, parentId, name },
         );
     }
 
-    async _get(id: Id) {
+    async _get(projectId: Id, id: Id) {
         return invoke<FolderResponse>(CommandNames.Folder.Get, {
-            projectId: this._projectId,
+            projectId,
             id,
         });
     }
 
-    async _getAll() {
+    async _getAll(projectId: Id) {
         return invoke<FolderResponse[]>(CommandNames.Folder.GetAll, {
-            projectId: this._projectId,
+            projectId,
         });
     }
 
-    async _delete(id: Id): Promise<BulkFileResponse> {
+    async _delete(projectId: Id, id: Id): Promise<BulkFileResponse> {
         return invoke<BulkFileResponse>(CommandNames.Folder.Delete, {
-            projectId: this._projectId,
+            projectId,
             id,
         });
     }
 
     async _bulkUpdate(
+        projectId: Id,
         folders: FolderUpdate[],
     ): Promise<DiagnosticResponse<FolderBulkUpdateData>[]> {
         return invoke<DiagnosticResponse<FolderBulkUpdateData>[]>(
             CommandNames.Folder.BulkUpdate,
-            { projectId: this._projectId, folders },
+            { projectId, folders },
         );
     }
 }
