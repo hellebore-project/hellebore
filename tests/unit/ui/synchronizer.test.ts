@@ -62,12 +62,12 @@ describe("SynchronizationService", () => {
 
     test("should gate periodic/full syncs based on timing", async ({
         domainManager,
-        projectState,
+        clientData,
         mockedInvoker,
     }) => {
         const syncService = new SynchronizationService(
             domainManager,
-            projectState,
+            clientData,
         );
         mockUpdateProject(mockedInvoker, {
             id: "test-project-id",
@@ -88,12 +88,12 @@ describe("SynchronizationService", () => {
 
     test("should debounce/skip sync requests appropriately", async ({
         domainManager,
-        projectState,
+        clientData,
         mockedInvoker,
     }) => {
         const syncService = new SynchronizationService(
             domainManager,
-            projectState,
+            clientData,
         );
         mockUpdateProject(mockedInvoker, {
             id: "test-project-id",
@@ -111,12 +111,12 @@ describe("SynchronizationService", () => {
 
     test("should handle producer events correctly", async ({
         domainManager,
-        projectState,
+        clientData,
         mockedInvoker,
     }) => {
         const syncService = new SynchronizationService(
             domainManager,
-            projectState,
+            clientData,
         );
         mockUpdateProject(mockedInvoker, {
             id: "test-project-id",
@@ -134,12 +134,12 @@ describe("SynchronizationService", () => {
 
     test("should sync folder updates through the backend", async ({
         domainManager,
-        projectState,
+        clientData,
         mockedInvoker,
     }) => {
         const syncService = new SynchronizationService(
             domainManager,
-            projectState,
+            clientData,
         );
         vi.spyOn(syncService.onPoll, "produce").mockReturnValue({
             entries: [],
@@ -162,7 +162,7 @@ describe("SynchronizationService", () => {
         });
 
         mockedInvoker.expectCalledWith(CommandNames.Folder.BulkUpdate, {
-            projectId: projectState.projectId!,
+            projectId: clientData.projectId!,
             folders: [
                 { id: "entry7", parentId: "entry3", name: "renamed folder" },
             ],
@@ -189,12 +189,12 @@ describe("SynchronizationService", () => {
 
     test("should clean up fake timers and listeners", async ({
         domainManager,
-        projectState,
+        clientData,
         mockedInvoker,
     }) => {
         const syncService = new SynchronizationService(
             domainManager,
-            projectState,
+            clientData,
         );
         mockUpdateProject(mockedInvoker, {
             id: "test-project-id",

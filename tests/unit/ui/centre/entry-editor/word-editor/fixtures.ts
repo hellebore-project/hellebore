@@ -14,7 +14,9 @@ export interface BaseWordEditorFixtures {
     wordDefinition: string;
     wordTranslations: string[];
     word: WordResponse;
+    words: WordResponse[];
     mockedWord: WordResponse;
+    mockedWords: WordResponse[];
     wordEditorService: WordEditorService;
 }
 
@@ -47,9 +49,15 @@ export const test = baseTest.extend<BaseWordEditorFixtures>({
         };
         await use(word);
     },
-    mockedWord: async ({ mockedInvoker, word }, use) => {
-        mockGetWords(mockedInvoker, [word]);
-        await use(word);
+    words: async ({ word }, use) => {
+        await use([word]);
+    },
+    mockedWords: async ({ mockedInvoker, words }, use) => {
+        mockGetWords(mockedInvoker, words);
+        await use(words);
+    },
+    mockedWord: async ({ mockedWords }, use) => {
+        await use(mockedWords[0]);
     },
 
     wordEditorService: [

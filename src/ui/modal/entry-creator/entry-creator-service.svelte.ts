@@ -8,7 +8,7 @@ export class EntryCreatorService implements IModalContentManager {
     readonly title = "Create a new entry";
 
     private _entryTitle = $state("");
-    private _folderId = $state(ROOT_FOLDER_ID);
+    private _folderId: Id = $state(ROOT_FOLDER_ID);
     private _entryType = $state<EntryType | null>(null);
     private _isTitleUnique = $state(true);
 

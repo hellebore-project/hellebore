@@ -2,12 +2,13 @@ import type { IComponentService, Id, Word, WordKey } from "@/interface";
 import {
     WordType,
     DomainManager,
-    type WordResponse,
+    type WordQuery,
     ENTRY_ID_SENTINEL,
 } from "@/api";
-import { ClientData } from "@/models";
 import { DataTableService } from "@/lib/components/data-table";
 import type { ColumnDef } from "@/lib/components/data-table";
+import { ClientData } from "@/models";
+import { ReplaceDebouncer, type DebouncerResult } from "@/utils/debouncer";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { WordColumnKey, WORD_TYPE_SELECT_ITEMS } from "./word-table-constants";
@@ -42,15 +43,22 @@ const WORD_COLUMNS: ColumnDef<WordColumnKey>[] = [
 ];
 
 export class WordTableService implements IComponentService {
+    private static readonly DEFAULT_WORDS_PER_PAGE_COUNT = 50;
+    private static readonly FILTER_WAIT_TIME = 300;
+
+    // CONFIGURATION
+    words_per_page_count = WordTableService.DEFAULT_WORDS_PER_PAGE_COUNT;
+
     // STATE VARIABLES
     private _id: string;
     private _sentinelKey: WordKey = $state("");
     private _languageId: Id = $state(ENTRY_ID_SENTINEL);
     private _keyCounter = 0;
-    private _domain: DomainManager;
+    private _textFilterDebouncer: ReplaceDebouncer<void, void>;
     private _data: ClientData;
 
     // SERVICES
+    private _domain: DomainManager;
     table: DataTableService<WordColumnKey>;
 
     // EVENTS
@@ -63,10 +71,15 @@ export class WordTableService implements IComponentService {
         this.table = new DataTableService({
             id: `${this._id}-data-table`,
             columns: WORD_COLUMNS,
-            onFilter: (colKey, values) => this._onFilter(colKey, values),
+            onFilter: (colKey, values) => void this._onFilter(colKey, values),
             onSetValue: (rowKey) => this._onSetValue(rowKey),
+            onPageChange: (page) => void this._onPageChange(page),
         });
         this.onChange = new MultiEventProducer();
+        this._textFilterDebouncer = new ReplaceDebouncer(
+            this._delayedReload.bind(this),
+            WordTableService.FILTER_WAIT_TIME,
+        );
     }
 
     // PROPERTIES
@@ -85,10 +98,29 @@ export class WordTableService implements IComponentService {
 
     // LOADING
 
-    load(words: WordResponse[], languageId: Id) {
+    async load(languageId: Id) {
         this._languageId = languageId;
-        this._keyCounter = 0;
-        const rows: WordRow[] = words.map((w) => ({
+        this.table.pageIndex = 0;
+        await this._reload();
+    }
+
+    private async _reload() {
+        if (this._languageId === ENTRY_ID_SENTINEL) return;
+
+        const projectId = this._data.loadedProjectId;
+        const query = this._buildQuery();
+        console.log(query);
+        const response = await this._domain.words.getAllForLanguage(
+            projectId,
+            query,
+        );
+        if (!response) return;
+
+        console.log(response);
+        this.table.pageIndex = response.pageIndex;
+        this.table.pageCount = Math.max(response.totalPageCount, 1);
+
+        const rows: WordRow[] = response.data.map((w) => ({
             key: String(w.id),
             languageId: w.languageId,
             id: w.id,
@@ -100,10 +132,40 @@ export class WordTableService implements IComponentService {
             },
         }));
         this.table.load(rows);
+
         this._addSentinel();
     }
 
-    // DATA
+    private async _delayedReload(): Promise<DebouncerResult<void>> {
+        await this._reload();
+        return { status: "resolved", value: undefined };
+    }
+
+    private _buildQuery(): WordQuery {
+        const wordTypes = this.table.getColumnFilter(WordColumnKey.WordType);
+        const spelling = this.table.getTextColumnFilter(WordColumnKey.Spelling);
+        const definition = this.table.getTextColumnFilter(
+            WordColumnKey.Definition,
+        );
+        const translations = this.table.getTextColumnFilter(
+            WordColumnKey.Translations,
+        );
+
+        return {
+            languageId: this._languageId,
+            pageIndex: this.table.pageIndex,
+            itemsPerPageCount: this.words_per_page_count,
+            wordTypes:
+                wordTypes.length > 0
+                    ? wordTypes.map((value) => Number(value) as WordType)
+                    : null,
+            spelling: spelling || null,
+            definition: definition || null,
+            translations: translations || null,
+        };
+    }
+
+    // ADDITION
 
     private _nextKey(): WordKey {
         return `N${this._keyCounter++}`;
@@ -126,6 +188,8 @@ export class WordTableService implements IComponentService {
         this.table.addRow(sentinelRow);
     }
 
+    // REMOVAL
+
     async removeRow(key: WordKey) {
         if (key === this._sentinelKey) return;
 
@@ -142,6 +206,8 @@ export class WordTableService implements IComponentService {
 
         this.table.removeRow(key);
     }
+
+    // EDITING
 
     private _onSetValue(rowKey: string) {
         if (rowKey === this._sentinelKey) {
@@ -165,20 +231,37 @@ export class WordTableService implements IComponentService {
         this.onChange.produce();
     }
 
-    private _onFilter(colKey: WordColumnKey, values: string[]) {
-        if (colKey !== WordColumnKey.WordType) return;
-        if (values.length === 0) return;
+    // FILTERING
 
-        const sentinel = this.table.findRow(this._sentinelKey) as
-            | WordRow
-            | undefined;
-        if (!sentinel) return;
+    private async _onFilter(colKey: WordColumnKey, values: string[]) {
+        if (colKey === WordColumnKey.WordType && values.length > 0) {
+            const sentinel = this.table.findRow(this._sentinelKey) as
+                | WordRow
+                | undefined;
+            if (
+                sentinel &&
+                sentinel.cells.wordType.value !== "" &&
+                !values.includes(sentinel.cells.wordType.value)
+            ) {
+                sentinel.cells.wordType.value = values[0];
+            }
+        }
 
-        if (
-            sentinel.cells.wordType.value !== "" &&
-            !values.includes(sentinel.cells.wordType.value)
-        )
-            sentinel.cells.wordType.value = values[0];
+        this.table.pageIndex = 0;
+
+        if (colKey === WordColumnKey.WordType) {
+            await this._reload();
+            return;
+        }
+
+        void this._textFilterDebouncer.call(undefined).catch(() => undefined);
+    }
+
+    // PAGINATION
+
+    private async _onPageChange(page: number) {
+        this.table.pageIndex = page;
+        await this._reload();
     }
 
     // SYNC
@@ -217,6 +300,7 @@ export class WordTableService implements IComponentService {
     // CLEAN UP
 
     cleanUp() {
+        this._textFilterDebouncer.cancel();
         this.table.reset();
     }
 }

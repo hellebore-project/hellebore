@@ -4,8 +4,9 @@ use uuid::Uuid;
 use hellebore::{
     database::{language_manager, word_manager},
     schema::{
+        common::PaginatedResponseSchema,
         entry::EntryCreateSchema,
-        word::{WordResponseSchema, WordUpsertSchema},
+        word::{WordQuerySchema, WordResponseSchema, WordUpsertSchema},
     },
     services::{entry_service, word_service},
     types::grammar::WordType,
@@ -251,47 +252,111 @@ async fn test_error_on_getting_nonexistent_word() {
 
 #[rstest]
 #[tokio::test]
-async fn test_get_all_words_for_a_language(create_language_payload: EntryCreateSchema) {
+async fn test_get_paginated_words_for_a_language(create_language_payload: EntryCreateSchema) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
         .await
         .unwrap();
 
-    let create_payload_1 = WordUpsertSchema {
-        language_id: Some(language.id),
-        word_type: Some(WordType::Noun),
-        spelling: Some("rue".to_owned()),
-        translations: Some(vec!["road".to_owned()]),
-        ..Default::default()
-    };
-    let id_1 = upsert_word(&db, &create_payload_1).await.unwrap();
+    let payloads = [
+        WordUpsertSchema {
+            language_id: Some(language.id),
+            word_type: Some(WordType::Noun),
+            spelling: Some("beta".to_owned()),
+            translations: Some(vec!["two".to_owned()]),
+            ..Default::default()
+        },
+        WordUpsertSchema {
+            language_id: Some(language.id),
+            word_type: Some(WordType::Verb),
+            spelling: Some("alpha".to_owned()),
+            translations: Some(vec!["one".to_owned()]),
+            ..Default::default()
+        },
+        WordUpsertSchema {
+            language_id: Some(language.id),
+            word_type: Some(WordType::Adjective),
+            spelling: Some("gamma".to_owned()),
+            translations: Some(vec!["three".to_owned()]),
+            ..Default::default()
+        },
+    ];
 
-    let create_payload_2 = WordUpsertSchema {
+    for payload in payloads {
+        upsert_word(&db, &payload).await.unwrap();
+    }
+
+    let response: PaginatedResponseSchema<WordResponseSchema> = word_service::get_languages_page(
+        &db,
+        WordQuerySchema {
+            language_id: language.id,
+            page_index: 2,
+            per_page: 1,
+            word_types: None,
+            spelling: None,
+            definition: None,
+            translations: None,
+        },
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(response.page_index, 2);
+    assert_eq!(response.items_per_page_count, 1);
+    assert_eq!(response.total_item_count, 3);
+    assert_eq!(response.total_page_count, 3);
+    assert_eq!(response.data.len(), 1);
+    assert_eq!(response.data[0].spelling, "beta");
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_get_paginated_words_with_filters(create_language_payload: EntryCreateSchema) {
+    let db = database().await;
+    let language = entry_service::create(&db, create_language_payload)
+        .await
+        .unwrap();
+
+    let matching_word = WordUpsertSchema {
         language_id: Some(language.id),
         word_type: Some(WordType::Verb),
         spelling: Some("conduire".to_owned()),
-        translations: Some(vec!["drive".to_owned()]),
+        definition: Some("to guide a vehicle".to_owned()),
+        translations: Some(vec!["drive".to_owned(), "steer".to_owned()]),
         ..Default::default()
     };
-    let id_2 = upsert_word(&db, &create_payload_2).await.unwrap();
+    let non_matching_word = WordUpsertSchema {
+        language_id: Some(language.id),
+        word_type: Some(WordType::Noun),
+        spelling: Some("route".to_owned()),
+        definition: Some("roadway".to_owned()),
+        translations: Some(vec!["street".to_owned()]),
+        ..Default::default()
+    };
 
-    let words = word_service::get_all_for_language(&db, language.id, None).await;
+    upsert_word(&db, &matching_word).await.unwrap();
+    upsert_word(&db, &non_matching_word).await.unwrap();
 
-    assert!(words.is_ok());
-    let mut words = words.unwrap();
-    words.sort_by_key(|w| w.spelling.clone());
-    words.reverse();
+    let response = word_service::get_languages_page(
+        &db,
+        WordQuerySchema {
+            language_id: language.id,
+            page_index: 1,
+            per_page: 10,
+            word_types: Some(vec![WordType::Verb]),
+            spelling: Some("dui".to_owned()),
+            definition: Some("vehicle".to_owned()),
+            translations: Some("drive".to_owned()),
+        },
+    )
+    .await
+    .unwrap();
 
-    let mut expected_response_1 = create_payload_1.to_response();
-    expected_response_1.id = id_1;
-    expected_response_1.language_id = language.id;
-
-    let mut expected_response_2 = create_payload_2.to_response();
-    expected_response_2.id = id_2;
-    expected_response_2.language_id = language.id;
-
-    validate_word_response(&words[0], &expected_response_1);
-    validate_word_response(&words[1], &expected_response_2);
+    assert_eq!(response.total_item_count, 1);
+    assert_eq!(response.total_page_count, 1);
+    assert_eq!(response.data.len(), 1);
+    assert_eq!(response.data[0].spelling, "conduire");
+    assert_eq!(response.data[0].translations, vec!["drive", "steer"]);
 }
 
 #[rstest]

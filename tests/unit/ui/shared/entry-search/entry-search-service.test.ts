@@ -31,9 +31,9 @@ describe("EntrySearchService", () => {
 
     test("debounces query requests and searches only with the latest keyword", async ({
         domainManager,
-        projectState,
+        clientData,
     }) => {
-        const { service, search } = createService(domainManager, projectState);
+        const { service, search } = createService(domainManager, clientData);
         search.mockResolvedValue([
             {
                 id: "7",
@@ -50,7 +50,7 @@ describe("EntrySearchService", () => {
 
         expect(search).toHaveBeenCalledOnce();
         expect(search).toHaveBeenCalledWith({
-            projectId: projectState.projectId,
+            projectId: clientData.projectId,
             keyword: "first",
             limit: 10,
         });
@@ -64,9 +64,9 @@ describe("EntrySearchService", () => {
 
     test("returns mapped options from entry search results", async ({
         domainManager,
-        projectState,
+        clientData,
     }) => {
-        const { service, search } = createService(domainManager, projectState);
+        const { service, search } = createService(domainManager, clientData);
         search.mockResolvedValue([
             {
                 id: "entry1",
@@ -100,9 +100,9 @@ describe("EntrySearchService", () => {
 
     test("clears results and skips backend search when query is empty", async ({
         domainManager,
-        projectState,
+        clientData,
     }) => {
-        const { service, search } = createService(domainManager, projectState);
+        const { service, search } = createService(domainManager, clientData);
 
         service.queryResults = [
             {
@@ -121,9 +121,9 @@ describe("EntrySearchService", () => {
 
     test("handles null backend responses by producing an empty result set", async ({
         domainManager,
-        projectState,
+        clientData,
     }) => {
-        const { service, search } = createService(domainManager, projectState);
+        const { service, search } = createService(domainManager, clientData);
         search.mockResolvedValue(null);
 
         service.queryString = "known";
@@ -136,9 +136,9 @@ describe("EntrySearchService", () => {
 
     test("emits open-entry event and cleans up state when selecting a valid id", ({
         domainManager,
-        projectState,
+        clientData,
     }) => {
-        const { service } = createService(domainManager, projectState);
+        const { service } = createService(domainManager, clientData);
         const onOpenEntry = vi.fn();
         service.onOpenEntry.subscribe(onOpenEntry);
 
@@ -162,9 +162,9 @@ describe("EntrySearchService", () => {
 
     test("ignores null and undefined selections", ({
         domainManager,
-        projectState,
+        clientData,
     }) => {
-        const { service } = createService(domainManager, projectState);
+        const { service } = createService(domainManager, clientData);
         const onOpenEntry = vi.fn();
         service.onOpenEntry.subscribe(onOpenEntry);
 

@@ -7,8 +7,8 @@ use serde_json;
 use crate::database::word_manager;
 use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::{
-    common::DiagnosticResponseSchema,
-    word::{WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
+    common::{DiagnosticResponseSchema, PaginatedResponseSchema},
+    word::{WordQuerySchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
 use crate::types::entity::WORD;
 use crate::types::grammar::WordType;
@@ -177,20 +177,31 @@ pub async fn get(database: &DatabaseConnection, id: Uuid) -> Result<WordResponse
     }
 }
 
-pub async fn get_all_for_language(
+pub async fn get_languages_page(
     database: &DatabaseConnection,
-    language_id: Uuid,
-    word_type: Option<WordType>,
-) -> Result<Vec<WordResponseSchema>, Error> {
-    let words = word_manager::get_all_for_language(database, language_id, word_type)
-        .await
-        .map_err(|e| {
-            ErrorBuilder::new()
-                .msg("Failed to query the word table while fetching all words.")
-                .from_err(e)
-                .db()
-                .query_failed()
-        })?;
+    query: WordQuerySchema,
+) -> Result<PaginatedResponseSchema<WordResponseSchema>, Error> {
+    let page = query.page_index.max(1);
+    let per_page = query.per_page.max(1);
+
+    let (words, total_items, total_pages) = word_manager::get_languages_page(
+        database,
+        query.language_id,
+        query.word_types.as_deref(),
+        query.spelling.as_deref(),
+        query.definition.as_deref(),
+        query.translations.as_deref(),
+        page,
+        per_page,
+    )
+    .await
+    .map_err(|e| {
+        ErrorBuilder::new()
+            .msg("Failed to query the word table while fetching paginated words.")
+            .from_err(e)
+            .db()
+            .query_failed()
+    })?;
 
     let mut word_responses: Vec<WordResponseSchema> = Vec::new();
     for word in words.iter() {
@@ -201,7 +212,13 @@ pub async fn get_all_for_language(
         word_responses.push(word_response);
     }
 
-    Ok(word_responses)
+    Ok(PaginatedResponseSchema {
+        data: word_responses,
+        page_index: page,
+        items_per_page_count: per_page,
+        total_item_count: total_items,
+        total_page_count: total_pages,
+    })
 }
 
 pub async fn delete(database: &DatabaseConnection, id: Uuid) -> Result<(), Error> {

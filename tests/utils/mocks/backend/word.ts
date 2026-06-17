@@ -1,8 +1,9 @@
 import { Id } from "@/interface";
 import {
     CommandNames,
-    WordType,
     type BackendApiError,
+    type PaginatedWordResponse,
+    type WordQuery,
     type WordResponse,
     type WordUpsert,
 } from "@/api";
@@ -34,19 +35,60 @@ export function mockGetWords(
     mockedInvoker: MockedInvoker,
     words: WordResponse[] = [],
 ) {
-    const command = async ({
-        languageId,
-        wordType,
-    }: {
-        languageId: number;
-        wordType: WordType | null;
-    }) => {
-        return words.map((w) => ({
-            ...w,
-            languageId: languageId,
-            wordType: wordType ?? WordType.RootWord,
-        }));
+    const command = async ({ query }: { query: WordQuery }) => {
+        const filteredWords = words.filter((word) => {
+            if (word.languageId !== query.languageId) return false;
+            if (
+                query.wordTypes !== null &&
+                !query.wordTypes.includes(word.wordType)
+            ) {
+                return false;
+            }
+            if (
+                query.spelling !== null &&
+                !word.spelling.includes(query.spelling)
+            ) {
+                return false;
+            }
+            if (
+                query.definition !== null &&
+                !word.definition.includes(query.definition)
+            ) {
+                return false;
+            }
+            if (
+                query.translations !== null &&
+                !word.translations.some((translation) =>
+                    translation.includes(query.translations ?? ""),
+                )
+            ) {
+                return false;
+            }
+            return true;
+        });
+
+        const start = query.pageIndex * query.itemsPerPageCount;
+        const data = filteredWords.slice(
+            start,
+            start + query.itemsPerPageCount,
+        );
+        const totalItems = filteredWords.length;
+        const totalPages = Math.max(
+            1,
+            Math.ceil(totalItems / query.itemsPerPageCount),
+        );
+
+        const response: PaginatedWordResponse = {
+            data,
+            pageIndex: query.pageIndex,
+            itemsPerPageCount: query.itemsPerPageCount,
+            totalItemCount: totalItems,
+            totalPageCount: totalPages,
+        };
+
+        return response;
     };
+
     mockedInvoker.mockCommand(
         CommandNames.Word.GetMany,
         command as MockedCommand,
