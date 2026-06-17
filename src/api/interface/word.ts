@@ -37,5 +37,23 @@ export interface WordUpsertResponse {
     };
 }
 
+export interface WordQuery {
+    languageId: Id;
+    pageIndex: number;
+    itemsPerPageCount: number;
+    wordTypes: WordType[] | null;
+    spelling: string | null;
+    definition: string | null;
+    translations: string | null;
+}
+
+export interface PaginatedWordResponse {
+    data: WordResponse[];
+    pageIndex: number;
+    itemsPerPageCount: number;
+    totalItemCount: number;
+    totalPageCount: number;
+}
+
 // Interfaces for fetching words
 export type WordResponse = IdentifiedWordInfo & WordProperties;

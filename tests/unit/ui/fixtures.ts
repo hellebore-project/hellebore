@@ -57,7 +57,7 @@ export interface BaseUnitTestFixtures {
     mockedSearchedEntries: EntryInfoResponse[];
     mockedBulkEntryUpdate: null;
     mockedBulkFolderUpdate: null;
-    projectState: ClientData;
+    clientData: ClientData;
     domainManager: DomainManager;
     clientManager: ClientManager;
     user: UserEvent;
@@ -159,7 +159,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         await use(null);
     },
 
-    projectState: async ({ mockedProject }, use) => {
+    clientData: async ({ mockedProject }, use) => {
         const project = new ClientData();
         project.setProject(mockedProject);
         await use(project);

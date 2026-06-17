@@ -56,3 +56,15 @@ pub struct WordResponseSchema {
     pub definition: String,
     pub translations: Vec<String>,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WordQuerySchema {
+    pub language_id: Uuid,
+    pub page_index: u64,
+    pub per_page: u64,
+    pub word_types: Option<Vec<WordType>>,
+    pub spelling: Option<String>,
+    pub definition: Option<String>,
+    pub translations: Option<String>,
+}

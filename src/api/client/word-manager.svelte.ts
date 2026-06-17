@@ -1,9 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import { CommandNames, WordType } from "../constants";
+import { CommandNames } from "../constants";
 import type {
     DiagnosticResponse,
-    WordResponse,
+    PaginatedWordResponse,
+    WordQuery,
     WordUpsert,
     WordUpsertResponse,
 } from "../interface";
@@ -43,15 +44,10 @@ export class WordManager {
 
     async getAllForLanguage(
         projectId: Id,
-        languageId: Id,
-        wordType?: WordType | null,
-    ): Promise<WordResponse[] | null> {
+        query: WordQuery,
+    ): Promise<PaginatedWordResponse | null> {
         try {
-            return await this._getWords(
-                projectId,
-                languageId,
-                wordType ?? null,
-            );
+            return await this._getWords(projectId, query);
         } catch (error) {
             console.error(error);
             return null;
@@ -81,13 +77,11 @@ export class WordManager {
 
     async _getWords(
         projectId: Id,
-        languageId: Id,
-        wordType: WordType | null,
-    ): Promise<WordResponse[]> {
-        return invoke<WordResponse[]>(CommandNames.Word.GetMany, {
+        query: WordQuery,
+    ): Promise<PaginatedWordResponse> {
+        return invoke<PaginatedWordResponse>(CommandNames.Word.GetMany, {
             projectId,
-            languageId,
-            wordType,
+            query,
         });
     }
 

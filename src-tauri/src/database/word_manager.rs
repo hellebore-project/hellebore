@@ -1,3 +1,4 @@
+use sea_orm::sea_query::Expr;
 use sea_orm::*;
 use uuid::Uuid;
 
@@ -76,13 +77,39 @@ pub async fn get_all_for_language<C>(
 where
     C: ConnectionTrait,
 {
-    let mut query = WordEntity::find()
-        .filter(word::Column::LanguageId.eq(language_id))
-        .order_by_asc(word::Column::Spelling);
-    if let Some(word_type) = word_type {
-        query = query.filter(word::Column::WordType.eq(word_type.code()));
-    }
-    query.all(con).await
+    query(
+        language_id,
+        word_type.as_ref().map(std::slice::from_ref),
+        None,
+        None,
+        None,
+    )
+    .all(con)
+    .await
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn get_languages_page<C>(
+    con: &C,
+    language_id: Uuid,
+    word_types: Option<&[WordType]>,
+    spelling: Option<&str>,
+    definition: Option<&str>,
+    translations: Option<&str>,
+    page_index: u64,
+    items_per_page_count: u64,
+) -> Result<(Vec<word::Model>, u64, u64), DbErr>
+where
+    C: ConnectionTrait,
+{
+    let paginator = query(language_id, word_types, spelling, definition, translations)
+        .paginate(con, items_per_page_count.max(1));
+
+    let total_item_count = paginator.num_items().await?;
+    let total_page_count = paginator.num_pages().await?;
+    let words = paginator.fetch_page(page_index.saturating_sub(1)).await?;
+
+    Ok((words, total_item_count, total_page_count))
 }
 
 pub async fn delete<C>(con: &C, id: Uuid) -> Result<DeleteResult, DbErr>
@@ -93,4 +120,37 @@ where
         return Err(DbErr::RecordNotFound("Word not found.".to_owned()));
     };
     return existing_entity.delete(con).await;
+}
+
+fn query(
+    language_id: Uuid,
+    word_types: Option<&[WordType]>,
+    spelling: Option<&str>,
+    definition: Option<&str>,
+    translations: Option<&str>,
+) -> Select<WordEntity> {
+    let mut _query = WordEntity::find()
+        .filter(word::Column::LanguageId.eq(language_id))
+        .order_by_asc(word::Column::Spelling);
+
+    if let Some(word_types) = word_types.filter(|values| !values.is_empty()) {
+        _query = _query.filter(
+            word::Column::WordType.is_in(word_types.iter().map(|word_type| word_type.code())),
+        );
+    }
+
+    if let Some(spelling) = spelling.filter(|value| !value.is_empty()) {
+        _query = _query.filter(word::Column::Spelling.like(format!("%{}%", spelling)));
+    }
+
+    if let Some(definition) = definition.filter(|value| !value.is_empty()) {
+        _query = _query.filter(word::Column::Definition.like(format!("%{}%", definition)));
+    }
+
+    if let Some(translations) = translations.filter(|value| !value.is_empty()) {
+        _query = _query
+            .filter(Expr::col(word::Column::Translations).like(format!("%{}%", translations)));
+    }
+
+    _query
 }
