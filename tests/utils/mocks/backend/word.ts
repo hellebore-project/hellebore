@@ -67,7 +67,7 @@ export function mockGetWords(
             return true;
         });
 
-        const start = (query.pageIndex - 1) * query.itemsPerPageCount;
+        const start = query.pageIndex * query.itemsPerPageCount;
         const data = filteredWords.slice(
             start,
             start + query.itemsPerPageCount,
@@ -88,6 +88,7 @@ export function mockGetWords(
 
         return response;
     };
+
     mockedInvoker.mockCommand(
         CommandNames.Word.GetMany,
         command as MockedCommand,

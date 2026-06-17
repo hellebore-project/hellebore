@@ -16,7 +16,7 @@ export interface DataTableServiceArgs<TColKey extends string> {
     onFilter?: (colKey: TColKey, values: string[]) => void;
     onCancelEdit?: (rowKey: string, colKey: TColKey) => void;
     onSetValue?: (rowKey: string, colKey: TColKey, value: string) => void;
-    onPageChange?: (page: number) => void;
+    onPageChange?: (page: number) => Promise<void>;
 }
 
 export class DataTableService<
@@ -34,7 +34,7 @@ export class DataTableService<
     selectOpen: boolean = $state(false);
     editSelectAll = true;
     private _columnFilters: Record<string, string[]> = $state({});
-    page: number = $state(1);
+    pageIndex: number = $state(0);
     pageCount: number = $state(1);
 
     // CALLBACKS
@@ -48,7 +48,7 @@ export class DataTableService<
     private _onSetValue:
         | ((rowKey: string, colKey: TColKey, value: string) => void)
         | undefined;
-    private _onPageChange: ((page: number) => void) | undefined;
+    private _onPageChange: ((pageIndex: number) => Promise<void>) | undefined;
 
     constructor({
         id,
@@ -184,9 +184,14 @@ export class DataTableService<
 
     setValue(rowKey: string, colKey: TColKey, value: string) {
         const row = this.findRow(rowKey);
-        if (!row) return;
+        if (!row) {
+            console.warn(`Setting value for non-existent row key ${rowKey}.`);
+            return;
+        }
+
         row.cells[colKey].value = value;
         this.modifiedKeys.add(rowKey);
+
         this._onSetValue?.(rowKey, colKey, value);
     }
 
@@ -200,15 +205,21 @@ export class DataTableService<
 
     removeRow(rowKey: string) {
         const idx = this.rows.findIndex((r) => r.key === rowKey);
-        if (idx < 0) return;
+        if (idx < 0) {
+            console.warn(`Removing non-existent row key ${rowKey}.`);
+            return;
+        }
+
         this.rows.splice(idx, 1);
         this.modifiedKeys.delete(rowKey);
+
         const prefix = `${rowKey}-`;
         const entries = [...this.selectedCells];
         this.selectedCells.clear();
         for (const posKey of entries) {
             if (!posKey.startsWith(prefix)) this.selectedCells.add(posKey);
         }
+
         if (this.editCell?.rowKey === rowKey) this.editCell = null;
     }
 
@@ -550,9 +561,9 @@ export class DataTableService<
 
     // PAGINATION
 
-    changePage(page: number) {
-        this.page = page;
-        this._onPageChange?.(page);
+    async changePage(page: number) {
+        this.pageIndex = page;
+        await this._onPageChange?.(page);
     }
 
     // CLEAN UP

@@ -9,7 +9,7 @@ import {
 import { WordTableService } from "@/ui/centre/entry-editor/word-editor/word-table/word-table-service.svelte";
 import { WordColumnKey } from "@/ui/centre/entry-editor/word-editor/word-table/word-table-constants";
 import type { WordRow } from "@/ui/centre/entry-editor/word-editor/word-table/word-table-interface";
-import { test as baseTest } from "@tests/unit/ui/fixtures";
+import { test as baseTest } from "../fixtures";
 
 const test = baseTest;
 
@@ -22,11 +22,6 @@ const buildWord = (overrides: Partial<WordResponse> = {}): WordResponse => ({
     translations: ["one", "single"],
     ...overrides,
 });
-
-const flushPromises = async () => {
-    await Promise.resolve();
-    await Promise.resolve();
-};
 
 const buildPaginatedResponse = (
     query: WordQuery,
@@ -64,7 +59,7 @@ const buildPaginatedResponse = (
         return true;
     });
 
-    const start = (query.pageIndex - 1) * query.itemsPerPageCount;
+    const start = query.pageIndex * query.itemsPerPageCount;
     const data = filtered.slice(start, start + query.itemsPerPageCount);
     return {
         data,
@@ -127,11 +122,11 @@ describe("WordTableService", () => {
         expect(service.id).toBe("word-table-entry7");
         expect(service.changed).toBe(false);
         expect(service.table.rows).toHaveLength(3);
-        expect(service.table.page).toBe(1);
+        expect(service.table.pageIndex).toBe(0);
         expect(service.table.pageCount).toBe(1);
         expect(getWords).toHaveBeenCalledWith(clientData.projectId, {
             languageId: "entry77",
-            pageIndex: 1,
+            pageIndex: 0,
             itemsPerPageCount: 50,
             wordTypes: null,
             spelling: null,
@@ -157,16 +152,8 @@ describe("WordTableService", () => {
         expect(sentinel?.cells.wordType.value).toBe("");
     });
 
-    test("changes page by refetching the requested backend page", async ({
-        domainManager,
-        clientData,
-    }) => {
-        const service = new WordTableService(
-            "word-table-entry-page",
-            domainManager,
-            clientData,
-        );
-        const words = [
+    test.override({
+        words: [
             buildWord({
                 id: "entry11",
                 languageId: "entry77",
@@ -182,34 +169,25 @@ describe("WordTableService", () => {
                 languageId: "entry77",
                 spelling: "gamma",
             }),
-        ];
-        const getWords = vi
-            .spyOn(domainManager.words, "getAllForLanguage")
-            .mockImplementation(async (_projectId, query) => ({
-                ...buildPaginatedResponse(
-                    { ...query, itemsPerPageCount: 1 },
-                    words,
-                ),
-                itemsPerPageCount: 1,
-            }));
+        ],
+    })(
+        "changes page by refetching the requested backend page",
+        async ({ domainManager, clientData }) => {
+            const service = new WordTableService(
+                "word-table-entry-page",
+                domainManager,
+                clientData,
+            );
+            service.words_per_page_count = 1;
 
-        await service.load("entry77");
-        await service.table.changePage(2);
-        await flushPromises();
+            await service.load("entry77");
+            await service.table.changePage(1);
 
-        expect(service.table.page).toBe(2);
-        expect(service.table.pageCount).toBe(3);
-        expect(service.table.findRow("entry12")).toBeDefined();
-        expect(getWords).toHaveBeenNthCalledWith(2, clientData.projectId, {
-            languageId: "entry77",
-            pageIndex: 2,
-            itemsPerPageCount: 50,
-            wordTypes: null,
-            spelling: null,
-            definition: null,
-            translations: null,
-        });
-    });
+            expect(service.table.pageIndex).toBe(1);
+            expect(service.table.pageCount).toBe(3);
+            expect(service.table.findRow("entry12")).toBeDefined();
+        },
+    );
 
     test("promotes sentinel row on first edit, applies first active type filter, and appends a new sentinel", async ({
         domainManager,
@@ -222,7 +200,7 @@ describe("WordTableService", () => {
         );
         vi.spyOn(domainManager.words, "getAllForLanguage").mockResolvedValue({
             data: [],
-            pageIndex: 1,
+            pageIndex: 0,
             itemsPerPageCount: 50,
             totalItemCount: 0,
             totalPageCount: 1,
@@ -237,7 +215,7 @@ describe("WordTableService", () => {
             String(WordType.Verb),
             String(WordType.Noun),
         ]);
-        await flushPromises();
+
         service.table.setValue(firstSentinel, WordColumnKey.Spelling, "run");
 
         const promotedRow = service.table.findRow(firstSentinel);
@@ -280,17 +258,16 @@ describe("WordTableService", () => {
             );
 
         await service.load("entry77");
-        service.table.page = 3;
+        service.table.pageIndex = 2;
 
         service.table.setColumnFilter(WordColumnKey.WordType, [
             String(WordType.Verb),
         ]);
-        await flushPromises();
 
-        expect(service.table.page).toBe(1);
+        expect(service.table.pageIndex).toBe(0);
         expect(getWords).toHaveBeenLastCalledWith(clientData.projectId, {
             languageId: "entry77",
-            pageIndex: 1,
+            pageIndex: 0,
             itemsPerPageCount: 50,
             wordTypes: [WordType.Verb],
             spelling: null,
@@ -302,12 +279,11 @@ describe("WordTableService", () => {
         expect(getWords).toHaveBeenCalledTimes(2);
 
         await vi.advanceTimersByTimeAsync(300);
-        await flushPromises();
 
         expect(getWords).toHaveBeenCalledTimes(3);
         expect(getWords).toHaveBeenLastCalledWith(clientData.projectId, {
             languageId: "entry77",
-            pageIndex: 1,
+            pageIndex: 0,
             itemsPerPageCount: 50,
             wordTypes: [WordType.Verb],
             spelling: null,
@@ -327,7 +303,7 @@ describe("WordTableService", () => {
         );
         vi.spyOn(domainManager.words, "getAllForLanguage").mockResolvedValue({
             data: [buildWord({ id: "entry41", wordType: WordType.Adjective })],
-            pageIndex: 1,
+            pageIndex: 0,
             itemsPerPageCount: 50,
             totalItemCount: 1,
             totalPageCount: 1,
@@ -368,7 +344,7 @@ describe("WordTableService", () => {
         );
         vi.spyOn(domainManager.words, "getAllForLanguage").mockResolvedValue({
             data: [],
-            pageIndex: 1,
+            pageIndex: 0,
             itemsPerPageCount: 50,
             totalItemCount: 0,
             totalPageCount: 1,
@@ -403,7 +379,7 @@ describe("WordTableService", () => {
         );
         vi.spyOn(domainManager.words, "getAllForLanguage").mockResolvedValue({
             data: [buildWord({ id: "entry5", languageId: "entry22" })],
-            pageIndex: 1,
+            pageIndex: 0,
             itemsPerPageCount: 50,
             totalItemCount: 1,
             totalPageCount: 1,
@@ -442,7 +418,7 @@ describe("WordTableService", () => {
             .spyOn(domainManager.words, "getAllForLanguage")
             .mockResolvedValue({
                 data: [buildWord({ id: "entry60", languageId: "entry15" })],
-                pageIndex: 1,
+                pageIndex: 0,
                 itemsPerPageCount: 50,
                 totalItemCount: 1,
                 totalPageCount: 1,
@@ -456,7 +432,6 @@ describe("WordTableService", () => {
 
         service.cleanUp();
         await vi.advanceTimersByTimeAsync(300);
-        await flushPromises();
 
         expect(service.changed).toBe(false);
         expect(service.table.modifiedKeys.size).toBe(0);

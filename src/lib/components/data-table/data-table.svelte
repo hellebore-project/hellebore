@@ -97,9 +97,9 @@
         </div>
         <div class="flex shrink-0 justify-end border-t pt-2">
             <Pagination
-                page={service.page}
+                page={service.pageIndex + 1}
                 pageCount={service.pageCount}
-                onPageChange={(p) => service.changePage(p)}
+                onPageChange={(p) => service.changePage(p - 1)}
             />
         </div>
     </div>

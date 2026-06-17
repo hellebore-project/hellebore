@@ -43,19 +43,22 @@ const WORD_COLUMNS: ColumnDef<WordColumnKey>[] = [
 ];
 
 export class WordTableService implements IComponentService {
-    private static readonly PAGE_SIZE = 50;
+    private static readonly DEFAULT_WORDS_PER_PAGE_COUNT = 50;
     private static readonly FILTER_WAIT_TIME = 300;
+
+    // CONFIGURATION
+    words_per_page_count = WordTableService.DEFAULT_WORDS_PER_PAGE_COUNT;
 
     // STATE VARIABLES
     private _id: string;
     private _sentinelKey: WordKey = $state("");
     private _languageId: Id = $state(ENTRY_ID_SENTINEL);
     private _keyCounter = 0;
-    private _domain: DomainManager;
-    private _data: ClientData;
     private _textFilterDebouncer: ReplaceDebouncer<void, void>;
+    private _data: ClientData;
 
     // SERVICES
+    private _domain: DomainManager;
     table: DataTableService<WordColumnKey>;
 
     // EVENTS
@@ -97,7 +100,7 @@ export class WordTableService implements IComponentService {
 
     async load(languageId: Id) {
         this._languageId = languageId;
-        this.table.page = 1;
+        this.table.pageIndex = 0;
         await this._reload();
     }
 
@@ -105,16 +108,18 @@ export class WordTableService implements IComponentService {
         if (this._languageId === ENTRY_ID_SENTINEL) return;
 
         const projectId = this._data.loadedProjectId;
+        const query = this._buildQuery();
+        console.log(query);
         const response = await this._domain.words.getAllForLanguage(
             projectId,
-            this._buildQuery(),
+            query,
         );
         if (!response) return;
 
-        this.table.page = response.pageIndex;
+        console.log(response);
+        this.table.pageIndex = response.pageIndex;
         this.table.pageCount = Math.max(response.totalPageCount, 1);
 
-        this._keyCounter = 0;
         const rows: WordRow[] = response.data.map((w) => ({
             key: String(w.id),
             languageId: w.languageId,
@@ -127,7 +132,7 @@ export class WordTableService implements IComponentService {
             },
         }));
         this.table.load(rows);
-        this.table.page = Math.max(this.table.page, 1);
+
         this._addSentinel();
     }
 
@@ -148,8 +153,8 @@ export class WordTableService implements IComponentService {
 
         return {
             languageId: this._languageId,
-            pageIndex: this.table.page,
-            itemsPerPageCount: WordTableService.PAGE_SIZE,
+            pageIndex: this.table.pageIndex,
+            itemsPerPageCount: this.words_per_page_count,
             wordTypes:
                 wordTypes.length > 0
                     ? wordTypes.map((value) => Number(value) as WordType)
@@ -242,7 +247,7 @@ export class WordTableService implements IComponentService {
             }
         }
 
-        this.table.page = 1;
+        this.table.pageIndex = 0;
 
         if (colKey === WordColumnKey.WordType) {
             await this._reload();
@@ -255,7 +260,7 @@ export class WordTableService implements IComponentService {
     // PAGINATION
 
     private async _onPageChange(page: number) {
-        this.table.page = page;
+        this.table.pageIndex = page;
         await this._reload();
     }
 
