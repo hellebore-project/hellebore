@@ -1,8 +1,5 @@
-import {
-    test as baseTest,
-    type BaseUnitTestFixtures,
-} from "@tests/unit/ui/fixtures";
+import { test as baseTest, type BaseUiFixtures } from "@tests/unit/ui/fixtures";
 
-export type BaseEntryEditorFixtures = BaseUnitTestFixtures;
+export type BaseEntryEditorFixtures = BaseUiFixtures;
 
 export const test = baseTest;

@@ -2,7 +2,6 @@ import { cleanup } from "@testing-library/svelte";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import type { JSONContent } from "@tiptap/core";
 import { NIL as NIL_UUID } from "uuid";
-import { test as baseTest } from "vitest";
 
 import type { Id } from "@/interface";
 import {
@@ -31,7 +30,9 @@ import {
     mockSearchEntries,
 } from "@tests/utils/mocks";
 
-export interface BaseUnitTestFixtures {
+import { test as baseTest } from "../fixtures";
+
+export interface BaseUiFixtures {
     project: ProjectResponse;
     folderId: Id;
     parentFolderId: Id;
@@ -60,11 +61,10 @@ export interface BaseUnitTestFixtures {
     clientData: ClientData;
     domainManager: DomainManager;
     clientManager: ClientManager;
-    user: UserEvent;
     setup: null;
 }
 
-export const test = baseTest.extend<BaseUnitTestFixtures>({
+export const test = baseTest.extend<BaseUiFixtures>({
     project: { id: "test-project-id", name: "mocked-project" },
 
     folderId: "folder",
@@ -169,13 +169,6 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         const domain = new DomainManager();
         await use(domain);
     },
-
-    user: [
-        async ({}, use) => {
-            await use(userEvent.setup());
-        },
-        { auto: true },
-    ],
 
     clientManager: [
         async (
