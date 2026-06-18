@@ -41,7 +41,7 @@ vi.mock("@/utils/event-producer", () => {
 });
 
 describe("SynchronizationService", () => {
-    test.scoped({
+    test.override({
         clientManager: [
             async ({}, use) => {
                 await use({ cleanUp: () => undefined } as ClientManager);

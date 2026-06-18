@@ -11,7 +11,7 @@ import { test, referencedEntryTitle, referencedEntryInfo } from "./fixtures";
 beforeAll(async () => mockMissingDomMethods());
 
 describe("multiple options", () => {
-    test.scoped({
+    test.override({
         otherEntries: async ({}, use) => {
             use([
                 referencedEntryInfo,

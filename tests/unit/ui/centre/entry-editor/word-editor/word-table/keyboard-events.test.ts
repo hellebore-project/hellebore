@@ -5,7 +5,7 @@ import { WordColumnKey } from "@/ui/centre/entry-editor/word-editor/word-table";
 import { test } from "../fixtures";
 
 describe("cell selection", () => {
-    test.scoped({
+    test.override({
         wordSpelling: "cell1",
         wordDefinition: "cell2",
     });
@@ -74,7 +74,7 @@ describe("cell selection", () => {
 });
 
 describe("cell editing", () => {
-    test.scoped({
+    test.override({
         wordSpelling: "cell1",
         wordTranslations: ["cell2"],
     });

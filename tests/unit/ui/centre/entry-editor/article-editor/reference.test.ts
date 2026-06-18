@@ -20,7 +20,7 @@ import {
 
 beforeAll(async () => mockMissingDomMethods());
 
-test.scoped({
+test.override({
     otherEntries: async ({}, use) => use([referencedEntryInfo]),
 });
 

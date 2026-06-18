@@ -2,17 +2,18 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import { NIL as NIL_UUID } from "uuid";
 import { describe, expect, vi } from "vitest";
 
+import { FolderResponse } from "@/api/interface/folder";
+import { mockUpdateFolder } from "@tests/utils/mocks";
+
+import { test } from "./fixtures";
+
 vi.mock("@tauri-apps/plugin-dialog", () => ({
     ask: vi.fn(),
     open: vi.fn(),
 }));
 
-import { mockUpdateFolder } from "@tests/utils/mocks";
-
-import { test } from "./fixtures";
-
 describe("moving folders", () => {
-    test.scoped({
+    test.override({
         parentFolder: async ({}, use) => {
             use({
                 id: "folder2",
@@ -21,7 +22,7 @@ describe("moving folders", () => {
             });
         },
         otherFolders: async ({ parentFolder }, use) => {
-            use([parentFolder]);
+            use([parentFolder as FolderResponse]);
         },
     });
 
@@ -56,8 +57,10 @@ describe("moving folders", () => {
         });
         expect(deletion).toBe(null);
     });
+});
 
-    test.scoped({
+describe("folder name collision", () => {
+    test.override({
         isUnique: false,
         parentFolder: async ({}, use) => {
             use({
@@ -74,7 +77,10 @@ describe("moving folders", () => {
             });
         },
         otherFolders: async ({ parentFolder, collidingFolder }, use) => {
-            use([parentFolder, collidingFolder]);
+            use([
+                parentFolder as FolderResponse,
+                collidingFolder as FolderResponse,
+            ]);
         },
         deletedFolderIds: async ({}, use) => use(["folder3"]),
     });
@@ -152,7 +158,12 @@ describe("moving folders", () => {
     }) => {
         vi.mocked(ask).mockResolvedValue(false);
 
-        const updatedFolder = { ...folder, parentId: "folder2" };
+        const updatedFolder = {
+            ...folder,
+            parentId: "folder2",
+            parentChanged: false,
+            nameChanged: false,
+        };
         mockUpdateFolder(mockedInvoker, updatedFolder);
 
         const { moved, cancelled, update, deletion } =

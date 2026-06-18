@@ -7,7 +7,7 @@ import { SyncType } from "@/constants";
 import { test } from "./fixtures";
 
 describe("entry spotlight interactions", () => {
-    test.scoped({
+    test.override({
         otherFolders: async ({}, use) => {
             use([
                 {
@@ -178,13 +178,11 @@ describe("entry spotlight interactions", () => {
         standaloneLeftSidebar,
     }) => {
         const spotlight = standaloneLeftSidebar.addSpotlight("owner");
-        const onCreateFolder = vi
-            .fn()
-            .mockResolvedValue({
-                id: "folder99",
-                parentId: NIL_UUID,
-                name: "new folder",
-            });
+        const onCreateFolder = vi.fn().mockResolvedValue({
+            id: "folder99",
+            parentId: NIL_UUID,
+            name: "new folder",
+        });
         standaloneLeftSidebar.onCreateFolder.subscribe(onCreateFolder);
 
         const placeholderFolder = spotlight.fileTree.addFolderNode({
