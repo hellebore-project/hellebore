@@ -3,12 +3,9 @@ import { beforeAll, describe, expect } from "vitest";
 
 import { ROOT_FOLDER_ID, EntryType } from "@/api";
 import { ArticleEditor } from "@/ui/centre/entry-editor/article-editor";
-import { mockMissingDomMethods } from "@tests/utils/mocks";
 import { render } from "@tests/utils";
 
 import { test, referencedEntryTitle, referencedEntryInfo } from "./fixtures";
-
-beforeAll(async () => mockMissingDomMethods());
 
 describe("multiple options", () => {
     test.override({

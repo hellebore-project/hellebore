@@ -1,5 +1,3 @@
-import { cleanup } from "@testing-library/svelte";
-import userEvent, { type UserEvent } from "@testing-library/user-event";
 import type { JSONContent } from "@tiptap/core";
 import { NIL as NIL_UUID } from "uuid";
 
@@ -61,7 +59,7 @@ export interface BaseUiFixtures {
     clientData: ClientData;
     domainManager: DomainManager;
     clientManager: ClientManager;
-    setup: null;
+    clientContext: null;
 }
 
 export const test = baseTest.extend<BaseUiFixtures>({
@@ -188,12 +186,11 @@ export const test = baseTest.extend<BaseUiFixtures>({
         { auto: true },
     ],
 
-    setup: [
-        async ({ user, mockedInvoker, clientManager }, use) => {
+    clientContext: [
+        async ({ context, user, mockedInvoker, clientManager }, use) => {
             await use(null);
 
             clientManager.cleanUp();
-            cleanup();
         },
         { auto: true },
     ],
