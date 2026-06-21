@@ -226,14 +226,19 @@ export class DataTableService<
     ) {
         const rowKeys = this.visibleRows.map((r) => r.key);
         const colKeys = this._columns.map((c) => c.key);
+
         const rowIdx = rowKeys.indexOf(rowKey);
         const colIdx = colKeys.indexOf(colKey);
-        const newRowIdx = rowIdx + dr;
-        const newColIdx = colIdx + dc;
-        if (newRowIdx < 0 || newRowIdx >= rowKeys.length) return;
-        if (newColIdx < 0 || newColIdx >= colKeys.length) return;
+
+        let newRowIdx = rowIdx + dr;
+        let newColIdx = colIdx + dc;
+
+        if (newRowIdx < 0 || newRowIdx >= rowKeys.length) newRowIdx = rowIdx;
+        if (newColIdx < 0 || newColIdx >= colKeys.length) newColIdx = colIdx;
+
         const targetRowKey = rowKeys[newRowIdx];
         const targetColKey = colKeys[newColIdx];
+
         this.selectSingle(targetRowKey, targetColKey);
         this.scrollCellIntoView(targetRowKey, targetColKey);
     }
@@ -246,39 +251,47 @@ export class DataTableService<
             rowIdx >= 0 ? { rowIndex: rowIdx, colKey } : null;
     }
 
-    selectRange(rowKey: string, colKey: TColKey) {
+    selectRange(rowKey: string, colKey: TColKey, newAnchor = false) {
+        // rowKey and colKey correspond to the endpoint of the range
+
         if (!this._selectionAnchor) {
             this.selectSingle(rowKey, colKey);
             return;
         }
+
         const rowKeys = this.visibleRows.map((r) => r.key);
         const colKeys = this._columns.map((c) => c.key);
+
         const targetRowIdx = rowKeys.indexOf(rowKey);
         if (targetRowIdx < 0) return;
 
         const minRow = Math.min(this._selectionAnchor.rowIndex, targetRowIdx);
         const maxRow = Math.max(this._selectionAnchor.rowIndex, targetRowIdx);
+
         const anchorColIdx = colKeys.indexOf(this._selectionAnchor.colKey);
         const targetColIdx = colKeys.indexOf(colKey);
+
         const minCol = Math.min(anchorColIdx, targetColIdx);
         const maxCol = Math.max(anchorColIdx, targetColIdx);
 
         this.selectedCells.clear();
         for (let r = minRow; r <= maxRow; r++) {
-            for (let c = minCol; c <= maxCol; c++) {
+            for (let c = minCol; c <= maxCol; c++)
                 this.selectedCells.add(`${rowKeys[r]}-${colKeys[c]}`);
-            }
         }
+
+        if (newAnchor)
+            this._selectionAnchor = { rowIndex: targetRowIdx, colKey };
     }
 
     toggleCell(rowKey: string, colKey: TColKey) {
         const posKey = `${rowKey}-${colKey}`;
         if (this.selectedCells.has(posKey)) {
             this.selectedCells.delete(posKey);
-        } else {
-            this.selectedCells.add(posKey);
-        }
+        } else this.selectedCells.add(posKey);
+
         const rowIdx = this.visibleRows.map((r) => r.key).indexOf(rowKey);
+        // select a new anchor for the selection
         this._selectionAnchor =
             rowIdx >= 0 ? { rowIndex: rowIdx, colKey } : null;
     }
@@ -366,7 +379,7 @@ export class DataTableService<
 
         if (e.shiftKey) {
             e.preventDefault();
-            this.selectRange(rowKey, colKey);
+            this.selectRange(rowKey, colKey, true);
         } else if (e.ctrlKey || e.metaKey) {
             this.toggleCell(rowKey, colKey);
         } else {
