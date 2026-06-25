@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { FILE_ENTITY_TYPES, ENTITY_TYPE_LABELS } from "@/api";
+    import { ENTRY_TYPES, ENTITY_TYPE_LABELS } from "@/api";
     import { Button } from "@/lib/components/button";
     import * as Dialog from "@/lib/components/dialog";
     import { Input } from "@/lib/components/input";
@@ -11,18 +11,18 @@
 
     const { service }: EntryCreatorProps = $props();
 
-    const entityTypeOptions = FILE_ENTITY_TYPES.map((entityType) => ({
+    const entryTypeOptions = ENTRY_TYPES.map((entityType) => ({
         value: entityType,
         label: ENTITY_TYPE_LABELS[entityType],
     })).sort((a, b) => compareStrings(a.label, b.label));
 
-    let entityTypeValue = $derived(service.entryType?.toString() ?? "");
+    let entryTypeValue = $derived(service.entryType?.toString() ?? "");
 
     function onTitleInput(event: Event) {
         service.entryTitle = (event.currentTarget as HTMLInputElement).value;
     }
 
-    function onEntityTypeChange(value: string) {
+    function onEntryTypeChange(value: string) {
         service.entryType = value === "" ? null : Number(value);
     }
 
@@ -37,8 +37,8 @@
         <Label for="entry-entity-type">Entity</Label>
         <Select.Root
             type="single"
-            value={entityTypeValue}
-            onValueChange={onEntityTypeChange}
+            value={entryTypeValue}
+            onValueChange={onEntryTypeChange}
         >
             <Select.Trigger id="entry-entity-type" class="w-full">
                 {service.entryType
@@ -46,7 +46,7 @@
                     : "Select an entity type"}
             </Select.Trigger>
             <Select.Content>
-                {#each entityTypeOptions as option (option.value)}
+                {#each entryTypeOptions as option (option.value)}
                     <Select.Item
                         value={option.value.toString()}
                         label={option.label}

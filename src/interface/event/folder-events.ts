@@ -1,4 +1,4 @@
-import type { BulkFileResponse, FolderUpdateResponse } from "@/api";
+import type { BulkEntryResponse, FolderUpdateResponse } from "@/api";
 
 import type { Id } from "../common";
 
@@ -29,7 +29,7 @@ export interface MoveFolderResult {
     moved: boolean;
     cancelled: boolean;
     update: FolderUpdateResponse | null;
-    deletion: BulkFileResponse | null;
+    deletion: BulkEntryResponse | null;
 }
 
 export interface DeleteFolderEvent {

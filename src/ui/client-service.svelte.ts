@@ -26,7 +26,7 @@ import type {
 import {
     DomainManager,
     type EntryType,
-    type BulkFileResponse,
+    type BulkEntryResponse,
     type FolderUpdateResponse,
     type ProjectResponse,
 } from "@/api";
@@ -272,7 +272,7 @@ export class ClientManager implements IComponentService {
         const projectId = this.data.loadedProjectId;
 
         let cancel = false;
-        let deleteResponse: BulkFileResponse | null = null;
+        let deleteResponse: BulkEntryResponse | null = null;
         let updateResponse: FolderUpdateResponse | null = null;
 
         const validateResponse = await this.domain.folders.validate(
@@ -345,8 +345,8 @@ export class ClientManager implements IComponentService {
             if (!canDelete) return null;
         }
 
-        const fileIds = await this.domain.folders.delete(projectId, id);
-        if (!fileIds) return null;
+        const data = await this.domain.folders.delete(projectId, id);
+        if (!data) return null;
 
         this.leftSideBar.deleteFolderNode(id);
 
@@ -357,7 +357,7 @@ export class ClientManager implements IComponentService {
             const entryId = panelService.details.entry?.id;
             if (entryId === undefined) continue;
 
-            if (fileIds.entries.includes(entryId))
+            if (data.entries.includes(entryId))
                 this.central.closePanel(panelIndex);
 
             panelIndex++;
@@ -366,7 +366,7 @@ export class ClientManager implements IComponentService {
         if (this.central.panelCount == 0)
             this.central.openHome(this.data.project);
 
-        return fileIds;
+        return data;
     }
 
     // ENTRY HANDLING
@@ -391,11 +391,6 @@ export class ClientManager implements IComponentService {
 
     async deleteEntry(id: Id, title: string, confirm = true) {
         const projectId = this.data.loadedProjectId;
-
-        // Currently, the title of the entry could be fetched from the cached file structure
-        // rather than providing it as an argument. However, in the future, the file tree will
-        // only include pinned entries. Once that feature is implemented, there will be no
-        // guarantee that the entry is in the file tree.
 
         if (confirm) {
             const message =

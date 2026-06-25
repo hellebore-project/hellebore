@@ -1,22 +1,22 @@
 <script lang="ts" generics="T">
-    import FileTreeBranch from "./file-tree-branch.svelte";
-    import type { FileTreeProps } from "./file-tree-interface";
+    import TreeBranch from "./tree-branch.svelte";
+    import type { TreeProps } from "./tree-interface";
 
     const {
         service,
         node,
-        folderLabel,
+        branchLabel,
         leafLabel,
         nodeContextMenu,
-    }: FileTreeProps<T> = $props();
+    }: TreeProps<T> = $props();
 </script>
 
 <div class="flex flex-col h-full">
-    <FileTreeBranch
+    <TreeBranch
         {service}
         {node}
         depth={0}
-        {folderLabel}
+        {branchLabel}
         {leafLabel}
         {nodeContextMenu}
     />

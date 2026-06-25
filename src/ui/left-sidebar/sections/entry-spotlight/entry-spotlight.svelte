@@ -3,7 +3,7 @@
     import FolderOpenIcon from "@lucide/svelte/icons/folder-open";
     import FileIcon from "@lucide/svelte/icons/file";
 
-    import { FileTree } from "@/lib/components/file-tree";
+    import * as Tree from "@/lib/components/tree";
     import * as ContextMenu from "@/lib/components/context-menu";
 
     import type { EntrySpotlightProps } from "./entry-spotlight-interface";
@@ -29,8 +29,8 @@
 
 <div class="flex flex-col h-full" data-spotlight role="tree">
     <div class="flex-1 min-h-0 overflow-y-auto px-1 pt-1">
-        <FileTree service={service.fileTree} node={service.fileTree.rootNode}>
-            {#snippet folderLabel(node, collapsed)}
+        <Tree.Root service={service.tree} node={service.tree.rootNode}>
+            {#snippet branchLabel(node, collapsed)}
                 {#if collapsed}
                     <FolderIcon
                         class="size-3.5 shrink-0 text-muted-foreground"
@@ -58,6 +58,6 @@
                     Delete
                 </ContextMenu.Item>
             {/snippet}
-        </FileTree>
+        </Tree.Root>
     </div>
 </div>

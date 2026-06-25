@@ -4,18 +4,18 @@
     import { cn } from "@/lib/utils";
     import * as ContextMenu from "@/lib/components/context-menu";
 
-    import type { FolderNodeProps } from "./file-tree-interface";
-    import FileTreeBranch from "./file-tree-branch.svelte";
-    import FileTreeEditableLabel from "./file-tree-editable-label.svelte";
+    import type { BranchNodeProps } from "./tree-interface";
+    import TreeBranch from "./tree-branch.svelte";
+    import TreeEditableLabel from "./tree-editable-label.svelte";
 
     const {
         service,
         node,
-        folderLabel,
+        branchLabel,
         leafLabel,
         contextMenu,
         depth,
-    }: FolderNodeProps<T> = $props();
+    }: BranchNodeProps<T> = $props();
 </script>
 
 <ContextMenu.Root
@@ -28,7 +28,7 @@
                 class={cn(
                     "flex items-center gap-1 px-1 py-0.5 cursor-pointer select-none",
                     "hover:bg-sidebar-accent rounded-sm text-sm text-sidebar-foreground",
-                    service.dragOverFolderId === node.id &&
+                    service.dragOverBranchId === node.id &&
                         "ring-1 ring-sidebar-ring bg-sidebar-accent",
                 )}
                 style="padding-left: {depth * 12 + 4}px"
@@ -53,9 +53,9 @@
                 />
 
                 {#if service.isNodeEditable(node.id)}
-                    <FileTreeEditableLabel {service} {node} />
-                {:else if folderLabel}
-                    {@render folderLabel(node, service.isCollapsed(node.id))}
+                    <TreeEditableLabel {service} {node} />
+                {:else if branchLabel}
+                    {@render branchLabel(node, service.isCollapsed(node.id))}
                 {:else}
                     <span class="flex-1 min-w-0 truncate">{node.text}</span>
                 {/if}
@@ -70,10 +70,10 @@
 </ContextMenu.Root>
 
 {#if !service.isCollapsed(node.id)}
-    <FileTreeBranch
+    <TreeBranch
         {service}
         {node}
-        {folderLabel}
+        {branchLabel}
         {leafLabel}
         nodeContextMenu={contextMenu}
         depth={depth + 1}

@@ -1,7 +1,7 @@
 import { EntryViewType, SidebarSectionType, ViewAction } from "@/constants";
 import type { EntryType } from "@/api";
 
-import type { Id, Point } from "../common";
+import type { Id } from "../common";
 import type { CentralPanelInfo } from "../service";
 
 export interface OpenEntryCreatorEvent {
@@ -44,13 +44,4 @@ export interface AddEntryEditorNavigatorEvent extends AddSidebarSectionEvent {
 export interface ReleaseSidebarSectionEvent {
     ownerId: string;
     type: SidebarSectionType;
-}
-
-export interface OpenContextMenuEvent {
-    position: Point;
-}
-
-export interface OpenFileContextMenuEvent extends OpenContextMenuEvent {
-    id: Id;
-    text: string;
 }

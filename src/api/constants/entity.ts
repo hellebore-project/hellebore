@@ -37,5 +37,5 @@ export const ENTITY_TYPE_PLURAL_LABELS = Object.fromEntries(
     ]),
 );
 
-export const FILE_ENTITY_TYPES = [EntityType.PERSON, EntityType.LANGUAGE];
-export const ALL_ENTITY_TYPES = [...FILE_ENTITY_TYPES, EntityType.WORD];
+export const ENTRY_TYPES = [EntityType.PERSON, EntityType.LANGUAGE];
+export const ALL_ENTITY_TYPES = [...ENTRY_TYPES, EntityType.WORD];

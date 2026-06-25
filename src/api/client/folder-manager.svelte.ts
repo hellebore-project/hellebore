@@ -4,7 +4,7 @@ import type { Id } from "@/interface";
 
 import { CommandNames, ROOT_FOLDER_ID } from "../constants";
 import type {
-    BulkFileResponse,
+    BulkEntryResponse,
     DiagnosticResponse,
     FolderBulkUpdateData,
     FolderResponse,
@@ -101,8 +101,8 @@ export class FolderManager {
         return response;
     }
 
-    async delete(projectId: Id, id: Id): Promise<BulkFileResponse | null> {
-        let response: BulkFileResponse;
+    async delete(projectId: Id, id: Id): Promise<BulkEntryResponse | null> {
+        let response: BulkEntryResponse;
         try {
             response = await this._delete(projectId, id);
         } catch (error) {
@@ -183,8 +183,8 @@ export class FolderManager {
         });
     }
 
-    async _delete(projectId: Id, id: Id): Promise<BulkFileResponse> {
-        return invoke<BulkFileResponse>(CommandNames.Folder.Delete, {
+    async _delete(projectId: Id, id: Id): Promise<BulkEntryResponse> {
+        return invoke<BulkEntryResponse>(CommandNames.Folder.Delete, {
             projectId,
             id,
         });

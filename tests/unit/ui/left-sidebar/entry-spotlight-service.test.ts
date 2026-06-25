@@ -29,13 +29,11 @@ describe("entry spotlight interactions", () => {
 
         await waitFor(() => {
             expect(
-                spotlight.fileTree.getNode(
-                    spotlight.generateEntryNodeId(entryId),
-                ),
+                spotlight.tree.getNode(spotlight.generateEntryNodeId(entryId)),
             ).toBeTruthy();
         });
 
-        const node = spotlight.fileTree.getNode(
+        const node = spotlight.tree.getNode(
             spotlight.generateEntryNodeId(entryId),
         );
         expect(node).toBeTruthy();
@@ -55,13 +53,11 @@ describe("entry spotlight interactions", () => {
 
         await waitFor(() => {
             expect(
-                spotlight.fileTree.getNode(
-                    spotlight.generateEntryNodeId(entryId),
-                ),
+                spotlight.tree.getNode(spotlight.generateEntryNodeId(entryId)),
             ).toBeTruthy();
         });
 
-        const node = spotlight.fileTree.getNode(
+        const node = spotlight.tree.getNode(
             spotlight.generateEntryNodeId(entryId),
         );
         expect(node).toBeTruthy();
@@ -120,14 +116,14 @@ describe("entry spotlight interactions", () => {
         standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
 
         const node = await waitFor(() => {
-            const node = spotlight.fileTree.getNode(
+            const node = spotlight.tree.getNode(
                 spotlight.generateEntryNodeId(entryId),
             );
             expect(node).toBeTruthy();
             return node;
         });
 
-        await spotlight.fileTree.moveNode(
+        await spotlight.tree.moveNode(
             node!.id,
             spotlight.generateFolderNodeId("folder2"),
         );
@@ -185,9 +181,9 @@ describe("entry spotlight interactions", () => {
         });
         standaloneLeftSidebar.onCreateFolder.subscribe(onCreateFolder);
 
-        const placeholderFolder = spotlight.fileTree.addFolderNode({
+        const placeholderFolder = spotlight.tree.addBranchNode({
             id: "new-folder",
-            parentId: spotlight.fileTree.rootNodeId,
+            parentId: spotlight.tree.rootNodeId,
             text: "new folder",
             data: { id: null, titleChanged: false, folderIdChanged: false },
         });
@@ -198,9 +194,7 @@ describe("entry spotlight interactions", () => {
             name: "new folder",
             parentFolderId: NIL_UUID,
         });
-        expect(spotlight.fileTree.getNode("new-folder")?.data.id).toBe(
-            "folder99",
-        );
+        expect(spotlight.tree.getNode("new-folder")?.data.id).toBe("folder99");
         expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
             entries: [],
             folders: [],
@@ -214,9 +208,9 @@ describe("entry spotlight interactions", () => {
         const onDataChange = vi.fn();
         standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
 
-        const folderNode = spotlight.fileTree.addFolderNode({
+        const folderNode = spotlight.tree.addBranchNode({
             id: spotlight.generateFolderNodeId("folder7"),
-            parentId: spotlight.fileTree.rootNodeId,
+            parentId: spotlight.tree.rootNodeId,
             text: "old folder",
             data: {
                 id: "folder7",
@@ -280,13 +274,13 @@ describe("entry spotlight interactions", () => {
     }) => {
         const spotlight = standaloneLeftSidebar.addSpotlight("owner");
 
-        const placeholderParent = spotlight.fileTree.addFolderNode({
+        const placeholderParent = spotlight.tree.addBranchNode({
             id: "new-parent",
-            parentId: spotlight.fileTree.rootNodeId,
+            parentId: spotlight.tree.rootNodeId,
             text: "",
             data: { id: null, titleChanged: false, folderIdChanged: false },
         });
-        const childFolder = spotlight.fileTree.addFolderNode({
+        const childFolder = spotlight.tree.addBranchNode({
             id: "folder-child",
             parentId: placeholderParent.id,
             text: "child",
@@ -312,13 +306,13 @@ describe("entry spotlight interactions", () => {
         const onCreateFolder = vi.fn();
         standaloneLeftSidebar.onCreateFolder.subscribe(onCreateFolder);
 
-        const placeholderParent = spotlight.fileTree.addFolderNode({
+        const placeholderParent = spotlight.tree.addBranchNode({
             id: "new-parent",
-            parentId: spotlight.fileTree.rootNodeId,
+            parentId: spotlight.tree.rootNodeId,
             text: "",
             data: { id: null, titleChanged: false, folderIdChanged: false },
         });
-        const childPlaceholder = spotlight.fileTree.addFolderNode({
+        const childPlaceholder = spotlight.tree.addBranchNode({
             id: "new-child",
             parentId: placeholderParent.id,
             text: "child",
@@ -343,13 +337,13 @@ describe("entry spotlight interactions", () => {
         }));
         spotlight.onMoveFolder.subscribe(onMoveFolder);
 
-        const placeholderParent = spotlight.fileTree.addFolderNode({
+        const placeholderParent = spotlight.tree.addBranchNode({
             id: "new-parent",
-            parentId: spotlight.fileTree.rootNodeId,
+            parentId: spotlight.tree.rootNodeId,
             text: "",
             data: { id: null, titleChanged: false, folderIdChanged: false },
         });
-        const childFolder = spotlight.fileTree.addFolderNode({
+        const childFolder = spotlight.tree.addBranchNode({
             id: "folder-child",
             parentId: placeholderParent.id,
             text: "child",
@@ -359,9 +353,9 @@ describe("entry spotlight interactions", () => {
                 folderIdChanged: false,
             },
         });
-        const destinationFolder = spotlight.fileTree.addFolderNode({
+        const destinationFolder = spotlight.tree.addBranchNode({
             id: spotlight.generateFolderNodeId("folder2"),
-            parentId: spotlight.fileTree.rootNodeId,
+            parentId: spotlight.tree.rootNodeId,
             text: "destination",
             data: {
                 id: "folder2",

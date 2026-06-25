@@ -2,8 +2,8 @@
     import { cn } from "@/lib/utils";
     import * as ContextMenu from "@/lib/components/context-menu";
 
-    import type { LeafNodeProps } from "./file-tree-interface";
-    import FileTreeEditableLabel from "./file-tree-editable-label.svelte";
+    import type { LeafNodeProps } from "./tree-interface";
+    import TreeEditableLabel from "./tree-editable-label.svelte";
 
     const { service, node, leafLabel, contextMenu, depth }: LeafNodeProps<T> =
         $props();
@@ -38,7 +38,7 @@
                 }}
             >
                 {#if service.isNodeEditable(node.id)}
-                    <FileTreeEditableLabel {service} {node} />
+                    <TreeEditableLabel {service} {node} />
                 {:else if leafLabel}
                     {@render leafLabel(node)}
                 {:else}
