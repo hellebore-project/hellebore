@@ -1,8 +1,5 @@
-import { cleanup } from "@testing-library/svelte";
-import userEvent, { type UserEvent } from "@testing-library/user-event";
 import type { JSONContent } from "@tiptap/core";
 import { NIL as NIL_UUID } from "uuid";
-import { test as baseTest } from "vitest";
 
 import type { Id } from "@/interface";
 import {
@@ -31,7 +28,9 @@ import {
     mockSearchEntries,
 } from "@tests/utils/mocks";
 
-export interface BaseUnitTestFixtures {
+import { test as baseTest } from "../fixtures";
+
+export interface BaseUiFixtures {
     project: ProjectResponse;
     folderId: Id;
     parentFolderId: Id;
@@ -57,14 +56,13 @@ export interface BaseUnitTestFixtures {
     mockedSearchedEntries: EntryInfoResponse[];
     mockedBulkEntryUpdate: null;
     mockedBulkFolderUpdate: null;
-    projectState: ClientData;
+    clientData: ClientData;
     domainManager: DomainManager;
     clientManager: ClientManager;
-    user: UserEvent;
-    setup: null;
+    clientContext: null;
 }
 
-export const test = baseTest.extend<BaseUnitTestFixtures>({
+export const test = baseTest.extend<BaseUiFixtures>({
     project: { id: "test-project-id", name: "mocked-project" },
 
     folderId: "folder",
@@ -159,7 +157,7 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         await use(null);
     },
 
-    projectState: async ({ mockedProject }, use) => {
+    clientData: async ({ mockedProject }, use) => {
         const project = new ClientData();
         project.setProject(mockedProject);
         await use(project);
@@ -169,13 +167,6 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         const domain = new DomainManager();
         await use(domain);
     },
-
-    user: [
-        async ({}, use) => {
-            await use(userEvent.setup());
-        },
-        { auto: true },
-    ],
 
     clientManager: [
         async (
@@ -195,12 +186,11 @@ export const test = baseTest.extend<BaseUnitTestFixtures>({
         { auto: true },
     ],
 
-    setup: [
-        async ({ user, mockedInvoker, clientManager }, use) => {
+    clientContext: [
+        async ({ context, user, mockedInvoker, clientManager }, use) => {
             await use(null);
 
             clientManager.cleanUp();
-            cleanup();
         },
         { auto: true },
     ],

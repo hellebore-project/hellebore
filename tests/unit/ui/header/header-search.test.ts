@@ -7,7 +7,7 @@ import { EntryType } from "@/api";
 import { test } from "./fixtures";
 
 describe("search service", () => {
-    test.scoped({
+    test.override({
         otherEntries: async ({}, use) => {
             use([
                 {

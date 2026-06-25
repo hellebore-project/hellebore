@@ -7,7 +7,6 @@ import {
     createParagraphNode,
     createReferenceNode,
     createTextNode,
-    mockMissingDomMethods,
 } from "@tests/utils/mocks";
 import { render } from "@tests/utils";
 
@@ -18,9 +17,7 @@ import {
     referencedEntryInfo,
 } from "./fixtures";
 
-beforeAll(async () => mockMissingDomMethods());
-
-test.scoped({
+test.override({
     otherEntries: async ({}, use) => use([referencedEntryInfo]),
 });
 

@@ -6,13 +6,10 @@ import {
     createDocNode,
     createParagraphNode,
     createTextNode,
-    mockMissingDomMethods,
 } from "@tests/utils/mocks";
 import { render } from "@tests/utils";
 
 import { test } from "./fixtures";
-
-beforeAll(async () => mockMissingDomMethods());
 
 test("display article content", async ({
     articleEditorService,

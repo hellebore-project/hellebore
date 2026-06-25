@@ -1,12 +1,23 @@
 import { render as svelteRender } from "@testing-library/svelte";
 
-import { SHARED_PORTAL_ID } from "@/constants";
+import TestWrapper from "./wrapper.svelte";
 
 export function render(Component: any, options?: any): any {
-    if (!document.getElementById(SHARED_PORTAL_ID)) {
-        const portal = document.createElement("div");
-        portal.id = SHARED_PORTAL_ID;
-        document.body.appendChild(portal);
-    }
-    return svelteRender(Component, options);
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    return svelteRender(
+        TestWrapper,
+        {
+            ...options,
+            props: {
+                Component,
+                componentProps: options?.props ?? {},
+            },
+            target: container,
+        },
+        {
+            baseElement: container,
+        },
+    );
 }

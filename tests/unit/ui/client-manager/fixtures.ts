@@ -1,5 +1,3 @@
-import { expect, vi } from "vitest";
-
 import type { Id } from "@/interface";
 import type { FolderResponse, FolderValidateResponse } from "@/api";
 import { test as baseTest } from "@tests/unit/ui/fixtures";
@@ -9,7 +7,7 @@ import {
     mockValidateFolder,
 } from "@tests/utils/mocks";
 
-export interface MoveFolderFixtures {
+export interface ClientManagerFixtures {
     isUnique: boolean;
     parentFolder: FolderResponse | null;
     collidingFolder: FolderResponse | null;
@@ -18,7 +16,7 @@ export interface MoveFolderFixtures {
     folderDeletion: null;
 }
 
-export const test = baseTest.extend<MoveFolderFixtures>({
+export const test = baseTest.extend<ClientManagerFixtures>({
     isUnique: true,
     parentFolder: null,
     collidingFolder: null,

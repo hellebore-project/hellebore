@@ -1,4 +1,4 @@
-<script lang="ts" generics="TColKey extends string">
+<script lang="ts" module>
     import type { Snippet } from "svelte";
 
     import { cn } from "@/lib/utils";
@@ -7,13 +7,15 @@
     import type { DataTableService } from "./data-table-service.svelte";
     import { ReadOnlyCell, TextCell, SelectCell } from "./cells";
 
-    interface DataRowProps {
+    export interface DataRowProps<TColKey extends string> {
         row: { key: string; cells: Record<TColKey, { value: string }> };
         service: DataTableService<TColKey>;
         rowActions?: Snippet<[string]>;
     }
+</script>
 
-    const { row, service, rowActions }: DataRowProps = $props();
+<script lang="ts" generics="TColKey extends string">
+    const { row, service, rowActions }: DataRowProps<TColKey> = $props();
 </script>
 
 <Table.Row class="group">
@@ -29,6 +31,7 @@
                 isSelected && "bg-primary/10",
                 isEditing && "bg-primary/15 p-0",
             )}
+            data-selected={isSelected}
             onmousedown={(e) =>
                 service.handleCellMouseDown(e, row.key, col.key)}
             ondblclick={() => service.startEdit(row.key, col.key)}

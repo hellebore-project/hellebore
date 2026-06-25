@@ -11,11 +11,11 @@ export const test = baseTest.extend<LeftSidebarFixtures>({
     leftSidebar: async ({ clientManager }, use) => {
         use(clientManager.leftSideBar);
     },
-    standaloneLeftSidebar: async ({ domainManager, projectState }, use) => {
+    standaloneLeftSidebar: async ({ domainManager, clientData }, use) => {
         use(
             new StandaloneLeftSidebarService({
                 domain: domainManager,
-                data: projectState,
+                data: clientData,
             }),
         );
     },

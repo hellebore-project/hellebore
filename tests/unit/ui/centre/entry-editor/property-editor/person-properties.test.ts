@@ -6,7 +6,7 @@ import { render } from "@tests/utils";
 
 import { test } from "./fixtures";
 
-test.scoped({
+test.override({
     entryProperties: async ({}, use) => {
         await use({ name: "mocked-name" });
     },
