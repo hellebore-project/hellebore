@@ -1,6 +1,7 @@
 <script lang="ts" generics="T">
     import TreeBranch from "./tree-branch.svelte";
     import type { TreeProps } from "./tree-interface";
+    import { ROOT_NODE_DROP_TARGET_TEST_ID } from "./constants";
 
     const {
         service,
@@ -20,14 +21,13 @@
         {leafLabel}
         {nodeContextMenu}
     />
-    {#if node.id === service.rootNodeId}
-        <div
-            class="flex-1 min-h-7 h-full"
-            ondragover={(e) => service.handleNodeDragOverById(e, node.id)}
-            ondragenter={(e) => service.handleNodeDragEnterById(e, node.id)}
-            ondragleave={(e) => service.handleNodeDragLeaveById(e, node.id)}
-            ondrop={(e) => service.handleNodeDropById(e, node.id)}
-            aria-hidden="true"
-        ></div>
-    {/if}
+    <div
+        class="flex-1 min-h-7 h-full"
+        data-testid={ROOT_NODE_DROP_TARGET_TEST_ID}
+        aria-hidden="true"
+        ondragover={(e) => service.handleNodeDragOverById(e, node.id)}
+        ondragenter={(e) => service.handleNodeDragEnterById(e, node.id)}
+        ondragleave={(e) => service.handleNodeDragLeaveById(e, node.id)}
+        ondrop={(e) => service.handleNodeDropById(e, node.id)}
+    ></div>
 </div>

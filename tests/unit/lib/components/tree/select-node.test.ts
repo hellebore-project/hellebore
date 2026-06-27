@@ -2,7 +2,7 @@ import { expect } from "vitest";
 
 import { render } from "@tests/utils";
 
-import { test, getNodeElement } from "./fixtures";
+import { test, getNode } from "./fixtures";
 import SimpleTree from "./simple-tree.svelte";
 
 test.extend({
@@ -57,7 +57,7 @@ test.extend({
 })("leaf inside collapsed branch node is not visible", async ({ service }) => {
     service.collapseNode("folder-a");
     const { container } = render(SimpleTree, { props: { service } });
-    expect(getNodeElement(container, "Leaf")).toBeFalsy();
+    expect(getNode(container, "Leaf")).toBeFalsy();
 });
 
 test.extend({
@@ -80,7 +80,7 @@ test.extend({
 })("leaf inside expanded branch node is visible", async ({ service }) => {
     service.expandNode("folder-a");
     const { container } = render(SimpleTree, { props: { service } });
-    expect(getNodeElement(container, "Leaf")).toBeTruthy();
+    expect(getNode(container, "Leaf")).toBeTruthy();
 });
 
 test.extend({
@@ -113,7 +113,7 @@ test.extend({
     )!;
     await user.click(branchButton);
 
-    getNodeElement(container, "Alpha");
+    getNode(container, "Alpha");
 
     expect(service.isCollapsed("folder-a")).toBe(false);
 });
@@ -167,14 +167,14 @@ test.extend({
 
     const { container, rerender } = render(SimpleTree, { props: { service } });
 
-    expect(getNodeElement(container, "A")).toBeTruthy();
-    expect(getNodeElement(container, "Leaf")).toBeFalsy();
+    expect(getNode(container, "A")).toBeTruthy();
+    expect(getNode(container, "Leaf")).toBeFalsy();
 
     service.toggleCollapsed("folder-a");
     await rerender({ service });
 
-    expect(getNodeElement(container, "A")).toBeTruthy();
-    expect(getNodeElement(container, "Leaf")).toBeTruthy();
+    expect(getNode(container, "A")).toBeTruthy();
+    expect(getNode(container, "Leaf")).toBeTruthy();
 });
 
 test.extend({
@@ -207,7 +207,7 @@ test.extend({
 
     const { container } = render(SimpleTree, { props: { service } });
 
-    expect(getNodeElement(container, "A")).toBeTruthy();
-    expect(getNodeElement(container, "B")).toBeFalsy();
-    expect(getNodeElement(container, "Leaf")).toBeFalsy();
+    expect(getNode(container, "A")).toBeTruthy();
+    expect(getNode(container, "B")).toBeFalsy();
+    expect(getNode(container, "Leaf")).toBeFalsy();
 });

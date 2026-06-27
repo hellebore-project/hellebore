@@ -28,7 +28,22 @@ export const test = baseTest.extend<TreeServiceTestFixtures>({
     },
 });
 
-export function getNodeElement(container: HTMLElement, label: string) {
+export function getRootNode(container: HTMLElement) {
+    return container.querySelector("ul");
+}
+
+export function getRootChildNames(container: HTMLElement) {
+    const rootList = getRootNode(container);
+    if (!rootList) return [];
+
+    return [...rootList.children]
+        .map((child) =>
+            child.querySelector("span.truncate")?.textContent?.trim(),
+        )
+        .filter((name): name is string => Boolean(name));
+}
+
+export function getNode(container: HTMLElement, label: string) {
     return [...container.querySelectorAll('[role="button"]')].find(
         (button) =>
             button.querySelector("span.truncate")?.textContent?.trim() ===
@@ -36,8 +51,8 @@ export function getNodeElement(container: HTMLElement, label: string) {
     ) as HTMLElement;
 }
 
-export function getChildNodeNames(container: HTMLElement, nodeLabel: string) {
-    const nodeElement = getNodeElement(container, nodeLabel);
+export function getChildNames(container: HTMLElement, nodeLabel: string) {
+    const nodeElement = getNode(container, nodeLabel);
     if (!nodeElement) return [];
 
     const childList = nodeElement
@@ -46,17 +61,6 @@ export function getChildNodeNames(container: HTMLElement, nodeLabel: string) {
     if (!childList) return [];
 
     return [...childList.children]
-        .map((child) =>
-            child.querySelector("span.truncate")?.textContent?.trim(),
-        )
-        .filter((name): name is string => Boolean(name));
-}
-
-export function getRootNodeNames(container: HTMLElement) {
-    const rootList = container.querySelector("ul");
-    if (!rootList) return [];
-
-    return [...rootList.children]
         .map((child) =>
             child.querySelector("span.truncate")?.textContent?.trim(),
         )

@@ -2,7 +2,7 @@ import { expect } from "vitest";
 
 import { render } from "@tests/utils";
 
-import { test, getChildNodeNames, getRootNodeNames } from "./fixtures";
+import { test, getChildNames, getRootChildNames } from "./fixtures";
 import SimpleTree from "./simple-tree.svelte";
 
 test.extend({
@@ -31,12 +31,12 @@ test.extend({
 })("branch with leaf nodes", ({ service }) => {
     const { container } = render(SimpleTree, { props: { service } });
 
-    expect(getChildNodeNames(container, "Alpha")).toStrictEqual([
+    expect(getChildNames(container, "Alpha")).toStrictEqual([
         "Bravo",
         "Charlie",
     ]);
-    expect(getChildNodeNames(container, "Bravo")).toStrictEqual([]);
-    expect(getChildNodeNames(container, "Missing")).toStrictEqual([]);
+    expect(getChildNames(container, "Bravo")).toStrictEqual([]);
+    expect(getChildNames(container, "Missing")).toStrictEqual([]);
 });
 
 test.extend({
@@ -85,7 +85,7 @@ test.extend({
     ({ service }) => {
         const { container } = render(SimpleTree, { props: { service } });
 
-        const rootLabels = getRootNodeNames(container);
+        const rootLabels = getRootChildNames(container);
         expect(rootLabels).toStrictEqual(["Alpha", "Bravo", "Beta", "Charlie"]);
 
         const rootList = container.querySelector("ul")!;
