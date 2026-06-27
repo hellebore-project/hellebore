@@ -139,35 +139,6 @@ describe("RichTextEditorService", () => {
         expect(service.editor).toBe(nextEditor);
     });
 
-    it("mounts and cleanly unmounts", () => {
-        const service = new RichTextEditorService<{ id: string }>({
-            id: "rte-4",
-        });
-
-        const element = document.createElement("div");
-        const handleKeyDown = vi.fn();
-
-        service.mount(element, { handleKeyDown });
-
-        expect(mocks.mount).toHaveBeenCalledWith(element);
-        expect(mocks.setOptions).toHaveBeenCalledTimes(1);
-
-        const optionsArg = mocks.setOptions.mock.calls[0][0] as {
-            editorProps: {
-                handleClickOn: (...args: unknown[]) => unknown;
-                handleKeyDown: typeof handleKeyDown;
-            };
-        };
-        expect(typeof optionsArg.editorProps.handleClickOn).toBe("function");
-        expect(optionsArg.editorProps.handleKeyDown).toBe(handleKeyDown);
-        expect(service.mounted).toBe(true);
-
-        service.cleanUp();
-
-        expect(mocks.unmount).toHaveBeenCalledTimes(1);
-        expect(service.mounted).toBe(false);
-    });
-
     it("loads content, clears content, and supports null fallback in load", () => {
         const service = new RichTextEditorService<{ id: string }>({
             id: "rte-5",

@@ -26,8 +26,7 @@ import {
     type EntryInfoResponse,
 } from "@/api";
 import { ClientData } from "@/models";
-import type { TreeNode } from "@/lib/components/tree";
-import { TreeService } from "@/lib/components/tree";
+import { type TreeNode, TreeService } from "@/lib/components/tree";
 import { EventProducer } from "@/utils/event-producer";
 import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
@@ -680,11 +679,11 @@ export class EntrySpotlightService implements ISidebarSectionService {
     // CONTEXT MENU
 
     handleContextMenuItemRename(node: TreeNode<SpotlightNodeData>) {
-        this.tree.onCloseContextMenu = () => this.tree.makeNodeEditable(node);
+        this.tree.handleContextMenuItemRename(node);
     }
 
     handleContextMenuItemDelete(node: TreeNode<SpotlightNodeData>) {
-        void this.tree.handleContextMenuItemDelete(node);
+        this.tree.handleContextMenuItemDelete(node);
     }
 
     // UTILITY

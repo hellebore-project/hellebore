@@ -227,11 +227,16 @@ export class TreeService<T> implements IComponentService {
     }
 
     toggleCollapsed(nodeId: string) {
-        if (this._collapsedIds.has(nodeId)) {
-            this._collapsedIds.delete(nodeId);
-        } else {
-            this._collapsedIds.add(nodeId);
-        }
+        if (this._collapsedIds.has(nodeId)) this.expandNode(nodeId);
+        else this.collapseNode(nodeId);
+    }
+
+    collapseNode(nodeId: string) {
+        this._collapsedIds.add(nodeId);
+    }
+
+    expandNode(nodeId: string) {
+        this._collapsedIds.delete(nodeId);
     }
 
     collapseAll() {
@@ -569,6 +574,10 @@ export class TreeService<T> implements IComponentService {
         }
     }
 
+    handleContextMenuItemRename(node: TreeNode<T>) {
+        this.onCloseContextMenu = () => this.makeNodeEditable(node);
+    }
+
     async handleContextMenuItemDelete(node: TreeNode<T>) {
         if (!this.onDeleteNode.hasConsumer) {
             console.error(
@@ -587,6 +596,4 @@ export class TreeService<T> implements IComponentService {
         this.onCloseContextMenu = null;
         handler?.();
     }
-
-    // UTILITY
 }
