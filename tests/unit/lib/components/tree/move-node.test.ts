@@ -34,7 +34,7 @@ test.extend({
     const { container } = render(SimpleTree, { props: { service } });
 
     const finalizeMove = vi.fn(async () => true);
-    service.onFinalizeNodeMove.subscribe(finalizeMove);
+    service.afterNodeMove.subscribe(finalizeMove);
 
     const leafX = getNode(container, "Leaf X");
     const folderB = getNode(container, "B");
@@ -81,7 +81,7 @@ test.extend({
     const { container } = render(SimpleTree, { props: { service } });
 
     const finalizeMove = vi.fn(async () => true);
-    service.onFinalizeNodeMove.subscribe(finalizeMove);
+    service.afterNodeMove.subscribe(finalizeMove);
 
     const leafX = getNode(container, "Leaf X");
     const rootDropTarget = screen.getByTestId("tree-root-drop-target");
@@ -128,7 +128,7 @@ test.extend({
         const { container } = render(SimpleTree, { props: { service } });
 
         const finalizeMove = vi.fn(async () => true);
-        service.onFinalizeNodeMove.subscribe(finalizeMove);
+        service.afterNodeMove.subscribe(finalizeMove);
 
         const folderA = getNode(container, "A");
         const folderB = getNode(container, "B");
@@ -182,7 +182,7 @@ test.extend({
     const { container } = render(SimpleTree, { props: { service } });
 
     const finalizeMove = vi.fn(async () => true);
-    service.onFinalizeNodeMove.subscribe(finalizeMove);
+    service.afterNodeMove.subscribe(finalizeMove);
 
     const folderB = getNode(container, "B");
     const rootDropTarget = screen.getByTestId("tree-root-drop-target");
@@ -230,7 +230,7 @@ test.extend({
     const { container } = render(SimpleTree, { props: { service } });
 
     const finalizeMove = vi.fn(async () => false);
-    service.onFinalizeNodeMove.subscribe(finalizeMove);
+    service.afterNodeMove.subscribe(finalizeMove);
 
     const folderA = getNode(container, "A");
     const leafX = getNode(container, "Leaf");

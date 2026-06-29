@@ -42,11 +42,6 @@ export interface NodeTextValidationResult {
     error?: string | null;
 }
 
-export interface DeleteNodeResult {
-    canDelete: boolean;
-    reason?: string | null;
-}
-
 export interface EditableLabelProps<T> {
     service: TreeService<T>;
     node: TreeNode<T>;
@@ -58,7 +53,8 @@ export interface BranchNodeProps<T> {
     depth: number;
     branchLabel?: Snippet<[TreeNode<T>, boolean]>;
     leafLabel?: Snippet<[TreeNode<T>]>;
-    contextMenu?: Snippet<[TreeNode<T>]>;
+    branchContextMenu?: Snippet<[TreeNode<T>]>;
+    leafContextMenu?: Snippet<[TreeNode<T>]>;
 }
 
 export interface LeafNodeProps<T> {
@@ -75,7 +71,8 @@ export interface BranchProps<T> {
     depth: number;
     branchLabel?: Snippet<[TreeNode<T>, boolean]>;
     leafLabel?: Snippet<[TreeNode<T>]>;
-    nodeContextMenu?: Snippet<[TreeNode<T>]>;
+    branchContextMenu?: Snippet<[TreeNode<T>]>;
+    leafContextMenu?: Snippet<[TreeNode<T>]>;
 }
 
 export interface TreeProps<T> {
@@ -83,5 +80,6 @@ export interface TreeProps<T> {
     node: TreeNode<T>;
     branchLabel?: Snippet<[TreeNode<T>, boolean]>;
     leafLabel?: Snippet<[TreeNode<T>]>;
-    nodeContextMenu?: Snippet<[TreeNode<T>]>;
+    branchContextMenu?: Snippet<[TreeNode<T>]>;
+    leafContextMenu?: Snippet<[TreeNode<T>]>;
 }

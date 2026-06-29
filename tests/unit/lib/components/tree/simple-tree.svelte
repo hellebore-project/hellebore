@@ -6,7 +6,13 @@
     import * as Tree from "@/lib/components/tree";
     import * as ContextMenu from "@/lib/components/context-menu";
 
-    const { service }: { service: Tree.TreeService<any> } = $props();
+    const {
+        service,
+        onClickContextMenuItem,
+    }: {
+        service: Tree.TreeService<any>;
+        onClickContextMenuItem?: (node: Tree.TreeNode<any>) => void;
+    } = $props();
 </script>
 
 <Tree.Root {service} node={service.rootNode}>
@@ -22,16 +28,9 @@
         <FileIcon class="size-3.5 shrink-0 text-muted-foreground" />
         <span class="flex-1 min-w-0 truncate">{node.text}</span>
     {/snippet}
-    {#snippet nodeContextMenu(node)}
-        <ContextMenu.Item
-            onclick={() => service.handleContextMenuItemRename(node)}
-        >
-            Rename
-        </ContextMenu.Item>
-        <ContextMenu.Item
-            onclick={() => service.handleContextMenuItemDelete(node)}
-        >
-            Delete
+    {#snippet leafContextMenu(node)}
+        <ContextMenu.Item onclick={() => onClickContextMenuItem?.(node)}>
+            Test
         </ContextMenu.Item>
     {/snippet}
 </Tree.Root>

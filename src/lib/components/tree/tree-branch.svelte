@@ -9,7 +9,8 @@
         depth = 0,
         branchLabel,
         leafLabel,
-        nodeContextMenu,
+        branchContextMenu,
+        leafContextMenu,
     }: BranchProps<T> = $props();
 </script>
 
@@ -42,7 +43,8 @@
                         {depth}
                         {branchLabel}
                         {leafLabel}
-                        contextMenu={nodeContextMenu}
+                        {branchContextMenu}
+                        {leafContextMenu}
                     />
                 {:else}
                     <TreeLeafNode
@@ -50,7 +52,7 @@
                         node={child}
                         {depth}
                         {leafLabel}
-                        contextMenu={nodeContextMenu}
+                        contextMenu={leafContextMenu}
                     />
                 {/if}
             </li>

@@ -46,7 +46,19 @@
                 <FileIcon class="size-3.5 shrink-0 text-muted-foreground" />
                 <span class="flex-1 min-w-0 truncate">{node.text}</span>
             {/snippet}
-            {#snippet nodeContextMenu(node)}
+            {#snippet branchContextMenu(node)}
+                <ContextMenu.Item
+                    onclick={() => service.handleContextMenuItemRename(node)}
+                >
+                    Rename
+                </ContextMenu.Item>
+                <ContextMenu.Item
+                    onclick={() => service.handleContextMenuItemDelete(node)}
+                >
+                    Delete
+                </ContextMenu.Item>
+            {/snippet}
+            {#snippet leafContextMenu(node)}
                 <ContextMenu.Item
                     onclick={() => service.handleContextMenuItemRename(node)}
                 >

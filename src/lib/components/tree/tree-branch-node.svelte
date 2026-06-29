@@ -13,7 +13,8 @@
         node,
         branchLabel,
         leafLabel,
-        contextMenu,
+        branchContextMenu,
+        leafContextMenu,
         depth,
     }: BranchNodeProps<T> = $props();
 </script>
@@ -63,8 +64,8 @@
         {/snippet}
     </ContextMenu.Trigger>
     <ContextMenu.Content onCloseAutoFocus={(e) => e.preventDefault()}>
-        {#if contextMenu}
-            {@render contextMenu(node)}
+        {#if branchContextMenu}
+            {@render branchContextMenu(node)}
         {/if}
     </ContextMenu.Content>
 </ContextMenu.Root>
@@ -75,7 +76,8 @@
         {node}
         {branchLabel}
         {leafLabel}
-        nodeContextMenu={contextMenu}
+        {branchContextMenu}
+        {leafContextMenu}
         depth={depth + 1}
     />
 {/if}

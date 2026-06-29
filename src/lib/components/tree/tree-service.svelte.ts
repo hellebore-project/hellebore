@@ -9,7 +9,6 @@ import {
 import { EventProducer } from "@/utils/event-producer";
 
 import type {
-    DeleteNodeResult,
     FinalizeNodeMoveEvent,
     NodeTextValidationResult,
     TreeNode,
@@ -39,11 +38,8 @@ export class TreeService<T> implements IComponentService {
     private _commitDebouncer: BlockingDebouncer<string, void>;
 
     // EVENTS
-    onFinalizeNodeMove: EventProducer<
-        FinalizeNodeMoveEvent<T>,
-        Promise<boolean>
-    >;
-    onFinalizeNodeTextEdit: EventProducer<
+    afterNodeMove: EventProducer<FinalizeNodeMoveEvent<T>, Promise<boolean>>;
+    onCommitNodeTextEdit: EventProducer<
         TreeNode<T>,
         Promise<TreeNodeTextEdit<T> | null>
     >;
@@ -51,7 +47,6 @@ export class TreeService<T> implements IComponentService {
         ValidateNodeTextEvent<T>,
         Promise<NodeTextValidationResult>
     >;
-    onDeleteNode: EventProducer<TreeNode<T>, Promise<DeleteNodeResult>>;
     onSelectLeafNode: EventProducer<TreeNode<T>, void>;
     onCloseContextMenu: (() => void) | null = null;
 
@@ -59,10 +54,9 @@ export class TreeService<T> implements IComponentService {
         this._id = id;
         this._rootNodeId = rootNodeId;
 
-        this.onFinalizeNodeMove = new EventProducer();
-        this.onFinalizeNodeTextEdit = new EventProducer();
+        this.afterNodeMove = new EventProducer();
+        this.onCommitNodeTextEdit = new EventProducer();
         this.onValidateNodeText = new EventProducer();
-        this.onDeleteNode = new EventProducer();
         this.onSelectLeafNode = new EventProducer();
 
         this._validationDebouncer = new ReplaceDebouncer(
@@ -287,7 +281,7 @@ export class TreeService<T> implements IComponentService {
         console.debug(
             `Scheduling validation for node ${nodeId} with text "${text}"`,
         );
-        void this._validationDebouncer.call(nodeId).catch(() => undefined);
+        this._validationDebouncer.call(nodeId).catch(() => undefined);
     }
 
     async commitNodeTextEdit(nodeId: string) {
@@ -327,7 +321,11 @@ export class TreeService<T> implements IComponentService {
             return;
         }
 
-        const textEdit = await this.onFinalizeNodeTextEdit.produce(node);
+        let textEdit: TreeNodeTextEdit<T> | null;
+
+        if (this.onCommitNodeTextEdit.hasConsumer)
+            textEdit = await this.onCommitNodeTextEdit.produce(node);
+        else textEdit = { id: node.id, text: node.text, data: node.data };
 
         if (!textEdit) {
             this._revertNodeToOriginalText(node);
@@ -377,6 +375,8 @@ export class TreeService<T> implements IComponentService {
     ): Promise<NodeTextValidationResult> {
         const node = this._nodes[nodeId];
         if (!node) return { valid: false, error: "Node not found" };
+
+        if (!this.onValidateNodeText.hasConsumer) return { valid: true };
 
         const currentText = node.text;
         const result = await this.onValidateNodeText.produce({
@@ -478,7 +478,7 @@ export class TreeService<T> implements IComponentService {
         )
             return;
 
-        const moved = await this.onFinalizeNodeMove.produce({
+        const moved = await this.afterNodeMove.produce({
             node: movedNode,
             destParentNodeId: destBranchId,
         });
@@ -572,22 +572,6 @@ export class TreeService<T> implements IComponentService {
             e.stopPropagation();
             await this.commitNodeTextEdit(node.id);
         }
-    }
-
-    handleContextMenuItemRename(node: TreeNode<T>) {
-        this.onCloseContextMenu = () => this.makeNodeEditable(node);
-    }
-
-    async handleContextMenuItemDelete(node: TreeNode<T>) {
-        if (!this.onDeleteNode.hasConsumer) {
-            console.error(
-                "Cannot delete node. Event handler is not configured.",
-            );
-            return;
-        }
-
-        const result = await this.onDeleteNode.produce(node);
-        if (!result.canDelete && result.reason) console.warn(result.reason);
     }
 
     handleContextMenuStatusChange(open: boolean) {

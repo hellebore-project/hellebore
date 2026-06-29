@@ -25,13 +25,8 @@ test.extend({
 })("selects leaf node when leaf is clicked", async ({ service, user }) => {
     const { container } = render(SimpleTree, { props: { service } });
 
-    const buttons = [
-        ...container.querySelectorAll('[role="button"]'),
-    ] as HTMLElement[];
-    const leafButton = buttons.find(
-        (b) => b.querySelector("span.truncate")?.textContent?.trim() === "Leaf",
-    )!;
-    await user.click(leafButton);
+    const leaf = getNode(container, "Leaf");
+    await user.click(leaf);
 
     expect(service.selectedNodeId).toBe("leaf-a");
     expect(service.selectedBranchId).toBe("folder-a");
@@ -104,18 +99,13 @@ test.extend({
     service.collapseNode("folder-a");
     const { container } = render(SimpleTree, { props: { service } });
 
-    const buttons = [
-        ...container.querySelectorAll('[role="button"]'),
-    ] as HTMLElement[];
-    const branchButton = buttons.find(
-        (b) =>
-            b.querySelector("span.truncate")?.textContent?.trim() === "Alpha",
-    )!;
-    await user.click(branchButton);
+    const branch = getNode(container, "Alpha");
+    await user.click(branch);
 
     getNode(container, "Alpha");
 
     expect(service.isCollapsed("folder-a")).toBe(false);
+    expect(getNode(container, "Leaf")).toBeTruthy();
 });
 
 test.extend({
@@ -132,16 +122,11 @@ test.extend({
     service.expandNode("folder-a");
     const { container } = render(SimpleTree, { props: { service } });
 
-    const buttons = [
-        ...container.querySelectorAll('[role="button"]'),
-    ] as HTMLElement[];
-    const branchButton = buttons.find(
-        (b) =>
-            b.querySelector("span.truncate")?.textContent?.trim() === "Alpha",
-    )!;
-    await user.click(branchButton);
+    const branch = getNode(container, "Alpha");
+    await user.click(branch);
 
     expect(service.isCollapsed("folder-a")).toBe(true);
+    expect(getNode(container, "Leaf")).toBeFalsy();
 });
 
 test.extend({

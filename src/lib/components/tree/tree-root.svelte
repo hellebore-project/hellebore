@@ -8,7 +8,8 @@
         node,
         branchLabel,
         leafLabel,
-        nodeContextMenu,
+        branchContextMenu,
+        leafContextMenu,
     }: TreeProps<T> = $props();
 </script>
 
@@ -19,7 +20,8 @@
         depth={0}
         {branchLabel}
         {leafLabel}
-        {nodeContextMenu}
+        {branchContextMenu}
+        {leafContextMenu}
     />
     <div
         class="flex-1 min-h-7 h-full"

@@ -32,11 +32,12 @@ import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
 import type { SpotlightNodeData } from "./entry-spotlight-interface";
 import type {
-    DeleteNodeResult,
     NodeTextValidationResult,
     TreeNodeInfo,
     TreeNodeTextEdit,
 } from "@/lib/components/tree/tree-interface";
+
+import type { DeleteNodeResult } from "./entry-spotlight-interface";
 
 const ROOT_NODE_ID = "root";
 
@@ -90,16 +91,15 @@ export class EntrySpotlightService implements ISidebarSectionService {
             rootNodeId: ROOT_NODE_ID,
         });
 
-        this.tree.onFinalizeNodeMove.subscribe(({ node, destParentNodeId }) =>
+        this.tree.afterNodeMove.subscribe(({ node, destParentNodeId }) =>
             this.finalizeMove(node, destParentNodeId),
         );
-        this.tree.onFinalizeNodeTextEdit.subscribe((node) =>
+        this.tree.onCommitNodeTextEdit.subscribe((node) =>
             this.updateName(node),
         );
         this.tree.onValidateNodeText.subscribe(({ node, text }) =>
             this.validateName(node, text),
         );
-        this.tree.onDeleteNode.subscribe((node) => this.deleteNode(node));
         this.tree.onSelectLeafNode.subscribe((node) => this.selectEntry(node));
     }
 
@@ -446,7 +446,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
                 };
         }
 
-        return { canDelete: true };
+        return { canDelete: false };
     }
 
     // MOVE NODE
@@ -679,11 +679,13 @@ export class EntrySpotlightService implements ISidebarSectionService {
     // CONTEXT MENU
 
     handleContextMenuItemRename(node: TreeNode<SpotlightNodeData>) {
-        this.tree.handleContextMenuItemRename(node);
+        this.tree.onCloseContextMenu = () => this.tree.makeNodeEditable(node);
     }
 
-    handleContextMenuItemDelete(node: TreeNode<SpotlightNodeData>) {
-        this.tree.handleContextMenuItemDelete(node);
+    async handleContextMenuItemDelete(node: TreeNode<SpotlightNodeData>) {
+        const result = await this.deleteNode(node);
+        if (result && !result.canDelete && result.reason)
+            console.warn(result.reason);
     }
 
     // UTILITY

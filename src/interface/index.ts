@@ -3,6 +3,7 @@ export * from "./common";
 export * from "./event";
 
 export * from "./option";
+export * from "./result";
 export * from "./property";
 
 export * from "./word";
