@@ -1,6 +1,6 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
-import type { IComponentService } from "@/interface";
+import type { IComponentService, OperationResult } from "@/interface";
 import {
     BlockingDebouncer,
     ReplaceDebouncer,
@@ -10,7 +10,6 @@ import { EventProducer } from "@/utils/event-producer";
 
 import type {
     FinalizeNodeMoveEvent,
-    NodeTextValidationResult,
     TreeNode,
     TreeNodeInfo,
     TreeNodeTextEdit,
@@ -41,11 +40,11 @@ export class TreeService<T> implements IComponentService {
     afterNodeMove: EventProducer<FinalizeNodeMoveEvent<T>, Promise<boolean>>;
     onCommitNodeTextEdit: EventProducer<
         TreeNode<T>,
-        Promise<TreeNodeTextEdit<T> | null>
+        Promise<OperationResult<TreeNodeTextEdit<T>>>
     >;
     onValidateNodeText: EventProducer<
         ValidateNodeTextEvent<T>,
-        Promise<NodeTextValidationResult>
+        Promise<OperationResult>
     >;
     onSelectLeafNode: EventProducer<TreeNode<T>, void>;
     onCloseContextMenu: (() => void) | null = null;
@@ -321,23 +320,31 @@ export class TreeService<T> implements IComponentService {
             return;
         }
 
-        let textEdit: TreeNodeTextEdit<T> | null;
+        let result: OperationResult<TreeNodeTextEdit<T>>;
 
         if (this.onCommitNodeTextEdit.hasConsumer)
-            textEdit = await this.onCommitNodeTextEdit.produce(node);
-        else textEdit = { id: node.id, text: node.text, data: node.data };
+            result = await this.onCommitNodeTextEdit.produce(node);
+        else
+            result = {
+                success: true,
+                output: { ...node },
+            };
 
-        if (!textEdit) {
+        if (!result || !result.success || !result.output) {
             this._revertNodeToOriginalText(node);
+            console.error(`Failed to commit text edit for node ${node.id}`);
+            if (result && result.message) {
+                console.error(`Reason: ${result.message}`);
+            }
             return;
         }
 
-        if (node.originalText !== textEdit.text) {
+        if (node.originalText !== result.output.text) {
             this.sortChildrenOfNode(node.parentId);
         }
 
-        node.text = textEdit.text;
-        node.data = textEdit.data;
+        node.text = result.output.text;
+        node.data = result.output.data;
 
         delete node.originalText;
     }
@@ -366,17 +373,16 @@ export class TreeService<T> implements IComponentService {
     ): Promise<DebouncerResult<void>> {
         const result = await this._validateNodeText(nodeId);
         console.debug(`Validation result for node ${nodeId}:`, result);
-        if (!result.valid) return { status: "rejected", reason: result.error };
+        if (!result.success)
+            return { status: "rejected", reason: result.message };
         return { status: "resolved", value: undefined };
     }
 
-    private async _validateNodeText(
-        nodeId: string,
-    ): Promise<NodeTextValidationResult> {
+    private async _validateNodeText(nodeId: string): Promise<OperationResult> {
         const node = this._nodes[nodeId];
-        if (!node) return { valid: false, error: "Node not found" };
+        if (!node) return { success: false, message: "Node not found" };
 
-        if (!this.onValidateNodeText.hasConsumer) return { valid: true };
+        if (!this.onValidateNodeText.hasConsumer) return { success: true };
 
         const currentText = node.text;
         const result = await this.onValidateNodeText.produce({
@@ -385,18 +391,21 @@ export class TreeService<T> implements IComponentService {
         });
 
         if (node.text !== currentText)
-            return { valid: false, error: "Text changed during validation" };
+            return {
+                success: false,
+                message: "Text changed during validation",
+            };
 
-        if (result.valid) {
+        if (result.success) {
             delete node.validationError;
-            return { valid: true };
+            return { success: true };
         }
 
-        console.debug(`Validation failed for node ${nodeId}:`, result.error);
-        const error = result.error ?? "Node text is invalid.";
+        console.debug(`Validation failed for node ${nodeId}:`, result.message);
+        const error = result.message ?? "Node text is invalid.";
         node.validationError = error;
 
-        return { valid: false, error };
+        return { success: false, message: error };
     }
 
     // ADD NODE

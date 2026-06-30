@@ -37,11 +37,6 @@ export interface ValidateNodeTextEvent<T> {
     text: string;
 }
 
-export interface NodeTextValidationResult {
-    valid: boolean;
-    error?: string | null;
-}
-
 export interface EditableLabelProps<T> {
     service: TreeService<T>;
     node: TreeNode<T>;

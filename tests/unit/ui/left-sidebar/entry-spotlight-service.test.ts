@@ -294,8 +294,8 @@ describe("entry spotlight interactions", () => {
         const result = await spotlight.validateName(childFolder, "renamed");
 
         expect(result).toStrictEqual({
-            valid: false,
-            error: "Parent folder is not available yet.",
+            success: false,
+            message: "Parent folder is not available yet.",
         });
     });
 
@@ -319,9 +319,9 @@ describe("entry spotlight interactions", () => {
             data: { id: null, titleChanged: false, folderIdChanged: false },
         });
 
-        const textEdit = await spotlight.updateName(childPlaceholder);
+        const result = await spotlight.updateName(childPlaceholder);
 
-        expect(textEdit).toBeNull();
+        expect(result.success).toBe(false);
         expect(onCreateFolder).not.toHaveBeenCalled();
     });
 

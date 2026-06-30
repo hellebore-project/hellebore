@@ -17,6 +17,7 @@ import type {
     PollResultEntryData,
     PollResultFolderData,
     SyncEvent,
+    OperationResult,
 } from "@/interface";
 import {
     ROOT_FOLDER_ID,
@@ -32,12 +33,9 @@ import { SoleOwnership, type BaseOwnership } from "@/utils/ownership";
 
 import type { SpotlightNodeData } from "./entry-spotlight-interface";
 import type {
-    NodeTextValidationResult,
     TreeNodeInfo,
     TreeNodeTextEdit,
 } from "@/lib/components/tree/tree-interface";
-
-import type { DeleteNodeResult } from "./entry-spotlight-interface";
 
 const ROOT_NODE_ID = "root";
 
@@ -408,18 +406,18 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     async deleteNode(
         node: TreeNode<SpotlightNodeData>,
-    ): Promise<DeleteNodeResult> {
+    ): Promise<OperationResult> {
         if (node.id === ROOT_NODE_ID)
             return {
-                canDelete: false,
-                reason: "The root node cannot be deleted.",
+                success: false,
+                message: "The root node cannot be deleted.",
             };
 
         const id = node.data.id;
         if (id === null)
             return {
-                canDelete: false,
-                reason: "The selected node cannot be deleted yet.",
+                success: false,
+                message: "The selected node cannot be deleted yet.",
             };
 
         if (node.isBranch) {
@@ -430,8 +428,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
             if (!response)
                 return {
-                    canDelete: false,
-                    reason: `Failed to delete folder ${id}.`,
+                    success: false,
+                    message: `Failed to delete folder ${id}.`,
                 };
         } else {
             const success = await this.onDeleteEntry.produce({
@@ -441,12 +439,12 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
             if (!success)
                 return {
-                    canDelete: false,
-                    reason: `Failed to delete entry ${id}.`,
+                    success: false,
+                    message: `Failed to delete entry ${id}.`,
                 };
         }
 
-        return { canDelete: false };
+        return { success: true };
     }
 
     // MOVE NODE
@@ -534,9 +532,9 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     async updateName(
         node: TreeNode<SpotlightNodeData>,
-    ): Promise<TreeNodeTextEdit<SpotlightNodeData> | null> {
+    ): Promise<OperationResult<TreeNodeTextEdit<SpotlightNodeData>>> {
         const name = node.text?.trim() ?? "";
-        if (!name) return null;
+        if (!name) return { success: false, message: "Name cannot be blank." };
 
         if (node.isBranch) return await this._upsertFolderName(node, name);
 
@@ -546,15 +544,14 @@ export class EntrySpotlightService implements ISidebarSectionService {
     private async _upsertFolderName(
         node: TreeNode<SpotlightNodeData>,
         name: string,
-    ): Promise<TreeNodeTextEdit<SpotlightNodeData> | null> {
+    ): Promise<OperationResult<TreeNodeTextEdit<SpotlightNodeData>>> {
         const parentFolderId = this._getFolderIdFromNodeId(node.parentId);
 
-        if (parentFolderId === null) {
-            console.error(
-                `Parent folder node ${node.parentId} has null folder id.`,
-            );
-            return null;
-        }
+        if (parentFolderId === null)
+            return {
+                success: false,
+                message: `Parent folder node ${node.parentId} has null folder id.`,
+            };
 
         if (node.data.id === null) {
             console.debug(
@@ -578,18 +575,22 @@ export class EntrySpotlightService implements ISidebarSectionService {
             });
         }
 
-        return { id: node.id, text: name, data: node.data };
+        return {
+            success: true,
+            output: { id: node.id, text: name, data: node.data },
+        };
     }
 
     private _updateEntryName(
         node: TreeNode<SpotlightNodeData>,
         name: string,
-    ): TreeNodeTextEdit<SpotlightNodeData> | null {
+    ): OperationResult<TreeNodeTextEdit<SpotlightNodeData>> {
         const id = node.data.id;
-        if (id === null) {
-            console.error(`Cannot rename node ${node.id} with null entry id.`);
-            return null;
-        }
+        if (id === null)
+            return {
+                success: false,
+                message: `Cannot rename node ${node.id} with null entry id.`,
+            };
 
         console.debug(
             `Updating entry name for node ${node.id} with name "${name}" and id ${id}`,
@@ -603,24 +604,27 @@ export class EntrySpotlightService implements ISidebarSectionService {
             syncImmediately: true,
         });
 
-        return { id: node.id, text: name, data: node.data };
+        return {
+            success: true,
+            output: { id: node.id, text: name, data: node.data },
+        };
     }
 
     async validateName(
         node: TreeNode<SpotlightNodeData>,
         text: string,
-    ): Promise<NodeTextValidationResult> {
+    ): Promise<OperationResult> {
         const trimmed = text.trim();
         if (!trimmed) {
             if (this.tree.isBranchNode(node))
                 return {
-                    valid: false,
-                    error: "Folder name cannot be blank.",
+                    success: false,
+                    message: "Folder name cannot be blank.",
                 };
             else
                 return {
-                    valid: false,
-                    error: "Entry title cannot be blank.",
+                    success: false,
+                    message: "Entry title cannot be blank.",
                 };
         }
 
@@ -632,8 +636,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
             const parentFolderId = this._getFolderIdFromNodeId(node.parentId);
             if (parentFolderId === null)
                 return {
-                    valid: false,
-                    error: "Parent folder is not available yet.",
+                    success: false,
+                    message: "Parent folder is not available yet.",
                 };
 
             const validationResponse = await this._domain.folders.validate(
@@ -644,15 +648,15 @@ export class EntrySpotlightService implements ISidebarSectionService {
             );
 
             if (!validationResponse)
-                return { valid: false, error: "Folder validation failed." };
+                return { success: false, message: "Folder validation failed." };
 
             if (
                 validationResponse.nameCollision &&
                 !validationResponse.nameCollision.isUnique
             )
                 return {
-                    valid: false,
-                    error: `A folder named "${trimmed}" already exists at this location.`,
+                    success: false,
+                    message: `A folder named "${trimmed}" already exists at this location.`,
                 };
         } else {
             const projectId = this._data.loadedProjectId;
@@ -664,16 +668,16 @@ export class EntrySpotlightService implements ISidebarSectionService {
             );
 
             if (isValid === null)
-                return { valid: false, error: "Entry validation failed." };
+                return { success: false, message: "Entry validation failed." };
 
             if (!isValid)
                 return {
-                    valid: false,
-                    error: `An entry named "${trimmed}" already exists.`,
+                    success: false,
+                    message: `An entry named "${trimmed}" already exists.`,
                 };
         }
 
-        return { valid: true };
+        return { success: true };
     }
 
     // CONTEXT MENU
@@ -684,8 +688,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     async handleContextMenuItemDelete(node: TreeNode<SpotlightNodeData>) {
         const result = await this.deleteNode(node);
-        if (result && !result.canDelete && result.reason)
-            console.warn(result.reason);
+        if (result && !result.success && result.message)
+            console.warn(result.message);
     }
 
     // UTILITY
