@@ -28,9 +28,14 @@
         <FileIcon class="size-3.5 shrink-0 text-muted-foreground" />
         <span class="flex-1 min-w-0 truncate">{node.text}</span>
     {/snippet}
+    {#snippet branchContextMenu(node)}
+        <ContextMenu.Item onclick={() => onClickContextMenuItem?.(node)}>
+            Branch Context Menu Test
+        </ContextMenu.Item>
+    {/snippet}
     {#snippet leafContextMenu(node)}
         <ContextMenu.Item onclick={() => onClickContextMenuItem?.(node)}>
-            Test
+            Leaf Context Menu Test
         </ContextMenu.Item>
     {/snippet}
 </Tree.Root>
