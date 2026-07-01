@@ -1,12 +1,12 @@
 import { screen } from "@testing-library/svelte";
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 
 import { render } from "@tests/utils";
 
-import { test, getNode } from "./fixtures";
+import { test as baseTest, getNode } from "./fixtures";
 import SimpleTree from "./simple-tree.svelte";
 
-test.extend({
+const test = baseTest.extend({
     branchNodes: [
         {
             id: "folder-a",
@@ -23,7 +23,9 @@ test.extend({
             data: { kind: "leaf" },
         },
     ],
-})("commit node text edit by clicking outside", async ({ service, user }) => {
+});
+
+test("commit node text edit by clicking outside", async ({ service, user }) => {
     const { container, rerender } = render(SimpleTree, { props: { service } });
 
     const nodeData = service.getNode("leaf-a")!;
@@ -39,24 +41,7 @@ test.extend({
     expect(getNode(container, "Leaf-edited")).toBeTruthy();
 });
 
-test.extend({
-    branchNodes: [
-        {
-            id: "folder-a",
-            parentId: "root",
-            text: "Alpha",
-            data: { kind: "folder" },
-        },
-    ],
-    leafNodes: [
-        {
-            id: "leaf-a",
-            parentId: "folder-a",
-            text: "Leaf",
-            data: { kind: "leaf" },
-        },
-    ],
-})("commit node text edit by pressing enter", async ({ service, user }) => {
+test("commit node text edit by pressing enter", async ({ service, user }) => {
     const { container, rerender } = render(SimpleTree, { props: { service } });
 
     const nodeData = service.getNode("leaf-a")!;
@@ -70,24 +55,7 @@ test.extend({
     expect(getNode(container, "Leaf-edited")).toBeTruthy();
 });
 
-test.extend({
-    branchNodes: [
-        {
-            id: "folder-a",
-            parentId: "root",
-            text: "Alpha",
-            data: { kind: "folder" },
-        },
-    ],
-    leafNodes: [
-        {
-            id: "leaf-a",
-            parentId: "folder-a",
-            text: "Leaf",
-            data: { kind: "leaf" },
-        },
-    ],
-})("cancel node text edit by pressing escape", async ({ service, user }) => {
+test("cancel node text edit by pressing escape", async ({ service, user }) => {
     const { container, rerender } = render(SimpleTree, { props: { service } });
 
     const nodeData = service.getNode("leaf-a")!;
@@ -100,4 +68,53 @@ test.extend({
 
     expect(getNode(container, "Leaf")).toBeTruthy();
     expect(getNode(container, "Leaf-edited")).toBeFalsy();
+});
+
+test("node text edit is committed on validation success", async ({
+    service,
+    user,
+}) => {
+    const mock = vi.fn(async () => ({
+        success: true,
+    }));
+    service.onValidateNodeText.subscribe(mock);
+
+    const { container, rerender } = render(SimpleTree, { props: { service } });
+
+    const nodeData = service.getNode("leaf-a")!;
+    service.makeNodeEditable(nodeData);
+
+    await rerender({ service });
+
+    await user.keyboard("-edited");
+    await user.keyboard("{Enter}");
+
+    expect(getNode(container, "Leaf-edited")).toBeTruthy();
+
+    expect(mock).toHaveBeenCalled();
+});
+
+test("node text edit is canceled on validation failure", async ({
+    service,
+    user,
+}) => {
+    const mock = vi.fn(async () => ({
+        success: false,
+    }));
+    service.onValidateNodeText.subscribe(mock);
+
+    const { container, rerender } = render(SimpleTree, { props: { service } });
+
+    const nodeData = service.getNode("leaf-a")!;
+    service.makeNodeEditable(nodeData);
+
+    await rerender({ service });
+
+    await user.keyboard("-edited");
+    await user.keyboard("{Enter}");
+
+    expect(getNode(container, "Leaf")).toBeTruthy();
+    expect(getNode(container, "Leaf-edited")).toBeFalsy();
+
+    expect(mock).toHaveBeenCalled();
 });
