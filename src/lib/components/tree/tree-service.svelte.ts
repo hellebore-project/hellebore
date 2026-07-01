@@ -349,6 +349,18 @@ export class TreeService<T> implements IComponentService {
         delete node.originalText;
     }
 
+    private async _cancelNodeTextEdit(nodeId: string) {
+        const node = this._nodes[nodeId];
+        if (!node) return;
+
+        console.debug("Cancelling text edit for node", node);
+
+        this._makeNodeReadOnly(nodeId);
+
+        delete node.validationError;
+        this._revertNodeToOriginalText(node);
+    }
+
     private _revertNodeToOriginalText(node: TreeNode<T>) {
         if (node.originalText === undefined)
             console.error(
@@ -575,7 +587,7 @@ export class TreeService<T> implements IComponentService {
         if (e.key === "Escape") {
             e.preventDefault();
             e.stopPropagation();
-            this._revertNodeToOriginalText(node);
+            this._cancelNodeTextEdit(node.id);
         } else if (e.key === "Enter") {
             e.preventDefault();
             e.stopPropagation();
