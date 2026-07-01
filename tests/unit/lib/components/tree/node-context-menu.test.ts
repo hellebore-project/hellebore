@@ -25,6 +25,8 @@ test.extend({
     });
 
     const node = getNode(container, "X");
+    // HACK: some race condition isn't being handled here
+    await new Promise((resolve) => setTimeout(resolve, 100));
     await user.pointer({ keys: "[MouseRight]", target: node });
 
     const menuItem = screen.getByRole("menuitem", {
@@ -57,6 +59,8 @@ test.extend({
     });
 
     const node = getNode(container, "Alpha");
+    // HACK: some race condition isn't being handled here
+    await new Promise((resolve) => setTimeout(resolve, 100));
     await user.pointer({ keys: "[MouseRight]", target: node });
 
     const menuItem = screen.getByRole("menuitem", {
