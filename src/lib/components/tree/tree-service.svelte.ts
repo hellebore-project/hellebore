@@ -1,6 +1,6 @@
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
-import type { IComponentService } from "@/interface";
+import type { IComponentService, OperationResult } from "@/interface";
 import {
     BlockingDebouncer,
     ReplaceDebouncer,
@@ -9,21 +9,15 @@ import {
 import { EventProducer } from "@/utils/event-producer";
 
 import type {
-    DeleteNodeResult,
     FinalizeNodeMoveEvent,
-    NodeTextValidationResult,
     TreeNode,
     TreeNodeInfo,
     TreeNodeTextEdit,
+    TreeServiceArgs,
     ValidateNodeTextEvent,
-} from "./file-tree-interface";
+} from "./tree-interface";
 
-export interface FileTreeServiceArgs {
-    id: string;
-    rootNodeId?: string;
-}
-
-export class FileTreeService<T> implements IComponentService {
+export class TreeService<T> implements IComponentService {
     // CONFIG
     private _id: string;
     VALIDATION_WAIT_TIME = 0; // ms
@@ -36,37 +30,32 @@ export class FileTreeService<T> implements IComponentService {
     private _editableNodeIds: SvelteSet<string> = $state(new SvelteSet());
     selectedNodeId: string | null = $state(null);
     draggingNodeId: string | null = $state(null);
-    dragOverFolderId: string | null = $state(null);
+    dragOverBranchId: string | null = $state(null);
 
     // SERVICES
     private _validationDebouncer: ReplaceDebouncer<string, void>;
     private _commitDebouncer: BlockingDebouncer<string, void>;
 
     // EVENTS
-    onFinalizeNodeMove: EventProducer<
-        FinalizeNodeMoveEvent<T>,
-        Promise<boolean>
-    >;
-    onFinalizeNodeTextEdit: EventProducer<
+    afterNodeMove: EventProducer<FinalizeNodeMoveEvent<T>, Promise<boolean>>;
+    onCommitNodeTextEdit: EventProducer<
         TreeNode<T>,
-        Promise<TreeNodeTextEdit<T> | null>
+        Promise<OperationResult<TreeNodeTextEdit<T>>>
     >;
     onValidateNodeText: EventProducer<
         ValidateNodeTextEvent<T>,
-        Promise<NodeTextValidationResult>
+        Promise<OperationResult>
     >;
-    onDeleteNode: EventProducer<TreeNode<T>, Promise<DeleteNodeResult>>;
     onSelectLeafNode: EventProducer<TreeNode<T>, void>;
     onCloseContextMenu: (() => void) | null = null;
 
-    constructor({ id, rootNodeId = "root" }: FileTreeServiceArgs) {
+    constructor({ id, rootNodeId = "root" }: TreeServiceArgs) {
         this._id = id;
         this._rootNodeId = rootNodeId;
 
-        this.onFinalizeNodeMove = new EventProducer();
-        this.onFinalizeNodeTextEdit = new EventProducer();
+        this.afterNodeMove = new EventProducer();
+        this.onCommitNodeTextEdit = new EventProducer();
         this.onValidateNodeText = new EventProducer();
-        this.onDeleteNode = new EventProducer();
         this.onSelectLeafNode = new EventProducer();
 
         this._validationDebouncer = new ReplaceDebouncer(
@@ -88,12 +77,12 @@ export class FileTreeService<T> implements IComponentService {
         return this._rootNodeId;
     }
 
-    get rootNode() {
+    get rootNode(): TreeNode<T> {
         return {
             id: this._rootNodeId,
             parentId: "",
             text: "",
-            isFolder: true,
+            isBranch: true,
             data: null as unknown as T,
         };
     }
@@ -104,11 +93,11 @@ export class FileTreeService<T> implements IComponentService {
         return null;
     }
 
-    get selectedFolderId() {
+    get selectedBranchId() {
         const selectedNode = this.selectedNode;
 
         if (selectedNode) {
-            return this.isFolderNode(selectedNode)
+            return this.isBranchNode(selectedNode)
                 ? selectedNode.id
                 : selectedNode.parentId;
         }
@@ -118,17 +107,17 @@ export class FileTreeService<T> implements IComponentService {
 
     // LOADING
 
-    load(folders: TreeNodeInfo<T>[], leaves: TreeNodeInfo<T>[]) {
+    load(branches: TreeNodeInfo<T>[], leaves: TreeNodeInfo<T>[]) {
         this._nodes = {};
         this._structure.clear();
 
-        for (const folder of folders) {
+        for (const branch of branches) {
             const node: TreeNode<T> = {
-                id: folder.id,
-                parentId: folder.parentId,
-                text: folder.text,
-                isFolder: true,
-                data: folder.data,
+                id: branch.id,
+                parentId: branch.parentId,
+                text: branch.text,
+                isBranch: true,
+                data: branch.data,
             };
             this._nodes[node.id] = node;
         }
@@ -138,7 +127,7 @@ export class FileTreeService<T> implements IComponentService {
                 id: leaf.id,
                 parentId: leaf.parentId,
                 text: leaf.text,
-                isFolder: false,
+                isBranch: false,
                 data: leaf.data,
             };
             this._nodes[node.id] = node;
@@ -173,15 +162,15 @@ export class FileTreeService<T> implements IComponentService {
 
     // IDENTIFY NODE
 
-    isFolderNode(node: TreeNode<T>): boolean {
-        return node.isFolder;
+    isBranchNode(node: TreeNode<T>): boolean {
+        return node.isBranch;
     }
 
-    isDescendantOfFolder(ancestorId: string, targetId: string): boolean {
+    isDescendantOfBranch(ancestorId: string, targetId: string): boolean {
         return this.getChildNodes(ancestorId).some(
             (c) =>
                 c.id === targetId ||
-                (c.isFolder && this.isDescendantOfFolder(c.id, targetId)),
+                (c.isBranch && this.isDescendantOfBranch(c.id, targetId)),
         );
     }
 
@@ -218,8 +207,8 @@ export class FileTreeService<T> implements IComponentService {
 
     sortNodes(nodes: TreeNode<T>[]): TreeNode<T>[] {
         return [...nodes].sort((a, b) => {
-            if (a.isFolder && !b.isFolder) return -1;
-            if (!a.isFolder && b.isFolder) return 1;
+            if (a.isBranch && !b.isBranch) return -1;
+            if (!a.isBranch && b.isBranch) return 1;
             return a.text.localeCompare(b.text);
         });
     }
@@ -231,19 +220,24 @@ export class FileTreeService<T> implements IComponentService {
     }
 
     toggleCollapsed(nodeId: string) {
-        if (this._collapsedIds.has(nodeId)) {
-            this._collapsedIds.delete(nodeId);
-        } else {
-            this._collapsedIds.add(nodeId);
-        }
+        if (this._collapsedIds.has(nodeId)) this.expandNode(nodeId);
+        else this.collapseNode(nodeId);
+    }
+
+    collapseNode(nodeId: string) {
+        this._collapsedIds.add(nodeId);
+    }
+
+    expandNode(nodeId: string) {
+        this._collapsedIds.delete(nodeId);
     }
 
     collapseAll() {
-        const folderIds: string[] = [];
+        const branchIds: string[] = [];
         for (const [id, node] of Object.entries(this._nodes)) {
-            if (node.isFolder) folderIds.push(id);
+            if (node.isBranch) branchIds.push(id);
         }
-        this._collapsedIds = new SvelteSet(folderIds);
+        this._collapsedIds = new SvelteSet(branchIds);
     }
 
     // SELECT NODE
@@ -254,7 +248,7 @@ export class FileTreeService<T> implements IComponentService {
 
     selectNode(node: TreeNode<T>) {
         this.selectedNodeId = node.id;
-        if (!this.isFolderNode(node)) this.onSelectLeafNode.produce(node);
+        if (!this.isBranchNode(node)) this.onSelectLeafNode.produce(node);
     }
 
     // EDIT NODE
@@ -286,7 +280,7 @@ export class FileTreeService<T> implements IComponentService {
         console.debug(
             `Scheduling validation for node ${nodeId} with text "${text}"`,
         );
-        void this._validationDebouncer.call(nodeId).catch(() => undefined);
+        this._validationDebouncer.call(nodeId).catch(() => undefined);
     }
 
     async commitNodeTextEdit(nodeId: string) {
@@ -326,21 +320,45 @@ export class FileTreeService<T> implements IComponentService {
             return;
         }
 
-        const textEdit = await this.onFinalizeNodeTextEdit.produce(node);
+        let result: OperationResult<TreeNodeTextEdit<T>>;
 
-        if (!textEdit) {
+        if (this.onCommitNodeTextEdit.hasConsumer)
+            result = await this.onCommitNodeTextEdit.produce(node);
+        else
+            result = {
+                success: true,
+                output: { ...node },
+            };
+
+        if (!result || !result.success || !result.output) {
             this._revertNodeToOriginalText(node);
+            console.error(`Failed to commit text edit for node ${node.id}`);
+            if (result && result.message) {
+                console.error(`Reason: ${result.message}`);
+            }
             return;
         }
 
-        if (node.originalText !== textEdit.text) {
+        if (node.originalText !== result.output.text) {
             this.sortChildrenOfNode(node.parentId);
         }
 
-        node.text = textEdit.text;
-        node.data = textEdit.data;
+        node.text = result.output.text;
+        node.data = result.output.data;
 
         delete node.originalText;
+    }
+
+    private async _cancelNodeTextEdit(nodeId: string) {
+        const node = this._nodes[nodeId];
+        if (!node) return;
+
+        console.debug("Cancelling text edit for node", node);
+
+        this._makeNodeReadOnly(nodeId);
+
+        delete node.validationError;
+        this._revertNodeToOriginalText(node);
     }
 
     private _revertNodeToOriginalText(node: TreeNode<T>) {
@@ -367,15 +385,16 @@ export class FileTreeService<T> implements IComponentService {
     ): Promise<DebouncerResult<void>> {
         const result = await this._validateNodeText(nodeId);
         console.debug(`Validation result for node ${nodeId}:`, result);
-        if (!result.valid) return { status: "rejected", reason: result.error };
+        if (!result.success)
+            return { status: "rejected", reason: result.message };
         return { status: "resolved", value: undefined };
     }
 
-    private async _validateNodeText(
-        nodeId: string,
-    ): Promise<NodeTextValidationResult> {
+    private async _validateNodeText(nodeId: string): Promise<OperationResult> {
         const node = this._nodes[nodeId];
-        if (!node) return { valid: false, error: "Node not found" };
+        if (!node) return { success: false, message: "Node not found" };
+
+        if (!this.onValidateNodeText.hasConsumer) return { success: true };
 
         const currentText = node.text;
         const result = await this.onValidateNodeText.produce({
@@ -384,29 +403,32 @@ export class FileTreeService<T> implements IComponentService {
         });
 
         if (node.text !== currentText)
-            return { valid: false, error: "Text changed during validation" };
+            return {
+                success: false,
+                message: "Text changed during validation",
+            };
 
-        if (result.valid) {
+        if (result.success) {
             delete node.validationError;
-            return { valid: true };
+            return { success: true };
         }
 
-        console.debug(`Validation failed for node ${nodeId}:`, result.error);
-        const error = result.error ?? "Node text is invalid.";
+        console.debug(`Validation failed for node ${nodeId}:`, result.message);
+        const error = result.message ?? "Node text is invalid.";
         node.validationError = error;
 
-        return { valid: false, error };
+        return { success: false, message: error };
     }
 
     // ADD NODE
 
-    addFolderNode({ id, parentId, text, data }: TreeNodeInfo<T>) {
-        const node: TreeNode<T> = { id, parentId, text, isFolder: true, data };
+    addBranchNode({ id, parentId, text, data }: TreeNodeInfo<T>) {
+        const node: TreeNode<T> = { id, parentId, text, isBranch: true, data };
         return this._addNode(parentId, node);
     }
 
     addLeafNode({ id, parentId, text, data }: TreeNodeInfo<T>) {
-        const node: TreeNode<T> = { id, parentId, text, isFolder: false, data };
+        const node: TreeNode<T> = { id, parentId, text, isBranch: false, data };
         return this._addNode(parentId, node);
     }
 
@@ -463,28 +485,28 @@ export class FileTreeService<T> implements IComponentService {
         return !this.isNodeEditable(nodeId);
     }
 
-    async moveNode(nodeId: string, destFolderId: string) {
-        this.dragOverFolderId = null;
+    async moveNode(nodeId: string, destBranchId: string) {
+        this.dragOverBranchId = null;
         this.draggingNodeId = null;
 
         const movedNode = this.getNode(nodeId);
         if (!movedNode) return;
 
         if (
-            movedNode.parentId === destFolderId ||
-            movedNode.id === destFolderId ||
-            this.isDescendantOfFolder(nodeId, destFolderId)
+            movedNode.parentId === destBranchId ||
+            movedNode.id === destBranchId ||
+            this.isDescendantOfBranch(nodeId, destBranchId)
         )
             return;
 
-        const moved = await this.onFinalizeNodeMove.produce({
+        const moved = await this.afterNodeMove.produce({
             node: movedNode,
-            destParentNodeId: destFolderId,
+            destParentNodeId: destBranchId,
         });
         if (!moved) return;
 
         this._disconnectNode(movedNode);
-        this._addNode(destFolderId, movedNode);
+        this._addNode(destBranchId, movedNode);
     }
 
     // EVENT HANDLERS
@@ -503,86 +525,74 @@ export class FileTreeService<T> implements IComponentService {
 
     handleDragEnd() {
         this.draggingNodeId = null;
-        this.dragOverFolderId = null;
+        this.dragOverBranchId = null;
     }
 
     handleNodeDragEnter(e: DragEvent, node: TreeNode<T>) {
-        const folderId = this.isFolderNode(node) ? node.id : node.parentId;
-        this.handleNodeDragEnterById(e, folderId);
+        const branchId = this.isBranchNode(node) ? node.id : node.parentId;
+        this.handleNodeDragEnterById(e, branchId);
     }
 
-    handleNodeDragEnterById(e: DragEvent, folderId: string) {
+    handleNodeDragEnterById(e: DragEvent, branchId: string) {
         if (!this.draggingNodeId) return;
         e.preventDefault();
-        this.dragOverFolderId = folderId;
+        this.dragOverBranchId = branchId;
     }
 
     handleNodeDragOver(e: DragEvent, node: TreeNode<T>) {
-        const folderId = this.isFolderNode(node) ? node.id : node.parentId;
-        this.handleNodeDragOverById(e, folderId);
+        const branchId = this.isBranchNode(node) ? node.id : node.parentId;
+        this.handleNodeDragOverById(e, branchId);
     }
 
-    handleNodeDragOverById(e: DragEvent, folderId: string) {
+    handleNodeDragOverById(e: DragEvent, branchId: string) {
         if (!this.draggingNodeId) return;
 
         e.preventDefault();
         e.dataTransfer!.dropEffect = "move";
 
-        this.dragOverFolderId = folderId;
+        this.dragOverBranchId = branchId;
     }
 
     handleNodeDragLeave(e: DragEvent, node: TreeNode<T>) {
-        const folderId = this.isFolderNode(node) ? node.id : node.parentId;
-        this.handleNodeDragLeaveById(e, folderId);
+        const branchId = this.isBranchNode(node) ? node.id : node.parentId;
+        this.handleNodeDragLeaveById(e, branchId);
     }
 
-    handleNodeDragLeaveById(e: DragEvent, folderId: string) {
+    handleNodeDragLeaveById(e: DragEvent, branchId: string) {
         const related = e.relatedTarget as Node | null;
         const current = e.currentTarget as Element;
         if (related && current.contains(related)) return;
 
-        if (this.dragOverFolderId === folderId) this.dragOverFolderId = null;
+        if (this.dragOverBranchId === branchId) this.dragOverBranchId = null;
     }
 
     async handleNodeDrop(e: DragEvent, destNode: TreeNode<T>) {
-        const folderId = this.isFolderNode(destNode)
+        const branchId = this.isBranchNode(destNode)
             ? destNode.id
             : destNode.parentId;
-        await this.handleNodeDropById(e, folderId);
+        await this.handleNodeDropById(e, branchId);
     }
 
-    async handleNodeDropById(e: DragEvent, destFolderId: string) {
+    async handleNodeDropById(e: DragEvent, destBranchId: string) {
         e.preventDefault();
 
         const movedNodeId =
             e.dataTransfer!.getData("text/plain") || this.draggingNodeId;
         if (!movedNodeId) return;
 
-        await this.moveNode(movedNodeId, destFolderId);
+        await this.moveNode(movedNodeId, destBranchId);
     }
 
     async handleKeydown(e: KeyboardEvent, node: TreeNode<T>) {
         if (e.key === "Escape") {
             e.preventDefault();
             e.stopPropagation();
-            this._revertNodeToOriginalText(node);
+            this._cancelNodeTextEdit(node.id);
         } else if (e.key === "Enter") {
             e.preventDefault();
             e.stopPropagation();
             await this.commitNodeTextEdit(node.id);
         }
-    }
-
-    async handleContextMenuItemDelete(node: TreeNode<T>) {
-        if (!this.onDeleteNode.hasConsumer) {
-            console.error(
-                "Cannot delete node. Event handler is not configured.",
-            );
-            return;
-        }
-
-        const result = await this.onDeleteNode.produce(node);
-        if (!result.canDelete && result.reason) console.warn(result.reason);
     }
 
     handleContextMenuStatusChange(open: boolean) {
@@ -591,6 +601,4 @@ export class FileTreeService<T> implements IComponentService {
         this.onCloseContextMenu = null;
         handler?.();
     }
-
-    // UTILITY
 }

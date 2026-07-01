@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen } from "@testing-library/svelte";
 import { expect } from "vitest";
 
 import { render } from "@tests/utils/render";

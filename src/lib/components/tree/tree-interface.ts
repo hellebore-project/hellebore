@@ -1,6 +1,11 @@
 import type { Snippet } from "svelte";
 
-import type { FileTreeService } from "./file-tree-service.svelte";
+import type { TreeService } from "./tree-service.svelte";
+
+export interface TreeServiceArgs {
+    id: string;
+    rootNodeId?: string;
+}
 
 export interface TreeNodeInfo<T> {
     id: string;
@@ -10,7 +15,7 @@ export interface TreeNodeInfo<T> {
 }
 
 export interface TreeNode<T> extends TreeNodeInfo<T> {
-    isFolder: boolean;
+    isBranch: boolean;
     isEditable?: boolean;
     originalText?: string;
     validationError?: string;
@@ -32,32 +37,23 @@ export interface ValidateNodeTextEvent<T> {
     text: string;
 }
 
-export interface NodeTextValidationResult {
-    valid: boolean;
-    error?: string | null;
-}
-
-export interface DeleteNodeResult {
-    canDelete: boolean;
-    reason?: string | null;
-}
-
 export interface EditableLabelProps<T> {
-    service: FileTreeService<T>;
+    service: TreeService<T>;
     node: TreeNode<T>;
 }
 
-export interface FolderNodeProps<T> {
-    service: FileTreeService<T>;
+export interface BranchNodeProps<T> {
+    service: TreeService<T>;
     node: TreeNode<T>;
     depth: number;
-    folderLabel?: Snippet<[TreeNode<T>, boolean]>;
+    branchLabel?: Snippet<[TreeNode<T>, boolean]>;
     leafLabel?: Snippet<[TreeNode<T>]>;
-    contextMenu?: Snippet<[TreeNode<T>]>;
+    branchContextMenu?: Snippet<[TreeNode<T>]>;
+    leafContextMenu?: Snippet<[TreeNode<T>]>;
 }
 
 export interface LeafNodeProps<T> {
-    service: FileTreeService<T>;
+    service: TreeService<T>;
     node: TreeNode<T>;
     depth: number;
     leafLabel?: Snippet<[TreeNode<T>]>;
@@ -65,18 +61,20 @@ export interface LeafNodeProps<T> {
 }
 
 export interface BranchProps<T> {
-    service: FileTreeService<T>;
+    service: TreeService<T>;
     node: TreeNode<T>;
     depth: number;
-    folderLabel?: Snippet<[TreeNode<T>, boolean]>;
+    branchLabel?: Snippet<[TreeNode<T>, boolean]>;
     leafLabel?: Snippet<[TreeNode<T>]>;
-    nodeContextMenu?: Snippet<[TreeNode<T>]>;
+    branchContextMenu?: Snippet<[TreeNode<T>]>;
+    leafContextMenu?: Snippet<[TreeNode<T>]>;
 }
 
-export interface FileTreeProps<T> {
-    service: FileTreeService<T>;
+export interface TreeProps<T> {
+    service: TreeService<T>;
     node: TreeNode<T>;
-    folderLabel?: Snippet<[TreeNode<T>, boolean]>;
+    branchLabel?: Snippet<[TreeNode<T>, boolean]>;
     leafLabel?: Snippet<[TreeNode<T>]>;
-    nodeContextMenu?: Snippet<[TreeNode<T>]>;
+    branchContextMenu?: Snippet<[TreeNode<T>]>;
+    leafContextMenu?: Snippet<[TreeNode<T>]>;
 }

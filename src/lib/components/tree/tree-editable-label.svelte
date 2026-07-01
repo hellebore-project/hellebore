@@ -2,7 +2,7 @@
     import { Input } from "@/lib/components/input";
     import * as Popover from "@/lib/components/popover";
 
-    import type { EditableLabelProps } from "./file-tree-interface";
+    import type { EditableLabelProps } from "./tree-interface";
 
     const { service, node }: EditableLabelProps<T> = $props();
 

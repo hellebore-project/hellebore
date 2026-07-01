@@ -4,6 +4,8 @@ import { vi } from 'vitest';
 
 const { getComputedStyle } = window;
 window.getComputedStyle = (elt) => getComputedStyle(elt);
+
+window.scrollBy = vi.fn();
 window.HTMLElement.prototype.scrollIntoView = () => { };
 
 Object.defineProperty(window, 'matchMedia', {
@@ -26,6 +28,8 @@ class ResizeObserver {
   disconnect() { }
 }
 
+window.ResizeObserver = ResizeObserver;
+
 class IntersectionObserver {
   observe() { }
   unobserve() { }
@@ -33,7 +37,6 @@ class IntersectionObserver {
   takeRecords() { return []; }
 }
 
-window.ResizeObserver = ResizeObserver;
 window.IntersectionObserver = IntersectionObserver;
 
 function getBoundingClientRect() {

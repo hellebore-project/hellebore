@@ -1,5 +1,5 @@
 import { screen } from "@testing-library/svelte";
-import { expect, describe } from "vitest";
+import { expect } from "vitest";
 
 import { DataTable } from "@/lib/components/data-table";
 import { render } from "@tests/utils";

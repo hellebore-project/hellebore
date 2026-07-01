@@ -1,15 +1,16 @@
 <script lang="ts" generics="T">
-    import type { BranchProps } from "./file-tree-interface";
-    import FileTreeFolderNode from "./file-tree-folder-node.svelte";
-    import FileTreeLeafNode from "./file-tree-leaf-node.svelte";
+    import type { BranchProps } from "./tree-interface";
+    import TreeBranchNode from "./tree-branch-node.svelte";
+    import TreeLeafNode from "./tree-leaf-node.svelte";
 
     const {
         service,
         node,
         depth = 0,
-        folderLabel,
+        branchLabel,
         leafLabel,
-        nodeContextMenu,
+        branchContextMenu,
+        leafContextMenu,
     }: BranchProps<T> = $props();
 </script>
 
@@ -35,22 +36,23 @@
                     service.handleNodeDrop(e, child);
                 }}
             >
-                {#if service.isFolderNode(child)}
-                    <FileTreeFolderNode
+                {#if service.isBranchNode(child)}
+                    <TreeBranchNode
                         {service}
                         node={child}
                         {depth}
-                        {folderLabel}
+                        {branchLabel}
                         {leafLabel}
-                        contextMenu={nodeContextMenu}
+                        {branchContextMenu}
+                        {leafContextMenu}
                     />
                 {:else}
-                    <FileTreeLeafNode
+                    <TreeLeafNode
                         {service}
                         node={child}
                         {depth}
                         {leafLabel}
-                        contextMenu={nodeContextMenu}
+                        contextMenu={leafContextMenu}
                     />
                 {/if}
             </li>

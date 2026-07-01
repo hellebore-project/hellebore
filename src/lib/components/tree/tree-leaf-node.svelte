@@ -1,21 +1,12 @@
 <script lang="ts" generics="T">
-    import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
-
     import { cn } from "@/lib/utils";
     import * as ContextMenu from "@/lib/components/context-menu";
 
-    import type { FolderNodeProps } from "./file-tree-interface";
-    import FileTreeBranch from "./file-tree-branch.svelte";
-    import FileTreeEditableLabel from "./file-tree-editable-label.svelte";
+    import type { LeafNodeProps } from "./tree-interface";
+    import TreeEditableLabel from "./tree-editable-label.svelte";
 
-    const {
-        service,
-        node,
-        folderLabel,
-        leafLabel,
-        contextMenu,
-        depth,
-    }: FolderNodeProps<T> = $props();
+    const { service, node, leafLabel, contextMenu, depth }: LeafNodeProps<T> =
+        $props();
 </script>
 
 <ContextMenu.Root
@@ -28,34 +19,28 @@
                 class={cn(
                     "flex items-center gap-1 px-1 py-0.5 cursor-pointer select-none",
                     "hover:bg-sidebar-accent rounded-sm text-sm text-sidebar-foreground",
-                    service.dragOverFolderId === node.id &&
-                        "ring-1 ring-sidebar-ring bg-sidebar-accent",
+                    service.isNodeSelected(node) &&
+                        "bg-sidebar-accent font-medium",
+                    service.draggingNodeId === node.id && "opacity-40",
                 )}
-                style="padding-left: {depth * 12 + 4}px"
+                style="padding-left: {depth * 12 + 20}px"
                 role="button"
                 tabindex="0"
                 draggable={service.isNodeDraggable(node.id)}
                 ondragstart={(e) => service.handleDragStartById(e, node.id)}
                 ondragend={() => service.handleDragEnd()}
-                onclick={() => service.toggleCollapsed(node.id)}
+                onclick={() => service.selectNode(node)}
                 onkeydown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        service.toggleCollapsed(node.id);
+                        service.selectNode(node);
                     }
                 }}
             >
-                <ChevronRightIcon
-                    class={cn(
-                        "size-3.5 shrink-0 transition-transform duration-150",
-                        !service.isCollapsed(node.id) && "rotate-90",
-                    )}
-                />
-
                 {#if service.isNodeEditable(node.id)}
-                    <FileTreeEditableLabel {service} {node} />
-                {:else if folderLabel}
-                    {@render folderLabel(node, service.isCollapsed(node.id))}
+                    <TreeEditableLabel {service} {node} />
+                {:else if leafLabel}
+                    {@render leafLabel(node)}
                 {:else}
                     <span class="flex-1 min-w-0 truncate">{node.text}</span>
                 {/if}
@@ -68,14 +53,3 @@
         {/if}
     </ContextMenu.Content>
 </ContextMenu.Root>
-
-{#if !service.isCollapsed(node.id)}
-    <FileTreeBranch
-        {service}
-        {node}
-        {folderLabel}
-        {leafLabel}
-        nodeContextMenu={contextMenu}
-        depth={depth + 1}
-    />
-{/if}
