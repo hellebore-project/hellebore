@@ -34,7 +34,7 @@ test("can insert a reference to another entry", async ({
     await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
     await user.keyboard(" @mocked-referenced");
 
-    const dropdownItem = screen.getByRole("button", {
+    const dropdownItem = screen.getByRole("menuitem", {
         name: referencedEntryTitle,
     });
     await user.click(dropdownItem);
