@@ -389,7 +389,7 @@ export class DataTableService<
 
     // KEYBOARD
 
-    handleTableKeyDown(e: KeyboardEvent) {
+    handleKeyDown(e: KeyboardEvent) {
         if (e.defaultPrevented) return;
 
         const active = this.activeCell;
@@ -399,7 +399,12 @@ export class DataTableService<
         if (this._handleSelectDropdownKeyDown(e, rowKey, colKey)) return;
 
         const wasEditing = this.isEditing;
-        this.handleKeyDown(e, rowKey, colKey);
+
+        if (this.isEditable(rowKey, colKey)) {
+            this._handleKeyDownEditing(e, rowKey, colKey);
+        } else {
+            this._handleKeyDownNavigating(e, rowKey, colKey);
+        }
 
         if (wasEditing && !this.isEditing) this.focusGrid?.();
     }
@@ -429,14 +434,6 @@ export class DataTableService<
         this.focusGrid?.();
 
         return true;
-    }
-
-    handleKeyDown(e: KeyboardEvent, rowKey: string, colKey: TColKey) {
-        if (this.isEditable(rowKey, colKey)) {
-            this._handleKeyDownEditing(e, rowKey, colKey);
-        } else {
-            this._handleKeyDownNavigating(e, rowKey, colKey);
-        }
     }
 
     private _handleKeyDownNavigating(

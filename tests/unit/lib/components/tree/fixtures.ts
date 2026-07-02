@@ -2,23 +2,23 @@ import { test as baseTest } from "@tests/unit/fixtures";
 
 import { TreeService, type TreeNodeInfo } from "@/lib/components/tree";
 
-export interface TestData {
+export interface TestTreeNodeData {
     kind: string;
 }
 
-export interface TreeServiceTestFixtures {
+export interface TreeTestFixtures {
     rootNodeId: string;
-    branchNodes: TreeNodeInfo<TestData>[];
-    leafNodes: TreeNodeInfo<TestData>[];
-    service: TreeService<TestData>;
+    branchNodes: TreeNodeInfo<TestTreeNodeData>[];
+    leafNodes: TreeNodeInfo<TestTreeNodeData>[];
+    service: TreeService<TestTreeNodeData>;
 }
 
-export const test = baseTest.extend<TreeServiceTestFixtures>({
+export const test = baseTest.extend<TreeTestFixtures>({
     rootNodeId: "root",
     branchNodes: [],
     leafNodes: [],
     service: async ({ rootNodeId, branchNodes, leafNodes }, use) => {
-        const service = new TreeService<TestData>({
+        const service = new TreeService<TestTreeNodeData>({
             id: "tree-test",
             rootNodeId,
         });

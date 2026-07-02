@@ -1,7 +1,4 @@
-import type {
-    SuggestionKeyDownProps,
-    SuggestionProps,
-} from "@tiptap/suggestion";
+import type { SuggestionProps } from "@tiptap/suggestion";
 
 import type { MentionItemData } from "./mention-interface";
 
@@ -37,8 +34,16 @@ export class MentionDropdownService<T> {
         this.suggestion.command(item);
     }
 
-    onKeyDown(props: SuggestionKeyDownProps) {
-        const { event } = props;
+    handleKeyDown(event: KeyboardEvent) {
+        if (this._handleKeyDown(event)) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+    }
+
+    _handleKeyDown(event: KeyboardEvent) {
+        // TODO: Escape to close
+        // TODO: Home/End to jump to first/last item
 
         if (event.key === "ArrowDown") {
             if (this._selectedIndex < this.suggestion.items.length - 1) {

@@ -41,7 +41,7 @@ describe("multiple options", () => {
         await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
         await user.keyboard(" @mocked");
 
-        screen.getByRole("button", { name: referencedEntryTitle });
+        screen.getByRole("menuitem", { name: referencedEntryTitle });
     });
 
     test("can select an option using the mouse", async ({
@@ -57,7 +57,7 @@ describe("multiple options", () => {
         await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
         await user.keyboard(" @mocked");
 
-        const dropdownItem = screen.getByRole("button", {
+        const dropdownItem = screen.getByRole("menuitem", {
             name: referencedEntryTitle,
         });
         await user.click(dropdownItem);
@@ -80,7 +80,7 @@ test("dropdown displays no options when the keyword does not match", async ({
     await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
     await user.keyboard(" @no-matches");
 
-    expect(screen.queryByRole("button", { name: referencedEntryTitle })).toBe(
+    expect(screen.queryByRole("menuitem", { name: referencedEntryTitle })).toBe(
         null,
     );
 });

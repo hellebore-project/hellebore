@@ -29,7 +29,7 @@
             const isInGrid = e.composedPath().includes(gridEl);
             if (!isInGrid && !(service?.isEditing && service?.selectOpen))
                 return;
-            service?.handleTableKeyDown(e);
+            service?.handleKeyDown(e);
         }
         window.addEventListener("keydown", handleKeyDown, true);
         return () => window.removeEventListener("keydown", handleKeyDown, true);

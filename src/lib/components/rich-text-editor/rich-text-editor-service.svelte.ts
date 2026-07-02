@@ -11,7 +11,7 @@ import type { IComponentService } from "@/interface";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import {
-    Mention,
+    MentionService,
     type MentionExtensionArgs,
     type MentionItemData,
 } from "./mention";
@@ -32,6 +32,9 @@ export class RichTextEditorService<M> implements IComponentService {
     editor: Editor;
     private _mounted = $state(false);
     private _changed = false;
+
+    // SERVICES
+    mention: MentionService<M> | null = null;
 
     // EVENTS
     onChange: MultiEventProducer<void, unknown>;
@@ -79,7 +82,10 @@ export class RichTextEditorService<M> implements IComponentService {
         if (placeholder)
             extensions.push(Placeholder.configure({ placeholder }));
 
-        if (mention) extensions.push(Mention({ querier: mention.querier }));
+        if (mention) {
+            this.mention = new MentionService(mention);
+            extensions.push(this.mention.createExtension());
+        }
 
         return extensions;
     }

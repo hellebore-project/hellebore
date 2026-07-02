@@ -17,19 +17,13 @@ test("keyboard arrows update selected index and enter selects highlighted item",
 
     expect(service.selectedIndex).toBe(0);
 
-    service.onKeyDown({
-        event: new KeyboardEvent("keydown", { key: "ArrowDown" }),
-    } as never);
+    service.handleKeyDown(new KeyboardEvent("keydown", { key: "ArrowDown" }));
     expect(service.selectedIndex).toBe(1);
 
-    service.onKeyDown({
-        event: new KeyboardEvent("keydown", { key: "ArrowUp" }),
-    } as never);
+    service.handleKeyDown(new KeyboardEvent("keydown", { key: "ArrowUp" }));
     expect(service.selectedIndex).toBe(0);
 
-    service.onKeyDown({
-        event: new KeyboardEvent("keydown", { key: "Enter" }),
-    } as never);
+    service.handleKeyDown(new KeyboardEvent("keydown", { key: "Enter" }));
     expect(command).toHaveBeenCalledWith({
         label: "first",
         data: { id: "entry1" },
