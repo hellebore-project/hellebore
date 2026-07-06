@@ -42,18 +42,33 @@ test.extend({
 });
 
 test.extend({
-    text: "Helloworld",
+    text: "Hello",
+})("raises changed flag on edit", async ({ user, service }) => {
+    const { container } = render(RichTextEditor, { props: { service } });
+    // reset the flag manually
+    // this would normally be controlled by the caller
+    service.changed = false;
+
+    const textNode = getTextNode(container, "Hello");
+    await user.click(textNode);
+    await user.keyboard(" ");
+
+    expect(service.changed).toBe(true);
+});
+
+test.extend({
+    text: "Hello world",
 })("add new line by pressing Enter", async ({ service, user }) => {
     const { container } = render(RichTextEditor, { props: { service } });
 
-    const textNode = getTextNode(container, "Helloworld");
+    const textNode = getTextNode(container, "Hello world");
     await user.click(textNode);
     await user.keyboard("{ArrowRight>6}[Enter]");
 
     const paragraphNodes = getParagraphNodes(container);
     expect(paragraphNodes.length).toBe(2);
-    expect(paragraphNodes[0].textContent).toBe("Hello");
-    expect(paragraphNodes[1].textContent).toBe("world");
+    expect(paragraphNodes[0].textContent.trim()).toBe("Hello");
+    expect(paragraphNodes[1].textContent.trim()).toBe("world");
 });
 
 test.extend({

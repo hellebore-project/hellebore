@@ -94,10 +94,16 @@ export function mockGetEntryArticle(
     mockedInvoker: MockedInvoker,
     entry: EntryArticleResponse,
 ) {
-    mockedInvoker.mockCommand(CommandNames.Entry.GetArticle, async () => ({
+    mockedInvoker.mockResponse(CommandNames.Entry.GetArticle, entry.info.id, {
         data: entry,
         errors: [],
-    }));
+    });
+    mockedInvoker.mockCommand(
+        CommandNames.Entry.GetArticle,
+        // @ts-ignore
+        async ({ id }) =>
+            mockedInvoker.getResponse(CommandNames.Entry.GetArticle, id),
+    );
 }
 
 export function mockGetEntries(

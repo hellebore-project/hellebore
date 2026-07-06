@@ -18,51 +18,48 @@ export interface BaseWordEditorFixtures {
     wordEditorService: WordEditorService;
 }
 
-export const test = baseTest.extend<BaseWordEditorFixtures>({
-    entryType: EntryType.Language,
+export const test = baseTest
+    .extend<BaseWordEditorFixtures>({
+        entryType: EntryType.Language,
 
-    wordId: "word1",
-    wordType: WordType.Noun,
-    wordSpelling: "test-word",
-    wordDefinition: "test-definition",
-    wordTranslations: ["translation1"],
-    word: async (
-        {
-            entryId,
-            wordId,
-            wordType,
-            wordSpelling,
-            wordDefinition,
-            wordTranslations,
-        },
-        use,
-    ) => {
-        const word: WordResponse = {
-            id: wordId,
-            languageId: entryId,
-            wordType,
-            spelling: wordSpelling,
-            definition: wordDefinition,
-            translations: wordTranslations,
-        };
-        await use(word);
-    },
-    mockedWord: async ({ mockedInvoker, word }, use) => {
-        mockGetWords(mockedInvoker, [word]);
-        await use(word);
-    },
-
-    wordEditorService: [
-        async (
-            { clientManager, entryId, mockedEntryInfo, mockedWord },
+        wordId: "word1",
+        wordType: WordType.Noun,
+        wordSpelling: "test-word",
+        wordDefinition: "test-definition",
+        wordTranslations: ["translation1"],
+        word: async (
+            {
+                entryId,
+                wordId,
+                wordType,
+                wordSpelling,
+                wordDefinition,
+                wordTranslations,
+            },
             use,
         ) => {
-            const service = await clientManager.central.openEntryEditor({
-                id: entryId,
-                viewKey: EntryViewType.WordEditor,
-            });
-            await use(service.lexicon);
+            const word: WordResponse = {
+                id: wordId,
+                languageId: entryId,
+                wordType,
+                spelling: wordSpelling,
+                definition: wordDefinition,
+                translations: wordTranslations,
+            };
+            await use(word);
         },
-        { auto: true },
-    ],
-});
+        mockedWord: async ({ mockedInvoker, word }, use) => {
+            mockGetWords(mockedInvoker, [word]);
+            await use(word);
+        },
+
+        wordEditorService: async ({ entryEditorService }, use) => {
+            await use(entryEditorService.lexicon);
+        },
+    })
+    .override({
+        entryViewType: EntryViewType.WordEditor,
+        entryEditorMocks: async ({ mockedEntryInfo, mockedWord }, use) => {
+            await use(null);
+        },
+    });

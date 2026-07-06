@@ -27,7 +27,10 @@ export const test = baseTest.extend<RichTextEditorTestFixtures>({
     mentionItems: ["Alpha", "Beta", "Gamma"],
     text: "Hello world",
     lines: async ({ text }, use) => {
-        use([text]);
+        // tiptap logs a warning if you try to pass an empty text node;
+        // need to return an empty array to avoid it
+        const lines = text ? [text] : [];
+        use(lines);
     },
     content: async ({ lines }, use) => {
         const paragraphNodes = lines.map((line) => {

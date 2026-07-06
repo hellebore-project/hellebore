@@ -1,5 +1,36 @@
-import { test as baseTest, type BaseUiFixtures } from "@tests/unit/ui/fixtures";
+import { EntryViewType } from "@/constants";
+import type { EntryEditorService } from "@/ui/centre/entry-editor";
 
-export type BaseEntryEditorFixtures = BaseUiFixtures;
+import { test as baseTest } from "../fixtures";
 
-export const test = baseTest;
+export interface BaseEntryEditorFixtures {
+    entryViewType: EntryViewType;
+    entryEditorMocks: null;
+    entryEditorService: EntryEditorService;
+}
+
+export const test = baseTest.extend<BaseEntryEditorFixtures>({
+    entryViewType: EntryViewType.ArticleEditor,
+    entryEditorMocks: async (
+        { mockedEntryArticle, mockedSearchedEntries },
+        use,
+    ) => {
+        // inject the required mocks for the entry-editor service to work.
+        // by default, use the required article-editor mocks.
+        // override as needed.
+        await use(null);
+    },
+    entryEditorService: [
+        async (
+            { clientManager, entryViewType, entryId, entryEditorMocks },
+            use,
+        ) => {
+            const service = await clientManager.central.openEntryEditor({
+                id: entryId,
+                viewKey: entryViewType,
+            });
+            await use(service);
+        },
+        { auto: true },
+    ],
+});

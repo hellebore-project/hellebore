@@ -82,6 +82,7 @@ export class ArticleEditorService implements IComponentService {
 
     load(text: JSONContent) {
         this.richText.load(text);
+        this.changed = false;
         this._loaded = true;
     }
 
