@@ -1,7 +1,7 @@
 import { Id } from "@/interface";
 import {
     CommandNames,
-    type BulkFileResponse,
+    type BulkEntryResponse,
     type DiagnosticResponse,
     type FolderBulkUpdateData,
     type FolderResponse,
@@ -48,7 +48,7 @@ export function mockDeleteFolder(
     folderIds: Id[],
     entryIds: Id[],
 ) {
-    const response: BulkFileResponse = {
+    const response: BulkEntryResponse = {
         entries: entryIds,
         folders: folderIds,
     };

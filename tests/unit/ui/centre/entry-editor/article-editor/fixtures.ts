@@ -6,35 +6,33 @@ import type { ArticleEditorService } from "@/ui/centre/entry-editor/article-edit
 import { test as baseTest } from "../fixtures";
 
 export interface BaseArticleEditorFixtures {
+    referencedEntryId: Id;
+    referencedEntryTitle: string;
+    referencedEntryInfo: EntryInfoResponse;
     articleEditorService: ArticleEditorService;
 }
 
-export const test = baseTest.extend<BaseArticleEditorFixtures>({
-    articleEditorService: [
-        async (
-            {
-                clientManager,
-                entryId,
-                mockedEntryArticle,
-                mockedSearchedEntries,
-            },
+export const test = baseTest
+    .extend<BaseArticleEditorFixtures>({
+        referencedEntryId: "entry2",
+        referencedEntryTitle: "mocked-referenced-entry",
+        referencedEntryInfo: async (
+            { referencedEntryId, referencedEntryTitle },
             use,
         ) => {
-            const service = await clientManager.central.openEntryEditor({
-                id: entryId,
-                viewKey: EntryViewType.ArticleEditor,
-            });
-            await use(service.article);
+            const entryInfo: EntryInfoResponse = {
+                id: referencedEntryId,
+                folderId: ROOT_FOLDER_ID,
+                entityType: EntryType.Person,
+                title: referencedEntryTitle,
+            };
+            await use(entryInfo);
         },
-        { auto: true },
-    ],
-});
-
-export const referencedEntryId: Id = "entry2";
-export const referencedEntryTitle = "mocked-referenced-entry";
-export const referencedEntryInfo: EntryInfoResponse = {
-    id: referencedEntryId,
-    folderId: ROOT_FOLDER_ID,
-    entityType: EntryType.Person,
-    title: referencedEntryTitle,
-};
+        articleEditorService: async ({ entryEditorService }, use) => {
+            await use(entryEditorService.article);
+        },
+    })
+    .override({
+        otherEntries: async ({ referencedEntryInfo }, use) =>
+            await use([referencedEntryInfo]),
+    });

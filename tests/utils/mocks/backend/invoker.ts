@@ -15,11 +15,13 @@ const DEFAULT_COMMAND: MockedCommand = () => {
 };
 
 export class MockedInvoker {
-    commands: Map<string, MockedCommand>;
+    private _commands: Map<string, MockedCommand>;
+    private _responses: Map<string, Map<unknown, unknown>>;
     private _spy: MockInstance<TauriInvoke> | null = null;
 
     constructor() {
-        this.commands = new Map();
+        this._commands = new Map();
+        this._responses = new Map();
     }
 
     get spy() {
@@ -30,7 +32,7 @@ export class MockedInvoker {
 
     inject() {
         mockIPC((name, args) => {
-            const command = this.commands.get(name);
+            const command = this._commands.get(name);
             if (!command) throw `Command ${name} has not been mocked.`;
             return command(args);
         });
@@ -44,8 +46,21 @@ export class MockedInvoker {
         clearMocks();
     }
 
-    mockCommand(name: string, command: MockedCommand = DEFAULT_COMMAND) {
-        this.commands.set(name, command);
+    mockCommand(name: string, command: unknown = DEFAULT_COMMAND) {
+        this._commands.set(name, command as MockedCommand);
+    }
+
+    mockResponse(name: string, args: unknown, response: unknown) {
+        if (!this._responses.has(name)) {
+            this._responses.set(name, new Map());
+        }
+        this._responses.get(name)!.set(args, response);
+    }
+
+    getResponse(name: string, args: unknown) {
+        const responses = this._responses.get(name);
+        if (!responses) return null;
+        return responses.get(args);
     }
 
     expectCalled(name: string) {

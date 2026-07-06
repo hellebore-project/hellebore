@@ -1,12 +1,7 @@
 import { screen } from "@testing-library/svelte";
-import { beforeAll, expect } from "vitest";
+import { expect, vi } from "vitest";
 
 import { ArticleEditor } from "@/ui/centre/entry-editor/article-editor";
-import {
-    createDocNode,
-    createParagraphNode,
-    createTextNode,
-} from "@tests/utils/mocks";
 import { render } from "@tests/utils";
 
 import { test } from "./fixtures";
@@ -20,26 +15,27 @@ test("display article content", async ({
     screen.getByText(entryArticleText);
 });
 
-test("edit article content", async ({
+test("raises changed flag and produces event on edit", async ({
     user,
     articleEditorService,
+    entryId,
     entryArticleText,
 }) => {
     render(ArticleEditor, { props: { service: articleEditorService } });
 
+    const onChange = vi.fn();
+    articleEditorService.onChange.subscribe(onChange);
+
+    expect(articleEditorService.changed).toBe(false);
+
     const textBox = screen.getByText(entryArticleText);
 
     await user.click(textBox);
-    await user.keyboard(`{ArrowRight>${entryArticleText.length + 1}/}`);
-    await user.keyboard(" edited");
+    await user.keyboard(" ");
 
-    const expectedText = `${entryArticleText} edited`;
-    screen.getByText(expectedText);
-
-    const expectedContent = createDocNode([
-        createParagraphNode([createTextNode(expectedText)]),
-    ]);
-    expect(articleEditorService.richText.content).toStrictEqual(
-        expectedContent,
-    );
+    expect(articleEditorService.changed).toBe(true);
+    expect(onChange).toHaveBeenCalledWith({
+        id: entryId,
+        textChanged: true,
+    });
 });

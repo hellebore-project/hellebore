@@ -16,30 +16,30 @@ export interface BasePropertyEditorFixtures {
     propertyEditorService: PropertyEditorService;
 }
 
-export const test = baseTest.extend<BasePropertyEditorFixtures>({
-    entryType: EntryType.Person,
-    entryProperties: async ({}, use) => use({ name: "" }),
+export const test = baseTest
+    .extend<BasePropertyEditorFixtures>({
+        entryType: EntryType.Person,
+        entryProperties: async ({}, use) => use({ name: "" }),
 
-    mockedEntryProperties: async (
-        { mockedInvoker, mockedEntryInfo, entryProperties },
-        use,
-    ) => {
-        const entryWithProperties: EntryPropertyResponse = {
-            info: mockedEntryInfo,
-            properties: entryProperties,
-        };
-        mockGetEntryProperties(mockedInvoker, entryWithProperties);
-        use(entryWithProperties);
-    },
-
-    propertyEditorService: [
-        async ({ clientManager, entryId, mockedEntryProperties }, use) => {
-            const service = await clientManager.central.openEntryEditor({
-                id: entryId,
-                viewKey: EntryViewType.PropertyEditor,
-            });
-            await use(service.properties);
+        mockedEntryProperties: async (
+            { mockedInvoker, mockedEntryInfo, entryProperties },
+            use,
+        ) => {
+            const entryWithProperties: EntryPropertyResponse = {
+                info: mockedEntryInfo,
+                properties: entryProperties,
+            };
+            mockGetEntryProperties(mockedInvoker, entryWithProperties);
+            await use(entryWithProperties);
         },
-        { auto: true },
-    ],
-});
+
+        propertyEditorService: async ({ entryEditorService }, use) => {
+            await use(entryEditorService.properties);
+        },
+    })
+    .override({
+        entryViewType: EntryViewType.PropertyEditor,
+        entryEditorMocks: async ({ mockedEntryProperties }, use) => {
+            await use(null);
+        },
+    });
