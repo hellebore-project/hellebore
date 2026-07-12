@@ -1,5 +1,5 @@
 import { screen } from "@testing-library/svelte";
-import { expect, vi } from "vitest";
+import { describe, expect, vi } from "vitest";
 
 import { EntryTitle } from "@/ui/centre/entry-editor/title";
 import { render } from "@tests/utils";
@@ -56,23 +56,28 @@ test("empty title displays an error", async ({
     expect(entryInfoService.isTitleValid).toBe(false);
 });
 
-test.override({
-    mockedBulkEntryUpdate: async ({ mockedInvoker, entryId }, use) => {
-        mockBulkUpdateEntries(mockedInvoker, {
-            [entryId]: {
-                id: entryId,
-                folderId: { updated: false },
-                title: { updated: false, isUnique: false },
-                properties: { updated: false },
-                text: { updated: false },
-                words: [],
-            },
-        });
-        await use(null);
-    },
-})(
-    "duplicate title displays an error",
-    async ({ user, entryInfoService, entryTitle }) => {
+describe("when title is a duplicate", () => {
+    test.override({
+        mockedBulkEntryUpdate: async ({ mockedInvoker, entryId }, use) => {
+            mockBulkUpdateEntries(mockedInvoker, {
+                [entryId]: {
+                    id: entryId,
+                    folderId: { updated: false },
+                    title: { updated: false, isUnique: false },
+                    properties: { updated: false },
+                    text: { updated: false },
+                    words: [],
+                },
+            });
+            await use(null);
+        },
+    });
+
+    test("an error is displayed", async ({
+        user,
+        entryInfoService,
+        entryTitle,
+    }) => {
         render(EntryTitle, { props: { service: entryInfoService } });
 
         const titleInput = screen.getByDisplayValue(entryTitle);
@@ -83,5 +88,5 @@ test.override({
         screen.getByText("Duplicate title");
         expect(entryInfoService.isTitleValid).toBe(false);
         expect(entryInfoService.isTitleUnique).toBe(false);
-    },
-);
+    });
+});
