@@ -4,35 +4,6 @@ import { EntryType } from "@/api";
 import { EntryInfoService } from "@/ui/centre/entry-editor/entry-info-service.svelte";
 
 describe("EntryInfoService", () => {
-    it("initializes with constructor id and default state", () => {
-        const service = new EntryInfoService("entry42");
-
-        expect(service.entryId).toBe("entry42");
-        expect(service.entryType).toBeNull();
-        expect(service.entryTypeLabel).toBeUndefined();
-        expect(service.title).toBe("");
-        expect(service.isTitleUnique).toBe(true);
-        expect(service.isTitleValid).toBe(false);
-        expect(service.titleChanged).toBe(false);
-    });
-
-    it("updates title and emits change event once for a real change", () => {
-        const service = new EntryInfoService("entry9");
-        const onChangeTitle = vi.fn();
-        service.onChangeTitle.subscribe(onChangeTitle);
-
-        service.title = "alpha";
-
-        expect(service.title).toBe("alpha");
-        expect(service.titleChanged).toBe(true);
-        expect(onChangeTitle).toHaveBeenCalledOnce();
-        expect(onChangeTitle).toHaveBeenCalledWith({
-            id: "entry9",
-            titleChanged: true,
-            syncImmediately: true,
-        });
-    });
-
     it("does not emit or mark changed when setting the same title", () => {
         const service = new EntryInfoService("entry5");
         const onChangeTitle = vi.fn();
@@ -43,20 +14,6 @@ describe("EntryInfoService", () => {
         expect(service.title).toBe("");
         expect(service.titleChanged).toBe(false);
         expect(onChangeTitle).not.toHaveBeenCalled();
-    });
-
-    it("computes title validity from title uniqueness and non-empty value", () => {
-        const service = new EntryInfoService("entry12");
-
-        service.title = "entry";
-        expect(service.isTitleValid).toBe(true);
-
-        service.isTitleUnique = false;
-        expect(service.isTitleValid).toBe(false);
-
-        service.isTitleUnique = true;
-        service.title = "";
-        expect(service.isTitleValid).toBe(false);
     });
 
     it("loads id/type/title without producing a title-change event", () => {

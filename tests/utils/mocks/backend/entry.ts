@@ -14,55 +14,61 @@ import { compareStrings } from "@/utils/string";
 
 import { MockedCommand, MockedInvoker } from "./invoker";
 
-export function mockBulkUpdateEntries(mockedInvoker: MockedInvoker) {
-    const command = async ({
+export function mockBulkUpdateEntries(
+    mockedInvoker: MockedInvoker,
+    responses?: Record<string, Partial<EntryUpdateResponse>>,
+) {
+    const createResponse = (entry: BackendEntryUpdate) => {
+        if (responses?.[entry.id]) return responses[entry.id];
+
+        const wordResponses =
+            entry.words?.map((word) => {
+                const wordResponse: WordUpsertResponse = {
+                    id: word.id,
+                    status: {
+                        created: word.id === null,
+                        updated: word.id !== null,
+                    },
+                };
+                return wordResponse;
+            }) ?? [];
+
+        return {
+            id: entry.id,
+            folderId: {
+                updated: entry.folderId !== null,
+            },
+            title: {
+                updated: entry.title !== null,
+                isUnique: true,
+            },
+            properties: {
+                updated: entry.properties !== null,
+            },
+            text: {
+                updated: entry.text !== null,
+            },
+            words: wordResponses,
+        } as EntryUpdateResponse;
+    };
+
+    const createResponses = async ({
         entries,
     }: {
         entries: BackendEntryUpdate[];
-    }): Promise<DiagnosticResponse<EntryUpdateResponse>[]> => {
-        return entries.map((entry) => {
-            let wordResponses: WordUpsertResponse[] | null = null;
-            if (entry.words) {
-                wordResponses = entry.words.map((word) => {
-                    const wordResponse: WordUpsertResponse = {
-                        id: word.id,
-                        status: {
-                            created: word.id === null,
-                            updated: word.id !== null,
-                        },
-                    };
-                    return wordResponse;
-                });
-            }
-
-            const response: DiagnosticResponse<EntryUpdateResponse> = {
-                data: {
-                    id: entry.id,
-                    folderId: {
-                        updated: entry.folderId !== null,
-                    },
-                    title: {
-                        updated: entry.title !== null,
-                        isUnique: true,
-                    },
-                    properties: {
-                        updated: entry.properties !== null,
-                    },
-                    text: {
-                        updated: entry.text !== null,
-                    },
-                    words: wordResponses,
-                },
-                errors: [],
-            };
-
-            return response;
-        });
+    }) => {
+        return entries.map(
+            (entry) =>
+                ({
+                    data: createResponse(entry),
+                    errors: [],
+                }) as DiagnosticResponse<EntryUpdateResponse>,
+        );
     };
 
     mockedInvoker.mockCommand(
         CommandNames.Entry.BulkUpdate,
-        command as MockedCommand,
+        createResponses as MockedCommand,
     );
 }
 

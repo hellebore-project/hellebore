@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { EntryTitle } from "../title";
     import { PropertyTable } from "./property-table";
     import type { PropertyEditorProps } from "./property-editor-interface";
 
@@ -6,8 +7,9 @@
 </script>
 
 {#if service}
-    <div class="property-editor">
-        <div class="property-editor-stack space-y-4">
+    <div class="flex flex-col overflow-hidden w-full h-full">
+        <EntryTitle service={service?.info ?? null} />
+        <div class="space-y-4">
             <PropertyTable service={service?.tableService ?? null} />
         </div>
     </div>

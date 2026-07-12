@@ -1,5 +1,5 @@
 import { EntryViewType } from "@/constants";
-import type { EntryEditorService } from "@/ui/centre/entry-editor";
+import { EntryEditorService, EntryInfoService } from "@/ui/centre/entry-editor";
 
 import { test as baseTest } from "../fixtures";
 
@@ -7,6 +7,7 @@ export interface BaseEntryEditorFixtures {
     entryViewType: EntryViewType;
     entryEditorMocks: null;
     entryEditorService: EntryEditorService;
+    entryInfoService: EntryInfoService;
 }
 
 export const test = baseTest.extend<BaseEntryEditorFixtures>({
@@ -33,4 +34,7 @@ export const test = baseTest.extend<BaseEntryEditorFixtures>({
         },
         { auto: true },
     ],
+    entryInfoService: async ({ entryEditorService }, use) => {
+        await use(entryEditorService.info);
+    },
 });
