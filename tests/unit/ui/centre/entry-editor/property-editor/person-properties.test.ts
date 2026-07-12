@@ -34,6 +34,8 @@ test("edit person's name", async ({
     await user.click(textField);
     await user.type(textField, "-edited");
 
+    expect(propertyEditorService.changed).toBe(true);
+
     const modifiedName = `${name}-edited`;
     screen.getByDisplayValue(modifiedName);
     expect(propertyEditorService.entity?.toJSON()).toStrictEqual({

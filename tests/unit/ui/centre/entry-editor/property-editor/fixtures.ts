@@ -10,7 +10,6 @@ import { mockGetEntryProperties } from "@tests/utils/mocks";
 import { test as baseTest } from "../fixtures";
 
 export interface BasePropertyEditorFixtures {
-    entryType: EntryType.Person;
     entryProperties: PersonProperties;
     mockedEntryProperties: EntryPropertyResponse;
     propertyEditorService: PropertyEditorService;
@@ -18,7 +17,6 @@ export interface BasePropertyEditorFixtures {
 
 export const test = baseTest
     .extend<BasePropertyEditorFixtures>({
-        entryType: EntryType.Person,
         entryProperties: async ({}, use) => use({ name: "" }),
 
         mockedEntryProperties: async (
@@ -38,6 +36,7 @@ export const test = baseTest
         },
     })
     .override({
+        entryType: EntryType.Person,
         entryViewType: EntryViewType.PropertyEditor,
         entryEditorMocks: async ({ mockedEntryProperties }, use) => {
             await use(null);
