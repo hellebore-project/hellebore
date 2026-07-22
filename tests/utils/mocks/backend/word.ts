@@ -38,14 +38,14 @@ export function mockGetWords(
         languageId,
         wordType,
     }: {
-        languageId: number;
+        languageId: Id;
         wordType: WordType | null;
     }) => {
-        return words.map((w) => ({
-            ...w,
-            languageId: languageId,
-            wordType: wordType ?? WordType.RootWord,
-        }));
+        return words.filter(
+            (w) =>
+                w.languageId === languageId &&
+                (wordType === null || w.wordType === wordType),
+        );
     };
     mockedInvoker.mockCommand(
         CommandNames.Word.GetMany,
@@ -53,8 +53,11 @@ export function mockGetWords(
     );
 }
 
-export function mockDeleteWord(mockedInvoker: MockedInvoker) {
+export function mockDeleteWord(
+    mockedInvoker: MockedInvoker,
+    f: (() => void) | null = null,
+) {
     mockedInvoker.mockCommand(CommandNames.Word.Delete, async () => {
-        /* no-op */
+        f?.();
     });
 }
