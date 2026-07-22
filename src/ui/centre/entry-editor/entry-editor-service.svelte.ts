@@ -143,11 +143,12 @@ export class EntryEditorService implements ICentralPanelContentService {
         id,
         viewKey = EntryViewType.ArticleEditor,
     }: OpenEntryEditorEvent) {
-        if (viewKey == EntryViewType.ArticleEditor) return this.loadArticle(id);
+        if (viewKey == EntryViewType.ArticleEditor)
+            return await this.loadArticle(id);
         else if (viewKey == EntryViewType.PropertyEditor)
-            return this.loadProperties(id);
+            return await this.loadProperties(id);
         else if (viewKey == EntryViewType.WordEditor)
-            return this.loadLexicon(id);
+            return await this.loadLexicon(id);
         throw `Unable to load view with key ${viewKey}.`;
     }
 
@@ -195,7 +196,7 @@ export class EntryEditorService implements ICentralPanelContentService {
         }
     }
 
-    changeView(viewType: EntryViewType) {
+    async changeView(viewType: EntryViewType) {
         // the entry-editor is switching to a different view,
         // so any pending edits need to be pushed to the BE
         this.onChange.produce({
@@ -206,7 +207,7 @@ export class EntryEditorService implements ICentralPanelContentService {
             lexiconChanged: this.lexicon.changed,
             syncImmediately: true,
         });
-        this.load({
+        await this.load({
             id: this.info.entryId,
             viewKey: viewType,
         });

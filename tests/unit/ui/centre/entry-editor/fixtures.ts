@@ -23,10 +23,10 @@ export const test = baseTest.extend<BaseEntryEditorFixtures>({
     },
     entryEditorService: [
         async (
-            { clientManager, entryViewType, entryId, entryEditorMocks },
+            { centralPanelManager, entryViewType, entryId, entryEditorMocks },
             use,
         ) => {
-            const service = await clientManager.central.openEntryEditor({
+            const service = await centralPanelManager.openEntryEditor({
                 id: entryId,
                 viewKey: entryViewType,
             });

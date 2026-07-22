@@ -188,7 +188,7 @@ export class CentralPanelManager implements IComponentService {
 
     // UPDATING PANELS
 
-    changeEntryEditorView(id: string, viewType: EntryViewType) {
+    async changeEntryEditorView(id: string, viewType: EntryViewType) {
         const service = this.getPanel(id);
         if (!service) {
             console.error(`Central panel service ${id} not found.`);
@@ -196,7 +196,7 @@ export class CentralPanelManager implements IComponentService {
         }
 
         const entryEditorService = service as EntryEditorService;
-        entryEditorService.changeView(viewType);
+        await entryEditorService.changeView(viewType);
     }
 
     // ACCESSING PANELS

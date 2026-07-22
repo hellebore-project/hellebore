@@ -1,33 +1,23 @@
-import { waitFor } from "@testing-library/svelte";
 import { expect } from "vitest";
 
 import { EntryViewType } from "@/constants";
-import { CommandNames, type EntryPropertyResponse } from "@/api";
-import {
-    mockGetEntryArticle,
-    mockGetEntryProperties,
-} from "@tests/utils/mocks";
+import { CommandNames } from "@/api";
 
 import { test } from "./fixtures";
 
 test("opening the same entry twice reuses the loaded panel", async ({
-    clientManager,
+    centralPanelManager,
     entryId,
-    mockedEntryInfo,
-    entryArticle,
     mockedInvoker,
+    mockedEntryArticle,
+    mockedSearchedEntries,
 }) => {
-    mockGetEntryArticle(mockedInvoker, {
-        info: mockedEntryInfo,
-        text: entryArticle,
-    });
-
-    const firstService = await clientManager.central.openEntryEditor({
+    const firstService = await centralPanelManager.openEntryEditor({
         id: entryId,
         viewKey: EntryViewType.ArticleEditor,
     });
 
-    const secondService = await clientManager.central.openEntryEditor({
+    const secondService = await centralPanelManager.openEntryEditor({
         id: entryId,
         viewKey: EntryViewType.ArticleEditor,
     });
@@ -43,39 +33,28 @@ test("opening the same entry twice reuses the loaded panel", async ({
 });
 
 test("switching entry views loads the requested editor once", async ({
-    clientManager,
+    centralPanelManager,
     entryId,
-    mockedEntryInfo,
-    entryArticle,
     mockedInvoker,
+    mockedEntryInfo,
+    mockedEntryArticle,
+    mockedSearchedEntries,
+    mockedEntryProperties,
 }) => {
-    mockGetEntryArticle(mockedInvoker, {
-        info: mockedEntryInfo,
-        text: entryArticle,
-    });
-    mockGetEntryProperties(mockedInvoker, {
-        info: mockedEntryInfo,
-        properties: { name: "mocked-property-name" },
-    } as EntryPropertyResponse);
-
-    const service = await clientManager.central.openEntryEditor({
+    const service = await centralPanelManager.openEntryEditor({
         id: entryId,
         viewKey: EntryViewType.ArticleEditor,
     });
 
-    clientManager.central.changeEntryEditorView(
+    await centralPanelManager.changeEntryEditorView(
         service.id,
         EntryViewType.PropertyEditor,
     );
 
-    await waitFor(() => {
-        expect(service.currentView).toBe(EntryViewType.PropertyEditor);
-    });
-
     expect(service.isPropertyEditorOpen).toBe(true);
     expect(service.properties.entity).not.toBeNull();
     expect(service.properties.entity).toMatchObject({
-        name: "mocked-property-name",
+        name: "joan",
     });
 
     const propertyLoads = mockedInvoker.spy.mock.calls.filter(
@@ -83,7 +62,7 @@ test("switching entry views loads the requested editor once", async ({
     );
     expect(propertyLoads).toHaveLength(1);
 
-    const reopenedService = await clientManager.central.openEntryEditor({
+    const reopenedService = await centralPanelManager.openEntryEditor({
         id: entryId,
         viewKey: EntryViewType.ArticleEditor,
     });

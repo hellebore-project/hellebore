@@ -8,7 +8,9 @@ import {
     type FolderResponse,
     type ProjectResponse,
     DomainManager,
+    EntryPropertyResponse,
     EntryType,
+    PersonProperties,
 } from "@/api";
 import { ClientData } from "@/models";
 import { ClientManager } from "@/ui";
@@ -26,6 +28,7 @@ import {
     mockGetFolders,
     mockLoadProject,
     mockSearchEntries,
+    mockGetEntryProperties,
 } from "@tests/utils/mocks";
 
 import { test as baseTest } from "../fixtures";
@@ -52,6 +55,8 @@ export interface BaseUiFixtures {
     mockedFolders: FolderResponse[];
     mockedEntryInfo: EntryInfoResponse;
     mockedEntryArticle: EntryArticleResponse;
+    entryProperties: PersonProperties;
+    mockedEntryProperties: EntryPropertyResponse;
     mockedEntries: EntryInfoResponse[];
     mockedSearchedEntries: EntryInfoResponse[];
     mockedBulkEntryUpdate: null;
@@ -91,6 +96,7 @@ export const test = baseTest.extend<BaseUiFixtures>({
         ]);
         use(articleContent);
     },
+    entryProperties: async ({}, use) => use({ name: "joan" }),
     entryInfo: async ({ entryId, entryType, folderId, entryTitle }, use) => {
         const entry: EntryInfoResponse = {
             id: entryId,
@@ -139,6 +145,17 @@ export const test = baseTest.extend<BaseUiFixtures>({
         };
         mockGetEntryArticle(mockedInvoker, entryWithArticle);
         use(entryWithArticle);
+    },
+    mockedEntryProperties: async (
+        { mockedInvoker, mockedEntryInfo, entryProperties },
+        use,
+    ) => {
+        const entryWithProperties: EntryPropertyResponse = {
+            info: mockedEntryInfo,
+            properties: entryProperties,
+        };
+        mockGetEntryProperties(mockedInvoker, entryWithProperties);
+        await use(entryWithProperties);
     },
     mockedEntries: async ({ mockedInvoker, allEntries }, use) => {
         mockGetEntries(mockedInvoker, allEntries);

@@ -122,8 +122,8 @@ export class ClientManager implements IComponentService {
         );
 
         this.leftSideBar.onSelectEntryEditorNavItem.subscribe(
-            ({ panelId, type }) => {
-                this.central.changeEntryEditorView(panelId, type);
+            async ({ panelId, type }) => {
+                await this.central.changeEntryEditorView(panelId, type);
             },
         );
         this.leftSideBar.onOpenEntry.subscribe((args) =>
