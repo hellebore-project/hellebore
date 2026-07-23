@@ -1,63 +1,72 @@
-import { waitFor } from "@testing-library/svelte";
+import { screen, within } from "@testing-library/svelte";
 import { NIL as NIL_UUID } from "uuid";
-import { describe, expect, vi } from "vitest";
+import { expect, vi } from "vitest";
 
 import { EntryType } from "@/api";
+import { Header } from "@/ui/header";
+import { render } from "@tests/utils";
 
 import { test } from "./fixtures";
 
-describe("search service", () => {
-    test.override({
-        otherEntries: async ({}, use) => {
-            use([
-                {
-                    id: "entry2",
-                    entityType: EntryType.Person,
-                    folderId: NIL_UUID,
-                    title: "Dog2",
-                },
-            ]);
+test.override({
+    allEntries: [
+        {
+            id: "entry1",
+            entityType: EntryType.Person,
+            folderId: NIL_UUID,
+            title: "Dog",
         },
-    });
+        {
+            id: "entry2",
+            entityType: EntryType.Person,
+            folderId: NIL_UUID,
+            title: "Dog2",
+        },
+    ],
+});
 
-    test("typing keyword updates search results", async ({
-        headerManager,
-        entryTitle,
-    }) => {
-        headerManager.entrySearch.queryPeriod = 0;
+test("typing keyword updates search results with matching entry titles", async ({
+    user,
+    headerManager,
+}) => {
+    headerManager.entrySearch.queryPeriod = 0;
 
-        headerManager.entrySearch.queryString = "Do";
+    render(Header, { props: { service: headerManager } });
 
-        await waitFor(() => {
-            expect(headerManager.entrySearch.queryResults.length).toBe(2);
-        });
+    const searchField = screen.getByRole("combobox");
+    await user.click(searchField);
+    await user.keyboard("Do");
 
-        const labels = headerManager.entrySearch.queryResults.map(
-            (r) => r.label,
-        );
-        expect(labels).toContain(entryTitle);
-        expect(labels).toContain("Dog2");
-    });
+    const dropdown = screen.getByRole("presentation");
+    const options = within(dropdown).getAllByRole("option");
 
-    test("selecting an entry emits open-entry event", async ({
-        standaloneHeaderManager,
-    }) => {
-        const headerManager = standaloneHeaderManager;
+    expect(options.length).toBe(2);
+    expect(options[0].textContent).toBe("Dog");
+    expect(options[1].textContent).toBe("Dog2");
+});
 
-        const onOpenEntry = vi.fn();
-        headerManager.onOpenEntry.subscribe(onOpenEntry);
+test("selecting an entry emits open-entry event", async ({
+    user,
+    headerManager,
+}) => {
+    const onOpenEntry = vi.fn();
+    headerManager.onOpenEntry.subscribe(onOpenEntry);
 
-        headerManager.entrySearch.queryResults = [
-            {
-                label: "mocked-entry",
-                value: "entry1",
-            },
-        ];
+    headerManager.entrySearch.queryPeriod = 0;
 
-        headerManager.entrySearch.selectEntry("entry1");
+    render(Header, { props: { service: headerManager } });
 
-        expect(onOpenEntry).toHaveBeenCalledWith({ id: "entry1", focus: true });
-        expect(headerManager.entrySearch.queryString).toBe("");
-        expect(headerManager.entrySearch.queryResults).toStrictEqual([]);
-    });
+    let searchField = screen.getByRole("combobox");
+    await user.click(searchField);
+    await user.keyboard("Do");
+
+    const dropdown = screen.getByRole("presentation");
+    const options = within(dropdown).getAllByRole("option");
+    await user.click(options[0]);
+
+    expect(onOpenEntry).toHaveBeenCalledWith({ id: "entry1", focus: true });
+
+    searchField = screen.getByRole("combobox");
+    expect(searchField.textContent).toBe("");
+    expect(headerManager.entrySearch.queryString).toBe("");
 });
