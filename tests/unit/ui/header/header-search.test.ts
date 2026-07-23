@@ -14,7 +14,7 @@ describe("search service", () => {
                     id: "entry2",
                     entityType: EntryType.Person,
                     folderId: NIL_UUID,
-                    title: "mocked-entry-2",
+                    title: "Dog2",
                 },
             ]);
         },
@@ -26,7 +26,7 @@ describe("search service", () => {
     }) => {
         headerManager.entrySearch.queryPeriod = 0;
 
-        headerManager.entrySearch.queryString = "mocked";
+        headerManager.entrySearch.queryString = "Do";
 
         await waitFor(() => {
             expect(headerManager.entrySearch.queryResults.length).toBe(2);
@@ -36,7 +36,7 @@ describe("search service", () => {
             (r) => r.label,
         );
         expect(labels).toContain(entryTitle);
-        expect(labels).toContain("mocked-entry-2");
+        expect(labels).toContain("Dog2");
     });
 
     test("selecting an entry emits open-entry event", async ({

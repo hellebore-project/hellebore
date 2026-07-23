@@ -7,10 +7,7 @@ export interface BaseCentreFixtures {
 }
 
 export const test = baseTest.extend<BaseCentreFixtures>({
-    centralPanelManager: [
-        async ({ clientManager }, use) => {
-            await use(clientManager.central);
-        },
-        { auto: true },
-    ],
+    centralPanelManager: async ({ clientManager }, use) => {
+        await use(clientManager.central);
+    },
 });

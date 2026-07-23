@@ -1,69 +1,81 @@
-import { describe, expect, it, vi } from "vitest";
+import { expect, vi } from "vitest";
 
 import { EntryType } from "@/api";
-import { EntryInfoService } from "@/ui/centre/entry-editor/entry-info-service.svelte";
 
-describe("EntryInfoService", () => {
-    it("does not emit or mark changed when setting the same title", () => {
-        const service = new EntryInfoService("entry5");
-        const onChangeTitle = vi.fn();
-        service.onChangeTitle.subscribe(onChangeTitle);
+import { test } from "./fixtures";
 
-        service.title = "";
+test("loads basic entry info", async ({
+    entryInfoService,
+    entryId,
+    entryType,
+    entryTitle,
+}) => {
+    expect(entryInfoService.entryId).toBe(entryId);
+    expect(entryInfoService.entryType).toBe(entryType);
+    expect(entryInfoService.entryTypeLabel).toBe("Person");
+    expect(entryInfoService.title).toBe(entryTitle);
+    expect(entryInfoService.titleChanged).toBe(false);
+    expect(entryInfoService.isTitleUnique).toBe(true);
+    expect(entryInfoService.isTitleValid).toBe(true);
+});
 
-        expect(service.title).toBe("");
-        expect(service.titleChanged).toBe(false);
-        expect(onChangeTitle).not.toHaveBeenCalled();
-    });
+test("title-change event is triggered on title change", async ({
+    entryInfoService,
+}) => {
+    const onChangeTitle = vi.fn();
+    entryInfoService.onChangeTitle.subscribe(onChangeTitle);
 
-    it("loads id/type/title without producing a title-change event", () => {
-        const service = new EntryInfoService("entry1");
-        const onChangeTitle = vi.fn();
-        service.onChangeTitle.subscribe(onChangeTitle);
+    entryInfoService.title = "Vergil";
+    expect(entryInfoService.title).toBe("Vergil");
 
-        service.isTitleUnique = false;
-        service.load("entry44", EntryType.Person, "Ada");
+    expect(onChangeTitle).toHaveBeenCalled();
+});
 
-        expect(service.entryId).toBe("entry44");
-        expect(service.entryType).toBe(EntryType.Person);
-        expect(service.entryTypeLabel).toBe("Person");
-        expect(service.title).toBe("Ada");
-        expect(service.isTitleUnique).toBe(true);
-        expect(service.isTitleValid).toBe(true);
-        expect(onChangeTitle).not.toHaveBeenCalled();
-    });
+test("title-change event is not triggered when the title is set to the current value", async ({
+    entryInfoService,
+    entryTitle,
+}) => {
+    const onChangeTitle = vi.fn();
+    entryInfoService.onChangeTitle.subscribe(onChangeTitle);
 
-    it("handleSynchronization keeps titleChanged false when incoming title is unchanged", () => {
-        const service = new EntryInfoService("entry7");
-        const onChangeTitle = vi.fn();
-        service.onChangeTitle.subscribe(onChangeTitle);
+    entryInfoService.title = entryTitle;
+    expect(entryInfoService.title).toBe(entryTitle);
 
-        service.load("entry7", EntryType.Language, "Greek");
-        service.titleChanged = true;
+    expect(onChangeTitle).not.toHaveBeenCalled();
+});
 
-        service.handleSynchronization("Greek");
+test("handleSynchronization keeps titleChanged false when incoming title is unchanged", async ({
+    entryInfoService,
+}) => {
+    const onChangeTitle = vi.fn();
+    entryInfoService.onChangeTitle.subscribe(onChangeTitle);
 
-        expect(service.title).toBe("Greek");
-        expect(service.titleChanged).toBe(false);
-        expect(onChangeTitle).not.toHaveBeenCalled();
-    });
+    entryInfoService.load("entry1", EntryType.Language, "Greek");
+    entryInfoService.titleChanged = true;
 
-    it("handleSynchronization re-flags and emits when incoming title differs", () => {
-        const service = new EntryInfoService("entry7");
-        const onChangeTitle = vi.fn();
-        service.onChangeTitle.subscribe(onChangeTitle);
+    entryInfoService.handleSynchronization("Greek");
 
-        service.load("entry7", EntryType.Language, "Greek");
+    expect(entryInfoService.title).toBe("Greek");
+    expect(entryInfoService.titleChanged).toBe(false);
+    expect(onChangeTitle).not.toHaveBeenCalled();
+});
 
-        service.handleSynchronization("Latin");
+test("handleSynchronization re-flags and emits when incoming title differs", async ({
+    entryInfoService,
+}) => {
+    const onChangeTitle = vi.fn();
+    entryInfoService.onChangeTitle.subscribe(onChangeTitle);
 
-        expect(service.title).toBe("Latin");
-        expect(service.titleChanged).toBe(true);
-        expect(onChangeTitle).toHaveBeenCalledOnce();
-        expect(onChangeTitle).toHaveBeenCalledWith({
-            id: "entry7",
-            titleChanged: true,
-            syncImmediately: true,
-        });
+    entryInfoService.load("entry1", EntryType.Language, "Greek");
+
+    entryInfoService.handleSynchronization("Latin");
+
+    expect(entryInfoService.title).toBe("Latin");
+    expect(entryInfoService.titleChanged).toBe(true);
+    expect(onChangeTitle).toHaveBeenCalledOnce();
+    expect(onChangeTitle).toHaveBeenCalledWith({
+        id: "entry1",
+        titleChanged: true,
+        syncImmediately: true,
     });
 });
