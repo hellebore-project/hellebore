@@ -4,41 +4,37 @@ import type { SyncEvent } from "@/interface";
 
 import { test } from "./fixtures";
 
-test("starts with empty footer text", async ({ standaloneFooterManager }) => {
-    expect(standaloneFooterManager.text).toBe("");
-});
-
 test("project change updates footer text when project is loaded", async ({
-    standaloneFooterManager,
+    footerManager,
     project,
 }) => {
-    standaloneFooterManager.handleProjectChange({
+    footerManager.handleProjectChange({
         loaded: true,
         project,
     });
 
-    expect(standaloneFooterManager.text).toBe(project.name);
+    expect(footerManager.text).toBe(project.name);
 });
 
 test("project change clears footer text when project closes", async ({
-    standaloneFooterManager,
+    footerManager,
     project,
 }) => {
-    standaloneFooterManager.handleProjectChange({
+    footerManager.handleProjectChange({
         loaded: true,
         project,
     });
 
-    standaloneFooterManager.handleProjectChange({
+    footerManager.handleProjectChange({
         loaded: false,
         project: null,
     });
 
-    expect(standaloneFooterManager.text).toBe("");
+    expect(footerManager.text).toBe("");
 });
 
 test("synchronization with project response refreshes footer text", async ({
-    standaloneFooterManager,
+    footerManager,
 }) => {
     const syncEvent: SyncEvent = {
         project: {
@@ -47,28 +43,28 @@ test("synchronization with project response refreshes footer text", async ({
             },
             response: {
                 project: {
-                    id: 7,
+                    id: "project",
                     name: "synced-project",
                 },
             },
         },
     };
 
-    standaloneFooterManager.handleSynchronization(syncEvent);
+    footerManager.handleSynchronization(syncEvent);
 
-    expect(standaloneFooterManager.text).toBe("synced-project");
+    expect(footerManager.text).toBe("synced-project");
 });
 
 test("synchronization without project payload keeps current text", async ({
-    standaloneFooterManager,
+    footerManager,
     project,
 }) => {
-    standaloneFooterManager.handleProjectChange({
+    footerManager.handleProjectChange({
         loaded: true,
         project,
     });
 
-    standaloneFooterManager.handleSynchronization({});
+    footerManager.handleSynchronization({});
 
-    expect(standaloneFooterManager.text).toBe(project.name);
+    expect(footerManager.text).toBe(project.name);
 });

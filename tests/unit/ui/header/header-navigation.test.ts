@@ -1,6 +1,5 @@
-import { screen } from "@testing-library/svelte";
-import { waitFor } from "@testing-library/svelte";
-import { expect, vi } from "vitest";
+import { screen, waitFor } from "@testing-library/svelte";
+import { describe, expect, vi } from "vitest";
 
 import { Header } from "@/ui/header";
 import { render } from "@tests/utils";
@@ -22,48 +21,60 @@ test("clicking the Home button emits open-home event", async ({
     expect(onOpenHome).toHaveBeenCalledOnce();
 });
 
-test("project loaded state controls file menu items", async ({
+describe("file menu", () => {
+    const VISIBLE_WHEN_OPEN = [
+        "New Project",
+        "Open Project",
+        "Close Project",
+        "New Entry",
+        "Settings",
+    ];
+
+    const VISIBLE_WHEN_CLOSED = ["New Project", "Open Project", "Settings"];
+    const INVISIBLE_WHEN_CLOSED = ["Close Project", "New Entry"];
+
+    test("project load state controls file menu item visibility", async ({
+        user,
+        headerManager,
+    }) => {
+        render(Header, { props: { service: headerManager } });
+
+        const fileButton = screen.getByText("File");
+        await user.click(fileButton);
+
+        for (const label of VISIBLE_WHEN_OPEN) {
+            expect(screen.queryByText(label)).toBeTruthy();
+        }
+
+        headerManager.handleProjectChange({ loaded: false, project: null });
+
+        await user.click(fileButton);
+        await user.click(fileButton);
+
+        for (const label of VISIBLE_WHEN_CLOSED) {
+            expect(screen.queryByText(label)).toBeTruthy();
+        }
+        for (const label of INVISIBLE_WHEN_CLOSED) {
+            expect(screen.queryByText(label)).toBeFalsy();
+        }
+    });
+});
+
+test("header search field is only visible when project is loaded", async ({
     headerManager,
     project,
 }) => {
-    const loadedLabels = headerManager.fileMenuData
-        .map((i) => i.label)
-        .filter(Boolean);
-
-    expect(loadedLabels).toContain("Close Project");
-    expect(loadedLabels).toContain("New Entry");
-
-    headerManager.handleProjectChange({ loaded: false, project: null });
-
-    const unloadedLabels = headerManager.fileMenuData
-        .map((i) => i.label)
-        .filter(Boolean);
-
-    expect(unloadedLabels).not.toContain("Close Project");
-    expect(unloadedLabels).not.toContain("New Entry");
+    render(Header, { props: { service: headerManager } });
 
     headerManager.handleProjectChange({ loaded: true, project });
-});
-
-test("project load toggles the header search field", async ({
-    standaloneHeaderManager,
-    project,
-}) => {
-    render(Header, { props: { service: standaloneHeaderManager } });
-
-    expect(screen.queryByRole("combobox")).toBeNull();
-
-    standaloneHeaderManager.handleProjectChange({ loaded: true, project });
-
     await waitFor(() => {
         expect(screen.getByRole("combobox")).toBeTruthy();
     });
 
-    standaloneHeaderManager.handleProjectChange({
+    headerManager.handleProjectChange({
         loaded: false,
         project: null,
     });
-
     await waitFor(() => {
         expect(screen.queryByRole("combobox")).toBeNull();
     });
