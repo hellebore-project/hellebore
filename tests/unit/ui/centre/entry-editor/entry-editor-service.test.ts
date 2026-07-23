@@ -54,7 +54,7 @@ test("switching entry views loads the requested editor once", async ({
     expect(service.isPropertyEditorOpen).toBe(true);
     expect(service.properties.entity).not.toBeNull();
     expect(service.properties.entity).toMatchObject({
-        name: "joan",
+        name: "Dante",
     });
 
     const propertyLoads = mockedInvoker.spy.mock.calls.filter(

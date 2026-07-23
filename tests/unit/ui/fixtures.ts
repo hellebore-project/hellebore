@@ -88,7 +88,7 @@ export const test = baseTest.extend<BaseUiFixtures>({
 
     entryId: "entry",
     entryType: EntryType.Person,
-    entryTitle: "mocked-title",
+    entryTitle: "Dog",
     entryArticleText: "mocked article text",
     entryArticle: async ({ entryArticleText }, use) => {
         const articleContent = createDocNode([
@@ -96,7 +96,7 @@ export const test = baseTest.extend<BaseUiFixtures>({
         ]);
         use(articleContent);
     },
-    entryProperties: async ({}, use) => use({ name: "joan" }),
+    entryProperties: async ({}, use) => use({ name: "Dante" }),
     entryInfo: async ({ entryId, entryType, folderId, entryTitle }, use) => {
         const entry: EntryInfoResponse = {
             id: entryId,
