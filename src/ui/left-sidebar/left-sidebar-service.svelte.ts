@@ -172,6 +172,10 @@ export class LeftSidebarService implements IComponentService {
 
     // REMOVING SECTIONS
 
+    removeAllSections() {
+        for (const id of [...this._sectionIds]) this._removeSectionById(id);
+    }
+
     removeSection(type: SidebarSectionType) {
         // callers won't know the ID of the section, so they'll have to rely on the type;
         // for now, section's are basically singletons, meaning that we can treat the ID and the type interchangeably

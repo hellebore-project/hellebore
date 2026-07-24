@@ -1,10 +1,52 @@
-import { waitFor } from "@testing-library/svelte";
-import { describe, expect, vi } from "vitest";
+import { screen, waitFor } from "@testing-library/svelte";
 import { NIL as NIL_UUID } from "uuid";
+import { describe, expect, vi } from "vitest";
 
-import { SyncType } from "@/constants";
+import { SidebarSectionType, SyncType } from "@/constants";
+import { LeftSidebar } from "@/ui/left-sidebar";
+import { render } from "@tests/utils";
 
 import { test } from "./fixtures";
+
+test("is a singleton", async ({ leftSidebarService }) => {
+    leftSidebarService.removeAllSections();
+
+    render(LeftSidebar, { props: { service: leftSidebarService } });
+
+    const sectionService1 = leftSidebarService.addSpotlight("owner-1");
+    const sectionService2 = leftSidebarService.addSpotlight("owner-2");
+    expect(sectionService1).toBe(sectionService2);
+});
+
+test("can only be removed by the original owner", async ({
+    leftSidebarService,
+}) => {
+    leftSidebarService.removeAllSections();
+
+    render(LeftSidebar, { props: { service: leftSidebarService } });
+
+    leftSidebarService.addSpotlight("owner-1");
+
+    const spotlight = await screen.findByText("SPOTLIGHT");
+    expect(spotlight).toBeTruthy();
+
+    let released = leftSidebarService.releaseSection({
+        ownerId: "owner-2",
+        type: SidebarSectionType.EntrySpotlight,
+    });
+    expect(released).toBe(false);
+
+    released = leftSidebarService.releaseSection({
+        ownerId: "owner-1",
+        type: SidebarSectionType.EntrySpotlight,
+    });
+    expect(released).toBe(true);
+
+    expect(
+        leftSidebarService.getSectionByType(SidebarSectionType.EntrySpotlight),
+    ).toBeNull();
+    waitFor(() => expect(screen.queryByText("SPOTLIGHT")).toBeNull());
+});
 
 describe("entry spotlight interactions", () => {
     test.override({
@@ -20,10 +62,10 @@ describe("entry spotlight interactions", () => {
     });
 
     test("selecting a leaf node focuses spotlight and emits open-entry", async ({
-        standaloneLeftSidebar,
+        leftSidebarService,
         entryId,
     }) => {
-        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const spotlight = leftSidebarService.addSpotlight("owner");
         const onOpenEntry = vi.fn();
         spotlight.onOpenEntry.subscribe(onOpenEntry);
 
@@ -45,11 +87,11 @@ describe("entry spotlight interactions", () => {
     });
 
     test("tracks renamed entries for polling and clears synced changes", async ({
-        standaloneLeftSidebar,
+        leftSidebarService,
         entryId,
     }) => {
-        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
-        standaloneLeftSidebar.onDataChange.subscribe(() => undefined);
+        const spotlight = leftSidebarService.addSpotlight("owner");
+        leftSidebarService.onDataChange.subscribe(() => undefined);
 
         await waitFor(() => {
             expect(
@@ -108,12 +150,12 @@ describe("entry spotlight interactions", () => {
     });
 
     test("moving an entry emits deferred folder sync changes", async ({
-        standaloneLeftSidebar,
+        leftSidebarService,
         entryId,
     }) => {
-        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const spotlight = leftSidebarService.addSpotlight("owner");
         const onDataChange = vi.fn();
-        standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
+        leftSidebarService.onDataChange.subscribe(onDataChange);
 
         const node = await waitFor(() => {
             const node = spotlight.tree.getNode(
@@ -171,15 +213,15 @@ describe("entry spotlight interactions", () => {
     });
 
     test("awaits folder creation and sets node id from response", async ({
-        standaloneLeftSidebar,
+        leftSidebarService,
     }) => {
-        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const spotlight = leftSidebarService.addSpotlight("owner");
         const onCreateFolder = vi.fn().mockResolvedValue({
             id: "folder99",
             parentId: NIL_UUID,
             name: "new folder",
         });
-        standaloneLeftSidebar.onCreateFolder.subscribe(onCreateFolder);
+        leftSidebarService.onCreateFolder.subscribe(onCreateFolder);
 
         const placeholderFolder = spotlight.tree.addBranchNode({
             id: "new-folder",
@@ -202,11 +244,11 @@ describe("entry spotlight interactions", () => {
     });
 
     test("tracks renamed folders for deferred sync and clears them after sync", async ({
-        standaloneLeftSidebar,
+        leftSidebarService,
     }) => {
-        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const spotlight = leftSidebarService.addSpotlight("owner");
         const onDataChange = vi.fn();
-        standaloneLeftSidebar.onDataChange.subscribe(onDataChange);
+        leftSidebarService.onDataChange.subscribe(onDataChange);
 
         const folderNode = spotlight.tree.addBranchNode({
             id: spotlight.generateFolderNodeId("folder7"),
@@ -270,9 +312,9 @@ describe("entry spotlight interactions", () => {
     });
 
     test("rejects folder validation when parent is a placeholder node", async ({
-        standaloneLeftSidebar,
+        leftSidebarService,
     }) => {
-        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const spotlight = leftSidebarService.addSpotlight("owner");
 
         const placeholderParent = spotlight.tree.addBranchNode({
             id: "new-parent",
@@ -300,11 +342,11 @@ describe("entry spotlight interactions", () => {
     });
 
     test("does not emit folder creation when parent is a placeholder node", async ({
-        standaloneLeftSidebar,
+        leftSidebarService,
     }) => {
-        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const spotlight = leftSidebarService.addSpotlight("owner");
         const onCreateFolder = vi.fn();
-        standaloneLeftSidebar.onCreateFolder.subscribe(onCreateFolder);
+        leftSidebarService.onCreateFolder.subscribe(onCreateFolder);
 
         const placeholderParent = spotlight.tree.addBranchNode({
             id: "new-parent",
@@ -326,9 +368,9 @@ describe("entry spotlight interactions", () => {
     });
 
     test("does not emit folder move when source parent is a placeholder node", async ({
-        standaloneLeftSidebar,
+        leftSidebarService,
     }) => {
-        const spotlight = standaloneLeftSidebar.addSpotlight("owner");
+        const spotlight = leftSidebarService.addSpotlight("owner");
         const onMoveFolder = vi.fn(async () => ({
             moved: true,
             cancelled: false,
