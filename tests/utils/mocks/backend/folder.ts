@@ -1,6 +1,7 @@
 import { Id } from "@/interface";
 import {
     CommandNames,
+    FolderCreate,
     type BulkEntryResponse,
     type DiagnosticResponse,
     type FolderBulkUpdateData,
@@ -9,6 +10,17 @@ import {
 } from "@/api";
 
 import { MockedInvoker } from "./invoker";
+
+export function mockCreateFolder(
+    mockedInvoker: MockedInvoker,
+    id: Id,
+    info: FolderCreate,
+) {
+    mockedInvoker.mockCommand(CommandNames.Folder.Create, async () => ({
+        id,
+        ...info,
+    }));
+}
 
 export function mockUpdateFolder(
     mockedInvoker: MockedInvoker,

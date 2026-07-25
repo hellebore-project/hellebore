@@ -3,10 +3,11 @@ import { NIL as NIL_UUID } from "uuid";
 import { describe, expect, vi } from "vitest";
 
 import { SidebarSectionType, SyncType } from "@/constants";
-import { LeftSidebar } from "@/ui/left-sidebar";
+import { EntrySpotlight, LeftSidebar } from "@/ui/left-sidebar";
 import { render } from "@tests/utils";
 
 import { test } from "./fixtures";
+import { mockCreateFolder } from "@tests/utils/mocks";
 
 test("is a singleton", async ({ leftSidebarService }) => {
     leftSidebarService.removeAllSections();
@@ -48,7 +49,246 @@ test("can only be removed by the original owner", async ({
     waitFor(() => expect(screen.queryByText("SPOTLIGHT")).toBeNull());
 });
 
-describe("entry spotlight interactions", () => {
+test("selecting a leaf node focuses spotlight and emits open-entry", async ({
+    user,
+    entrySpotlightService,
+    entryId,
+    entryTitle,
+}) => {
+    const onOpenEntry = vi.fn();
+    entrySpotlightService.onOpenEntry.subscribe(onOpenEntry);
+
+    render(EntrySpotlight, { props: { service: entrySpotlightService } });
+
+    const node = screen.getByText(entryTitle);
+    await user.click(node);
+
+    expect(entrySpotlightService.focused).toBe(true);
+    expect(onOpenEntry).toHaveBeenCalledWith({ id: entryId });
+});
+
+test("tracks renamed entries for polling and clears synced changes", async ({
+    leftSidebarService,
+    entrySpotlightService,
+    entryId,
+}) => {
+    leftSidebarService.onDataChange.subscribe(() => undefined);
+
+    const nodeId = entrySpotlightService.generateEntryNodeId(entryId);
+    const node = await waitFor(() => {
+        const node = entrySpotlightService.tree.getNode(nodeId);
+        expect(node).toBeTruthy();
+        return node;
+    });
+
+    node!.text = "renamed title";
+    await entrySpotlightService.updateName(node!);
+
+    expect(
+        entrySpotlightService.fetchChanges({ type: SyncType.FULL }),
+    ).toStrictEqual({
+        entries: [{ id: entryId, title: "renamed title" }],
+        folders: [],
+    });
+    expect(
+        entrySpotlightService.fetchChanges({
+            type: SyncType.PARTIAL,
+            entries: [{ id: entryId, syncTitle: true }],
+        }),
+    ).toStrictEqual({
+        entries: [{ id: entryId, title: "renamed title" }],
+        folders: [],
+    });
+
+    entrySpotlightService.handleSynchronization({
+        entries: [
+            {
+                request: {
+                    id: entryId,
+                    title: "renamed title",
+                    words: null,
+                },
+                response: {
+                    entry: {
+                        id: entryId,
+                        folderId: { updated: false },
+                        title: { updated: true, isUnique: true },
+                        properties: { updated: false },
+                        text: { updated: false },
+                        words: [],
+                    },
+                },
+            },
+        ],
+    });
+
+    expect(
+        entrySpotlightService.fetchChanges({ type: SyncType.FULL }),
+    ).toStrictEqual({
+        entries: [],
+        folders: [],
+    });
+});
+
+test("tracks renamed folders for deferred sync and clears them after sync", async ({
+    leftSidebarService,
+    entrySpotlightService,
+}) => {
+    const onDataChange = vi.fn();
+    leftSidebarService.onDataChange.subscribe(onDataChange);
+
+    const folderNode = entrySpotlightService.tree.addBranchNode({
+        id: entrySpotlightService.generateFolderNodeId("folder7"),
+        parentId: entrySpotlightService.tree.rootNodeId,
+        text: "old folder",
+        data: {
+            id: "folder7",
+            titleChanged: false,
+            folderIdChanged: false,
+        },
+    });
+
+    folderNode.text = "renamed folder";
+    await entrySpotlightService.updateName(folderNode);
+
+    expect(onDataChange).toHaveBeenCalledWith({
+        folders: [
+            {
+                id: "folder7",
+                titleChanged: true,
+                syncImmediately: false,
+            },
+        ],
+    });
+    expect(
+        entrySpotlightService.fetchChanges({ type: SyncType.FULL }),
+    ).toStrictEqual({
+        entries: [],
+        folders: [
+            {
+                id: "folder7",
+                parentId: NIL_UUID,
+                name: "renamed folder",
+            },
+        ],
+    });
+
+    entrySpotlightService.handleSynchronization({
+        folders: [
+            {
+                request: {
+                    id: "folder7",
+                    parentId: NIL_UUID,
+                    name: "renamed folder",
+                },
+                response: {
+                    folder: {
+                        id: "folder7",
+                        parentId: NIL_UUID,
+                        name: "renamed folder",
+                        nameChanged: true,
+                        parentChanged: false,
+                    },
+                },
+            },
+        ],
+    });
+
+    expect(
+        entrySpotlightService.fetchChanges({ type: SyncType.FULL }),
+    ).toStrictEqual({
+        entries: [],
+        folders: [],
+    });
+});
+
+test("awaits folder creation and sets node id from response", async ({
+    mockedInvoker,
+    entrySpotlightService,
+}) => {
+    mockCreateFolder(mockedInvoker, "folder99", {
+        parentId: NIL_UUID,
+        name: "new folder",
+    });
+
+    const placeholderFolder = entrySpotlightService.tree.addBranchNode({
+        id: "new-folder",
+        parentId: entrySpotlightService.tree.rootNodeId,
+        text: "new folder",
+        data: { id: null, titleChanged: false, folderIdChanged: false },
+    });
+
+    await entrySpotlightService.updateName(placeholderFolder);
+
+    expect(entrySpotlightService.tree.getNode("new-folder")?.data.id).toBe(
+        "folder99",
+    );
+    expect(
+        entrySpotlightService.fetchChanges({ type: SyncType.FULL }),
+    ).toStrictEqual({
+        entries: [],
+        folders: [],
+    });
+});
+
+test("does not emit folder creation when parent is a placeholder node", async ({
+    leftSidebarService,
+    entrySpotlightService,
+}) => {
+    const onCreateFolder = vi.fn();
+    leftSidebarService.onCreateFolder.subscribe(onCreateFolder);
+
+    const placeholderParent = entrySpotlightService.tree.addBranchNode({
+        id: "new-parent",
+        parentId: entrySpotlightService.tree.rootNodeId,
+        text: "",
+        data: { id: null, titleChanged: false, folderIdChanged: false },
+    });
+    const childPlaceholder = entrySpotlightService.tree.addBranchNode({
+        id: "new-child",
+        parentId: placeholderParent.id,
+        text: "child",
+        data: { id: null, titleChanged: false, folderIdChanged: false },
+    });
+
+    const result = await entrySpotlightService.updateName(childPlaceholder);
+
+    expect(result.success).toBe(false);
+    expect(onCreateFolder).not.toHaveBeenCalled();
+});
+
+test("rejects folder validation when parent is a placeholder node", async ({
+    entrySpotlightService,
+}) => {
+    const placeholderParent = entrySpotlightService.tree.addBranchNode({
+        id: "new-parent",
+        parentId: entrySpotlightService.tree.rootNodeId,
+        text: "",
+        data: { id: null, titleChanged: false, folderIdChanged: false },
+    });
+    const childFolder = entrySpotlightService.tree.addBranchNode({
+        id: "folder-child",
+        parentId: placeholderParent.id,
+        text: "child",
+        data: {
+            id: "folder99",
+            titleChanged: false,
+            folderIdChanged: false,
+        },
+    });
+
+    const result = await entrySpotlightService.validateName(
+        childFolder,
+        "renamed",
+    );
+
+    expect(result).toStrictEqual({
+        success: false,
+        message: "Parent folder is not available yet.",
+    });
+});
+
+describe("moving a node", () => {
     test.override({
         otherFolders: async ({}, use) => {
             use([
@@ -61,113 +301,25 @@ describe("entry spotlight interactions", () => {
         },
     });
 
-    test("selecting a leaf node focuses spotlight and emits open-entry", async ({
-        leftSidebarService,
-        entryId,
-    }) => {
-        const spotlight = leftSidebarService.addSpotlight("owner");
-        const onOpenEntry = vi.fn();
-        spotlight.onOpenEntry.subscribe(onOpenEntry);
-
-        await waitFor(() => {
-            expect(
-                spotlight.tree.getNode(spotlight.generateEntryNodeId(entryId)),
-            ).toBeTruthy();
-        });
-
-        const node = spotlight.tree.getNode(
-            spotlight.generateEntryNodeId(entryId),
-        );
-        expect(node).toBeTruthy();
-
-        spotlight.selectEntry(node!);
-
-        expect(spotlight.focused).toBe(true);
-        expect(onOpenEntry).toHaveBeenCalledWith({ id: entryId });
-    });
-
-    test("tracks renamed entries for polling and clears synced changes", async ({
-        leftSidebarService,
-        entryId,
-    }) => {
-        const spotlight = leftSidebarService.addSpotlight("owner");
-        leftSidebarService.onDataChange.subscribe(() => undefined);
-
-        await waitFor(() => {
-            expect(
-                spotlight.tree.getNode(spotlight.generateEntryNodeId(entryId)),
-            ).toBeTruthy();
-        });
-
-        const node = spotlight.tree.getNode(
-            spotlight.generateEntryNodeId(entryId),
-        );
-        expect(node).toBeTruthy();
-
-        node!.text = "renamed title";
-        await spotlight.updateName(node!);
-
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
-            entries: [{ id: entryId, title: "renamed title" }],
-            folders: [],
-        });
-        expect(
-            spotlight.fetchChanges({
-                type: SyncType.PARTIAL,
-                entries: [{ id: entryId, syncTitle: true }],
-            }),
-        ).toStrictEqual({
-            entries: [{ id: entryId, title: "renamed title" }],
-            folders: [],
-        });
-
-        spotlight.handleSynchronization({
-            entries: [
-                {
-                    request: {
-                        id: entryId,
-                        title: "renamed title",
-                        words: null,
-                    },
-                    response: {
-                        entry: {
-                            id: entryId,
-                            folderId: { updated: false },
-                            title: { updated: true, isUnique: true },
-                            properties: { updated: false },
-                            text: { updated: false },
-                            words: [],
-                        },
-                    },
-                },
-            ],
-        });
-
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
-            entries: [],
-            folders: [],
-        });
-    });
-
     test("moving an entry emits deferred folder sync changes", async ({
         leftSidebarService,
+        entrySpotlightService,
         entryId,
     }) => {
-        const spotlight = leftSidebarService.addSpotlight("owner");
         const onDataChange = vi.fn();
         leftSidebarService.onDataChange.subscribe(onDataChange);
 
         const node = await waitFor(() => {
-            const node = spotlight.tree.getNode(
-                spotlight.generateEntryNodeId(entryId),
+            const node = entrySpotlightService.tree.getNode(
+                entrySpotlightService.generateEntryNodeId(entryId),
             );
             expect(node).toBeTruthy();
             return node;
         });
 
-        await spotlight.tree.moveNode(
+        await entrySpotlightService.tree.moveNode(
             node!.id,
-            spotlight.generateFolderNodeId("folder2"),
+            entrySpotlightService.generateFolderNodeId("folder2"),
         );
 
         expect(onDataChange).toHaveBeenCalledWith({
@@ -179,12 +331,14 @@ describe("entry spotlight interactions", () => {
                 },
             ],
         });
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+        expect(
+            entrySpotlightService.fetchChanges({ type: SyncType.FULL }),
+        ).toStrictEqual({
             entries: [{ id: entryId, folderId: "folder2" }],
             folders: [],
         });
 
-        spotlight.handleSynchronization({
+        entrySpotlightService.handleSynchronization({
             entries: [
                 {
                     request: {
@@ -206,186 +360,32 @@ describe("entry spotlight interactions", () => {
             ],
         });
 
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
+        expect(
+            entrySpotlightService.fetchChanges({ type: SyncType.FULL }),
+        ).toStrictEqual({
             entries: [],
             folders: [],
         });
-    });
-
-    test("awaits folder creation and sets node id from response", async ({
-        leftSidebarService,
-    }) => {
-        const spotlight = leftSidebarService.addSpotlight("owner");
-        const onCreateFolder = vi.fn().mockResolvedValue({
-            id: "folder99",
-            parentId: NIL_UUID,
-            name: "new folder",
-        });
-        leftSidebarService.onCreateFolder.subscribe(onCreateFolder);
-
-        const placeholderFolder = spotlight.tree.addBranchNode({
-            id: "new-folder",
-            parentId: spotlight.tree.rootNodeId,
-            text: "new folder",
-            data: { id: null, titleChanged: false, folderIdChanged: false },
-        });
-
-        await spotlight.updateName(placeholderFolder);
-
-        expect(onCreateFolder).toHaveBeenCalledWith({
-            name: "new folder",
-            parentFolderId: NIL_UUID,
-        });
-        expect(spotlight.tree.getNode("new-folder")?.data.id).toBe("folder99");
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
-            entries: [],
-            folders: [],
-        });
-    });
-
-    test("tracks renamed folders for deferred sync and clears them after sync", async ({
-        leftSidebarService,
-    }) => {
-        const spotlight = leftSidebarService.addSpotlight("owner");
-        const onDataChange = vi.fn();
-        leftSidebarService.onDataChange.subscribe(onDataChange);
-
-        const folderNode = spotlight.tree.addBranchNode({
-            id: spotlight.generateFolderNodeId("folder7"),
-            parentId: spotlight.tree.rootNodeId,
-            text: "old folder",
-            data: {
-                id: "folder7",
-                titleChanged: false,
-                folderIdChanged: false,
-            },
-        });
-
-        folderNode.text = "renamed folder";
-        await spotlight.updateName(folderNode);
-
-        expect(onDataChange).toHaveBeenCalledWith({
-            folders: [
-                {
-                    id: "folder7",
-                    titleChanged: true,
-                    syncImmediately: false,
-                },
-            ],
-        });
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
-            entries: [],
-            folders: [
-                {
-                    id: "folder7",
-                    parentId: NIL_UUID,
-                    name: "renamed folder",
-                },
-            ],
-        });
-
-        spotlight.handleSynchronization({
-            folders: [
-                {
-                    request: {
-                        id: "folder7",
-                        parentId: NIL_UUID,
-                        name: "renamed folder",
-                    },
-                    response: {
-                        folder: {
-                            id: "folder7",
-                            parentId: NIL_UUID,
-                            name: "renamed folder",
-                            nameChanged: true,
-                            parentChanged: false,
-                        },
-                    },
-                },
-            ],
-        });
-
-        expect(spotlight.fetchChanges({ type: SyncType.FULL })).toStrictEqual({
-            entries: [],
-            folders: [],
-        });
-    });
-
-    test("rejects folder validation when parent is a placeholder node", async ({
-        leftSidebarService,
-    }) => {
-        const spotlight = leftSidebarService.addSpotlight("owner");
-
-        const placeholderParent = spotlight.tree.addBranchNode({
-            id: "new-parent",
-            parentId: spotlight.tree.rootNodeId,
-            text: "",
-            data: { id: null, titleChanged: false, folderIdChanged: false },
-        });
-        const childFolder = spotlight.tree.addBranchNode({
-            id: "folder-child",
-            parentId: placeholderParent.id,
-            text: "child",
-            data: {
-                id: "folder99",
-                titleChanged: false,
-                folderIdChanged: false,
-            },
-        });
-
-        const result = await spotlight.validateName(childFolder, "renamed");
-
-        expect(result).toStrictEqual({
-            success: false,
-            message: "Parent folder is not available yet.",
-        });
-    });
-
-    test("does not emit folder creation when parent is a placeholder node", async ({
-        leftSidebarService,
-    }) => {
-        const spotlight = leftSidebarService.addSpotlight("owner");
-        const onCreateFolder = vi.fn();
-        leftSidebarService.onCreateFolder.subscribe(onCreateFolder);
-
-        const placeholderParent = spotlight.tree.addBranchNode({
-            id: "new-parent",
-            parentId: spotlight.tree.rootNodeId,
-            text: "",
-            data: { id: null, titleChanged: false, folderIdChanged: false },
-        });
-        const childPlaceholder = spotlight.tree.addBranchNode({
-            id: "new-child",
-            parentId: placeholderParent.id,
-            text: "child",
-            data: { id: null, titleChanged: false, folderIdChanged: false },
-        });
-
-        const result = await spotlight.updateName(childPlaceholder);
-
-        expect(result.success).toBe(false);
-        expect(onCreateFolder).not.toHaveBeenCalled();
     });
 
     test("does not emit folder move when source parent is a placeholder node", async ({
-        leftSidebarService,
+        entrySpotlightService,
     }) => {
-        const spotlight = leftSidebarService.addSpotlight("owner");
         const onMoveFolder = vi.fn(async () => ({
             moved: true,
             cancelled: false,
             update: null,
             deletion: null,
         }));
-        spotlight.onMoveFolder.subscribe(onMoveFolder);
+        entrySpotlightService.onMoveFolder.subscribe(onMoveFolder);
 
-        const placeholderParent = spotlight.tree.addBranchNode({
+        const placeholderParent = entrySpotlightService.tree.addBranchNode({
             id: "new-parent",
-            parentId: spotlight.tree.rootNodeId,
+            parentId: entrySpotlightService.tree.rootNodeId,
             text: "",
             data: { id: null, titleChanged: false, folderIdChanged: false },
         });
-        const childFolder = spotlight.tree.addBranchNode({
+        const childFolder = entrySpotlightService.tree.addBranchNode({
             id: "folder-child",
             parentId: placeholderParent.id,
             text: "child",
@@ -395,9 +395,9 @@ describe("entry spotlight interactions", () => {
                 folderIdChanged: false,
             },
         });
-        const destinationFolder = spotlight.tree.addBranchNode({
-            id: spotlight.generateFolderNodeId("folder2"),
-            parentId: spotlight.tree.rootNodeId,
+        const destinationFolder = entrySpotlightService.tree.addBranchNode({
+            id: entrySpotlightService.generateFolderNodeId("folder2"),
+            parentId: entrySpotlightService.tree.rootNodeId,
             text: "destination",
             data: {
                 id: "folder2",
@@ -406,7 +406,7 @@ describe("entry spotlight interactions", () => {
             },
         });
 
-        const moved = await spotlight.finalizeMove(
+        const moved = await entrySpotlightService.finalizeMove(
             childFolder,
             destinationFolder.id,
         );
