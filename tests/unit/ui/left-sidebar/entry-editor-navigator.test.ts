@@ -1,8 +1,9 @@
+import { screen } from "@testing-library/svelte";
 import { expect, vi } from "vitest";
 
 import { EntryType } from "@/api";
-import { EntryViewType, SidebarSectionType } from "@/constants";
-import { EntryEditorNavigatorService, LeftSidebar } from "@/ui/left-sidebar";
+import { EntryViewType } from "@/constants";
+import { EntryEditorNavigator } from "@/ui/left-sidebar";
 import { render } from "@tests/utils";
 
 import { test } from "./fixtures";
@@ -36,7 +37,8 @@ test("entry-editor-navigator is a singleton", async ({
     expect([...leftSidebarService.iterateSections()]).toHaveLength(1);
 });
 
-test("emit event on selecting an item", async ({
+test("emit event on selecting an option", async ({
+    user,
     clientManager,
     leftSidebarService,
     entryEditorNavigatorService,
@@ -44,10 +46,37 @@ test("emit event on selecting an item", async ({
     const onSelect = vi.fn();
     leftSidebarService.onSelectEntryEditorNavItem.subscribe(onSelect);
 
-    entryEditorNavigatorService.selectView(EntryViewType.WordEditor);
+    render(EntryEditorNavigator, {
+        props: { service: entryEditorNavigatorService },
+    });
+
+    const option = screen.getByText("Properties");
+    await user.click(option);
 
     expect(onSelect).toHaveBeenCalledWith({
         panelId: clientManager.id,
-        type: EntryViewType.WordEditor,
+        type: EntryViewType.PropertyEditor,
     });
+});
+
+test.extend({
+    entryType: EntryType.Language,
+})("language options", async ({ entryEditorNavigatorService }) => {
+    render(EntryEditorNavigator, {
+        props: { service: entryEditorNavigatorService },
+    });
+    expect(screen.getByText("Article")).toBeTruthy();
+    expect(screen.getByText("Properties")).toBeTruthy();
+    expect(screen.getByText("Lexicon")).toBeTruthy();
+});
+
+test.extend({
+    entryType: EntryType.Person,
+})("person options", async ({ entryEditorNavigatorService }) => {
+    render(EntryEditorNavigator, {
+        props: { service: entryEditorNavigatorService },
+    });
+    expect(screen.getByText("Article")).toBeTruthy();
+    expect(screen.getByText("Properties")).toBeTruthy();
+    expect(screen.queryByText("Lexicon")).toBeFalsy();
 });
