@@ -1,6 +1,8 @@
 import { expect, vi } from "vitest";
 
 import { EntryType, ROOT_FOLDER_ID } from "@/api";
+import { ModalType } from "@/constants";
+import { EntryCreatorService } from "@/ui/modal";
 
 import { test } from "./fixtures";
 
@@ -81,4 +83,35 @@ test("submit marks duplicate title and does not close on failure", async ({
     });
     expect(entryCreatorService.isTitleUnique).toBe(false);
     expect(onClose).not.toHaveBeenCalled();
+});
+
+test("keeps modal open when entry creation fails validation", async ({
+    modalManager,
+    folderId,
+}) => {
+    const onCreateEntry = vi.fn().mockResolvedValue(null);
+    modalManager.onCreateEntry.subscribe(onCreateEntry);
+
+    modalManager.openEntryCreator({
+        entryType: EntryType.Person,
+        folderId,
+    });
+
+    const content = modalManager.content as EntryCreatorService;
+    expect(content).toBeTruthy();
+
+    if (content) {
+        content.entryTitle = "duplicate-title";
+        await content.submit();
+
+        expect(content.isTitleUnique).toBe(false);
+    }
+
+    expect(modalManager.open).toBe(true);
+    expect(modalManager.modalKey).toBe(ModalType.EntryCreator);
+    expect(onCreateEntry).toHaveBeenCalledWith({
+        entryType: EntryType.Person,
+        title: "duplicate-title",
+        folderId,
+    });
 });

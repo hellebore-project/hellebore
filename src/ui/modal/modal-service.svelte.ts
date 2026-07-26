@@ -39,6 +39,7 @@ export class ModalManager implements IComponentService {
         modal.onCreateProject.broker = this.onCreateProject;
         modal.initialize();
         this._open(modal);
+        return modal;
     }
 
     openEntryCreator({ entryType, folderId }: OpenEntryCreatorEvent) {
@@ -46,6 +47,7 @@ export class ModalManager implements IComponentService {
         modal.onCreateEntry.broker = this.onCreateEntry;
         modal.initialize(entryType, folderId);
         this._open(modal);
+        return modal;
     }
 
     private _open(modal: IModalContentManager) {
@@ -55,8 +57,8 @@ export class ModalManager implements IComponentService {
         this.open = true;
     }
 
-    onOpenChange(isOpen: boolean) {
-        if (!isOpen) {
+    setVisibility(open: boolean) {
+        if (!open) {
             this.close();
             return;
         }
