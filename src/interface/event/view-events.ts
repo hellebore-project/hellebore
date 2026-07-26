@@ -1,5 +1,6 @@
 import { EntryViewType, SidebarSectionType, ViewAction } from "@/constants";
 import type { EntryType } from "@/api";
+import type { Consumer } from "@/utils/event-producer";
 
 import type { Id } from "../common";
 import type { CentralPanelInfo } from "../service";
@@ -39,6 +40,7 @@ export interface AddEntryEditorNavigatorEvent extends AddSidebarSectionEvent {
         title: string | null;
     };
     activeView: EntryViewType;
+    onSelectItem?: Consumer<ChangeEntryEditorViewEvent, unknown>;
 }
 
 export interface ReleaseSidebarSectionEvent {

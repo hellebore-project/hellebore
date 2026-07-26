@@ -121,11 +121,6 @@ export class ClientManager implements IComponentService {
             this.central.openEntryEditor(args),
         );
 
-        this.leftSideBar.onSelectEntryEditorNavItem.subscribe(
-            async ({ panelId, type }) => {
-                await this.central.changeEntryEditorView(panelId, type);
-            },
-        );
         this.leftSideBar.onOpenEntry.subscribe((args) =>
             this.central.openEntryEditor(args),
         );
@@ -449,6 +444,9 @@ export class ClientManager implements IComponentService {
                         title: entryEditorDetails.entry.title,
                     },
                     activeView: entryEditorDetails.subType,
+                    onSelectItem: async ({ panelId, type }) => {
+                        await this.central.changeEntryEditorView(panelId, type);
+                    },
                 });
             } else if (action === ViewAction.Hide) {
                 this.leftSideBar.updateEntryDisplayedStatus(

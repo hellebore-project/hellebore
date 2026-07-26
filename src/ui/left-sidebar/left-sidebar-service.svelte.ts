@@ -2,7 +2,6 @@ import { SvelteMap } from "svelte/reactivity";
 
 import { SidebarSectionType } from "@/constants";
 import type {
-    ChangeEntryEditorViewEvent,
     DeleteEntryEvent,
     DeleteFolderEvent,
     FolderCreationEvent,
@@ -49,10 +48,6 @@ export class LeftSidebarService implements IComponentService {
     data: ClientData;
 
     // EVENTS
-    onSelectEntryEditorNavItem: EventProducer<
-        ChangeEntryEditorViewEvent,
-        unknown
-    >;
     onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
     onCreateFolder: EventProducer<
         FolderCreationEvent,
@@ -69,7 +64,6 @@ export class LeftSidebarService implements IComponentService {
     constructor({ domain, data }: LeftSidebarServiceArgs) {
         this.domain = domain;
         this.data = data;
-        this.onSelectEntryEditorNavItem = new EventProducer();
         this.onOpenEntry = new EventProducer();
         this.onCreateFolder = new EventProducer();
         this.onMoveFolder = new EventProducer();
@@ -123,7 +117,10 @@ export class LeftSidebarService implements IComponentService {
             return existingSection;
         } else {
             const newSection = new EntryEditorNavigatorService(event);
-            newSection.onSelectItem.broker = this.onSelectEntryEditorNavItem;
+
+            if (event.onSelectItem)
+                newSection.onSelectItem.subscribe(event.onSelectItem);
+
             this._addSection(newSection);
             return newSection;
         }
