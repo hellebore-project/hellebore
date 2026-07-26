@@ -40,11 +40,10 @@ test("entry-editor-navigator is a singleton", async ({
 test("emit event on selecting an option", async ({
     user,
     clientManager,
-    leftSidebarService,
     entryEditorNavigatorService,
 }) => {
     const onSelect = vi.fn();
-    leftSidebarService.onSelectEntryEditorNavItem.subscribe(onSelect);
+    entryEditorNavigatorService.onSelectItem.subscribe(onSelect);
 
     render(EntryEditorNavigator, {
         props: { service: entryEditorNavigatorService },
