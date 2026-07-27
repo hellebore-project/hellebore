@@ -1,5 +1,6 @@
 import {
     CommandNames,
+    type BackendEntryCreate,
     type EntryArticleResponse,
     type EntryInfoResponse,
     type EntryPropertyResponse,
@@ -10,9 +11,36 @@ import {
     type WordUpsertResponse,
     type EntrySearch,
 } from "@/api";
+import { Id } from "@/interface";
 import { compareStrings } from "@/utils/string";
 
 import { MockedCommand, MockedInvoker } from "./invoker";
+import { AddMockedCommandArgs } from "./interface";
+
+export function mockCreateEntry({
+    mockedInvoker,
+    entryId = "entry1",
+    error,
+}: AddMockedCommandArgs & { entryId?: Id }) {
+    const command = async ({
+        entry: { folderId, entityType, title },
+    }: BackendEntryCreate) => {
+        if (error) throw error;
+
+        const response: EntryInfoResponse = {
+            id: entryId,
+            folderId,
+            entityType,
+            title,
+        };
+        return response;
+    };
+
+    mockedInvoker.mockCommand(
+        CommandNames.Entry.Create,
+        command as MockedCommand,
+    );
+}
 
 export function mockBulkUpdateEntries(
     mockedInvoker: MockedInvoker,

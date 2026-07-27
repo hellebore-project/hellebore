@@ -20,10 +20,13 @@ export interface EntryCreate<E extends BaseEntity> {
 }
 
 export interface BackendEntryCreate {
-    folderId: Id;
-    entityType: EntryType;
-    title: string;
-    properties: EntryPropertyMapping;
+    projectId: Id;
+    entry: {
+        folderId: Id;
+        entityType: EntryType;
+        title: string;
+        properties: EntryPropertyMapping;
+    };
 }
 
 export interface EntryUpdate<E extends BaseEntity> extends IdentifiedObject {

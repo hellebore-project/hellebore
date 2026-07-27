@@ -13,7 +13,7 @@
 
 <Dialog.Dialog
     open={service.open}
-    onOpenChange={(isOpen) => service.onOpenChange(isOpen)}
+    onOpenChange={(isOpen) => service.setVisibility(isOpen)}
 >
     {#if service.modalKey !== null && service.content}
         <Dialog.DialogContent class="sm:max-w-xl">

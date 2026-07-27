@@ -2,6 +2,22 @@ import { CommandNames, type ProjectResponse } from "@/api";
 
 import { MockedInvoker, MockedCommand } from "./invoker";
 
+export function mockCreateProject(
+    mockedInvoker: MockedInvoker,
+    projectId: string,
+) {
+    const command = async ({ name }: { name: string }) =>
+        ({
+            id: projectId,
+            name: name ?? name,
+        }) as ProjectResponse;
+
+    mockedInvoker.mockCommand(
+        CommandNames.Project.Create,
+        command as MockedCommand,
+    );
+}
+
 export function mockLoadProject(
     mockedInvoker: MockedInvoker,
     project: ProjectResponse | null,
