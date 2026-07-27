@@ -1,3 +1,5 @@
+import { EntryType } from "@/api";
+import { OpenEntryCreatorEvent } from "@/interface";
 import type {
     EntryCreatorService,
     ModalManager,
@@ -7,12 +9,16 @@ import type {
 import { test as baseTest } from "../fixtures";
 
 interface ModalFixtures {
+    folderId?: string;
+    entryType?: EntryType;
     modalManager: ModalManager;
     projectCreatorService: ProjectCreatorService;
     entryCreatorService: EntryCreatorService;
 }
 
 export const test = baseTest.extend<ModalFixtures>({
+    folderId: undefined,
+    entryType: undefined,
     modalManager: async ({ clientManager }, use) => {
         use(clientManager.modal);
     },
@@ -20,6 +26,10 @@ export const test = baseTest.extend<ModalFixtures>({
         use(modalManager.openProjectCreator());
     },
     entryCreatorService: async ({ modalManager, entryType, folderId }, use) => {
+        const event: OpenEntryCreatorEvent = {
+            entryType,
+            folderId,
+        };
         use(modalManager.openEntryCreator({ entryType, folderId }));
     },
 });

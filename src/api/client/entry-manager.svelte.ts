@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, type InvokeArgs } from "@tauri-apps/api/core";
 
 import type { Id } from "@/interface";
 
@@ -23,6 +23,7 @@ import type {
     DiagnosticResponse,
     LanguageProperties,
     PersonProperties,
+    BackendEntryCreate,
 } from "../interface";
 
 export class EntryManager {
@@ -278,7 +279,7 @@ export class EntryManager {
         const entryTypeLabel = ENTRY_TYPE_LABEL_MAPPING[entryType];
         const mappedProperties = { [entryTypeLabel]: properties };
 
-        const payload = {
+        const payload: BackendEntryCreate = {
             projectId,
             entry: {
                 folderId,
@@ -288,7 +289,10 @@ export class EntryManager {
             },
         };
 
-        return invoke<EntryInfoResponse>(CommandNames.Entry.Create, payload);
+        return invoke<EntryInfoResponse>(
+            CommandNames.Entry.Create,
+            payload as unknown as InvokeArgs,
+        );
     }
 
     private async _update<E extends BaseEntity>({

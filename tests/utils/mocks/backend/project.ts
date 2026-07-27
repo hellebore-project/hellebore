@@ -6,12 +6,15 @@ export function mockCreateProject(
     mockedInvoker: MockedInvoker,
     projectId: string,
 ) {
-    mockedInvoker.mockCommand(
-        CommandNames.Project.Create,
-        async ({ name }: { name: string }) => ({
+    const command = async ({ name }: { name: string }) =>
+        ({
             id: projectId,
             name: name ?? name,
-        }),
+        }) as ProjectResponse;
+
+    mockedInvoker.mockCommand(
+        CommandNames.Project.Create,
+        command as MockedCommand,
     );
 }
 

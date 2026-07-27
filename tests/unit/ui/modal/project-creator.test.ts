@@ -2,23 +2,23 @@ import { screen, waitFor } from "@testing-library/svelte";
 import { expect } from "vitest";
 
 import { Modal, ProjectCreator } from "@/ui/modal";
-import { render } from "@tests/utils/render";
 import { mockCreateProject } from "@tests/utils/mocks";
+import { render } from "@tests/utils/render";
 
 import { test } from "./fixtures";
 
-test("modal title", async ({ projectCreatorService }) => {
-    render(ProjectCreator, { props: { service: projectCreatorService } });
+test("modal title", async ({ modalManager, projectCreatorService }) => {
+    render(Modal, { props: { service: modalManager } });
     expect(screen.getByText("Create a new project")).toBeTruthy();
 });
 
-test("closing the form resets the fields", async ({
+test("re-opening the modal resets the form fields", async ({
     user,
     mockedInvoker,
     modalManager,
-    projectCreatorService,
 }) => {
     mockCreateProject(mockedInvoker, "new-project");
+    const projectCreatorService = modalManager.openProjectCreator();
 
     render(Modal, { props: { service: modalManager } });
 
@@ -51,8 +51,10 @@ test("submit form", async ({
 
     render(ProjectCreator, { props: { service: projectCreatorService } });
 
-    const nameInput = screen.getByLabelText("Name");
-    await user.click(nameInput);
+    await waitFor(async () => {
+        const nameInput = screen.getByLabelText("Name");
+        await user.click(nameInput);
+    });
     await user.keyboard("New Project");
 
     // not sure how to mock the file explorer, so just set the path directly

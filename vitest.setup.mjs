@@ -83,6 +83,19 @@ Object.defineProperties(HTMLElement.prototype, {
   offsetParent: { get: () => document.body, configurable: true },
 });
 
+const pointerCaptureMap = new WeakMap();
+Element.prototype.setPointerCapture = function (pointerId) {
+  pointerCaptureMap.set(this, pointerId);
+};
+Element.prototype.releasePointerCapture = function (pointerId) {
+  if (pointerCaptureMap.get(this) === pointerId) {
+    pointerCaptureMap.delete(this);
+  }
+};
+Element.prototype.hasPointerCapture = function (pointerId) {
+  return pointerCaptureMap.get(this) === pointerId;
+};
+
 Range.prototype.getBoundingClientRect = getBoundingClientRect;
 Range.prototype.getClientRects = function () {
   return new FakeDOMRectList(this.getBoundingClientRect());
