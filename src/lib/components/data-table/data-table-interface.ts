@@ -37,12 +37,25 @@ export interface SelectColumn<TColKey extends string = string> {
 }
 
 export type DataColumn<TColKey extends string = string> =
-    | TextColumn<TColKey>
-    | SelectColumn<TColKey>;
+    TextColumn<TColKey> | SelectColumn<TColKey>;
 
 export interface SelectionAnchor<TColKey extends string = string> {
     rowIndex: number;
     colKey: TColKey;
+}
+
+export interface TextCellProps {
+    value: string;
+    oninput: (value: string) => void;
+    selectAll?: boolean;
+}
+
+export interface SelectCellProps<TColKey extends string> {
+    value: string;
+    items: SelectColumnItem[];
+    service: DataTableService<TColKey>;
+    onValueChange: (value: string) => void;
+    placeholder?: string;
 }
 
 export interface DataTableProps<TColKey extends string = string> {

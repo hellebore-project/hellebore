@@ -1,11 +1,7 @@
 <script lang="ts">
     import { Input } from "@/lib/components/input";
 
-    interface TextCellProps {
-        value: string;
-        oninput: (value: string) => void;
-        selectAll?: boolean;
-    }
+    import type { TextCellProps } from "../data-table-interface";
 
     const { value, oninput, selectAll = true }: TextCellProps = $props();
 

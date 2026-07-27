@@ -1,16 +1,7 @@
 <script lang="ts" generics="TColKey extends string">
     import * as Select from "@/lib/components/select";
 
-    import type { DataTableService } from "../data-table-service.svelte";
-    import type { SelectColumnItem } from "../data-table-interface";
-
-    interface SelectCellProps {
-        value: string;
-        items: SelectColumnItem[];
-        service: DataTableService<TColKey>;
-        onValueChange: (value: string) => void;
-        placeholder?: string;
-    }
+    import type { SelectCellProps } from "../data-table-interface";
 
     const {
         value,
@@ -18,7 +9,7 @@
         service,
         onValueChange,
         placeholder = "",
-    }: SelectCellProps = $props();
+    }: SelectCellProps<TColKey> = $props();
 
     let label = $derived(
         items.find((i) => i.value === value)?.label ?? placeholder,
@@ -29,6 +20,9 @@
     $effect(() => {
         if (!triggerRef) return;
         triggerRef.focus();
+        // HACK: force open the select dropdown when the editable cell is first rendered.
+        // The select component does not expose a method to programmatically open the dropdown,
+        // so we simulate a space key press on the trigger button to open it.
         triggerRef.dispatchEvent(
             new KeyboardEvent("keydown", {
                 key: " ",
