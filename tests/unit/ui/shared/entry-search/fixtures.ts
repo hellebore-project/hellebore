@@ -12,7 +12,7 @@ export const test = baseTest.extend<EntrySearchFixtures>({
         use,
     ) => {
         const service = new EntrySearchService(domainManager, clientData);
-        service.queryPeriod = 10;
+        service.queryPeriod = 0;
         use(service);
     },
 });

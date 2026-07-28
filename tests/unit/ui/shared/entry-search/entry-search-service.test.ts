@@ -1,20 +1,42 @@
-import { afterEach, beforeEach, expect, vi } from "vitest";
+import { screen, within } from "@testing-library/svelte";
+import { expect, vi } from "vitest";
 
 import { EntryType } from "@/api";
+import { EntrySearchField } from "@/ui/shared/entry-search";
+import { render } from "@tests/utils/render";
+
 import { test } from "./fixtures";
 
-beforeEach(() => {
-    vi.useFakeTimers();
+test("no query", async ({ user, entrySearchService }) => {
+    render(EntrySearchField, { props: { service: entrySearchService } });
+
+    const dropdownButton = screen.getByRole("button");
+    await user.click(dropdownButton);
+
+    const dropdown = screen.getByRole("listbox");
+    within(dropdown).getByText("No entries found");
+
+    expect(entrySearchService.queryResults).toStrictEqual([]);
 });
 
-afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-});
+test("single result", async ({
+    user,
+    entrySearchService,
+    entryId,
+    entryTitle,
+}) => {
+    render(EntrySearchField, { props: { service: entrySearchService } });
 
-test("single result", async ({ entrySearchService, entryId, entryTitle }) => {
-    entrySearchService.queryString = "Do";
-    await vi.advanceTimersByTimeAsync(10);
+    const combobox = screen.getByRole("combobox");
+    await user.click(combobox);
+    await user.keyboard("Do");
+
+    const dropdown = screen.getByRole("listbox");
+
+    const options = within(dropdown).getAllByRole("option");
+    expect(options).toHaveLength(1);
+    expect(options[0].textContent).toBe(entryTitle);
+
     expect(entrySearchService.queryResults).toStrictEqual([
         {
             label: entryTitle,
@@ -38,57 +60,75 @@ test.extend({
             title: "Cat",
         },
     ],
-})("multiple results", async ({ entrySearchService, entryId, entryTitle }) => {
-    entrySearchService.queryString = "D";
-    await vi.advanceTimersByTimeAsync(10);
-    expect(entrySearchService.queryResults).toStrictEqual([
-        {
-            label: entryTitle,
-            value: entryId,
-        },
-        {
-            label: "Dog2",
-            value: "entry2",
-        },
-    ]);
-});
+})(
+    "multiple results",
+    async ({ user, entrySearchService, entryId, entryTitle }) => {
+        render(EntrySearchField, { props: { service: entrySearchService } });
 
-test("clears results and skips backend search when query is empty", async ({
-    entrySearchService,
-}) => {
-    entrySearchService.queryResults = [
-        {
-            label: "existing",
-            value: "entry99",
-        },
-    ];
-    entrySearchService.queryString = "";
+        const combobox = screen.getByRole("combobox");
+        await user.click(combobox);
+        await user.keyboard("Do");
 
-    await vi.advanceTimersByTimeAsync(10);
+        const dropdown = screen.getByRole("listbox");
+
+        const options = within(dropdown).getAllByRole("option");
+        expect(options).toHaveLength(2);
+        expect(options[0].textContent).toBe(entryTitle);
+        expect(options[1].textContent).toBe("Dog2");
+
+        expect(entrySearchService.queryResults).toStrictEqual([
+            {
+                label: entryTitle,
+                value: entryId,
+            },
+            {
+                label: "Dog2",
+                value: "entry2",
+            },
+        ]);
+    },
+);
+
+test("no results", async ({ user, entrySearchService }) => {
+    render(EntrySearchField, { props: { service: entrySearchService } });
+
+    const combobox = screen.getByRole("combobox");
+    await user.click(combobox);
+    await user.keyboard("Abc");
+
+    const dropdown = screen.getByRole("listbox");
+    within(dropdown).getByText("No entries found");
 
     expect(entrySearchService.queryResults).toStrictEqual([]);
 });
 
-test("emits open-entry event and cleans up state when selecting a valid id", async ({
+test("emits open-entry event when selecting an option", async ({
+    user,
     entrySearchService,
+    entryId,
 }) => {
     const onOpenEntry = vi.fn();
     entrySearchService.onOpenEntry.subscribe(onOpenEntry);
 
-    entrySearchService.queryString = "entry";
-    entrySearchService.queryResults = [
-        {
-            label: "entry",
-            value: "entry11",
-        },
-    ];
+    render(EntrySearchField, { props: { service: entrySearchService } });
 
-    entrySearchService.selectEntry("entry11");
+    let combobox = screen.getByRole("combobox");
+    await user.click(combobox);
+    await user.keyboard("Do");
+
+    const dropdown = screen.getByRole("listbox");
+
+    const option = within(dropdown).getByRole("option", { name: "Dog" });
+    await user.click(option);
 
     expect(onOpenEntry).toHaveBeenCalledWith({
-        id: "entry11",
+        id: entryId,
         focus: true,
     });
+
+    combobox = screen.getByRole("combobox");
+    expect(combobox.textContent).toBe("");
+
     expect(entrySearchService.queryString).toBe("");
     expect(entrySearchService.queryResults).toStrictEqual([]);
 });

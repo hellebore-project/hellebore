@@ -10,10 +10,10 @@ import { MultiEventProducer } from "@/utils/event-producer";
 
 export class EntrySearchService implements IComponentService {
     readonly id = "entry-search";
-    readonly DEFAULT_QUERY_PERIOD = 500;
+    readonly DEFAULT_QUERY_PERIOD = 500; // ms
 
     // CONFIG
-    queryPeriod: number = this.DEFAULT_QUERY_PERIOD;
+    queryPeriod: number = this.DEFAULT_QUERY_PERIOD; // ms
 
     // STATE
     private _queryString: string = $state("");
