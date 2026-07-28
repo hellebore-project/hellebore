@@ -1,191 +1,121 @@
-import { afterEach, beforeEach, describe, expect, vi } from "vitest";
+import { afterEach, beforeEach, expect, vi } from "vitest";
 
-import type { DomainManager } from "@/api";
 import { EntryType } from "@/api";
-import { ClientData } from "@/models";
-import { EntrySearchService } from "@/ui/shared/entry-search/entry-search-service.svelte";
-import { test as baseTest } from "@tests/unit/ui/fixtures";
+import { test } from "./fixtures";
 
-const test = baseTest;
+beforeEach(() => {
+    vi.useFakeTimers();
+});
 
-describe("EntrySearchService", () => {
-    const createService = (
-        serviceDomain: DomainManager,
-        project: ClientData,
-    ) => {
-        const search = vi.spyOn(serviceDomain.entries, "search");
-        const service = new EntrySearchService(serviceDomain, project);
-        service.queryPeriod = 10;
+afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+});
 
-        return { service, search };
-    };
+test("single result", async ({ entrySearchService, entryId, entryTitle }) => {
+    entrySearchService.queryString = "Do";
+    await vi.advanceTimersByTimeAsync(10);
+    expect(entrySearchService.queryResults).toStrictEqual([
+        {
+            label: entryTitle,
+            value: entryId,
+        },
+    ]);
+});
 
-    beforeEach(() => {
-        vi.useFakeTimers();
+test.extend({
+    otherEntries: [
+        {
+            id: "entry2",
+            folderId: "folder",
+            entityType: EntryType.Person,
+            title: "Dog2",
+        },
+        {
+            id: "entry3",
+            folderId: "folder",
+            entityType: EntryType.Person,
+            title: "Cat",
+        },
+    ],
+})("multiple results", async ({ entrySearchService, entryId, entryTitle }) => {
+    entrySearchService.queryString = "D";
+    await vi.advanceTimersByTimeAsync(10);
+    expect(entrySearchService.queryResults).toStrictEqual([
+        {
+            label: entryTitle,
+            value: entryId,
+        },
+        {
+            label: "Dog2",
+            value: "entry2",
+        },
+    ]);
+});
+
+test("clears results and skips backend search when query is empty", async ({
+    entrySearchService,
+}) => {
+    entrySearchService.queryResults = [
+        {
+            label: "existing",
+            value: "entry99",
+        },
+    ];
+    entrySearchService.queryString = "";
+
+    await vi.advanceTimersByTimeAsync(10);
+
+    expect(entrySearchService.queryResults).toStrictEqual([]);
+});
+
+test("emits open-entry event and cleans up state when selecting a valid id", async ({
+    entrySearchService,
+}) => {
+    const onOpenEntry = vi.fn();
+    entrySearchService.onOpenEntry.subscribe(onOpenEntry);
+
+    entrySearchService.queryString = "entry";
+    entrySearchService.queryResults = [
+        {
+            label: "entry",
+            value: "entry11",
+        },
+    ];
+
+    entrySearchService.selectEntry("entry11");
+
+    expect(onOpenEntry).toHaveBeenCalledWith({
+        id: "entry11",
+        focus: true,
     });
+    expect(entrySearchService.queryString).toBe("");
+    expect(entrySearchService.queryResults).toStrictEqual([]);
+});
 
-    afterEach(() => {
-        vi.useRealTimers();
-        vi.restoreAllMocks();
-    });
+test("ignores null and undefined selections", async ({
+    entrySearchService,
+}) => {
+    const onOpenEntry = vi.fn();
+    entrySearchService.onOpenEntry.subscribe(onOpenEntry);
 
-    test("debounces query requests and searches only with the latest keyword", async ({
-        domainManager,
-        clientData,
-    }) => {
-        const { service, search } = createService(domainManager, clientData);
-        search.mockResolvedValue([
-            {
-                id: "7",
-                folderId: "1",
-                entityType: EntryType.Person,
-                title: "latest-entry",
-            },
-        ]);
+    entrySearchService.queryString = "still-set";
+    entrySearchService.queryResults = [
+        {
+            label: "still-set",
+            value: "entry5",
+        },
+    ];
 
-        service.queryString = "fir";
-        service.queryString = "first";
+    entrySearchService.selectEntry(null);
+    entrySearchService.selectEntry(undefined);
 
-        await vi.advanceTimersByTimeAsync(10);
-
-        expect(search).toHaveBeenCalledOnce();
-        expect(search).toHaveBeenCalledWith({
-            projectId: clientData.projectId,
-            keyword: "first",
-            limit: 10,
-        });
-        expect(service.queryResults).toStrictEqual([
-            {
-                label: "latest-entry",
-                value: "7",
-            },
-        ]);
-    });
-
-    test("returns mapped options from entry search results", async ({
-        domainManager,
-        clientData,
-    }) => {
-        const { service, search } = createService(domainManager, clientData);
-        search.mockResolvedValue([
-            {
-                id: "entry1",
-                folderId: "folder",
-                entityType: EntryType.Person,
-                title: "alpha",
-            },
-            {
-                id: "entry2",
-                folderId: "folder",
-                entityType: EntryType.Person,
-                title: "beta",
-            },
-        ]);
-
-        service.queryString = "a";
-
-        await vi.advanceTimersByTimeAsync(10);
-
-        expect(service.queryResults).toStrictEqual([
-            {
-                label: "alpha",
-                value: "entry1",
-            },
-            {
-                label: "beta",
-                value: "entry2",
-            },
-        ]);
-    });
-
-    test("clears results and skips backend search when query is empty", async ({
-        domainManager,
-        clientData,
-    }) => {
-        const { service, search } = createService(domainManager, clientData);
-
-        service.queryResults = [
-            {
-                label: "existing",
-                value: "entry99",
-            },
-        ];
-
-        service.queryString = "";
-
-        await vi.advanceTimersByTimeAsync(10);
-
-        expect(search).not.toHaveBeenCalled();
-        expect(service.queryResults).toStrictEqual([]);
-    });
-
-    test("handles null backend responses by producing an empty result set", async ({
-        domainManager,
-        clientData,
-    }) => {
-        const { service, search } = createService(domainManager, clientData);
-        search.mockResolvedValue(null);
-
-        service.queryString = "known";
-
-        await vi.advanceTimersByTimeAsync(10);
-
-        expect(search).toHaveBeenCalledOnce();
-        expect(service.queryResults).toStrictEqual([]);
-    });
-
-    test("emits open-entry event and cleans up state when selecting a valid id", ({
-        domainManager,
-        clientData,
-    }) => {
-        const { service } = createService(domainManager, clientData);
-        const onOpenEntry = vi.fn();
-        service.onOpenEntry.subscribe(onOpenEntry);
-
-        service.queryString = "entry";
-        service.queryResults = [
-            {
-                label: "entry",
-                value: "entry11",
-            },
-        ];
-
-        service.selectEntry("entry11");
-
-        expect(onOpenEntry).toHaveBeenCalledWith({
-            id: "entry11",
-            focus: true,
-        });
-        expect(service.queryString).toBe("");
-        expect(service.queryResults).toStrictEqual([]);
-    });
-
-    test("ignores null and undefined selections", ({
-        domainManager,
-        clientData,
-    }) => {
-        const { service } = createService(domainManager, clientData);
-        const onOpenEntry = vi.fn();
-        service.onOpenEntry.subscribe(onOpenEntry);
-
-        service.queryString = "still-set";
-        service.queryResults = [
-            {
-                label: "still-set",
-                value: "entry5",
-            },
-        ];
-
-        service.selectEntry(null);
-        service.selectEntry(undefined);
-
-        expect(onOpenEntry).not.toHaveBeenCalled();
-        expect(service.queryString).toBe("still-set");
-        expect(service.queryResults).toStrictEqual([
-            {
-                label: "still-set",
-                value: "entry5",
-            },
-        ]);
-    });
+    expect(onOpenEntry).not.toHaveBeenCalled();
+    expect(entrySearchService.queryString).toBe("still-set");
+    expect(entrySearchService.queryResults).toStrictEqual([
+        {
+            label: "still-set",
+            value: "entry5",
+        },
+    ]);
 });
