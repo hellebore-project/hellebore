@@ -1,18 +1,17 @@
-import { describe, vi, afterEach, expect } from "vitest";
+import { vi, afterEach, expect } from "vitest";
 
 import { CommandNames } from "@/api";
 import { SyncType } from "@/constants";
 import type { PollEvent } from "@/interface";
 import type { ClientManager } from "@/ui";
 import { SynchronizationService } from "@/ui/synchronizer";
-import { test as baseTest } from "@tests/unit/ui/fixtures";
 import {
     mockBulkUpdateEntries,
     mockBulkUpdateFolders,
     mockUpdateProject,
 } from "@tests/utils/mocks";
 
-const test = baseTest;
+import { test } from "./fixtures";
 
 vi.mock("@/utils/event-producer", () => {
     class MockEventProducer {
@@ -40,175 +39,148 @@ vi.mock("@/utils/event-producer", () => {
     };
 });
 
-describe("SynchronizationService", () => {
-    test.override({
-        clientManager: [
-            async ({}, use) => {
-                await use({ cleanUp: () => undefined } as ClientManager);
-            },
-            { auto: true },
-        ],
-        setup: [
-            async ({}, use) => {
-                await use(null);
-            },
-            { auto: true },
-        ],
+test.override({
+    clientManager: [
+        async ({}, use) => {
+            await use({ cleanUp: () => undefined } as ClientManager);
+        },
+        { auto: true },
+    ],
+});
+
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
+test("should gate periodic/full syncs based on timing", async ({
+    domainManager,
+    clientData,
+    mockedInvoker,
+}) => {
+    const syncService = new SynchronizationService(domainManager, clientData);
+    mockUpdateProject(mockedInvoker, {
+        id: "test-project-id",
+        name: "mocked-project",
+    });
+    mockBulkUpdateFolders(mockedInvoker, []);
+    mockBulkUpdateEntries(mockedInvoker);
+
+    syncService.requestPeriodicSynchronization();
+
+    // Wait for the synchronization logic to complete
+    await new Promise((resolve) =>
+        setTimeout(resolve, syncService.DEFAULT_SYNC_PERIOD + 10),
+    );
+
+    mockedInvoker.expectCalled(CommandNames.Project.Update);
+}, 10000); // Increase timeout to 10 seconds
+
+test("should debounce/skip sync requests appropriately", async ({
+    domainManager,
+    clientData,
+    mockedInvoker,
+}) => {
+    const syncService = new SynchronizationService(domainManager, clientData);
+    mockUpdateProject(mockedInvoker, {
+        id: "test-project-id",
+        name: "mocked-project",
+    });
+    mockBulkUpdateFolders(mockedInvoker, []);
+    mockBulkUpdateEntries(mockedInvoker);
+
+    const pollEvent: PollEvent = { type: SyncType.FULL };
+    const canSkipSyncSpy = vi.spyOn(syncService, "canSkipSync");
+
+    await syncService.requestSynchronization(pollEvent);
+    expect(canSkipSyncSpy).toHaveBeenCalledWith(pollEvent);
+});
+
+test("should handle producer events correctly", async ({
+    domainManager,
+    clientData,
+    mockedInvoker,
+}) => {
+    const syncService = new SynchronizationService(domainManager, clientData);
+    mockUpdateProject(mockedInvoker, {
+        id: "test-project-id",
+        name: "mocked-project",
+    });
+    mockBulkUpdateFolders(mockedInvoker, []);
+    mockBulkUpdateEntries(mockedInvoker);
+
+    const onPollSpy = vi.spyOn(syncService.onPoll, "produce");
+    const pollEvent: PollEvent = { type: SyncType.FULL };
+
+    await syncService.requestSynchronization(pollEvent);
+    expect(onPollSpy).toHaveBeenCalledWith(pollEvent);
+});
+
+test("should sync folder updates through the backend", async ({
+    domainManager,
+    clientData,
+    mockedInvoker,
+}) => {
+    const syncService = new SynchronizationService(domainManager, clientData);
+    vi.spyOn(syncService.onPoll, "produce").mockReturnValue({
+        entries: [],
+        folders: [{ id: "entry7", parentId: "entry3", name: "renamed folder" }],
     });
 
-    afterEach(() => {
-        vi.restoreAllMocks();
+    mockBulkUpdateEntries(mockedInvoker);
+    mockBulkUpdateFolders(mockedInvoker, [
+        {
+            id: "entry7",
+            parentChanged: false,
+            nameChanged: true,
+        },
+    ]);
+
+    const event = await syncService.requestSynchronization({
+        type: SyncType.FULL,
     });
 
-    test("should gate periodic/full syncs based on timing", async ({
-        domainManager,
-        clientData,
-        mockedInvoker,
-    }) => {
-        const syncService = new SynchronizationService(
-            domainManager,
-            clientData,
-        );
-        mockUpdateProject(mockedInvoker, {
-            id: "test-project-id",
-            name: "mocked-project",
-        });
-        mockBulkUpdateFolders(mockedInvoker, []);
-        mockBulkUpdateEntries(mockedInvoker);
-
-        await syncService.requestPeriodicSynchronization();
-
-        // Wait for the synchronization logic to complete
-        await new Promise((resolve) =>
-            setTimeout(resolve, syncService.DEFAULT_SYNC_PERIOD + 10),
-        );
-
-        mockedInvoker.expectCalled(CommandNames.Project.Update);
-    }, 10000); // Increase timeout to 10 seconds
-
-    test("should debounce/skip sync requests appropriately", async ({
-        domainManager,
-        clientData,
-        mockedInvoker,
-    }) => {
-        const syncService = new SynchronizationService(
-            domainManager,
-            clientData,
-        );
-        mockUpdateProject(mockedInvoker, {
-            id: "test-project-id",
-            name: "mocked-project",
-        });
-        mockBulkUpdateFolders(mockedInvoker, []);
-        mockBulkUpdateEntries(mockedInvoker);
-
-        const pollEvent: PollEvent = { type: SyncType.FULL };
-        const canSkipSyncSpy = vi.spyOn(syncService, "canSkipSync");
-
-        await syncService.requestSynchronization(pollEvent);
-        expect(canSkipSyncSpy).toHaveBeenCalledWith(pollEvent);
+    mockedInvoker.expectCalledWith(CommandNames.Folder.BulkUpdate, {
+        projectId: clientData.projectId!,
+        folders: [{ id: "entry7", parentId: "entry3", name: "renamed folder" }],
     });
-
-    test("should handle producer events correctly", async ({
-        domainManager,
-        clientData,
-        mockedInvoker,
-    }) => {
-        const syncService = new SynchronizationService(
-            domainManager,
-            clientData,
-        );
-        mockUpdateProject(mockedInvoker, {
-            id: "test-project-id",
-            name: "mocked-project",
-        });
-        mockBulkUpdateFolders(mockedInvoker, []);
-        mockBulkUpdateEntries(mockedInvoker);
-
-        const onPollSpy = vi.spyOn(syncService.onPoll, "produce");
-        const pollEvent: PollEvent = { type: SyncType.FULL };
-
-        await syncService.requestSynchronization(pollEvent);
-        expect(onPollSpy).toHaveBeenCalledWith(pollEvent);
-    });
-
-    test("should sync folder updates through the backend", async ({
-        domainManager,
-        clientData,
-        mockedInvoker,
-    }) => {
-        const syncService = new SynchronizationService(
-            domainManager,
-            clientData,
-        );
-        vi.spyOn(syncService.onPoll, "produce").mockReturnValue({
-            entries: [],
-            folders: [
-                { id: "entry7", parentId: "entry3", name: "renamed folder" },
-            ],
-        });
-
-        mockBulkUpdateEntries(mockedInvoker);
-        mockBulkUpdateFolders(mockedInvoker, [
-            {
+    expect(event?.folders).toStrictEqual([
+        {
+            request: {
                 id: "entry7",
-                parentChanged: false,
-                nameChanged: true,
+                parentId: "entry3",
+                name: "renamed folder",
             },
-        ]);
-
-        const event = await syncService.requestSynchronization({
-            type: SyncType.FULL,
-        });
-
-        mockedInvoker.expectCalledWith(CommandNames.Folder.BulkUpdate, {
-            projectId: clientData.projectId!,
-            folders: [
-                { id: "entry7", parentId: "entry3", name: "renamed folder" },
-            ],
-        });
-        expect(event?.folders).toStrictEqual([
-            {
-                request: {
+            response: {
+                folder: {
                     id: "entry7",
                     parentId: "entry3",
                     name: "renamed folder",
-                },
-                response: {
-                    folder: {
-                        id: "entry7",
-                        parentId: "entry3",
-                        name: "renamed folder",
-                        parentChanged: false,
-                        nameChanged: true,
-                    },
+                    parentChanged: false,
+                    nameChanged: true,
                 },
             },
-        ]);
+        },
+    ]);
+});
+
+test("should clean up fake timers and listeners", async ({
+    domainManager,
+    clientData,
+    mockedInvoker,
+}) => {
+    const syncService = new SynchronizationService(domainManager, clientData);
+    mockUpdateProject(mockedInvoker, {
+        id: "test-project-id",
+        name: "mocked-project",
     });
+    mockBulkUpdateFolders(mockedInvoker, []);
+    mockBulkUpdateEntries(mockedInvoker);
 
-    test("should clean up fake timers and listeners", async ({
-        domainManager,
-        clientData,
-        mockedInvoker,
-    }) => {
-        const syncService = new SynchronizationService(
-            domainManager,
-            clientData,
-        );
-        mockUpdateProject(mockedInvoker, {
-            id: "test-project-id",
-            name: "mocked-project",
-        });
-        mockBulkUpdateFolders(mockedInvoker, []);
-        mockBulkUpdateEntries(mockedInvoker);
+    vi.useFakeTimers(); // Use fake timers explicitly for this test
 
-        vi.useFakeTimers(); // Use fake timers explicitly for this test
+    syncService.requestPeriodicSynchronization();
+    vi.advanceTimersByTime(syncService.DEFAULT_SYNC_PERIOD);
 
-        syncService.requestPeriodicSynchronization();
-        vi.advanceTimersByTime(syncService.DEFAULT_SYNC_PERIOD);
-
-        vi.useRealTimers(); // Restore real timers after the test
-        expect(() => vi.advanceTimersByTime(1000)).toThrow();
-    });
+    vi.useRealTimers(); // Restore real timers after the test
+    expect(() => vi.advanceTimersByTime(1000)).toThrow();
 });
