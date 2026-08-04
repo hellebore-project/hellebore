@@ -12,6 +12,8 @@ import { MultiEventProducer } from "@/utils/event-producer";
 
 import type { HomeLoadArgs } from "./home-interface";
 
+type ChangedProjectData = Omit<PollResultProjectData, "id">;
+
 export class HomeManager implements ICentralPanelContentService {
     private _isProjectLoaded: boolean = $state(false);
     private _projectName: string = $state("");
@@ -73,7 +75,7 @@ export class HomeManager implements ICentralPanelContentService {
         else this._projectName = "";
     }
 
-    collectChanges(event: PollEvent): PollResultProjectData | null {
+    collectChanges(event: PollEvent): ChangedProjectData | null {
         if (!this._changed) return null;
 
         let syncName = false;
@@ -81,7 +83,7 @@ export class HomeManager implements ICentralPanelContentService {
         else if (event.type === SyncType.PARTIAL)
             syncName = event.project?.syncName ?? false;
 
-        const changes: PollResultProjectData = {};
+        const changes: ChangedProjectData = {};
         if (syncName) changes.name = this._projectName;
 
         return changes;

@@ -8,12 +8,15 @@ import {
     type FolderResponse,
     type ProjectResponse,
     DomainManager,
+    ENTRY_TYPE_LABEL_MAPPING,
     EntryPropertyResponse,
     EntryType,
     PersonProperties,
+    WordResponse,
+    WordType,
 } from "@/api";
 import { ClientData } from "@/models";
-import { ClientManager } from "@/ui";
+import { ClientManager, SynchronizationService } from "@/ui";
 import {
     createDocNode,
     createParagraphNode,
@@ -34,21 +37,37 @@ import {
 import { test as baseTest } from "../fixtures";
 
 export interface BaseUiFixtures {
+    projectId: Id;
+    projectName: string;
     project: ProjectResponse;
+
     folderId: Id;
     parentFolderId: Id;
     folderName: string;
     folder: FolderResponse;
     otherFolders: FolderResponse[];
     allFolders: FolderResponse[];
+
     entryId: Id;
     entryType: EntryType;
+    entryTypeLabel: string;
     entryTitle: string;
     entryArticleText: string;
     entryArticle: JSONContent;
     entryInfo: EntryInfoResponse;
     otherEntries: EntryInfoResponse[];
     allEntries: EntryInfoResponse[];
+
+    languageId: Id;
+    wordId: Id;
+    wordKey: string;
+    wordType: WordType;
+    wordSpelling: string;
+    wordDefinition: string;
+    wordTranslations: string[];
+    word: WordResponse;
+    words: WordResponse[];
+
     mockedInvoker: MockedInvoker;
     mockedProject: ProjectResponse;
     mockedFolder: FolderResponse;
@@ -61,15 +80,26 @@ export interface BaseUiFixtures {
     mockedSearchedEntries: EntryInfoResponse[];
     mockedBulkEntryUpdate: null;
     mockedBulkFolderUpdate: null;
+
     clientData: ClientData;
-    domainManager: DomainManager;
     clientManager: ClientManager;
+    domainManager: DomainManager;
+    synchronizer: SynchronizationService;
     clientContext: null;
 }
 
 export const test = baseTest.extend<BaseUiFixtures>({
-    project: { id: "test-project-id", name: "mocked-project" },
+    // PROJECT
+    projectId: "test-project-id",
+    projectName: "mocked-project",
+    project: async ({ projectId, projectName }, use) => {
+        await use({
+            id: projectId,
+            name: projectName,
+        });
+    },
 
+    // FOLDER
     folderId: "folder",
     parentFolderId: NIL_UUID,
     folderName: "mocked-folder",
@@ -86,8 +116,11 @@ export const test = baseTest.extend<BaseUiFixtures>({
         use([folder, ...otherFolders]);
     },
 
+    // ENTRY
     entryId: "entry",
     entryType: EntryType.Person,
+    entryTypeLabel: async ({ entryType }, use) =>
+        await use(ENTRY_TYPE_LABEL_MAPPING[entryType]),
     entryTitle: "Dog",
     entryArticleText: "mocked article text",
     entryArticle: async ({ entryArticleText }, use) => {
@@ -111,6 +144,40 @@ export const test = baseTest.extend<BaseUiFixtures>({
         use([entryInfo, ...otherEntries]);
     },
 
+    // WORD
+    languageId: async ({ entryId }, use) => await use(entryId),
+    wordId: "word1",
+    wordKey: async ({ wordId }, use) => await use(wordId),
+    wordType: WordType.Noun,
+    wordSpelling: "alpha",
+    wordDefinition: "first",
+    wordTranslations: ["one", "single"],
+    word: async (
+        {
+            languageId,
+            wordId,
+            wordType,
+            wordSpelling,
+            wordDefinition,
+            wordTranslations,
+        },
+        use,
+    ) => {
+        const word: WordResponse = {
+            id: wordId,
+            languageId,
+            wordType,
+            spelling: wordSpelling,
+            definition: wordDefinition,
+            translations: wordTranslations,
+        };
+        await use(word);
+    },
+    words: async ({ word }, use) => {
+        await use([word]);
+    },
+
+    // MOCKS
     mockedInvoker: [
         async ({}, use) => {
             const invoker = new MockedInvoker();
@@ -174,17 +241,12 @@ export const test = baseTest.extend<BaseUiFixtures>({
         await use(null);
     },
 
+    // CLIENT
     clientData: async ({ mockedProject }, use) => {
         const project = new ClientData();
         project.setProject(mockedProject);
         await use(project);
     },
-
-    domainManager: async ({}, use) => {
-        const domain = new DomainManager();
-        await use(domain);
-    },
-
     clientManager: [
         async (
             {
@@ -202,7 +264,12 @@ export const test = baseTest.extend<BaseUiFixtures>({
         },
         { auto: true },
     ],
-
+    domainManager: async ({ clientManager }, use) => {
+        await use(clientManager.domain);
+    },
+    synchronizer: async ({ clientManager }, use) => {
+        await use(clientManager.synchronizer);
+    },
     clientContext: [
         async ({ context, user, mockedInvoker, clientManager }, use) => {
             await use(null);

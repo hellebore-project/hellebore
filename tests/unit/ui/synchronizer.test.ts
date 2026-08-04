@@ -1,186 +1,305 @@
-import { vi, afterEach, expect } from "vitest";
+import { expect } from "vitest";
 
-import { CommandNames } from "@/api";
+import { CommandNames, EntryType } from "@/api";
 import { SyncType } from "@/constants";
-import type { PollEvent } from "@/interface";
-import type { ClientManager } from "@/ui";
-import { SynchronizationService } from "@/ui/synchronizer";
+import type {
+    PollResult,
+    PollResultEntryData,
+    PollResultFolderData,
+    PollResultProjectData,
+    Word,
+} from "@/interface";
 import {
     mockBulkUpdateEntries,
     mockBulkUpdateFolders,
     mockUpdateProject,
 } from "@tests/utils/mocks";
 
-import { test } from "./fixtures";
+import { test as baseTest } from "./fixtures";
 
-vi.mock("@/utils/event-producer", () => {
-    class MockEventProducer {
-        produce: ReturnType<typeof vi.fn>;
+interface SynchronizerFixtures {
+    projectPollResult: PollResultProjectData | undefined;
+    folderPollResult: PollResultFolderData | undefined;
+    folderPollResults: PollResultFolderData[] | undefined;
+    entryPollResult: PollResultEntryData | undefined;
+    entryPollResults: PollResultEntryData[] | undefined;
+    wordPollResult: Word | undefined;
+    wordPollResults: Word[] | undefined;
+    pollResult: PollResult;
 
-        constructor() {
-            this.produce = vi.fn().mockReturnValue({
-                project: { name: "mockProject" },
-                entries: [{ id: "mockEntry", entryType: "mockType" }],
+    mockedPollResult: PollResult;
+}
+
+const test = baseTest
+    .extend<SynchronizerFixtures>({
+        projectPollResult: async ({ project }, use) => {
+            await use({ ...project });
+        },
+        folderPollResult: async ({ folder }, use) => {
+            await use({ ...folder });
+        },
+        folderPollResults: async ({ folderPollResult }, use) => {
+            await use(folderPollResult ? [folderPollResult] : undefined);
+        },
+        entryPollResult: async (
+            { entryInfo, entryArticleText, entryProperties, wordPollResults },
+            use,
+        ) => {
+            await use({
+                id: entryInfo.id,
+                entryType: entryInfo.entityType,
+                folderId: entryInfo.folderId,
+                title: entryInfo.title,
+                properties: entryProperties,
+                text: entryArticleText,
+                words: wordPollResults,
             });
-        }
-    }
-
-    class MockMultiEventProducer {
-        produce: ReturnType<typeof vi.fn>;
-
-        constructor() {
-            this.produce = vi.fn();
-        }
-    }
-
-    return {
-        EventProducer: MockEventProducer,
-        MultiEventProducer: MockMultiEventProducer,
-    };
-});
-
-test.override({
-    clientManager: [
-        async ({}, use) => {
-            await use({ cleanUp: () => undefined } as ClientManager);
         },
-        { auto: true },
-    ],
-});
-
-afterEach(() => {
-    vi.restoreAllMocks();
-});
-
-test("should gate periodic/full syncs based on timing", async ({
-    domainManager,
-    clientData,
-    mockedInvoker,
-}) => {
-    const syncService = new SynchronizationService(domainManager, clientData);
-    mockUpdateProject(mockedInvoker, {
-        id: "test-project-id",
-        name: "mocked-project",
-    });
-    mockBulkUpdateFolders(mockedInvoker, []);
-    mockBulkUpdateEntries(mockedInvoker);
-
-    syncService.requestPeriodicSynchronization();
-
-    // Wait for the synchronization logic to complete
-    await new Promise((resolve) =>
-        setTimeout(resolve, syncService.DEFAULT_SYNC_PERIOD + 10),
-    );
-
-    mockedInvoker.expectCalled(CommandNames.Project.Update);
-}, 10000); // Increase timeout to 10 seconds
-
-test("should debounce/skip sync requests appropriately", async ({
-    domainManager,
-    clientData,
-    mockedInvoker,
-}) => {
-    const syncService = new SynchronizationService(domainManager, clientData);
-    mockUpdateProject(mockedInvoker, {
-        id: "test-project-id",
-        name: "mocked-project",
-    });
-    mockBulkUpdateFolders(mockedInvoker, []);
-    mockBulkUpdateEntries(mockedInvoker);
-
-    const pollEvent: PollEvent = { type: SyncType.FULL };
-    const canSkipSyncSpy = vi.spyOn(syncService, "canSkipSync");
-
-    await syncService.requestSynchronization(pollEvent);
-    expect(canSkipSyncSpy).toHaveBeenCalledWith(pollEvent);
-});
-
-test("should handle producer events correctly", async ({
-    domainManager,
-    clientData,
-    mockedInvoker,
-}) => {
-    const syncService = new SynchronizationService(domainManager, clientData);
-    mockUpdateProject(mockedInvoker, {
-        id: "test-project-id",
-        name: "mocked-project",
-    });
-    mockBulkUpdateFolders(mockedInvoker, []);
-    mockBulkUpdateEntries(mockedInvoker);
-
-    const onPollSpy = vi.spyOn(syncService.onPoll, "produce");
-    const pollEvent: PollEvent = { type: SyncType.FULL };
-
-    await syncService.requestSynchronization(pollEvent);
-    expect(onPollSpy).toHaveBeenCalledWith(pollEvent);
-});
-
-test("should sync folder updates through the backend", async ({
-    domainManager,
-    clientData,
-    mockedInvoker,
-}) => {
-    const syncService = new SynchronizationService(domainManager, clientData);
-    vi.spyOn(syncService.onPoll, "produce").mockReturnValue({
-        entries: [],
-        folders: [{ id: "entry7", parentId: "entry3", name: "renamed folder" }],
-    });
-
-    mockBulkUpdateEntries(mockedInvoker);
-    mockBulkUpdateFolders(mockedInvoker, [
-        {
-            id: "entry7",
-            parentChanged: false,
-            nameChanged: true,
+        entryPollResults: async ({ entryPollResult }, use) => {
+            await use(entryPollResult ? [entryPollResult] : undefined);
         },
-    ]);
+        wordPollResult: async ({ word, wordKey }, use) => {
+            await use({
+                ...word,
+                key: wordKey,
+            });
+        },
+        wordPollResults: async ({ wordPollResult }, use) => {
+            await use(wordPollResult ? [wordPollResult] : undefined);
+        },
+        pollResult: async (
+            { projectPollResult, folderPollResults, entryPollResults },
+            use,
+        ) => {
+            await use({
+                project: projectPollResult,
+                entries: entryPollResults,
+                folders: folderPollResults,
+            });
+        },
 
-    const event = await syncService.requestSynchronization({
-        type: SyncType.FULL,
+        mockedPollResult: async ({ synchronizer, pollResult }, use) => {
+            synchronizer.onPoll.subscribe(() => {
+                return pollResult;
+            });
+
+            await use(pollResult);
+        },
+    })
+    .override({
+        synchronizer: async ({ clientManager, pollResult }, use) => {
+            const synchronizer = clientManager.synchronizer;
+
+            synchronizer.onPoll.subscribe(() => {
+                return pollResult;
+            });
+
+            await use(synchronizer);
+        },
     });
 
-    mockedInvoker.expectCalledWith(CommandNames.Folder.BulkUpdate, {
-        projectId: clientData.projectId!,
-        folders: [{ id: "entry7", parentId: "entry3", name: "renamed folder" }],
-    });
-    expect(event?.folders).toStrictEqual([
-        {
+test.extend({
+    pollResult: async ({ projectPollResult }, use) => {
+        await use({ project: projectPollResult });
+    },
+})(
+    "periodic sync",
+    async ({ synchronizer, mockedInvoker, mockedPollResult, project }) => {
+        mockUpdateProject(mockedInvoker, { ...project });
+
+        synchronizer.requestPeriodicSynchronization();
+
+        mockedInvoker.expectNotCalled(CommandNames.Project.Update);
+
+        // Wait for the synchronization logic to complete
+        await new Promise((resolve) =>
+            setTimeout(resolve, synchronizer.DEFAULT_SYNC_PERIOD + 10),
+        );
+
+        mockedInvoker.expectCalled(CommandNames.Project.Update);
+    },
+    10000,
+);
+
+test.extend({
+    pollResult: async ({ projectPollResult }, use) => {
+        await use({ project: projectPollResult });
+    },
+})(
+    "full sync debounces a periodic sync",
+    async ({ synchronizer, mockedInvoker, mockedPollResult, project }) => {
+        mockUpdateProject(mockedInvoker, {
+            id: "test-project-id",
+            name: "mocked-project",
+        });
+
+        let resolved = false;
+        const periodicSyncPromise =
+            synchronizer.requestPeriodicSynchronization();
+        expect(periodicSyncPromise).not.toBeNull();
+        const flaggedPeriodicSyncPromise = periodicSyncPromise?.then(() => {
+            resolved = true;
+        });
+
+        expect(resolved).toBe(false);
+        const fullSyncPromise = synchronizer.requestFullSynchronization();
+        const fullSync = await fullSyncPromise;
+        expect(fullSync).not.toBeNull();
+        expect(fullSync?.project).toBeTruthy();
+
+        expect(resolved).toBe(false);
+        await flaggedPeriodicSyncPromise;
+        expect(resolved).toBe(true);
+    },
+    10000,
+);
+
+test.extend({
+    pollResult: async ({ projectPollResult }, use) => {
+        await use({ project: projectPollResult });
+    },
+})(
+    "sync project",
+    async ({ synchronizer, mockedInvoker, mockedPollResult, project }) => {
+        mockUpdateProject(mockedInvoker, { ...project });
+
+        const event = await synchronizer.requestFullSynchronization();
+
+        mockedInvoker.expectCalledWith(CommandNames.Project.Update, {
+            id: project.id,
+            name: project.name,
+        });
+        expect(event?.project).toStrictEqual({
             request: {
-                id: "entry7",
-                parentId: "entry3",
-                name: "renamed folder",
+                id: project.id,
+                name: project.name,
             },
-            response: {
-                folder: {
-                    id: "entry7",
-                    parentId: "entry3",
-                    name: "renamed folder",
-                    parentChanged: false,
-                    nameChanged: true,
+            response: { project },
+        });
+    },
+);
+
+test.extend({
+    parentFolderId: "folder2",
+    folderName: "renamed-folder",
+    pollResult: async ({ folderPollResults }, use) => {
+        await use({ folders: folderPollResults });
+    },
+})(
+    "sync folder",
+    async ({
+        synchronizer,
+        mockedInvoker,
+        mockedPollResult,
+        projectId,
+        folder,
+    }) => {
+        mockBulkUpdateFolders(mockedInvoker, [
+            {
+                id: folder.id,
+                parentChanged: true,
+                nameChanged: true,
+            },
+        ]);
+
+        const event = await synchronizer.requestFullSynchronization();
+
+        mockedInvoker.expectCalledWith(CommandNames.Folder.BulkUpdate, {
+            projectId,
+            folders: [
+                { id: folder.id, parentId: folder.parentId, name: folder.name },
+            ],
+        });
+        expect(event?.folders).toStrictEqual([
+            {
+                request: {
+                    id: folder.id,
+                    parentId: folder.parentId,
+                    name: folder.name,
+                },
+                response: {
+                    folder: {
+                        id: folder.id,
+                        parentId: folder.parentId,
+                        name: folder.name,
+                        parentChanged: true,
+                        nameChanged: true,
+                    },
                 },
             },
-        },
-    ]);
-});
+        ]);
+    },
+);
 
-test("should clean up fake timers and listeners", async ({
-    domainManager,
-    clientData,
-    mockedInvoker,
-}) => {
-    const syncService = new SynchronizationService(domainManager, clientData);
-    mockUpdateProject(mockedInvoker, {
-        id: "test-project-id",
-        name: "mocked-project",
-    });
-    mockBulkUpdateFolders(mockedInvoker, []);
-    mockBulkUpdateEntries(mockedInvoker);
+test.extend({
+    entryType: EntryType.Language,
+    entryProperties: async ({}, use) => await use({}),
+    pollResult: async ({ entryPollResults }, use) => {
+        await use({ entries: entryPollResults });
+    },
+})(
+    "sync language entry",
+    async ({
+        synchronizer,
+        mockedInvoker,
+        mockedPollResult,
+        projectId,
+        entryInfo,
+        entryTypeLabel,
+        entryArticleText,
+        entryProperties,
+        words,
+        wordPollResults,
+    }) => {
+        mockBulkUpdateEntries(mockedInvoker);
 
-    vi.useFakeTimers(); // Use fake timers explicitly for this test
+        const event = await synchronizer.requestSynchronization({
+            type: SyncType.FULL,
+        });
 
-    syncService.requestPeriodicSynchronization();
-    vi.advanceTimersByTime(syncService.DEFAULT_SYNC_PERIOD);
-
-    vi.useRealTimers(); // Restore real timers after the test
-    expect(() => vi.advanceTimersByTime(1000)).toThrow();
-});
+        mockedInvoker.expectCalledWith(CommandNames.Entry.BulkUpdate, {
+            projectId,
+            entries: [
+                {
+                    id: entryInfo.id,
+                    folderId: entryInfo.folderId,
+                    title: entryInfo.title,
+                    properties: { [entryTypeLabel]: {} },
+                    text: entryArticleText,
+                    words: wordPollResults,
+                },
+            ],
+        });
+        expect(event?.entries).toStrictEqual([
+            {
+                request: {
+                    id: entryInfo.id,
+                    entryType: entryInfo.entityType,
+                    folderId: entryInfo.folderId,
+                    title: entryInfo.title,
+                    text: entryArticleText,
+                    properties: entryProperties,
+                    words: wordPollResults,
+                },
+                response: {
+                    entry: {
+                        id: entryInfo.id,
+                        folderId: { updated: true },
+                        title: { isUnique: true, updated: true },
+                        text: { updated: true },
+                        properties: { updated: true },
+                        words: [
+                            {
+                                id: wordPollResults?.[0].id,
+                                status: {
+                                    created: false,
+                                    updated: true,
+                                },
+                            },
+                        ],
+                    },
+                },
+            },
+        ]);
+    },
+);

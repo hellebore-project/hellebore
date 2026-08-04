@@ -252,11 +252,6 @@ export class ClientManager implements IComponentService {
         );
     }
 
-    editFolderName(id: Id) {
-        // this.leftSideBar.spotlight.toggleFolderAsEditable(id);
-        console.log(id);
-    }
-
     async moveFolder({
         id,
         title,
@@ -366,12 +361,12 @@ export class ClientManager implements IComponentService {
 
     // ENTRY HANDLING
 
-    async createEntry(entityType: EntryType, title: string, folderId: Id) {
+    async createEntry(entryType: EntryType, title: string, folderId: Id) {
         const projectId = this.data.loadedProjectId;
 
         const entry = await this.domain.entries.create(
             projectId,
-            entityType,
+            entryType,
             title,
             folderId,
         );

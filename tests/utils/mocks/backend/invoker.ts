@@ -79,4 +79,11 @@ export class MockedInvoker {
 
         throw `Command ${name} was not called with the expected payload.`;
     }
+
+    expectNotCalled(name: string) {
+        for (const [_name] of this.spy.mock.calls) {
+            if (name === _name)
+                throw `Command ${name} was unexpectedly called.`;
+        }
+    }
 }

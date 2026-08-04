@@ -288,7 +288,6 @@ export class CentralPanelManager implements IComponentService {
 
     collectChanges(event: PollEvent): PollResult {
         const results: PollResult = {
-            project: {},
             entries: [],
         };
 
@@ -301,10 +300,13 @@ export class CentralPanelManager implements IComponentService {
                 results.entries!.push(entryResult);
             } else if (service.type === CentralViewType.Home) {
                 const home = service as HomeManager;
-                const projectResult = home.collectChanges(event);
-                if (projectResult === null) continue;
+                const projectChanges = home.collectChanges(event);
+                if (projectChanges === null) continue;
 
-                results.project = projectResult;
+                results.project = {
+                    ...projectChanges,
+                    id: this._data.loadedProjectId,
+                };
             }
         }
 

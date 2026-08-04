@@ -41,6 +41,7 @@ export interface FullPollEvent extends BasePollEvent {
 export type PollEvent = PartialPollEvent | FullPollEvent;
 
 export interface PollResultProjectData {
+    id: Id;
     name?: string;
 }
 
