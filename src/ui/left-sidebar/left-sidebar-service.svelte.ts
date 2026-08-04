@@ -10,7 +10,7 @@ import type {
     AddEntryEditorNavigatorEvent,
     MoveFolderEvent,
     MoveFolderResult,
-    PollEvent,
+    PollRequest,
     PollResult,
     ReleaseSidebarSectionEvent,
     Id,
@@ -239,11 +239,13 @@ export class LeftSidebarService implements IComponentService {
         section?.deleteEntryNode(id);
     }
 
-    fetchChanges(event: PollEvent): PollResult {
+    fetchChanges(pollRequest: PollRequest): PollResult {
         const spotlight = this.getSectionByType<EntrySpotlightService>(
             SidebarSectionType.EntrySpotlight,
         );
-        return spotlight?.fetchChanges(event) ?? { entries: [], folders: [] };
+        return (
+            spotlight?.fetchChanges(pollRequest) ?? { entries: [], folders: [] }
+        );
     }
 
     handleSynchronization(event: SyncEvent) {

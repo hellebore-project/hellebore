@@ -2,7 +2,7 @@ import { CentralViewType, SyncType } from "@/constants";
 import type {
     ICentralPanelContentService,
     LoadProjectEvent,
-    PollEvent,
+    PollRequest,
     PollResultProjectData,
     ProjectChangeEvent,
     SyncProjectEvent,
@@ -75,13 +75,13 @@ export class HomeManager implements ICentralPanelContentService {
         else this._projectName = "";
     }
 
-    collectChanges(event: PollEvent): ChangedProjectData | null {
+    collectChanges(pollRequest: PollRequest): ChangedProjectData | null {
         if (!this._changed) return null;
 
         let syncName = false;
-        if (event.type === SyncType.FULL) syncName = true;
-        else if (event.type === SyncType.PARTIAL)
-            syncName = event.project?.syncName ?? false;
+        if (pollRequest.type === SyncType.FULL) syncName = true;
+        else if (pollRequest.type === SyncType.PARTIAL)
+            syncName = pollRequest.project?.syncName ?? false;
 
         const changes: ChangedProjectData = {};
         if (syncName) changes.name = this._projectName;

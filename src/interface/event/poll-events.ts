@@ -4,11 +4,16 @@ import type { BaseEntity, EntryType } from "@/api";
 import type { Id } from "../common";
 import type { Word } from "../word";
 
-export interface PollProjectEvent {
+export interface PollProjectRequest {
     syncName?: boolean;
 }
 
-export interface PollEntryEvent {
+export interface PollFolderRequest {
+    id: Id;
+    syncTitle?: boolean;
+}
+
+export interface PollEntryRequest {
     id: Id;
     syncTitle?: boolean;
     syncFolderId?: boolean;
@@ -17,28 +22,23 @@ export interface PollEntryEvent {
     syncLexicon?: boolean;
 }
 
-export interface PollFolderEvent {
-    id: Id;
-    syncTitle?: boolean;
-}
-
-export interface BasePollEvent {
+export interface BasePollRequest {
     type: SyncType;
     immediate?: boolean;
 }
 
-export interface PartialPollEvent extends BasePollEvent {
+export interface PartialPollRequest extends BasePollRequest {
     type: SyncType.PARTIAL;
-    project?: PollProjectEvent;
-    folders?: PollFolderEvent[];
-    entries?: PollEntryEvent[];
+    project?: PollProjectRequest;
+    folders?: PollFolderRequest[];
+    entries?: PollEntryRequest[];
 }
 
-export interface FullPollEvent extends BasePollEvent {
+export interface FullPollRequest extends BasePollRequest {
     type: SyncType.FULL;
 }
 
-export type PollEvent = PartialPollEvent | FullPollEvent;
+export type PollRequest = PartialPollRequest | FullPollRequest;
 
 export interface PollResultProjectData {
     id: Id;

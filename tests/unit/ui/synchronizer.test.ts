@@ -79,7 +79,7 @@ const test = baseTest
         },
 
         mockedPollResult: async ({ synchronizer, pollResult }, use) => {
-            synchronizer.onPoll.subscribe(() => {
+            synchronizer.poll.subscribe(() => {
                 return pollResult;
             });
 
@@ -90,7 +90,7 @@ const test = baseTest
         synchronizer: async ({ clientManager, pollResult }, use) => {
             const synchronizer = clientManager.synchronizer;
 
-            synchronizer.onPoll.subscribe(() => {
+            synchronizer.poll.subscribe(() => {
                 return pollResult;
             });
 

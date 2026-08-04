@@ -12,7 +12,7 @@ import type {
     MoveFolderEvent,
     MoveFolderResult,
     OpenEntryEditorEvent,
-    PollEvent,
+    PollRequest,
     PollResult,
     PollResultEntryData,
     PollResultFolderData,
@@ -171,11 +171,11 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
     // SYNC
 
-    fetchChanges(event: PollEvent): PollResult {
+    fetchChanges(pollRequest: PollRequest): PollResult {
         const entries: PollResultEntryData[] = [];
         const folders: PollResultFolderData[] = [];
 
-        if (event.type === SyncType.FULL) {
+        if (pollRequest.type === SyncType.FULL) {
             for (const nodeId of this._modifiedFolderNodeIds) {
                 const node = this.tree.getNode(nodeId);
                 if (!node || !node.data.titleChanged) continue;
@@ -215,13 +215,13 @@ export class EntrySpotlightService implements ISidebarSectionService {
 
                 entries.push(result);
             }
-        } else if (event.type === SyncType.PARTIAL) {
-            if (event.folders) {
+        } else if (pollRequest.type === SyncType.PARTIAL) {
+            if (pollRequest.folders) {
                 for (const nodeId of this._modifiedFolderNodeIds) {
                     const node = this.tree.getNode(nodeId);
                     if (!node || !node.data.titleChanged) continue;
 
-                    const syncTitle = event.folders.some(
+                    const syncTitle = pollRequest.folders.some(
                         (folder) =>
                             folder.syncTitle && folder.id === node.data.id,
                     );
@@ -241,8 +241,8 @@ export class EntrySpotlightService implements ISidebarSectionService {
                 }
             }
 
-            if (event.entries) {
-                for (const entry of event.entries) {
+            if (pollRequest.entries) {
+                for (const entry of pollRequest.entries) {
                     if (!entry.syncTitle && !entry.syncFolderId) continue;
 
                     const node = this._getEntryNodeByDataId(entry.id);

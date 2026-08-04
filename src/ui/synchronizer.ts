@@ -1,6 +1,6 @@
 import { SyncType } from "@/constants";
 import type {
-    PollEvent,
+    PollRequest,
     PollResult,
     SyncEntryEvent,
     SyncEntryRequest,
@@ -27,14 +27,14 @@ export class SynchronizationService {
     private _domain: DomainManager;
     private _data: ClientData;
 
-    onPoll: EventProducer<PollEvent, PollResult>;
+    poll: EventProducer<PollRequest, PollResult>;
     onSync: MultiEventProducer<SyncEvent, void>;
 
     constructor(domain: DomainManager, data: ClientData) {
         this._domain = domain;
         this._data = data;
 
-        this.onPoll = new EventProducer();
+        this.poll = new EventProducer();
         this.onSync = new MultiEventProducer();
     }
 
@@ -43,16 +43,16 @@ export class SynchronizationService {
         return this.DEFAULT_SYNC_PERIOD;
     }
 
-    canSkipPoll(event: PollEvent) {
-        if (event.type === SyncType.FULL) return false;
+    canSkipPoll(request: PollRequest) {
+        if (request.type === SyncType.FULL) return false;
 
-        if (event.project && event.project.syncName) return false;
+        if (request.project && request.project.syncName) return false;
 
-        for (const folderPoll of event.folders ?? []) {
+        for (const folderPoll of request.folders ?? []) {
             if (folderPoll.syncTitle) return false;
         }
 
-        for (const entryPoll of event.entries ?? []) {
+        for (const entryPoll of request.entries ?? []) {
             if (
                 entryPoll.syncTitle ||
                 entryPoll.syncFolderId ||
@@ -110,14 +110,16 @@ export class SynchronizationService {
      * the time the method terminates.
      * @returns promise that returns the sync event or null if the request is skipped
      */
-    requestSynchronization(event: PollEvent): Promise<SyncEvent | null> {
-        if (this.canSkipPoll(event)) return new Promise(() => null);
+    requestSynchronization(
+        pollRequest: PollRequest,
+    ): Promise<SyncEvent | null> {
+        if (this.canSkipPoll(pollRequest)) return new Promise(() => null);
 
-        const result = this.onPoll.produce(event);
+        const result = this.poll.produce(pollRequest);
 
         if (this.canSkipSync(result)) return new Promise(() => null);
 
-        if (event.type === SyncType.FULL)
+        if (pollRequest.type === SyncType.FULL)
             // the last sync time corresponds to the moment that the view data is retrieved
             this._lastFullSyncTime = Date.now();
 
