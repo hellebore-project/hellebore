@@ -13,15 +13,15 @@ import type {
     MoveFolderEvent,
     MoveFolderResult,
     SyncEvent,
-    PollEvent,
+    PollRequest,
     IComponentService,
     EntryEditorInfo,
     ChangeCentralPanelEvent,
     PollResult,
     DataChangeEvent,
-    PollEntryEvent,
-    PollFolderEvent,
-    PartialPollEvent,
+    PollEntryRequest,
+    PollFolderRequest,
+    PartialPollRequest,
 } from "@/interface";
 import {
     DomainManager,
@@ -148,8 +148,8 @@ export class ClientManager implements IComponentService {
                 this.createEntry(entityType, title, folderId),
         );
 
-        this.synchronizer.onPoll.subscribe((event) =>
-            this._collectChanges(event),
+        this.synchronizer.poll.subscribe((request) =>
+            this._collectChanges(request),
         );
         this.synchronizer.onSync.subscribe((event) =>
             this._handleSynchronization(event),
@@ -250,11 +250,6 @@ export class ClientManager implements IComponentService {
             name,
             parentFolderId,
         );
-    }
-
-    editFolderName(id: Id) {
-        // this.leftSideBar.spotlight.toggleFolderAsEditable(id);
-        console.log(id);
     }
 
     async moveFolder({
@@ -366,12 +361,12 @@ export class ClientManager implements IComponentService {
 
     // ENTRY HANDLING
 
-    async createEntry(entityType: EntryType, title: string, folderId: Id) {
+    async createEntry(entryType: EntryType, title: string, folderId: Id) {
         const projectId = this.data.loadedProjectId;
 
         const entry = await this.domain.entries.create(
             projectId,
-            entityType,
+            entryType,
             title,
             folderId,
         );
@@ -473,8 +468,8 @@ export class ClientManager implements IComponentService {
             this.synchronizer.requestPeriodicSynchronization();
     }
 
-    private _buildPollEvent(event: DataChangeEvent): PollEvent {
-        const poll: PartialPollEvent = {
+    private _buildPollEvent(event: DataChangeEvent): PollRequest {
+        const pollRequest: PartialPollRequest = {
             type: SyncType.PARTIAL,
             immediate: true,
         };
@@ -483,13 +478,13 @@ export class ClientManager implements IComponentService {
             if (!(event.project.syncImmediately ?? false))
                 return { type: SyncType.FULL, immediate: false };
 
-            poll.project = {
+            pollRequest.project = {
                 syncName: event.project.nameChanged ?? false,
             };
         }
 
         if (event.folders) {
-            const folderPolls: PollFolderEvent[] = [];
+            const folderPolls: PollFolderRequest[] = [];
 
             for (const folderEvent of event.folders) {
                 if (!(folderEvent.syncImmediately ?? false))
@@ -501,11 +496,11 @@ export class ClientManager implements IComponentService {
                 });
             }
 
-            poll.folders = folderPolls;
+            pollRequest.folders = folderPolls;
         }
 
         if (event.entries) {
-            const entryPolls: PollEntryEvent[] = [];
+            const entryPolls: PollEntryRequest[] = [];
 
             for (const entryEvent of event.entries) {
                 if (!(entryEvent.syncImmediately ?? false))
@@ -520,17 +515,17 @@ export class ClientManager implements IComponentService {
                     syncLexicon: entryEvent.lexiconChanged ?? false,
                 });
             }
-            poll.entries = entryPolls;
+            pollRequest.entries = entryPolls;
         }
 
-        return poll;
+        return pollRequest;
     }
 
-    private _collectChanges(event: PollEvent): PollResult {
+    private _collectChanges(pollRequest: PollRequest): PollResult {
         // FIXME: the changes fetched here may contain multiple conflicting changes;
         // we need to decide which changes take priority
-        const centralChanges = this.central.collectChanges(event);
-        const sidebarChanges = this.leftSideBar.fetchChanges(event);
+        const centralChanges = this.central.collectChanges(pollRequest);
+        const sidebarChanges = this.leftSideBar.fetchChanges(pollRequest);
 
         return {
             // HACK: the left sidebar currently doesn't modify the project,

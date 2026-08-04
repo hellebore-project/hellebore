@@ -10,6 +10,7 @@ import type {
 import type { Word } from "../word";
 
 export interface SyncProjectRequest {
+    id: Id;
     name?: string | null;
 }
 

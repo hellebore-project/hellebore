@@ -1,6 +1,6 @@
 import { SyncType } from "@/constants";
 import type {
-    PollEvent,
+    PollRequest,
     PollResult,
     SyncEntryEvent,
     SyncEntryRequest,
@@ -27,14 +27,14 @@ export class SynchronizationService {
     private _domain: DomainManager;
     private _data: ClientData;
 
-    onPoll: EventProducer<PollEvent, PollResult>;
+    poll: EventProducer<PollRequest, PollResult>;
     onSync: MultiEventProducer<SyncEvent, void>;
 
     constructor(domain: DomainManager, data: ClientData) {
         this._domain = domain;
         this._data = data;
 
-        this.onPoll = new EventProducer();
+        this.poll = new EventProducer();
         this.onSync = new MultiEventProducer();
     }
 
@@ -43,16 +43,16 @@ export class SynchronizationService {
         return this.DEFAULT_SYNC_PERIOD;
     }
 
-    canSkipSync(poll: PollEvent) {
-        if (poll.type === SyncType.FULL) return false;
+    canSkipPoll(request: PollRequest) {
+        if (request.type === SyncType.FULL) return false;
 
-        if (poll.project && poll.project.syncName) return false;
+        if (request.project && request.project.syncName) return false;
 
-        for (const folderPoll of poll.folders ?? []) {
+        for (const folderPoll of request.folders ?? []) {
             if (folderPoll.syncTitle) return false;
         }
 
-        for (const entryPoll of poll.entries ?? []) {
+        for (const entryPoll of request.entries ?? []) {
             if (
                 entryPoll.syncTitle ||
                 entryPoll.syncFolderId ||
@@ -66,13 +66,21 @@ export class SynchronizationService {
         return true;
     }
 
+    canSkipSync(result: PollResult) {
+        return (
+            !result.project &&
+            (!result.entries || result.entries.length == 0) &&
+            (!result.folders || result.folders.length == 0)
+        );
+    }
+
     requestPeriodicSynchronization() {
         this._lastFullRequestTime = Date.now();
 
-        if (this._waitingForSync) return;
+        if (this._waitingForSync) return null;
         this._waitingForSync = true;
 
-        this._requestPeriodicSynchronization().finally(
+        return this._requestPeriodicSynchronization().finally(
             () => (this._waitingForSync = false),
         );
     }
@@ -102,19 +110,16 @@ export class SynchronizationService {
      * the time the method terminates.
      * @returns promise that returns the sync event or null if the request is skipped
      */
-    requestSynchronization(poll: PollEvent): Promise<SyncEvent | null> {
-        if (this.canSkipSync(poll)) return new Promise(() => null);
+    requestSynchronization(
+        pollRequest: PollRequest,
+    ): Promise<SyncEvent | null> {
+        if (this.canSkipPoll(pollRequest)) return new Promise(() => null);
 
-        const result = this.onPoll.produce(poll);
+        const result = this.poll.produce(pollRequest);
 
-        if (
-            !result.project &&
-            (!result.entries || result.entries.length == 0) &&
-            (!result.folders || result.folders.length == 0)
-        )
-            return new Promise(() => null);
+        if (this.canSkipSync(result)) return new Promise(() => null);
 
-        if (poll.type === SyncType.FULL)
+        if (pollRequest.type === SyncType.FULL)
             // the last sync time corresponds to the moment that the view data is retrieved
             this._lastFullSyncTime = Date.now();
 
@@ -124,9 +129,12 @@ export class SynchronizationService {
         // the waiting-for-sync flag is set to false to permit the creation of a delayed sync event
         this._waitingForSync = false;
 
-        const projectRequest: SyncProjectRequest = {
-            name: result.project?.name ?? null,
-        };
+        let projectRequest: SyncProjectRequest | null = null;
+        if (result.project)
+            projectRequest = {
+                id: result.project.id,
+                name: result.project.name ?? null,
+            };
 
         const folderRequests: SyncFolderRequest[] =
             result.folders?.map((folder) => ({
@@ -177,7 +185,6 @@ export class SynchronizationService {
             };
 
             const projectResponse = await this._domain.projects.updateProject({
-                id: projectId,
                 ...projectRequest,
             });
             if (projectResponse)

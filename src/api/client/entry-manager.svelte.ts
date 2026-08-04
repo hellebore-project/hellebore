@@ -29,24 +29,24 @@ import type {
 export class EntryManager {
     async create(
         projectId: Id,
-        entityType: EntryType,
+        entryType: EntryType,
         title: string,
         folderId: Id = ROOT_FOLDER_ID,
     ): Promise<EntryInfoResponse | null> {
         let response: EntryInfoResponse | null;
 
         try {
-            if (entityType === EntryType.Language)
+            if (entryType === EntryType.Language)
                 response = await this._createLanguage(
                     projectId,
                     title,
                     folderId,
                 );
-            else if (entityType === EntryType.Person)
+            else if (entryType === EntryType.Person)
                 response = await this._createPerson(projectId, title, folderId);
             else {
                 console.error(
-                    `Unable to create new entry of type ${entityType}.`,
+                    `Unable to create new entry of type ${entryType}.`,
                 );
                 return null;
             }
@@ -334,7 +334,7 @@ export class EntryManager {
         if (properties) {
             if (entryType === null || entryType === undefined)
                 throw (
-                    `Failed to update entry ${id}; a non-null entry type must be specified ` +
+                    `Failed to update entry '${id}'; a non-null entry type must be specified ` +
                     "in order to update the entry properties."
                 );
 

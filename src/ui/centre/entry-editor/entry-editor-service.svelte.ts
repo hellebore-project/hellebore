@@ -11,8 +11,8 @@ import type {
     ICentralPanelContentService,
     Id,
     OpenEntryEditorEvent,
-    PollEntryEvent,
-    PollEvent,
+    PollEntryRequest,
+    PollRequest,
     PollResultEntryData,
     SyncEntryEvent,
     Word,
@@ -241,7 +241,7 @@ export class EntryEditorService implements ICentralPanelContentService {
 
     // SYNC
 
-    collectChanges(event: PollEvent): PollResultEntryData | null {
+    collectChanges(pollRequest: PollRequest): PollResultEntryData | null {
         if (this.info.entryId === null || this.info.entryType === null)
             return null;
 
@@ -250,15 +250,15 @@ export class EntryEditorService implements ICentralPanelContentService {
         let syncText = false;
         let syncLexicon = false;
 
-        if (event.type === SyncType.FULL) {
+        if (pollRequest.type === SyncType.FULL) {
             syncTitle = true;
             syncProperties = true;
             syncText = true;
             syncLexicon = true;
-        } else if (event.type === SyncType.PARTIAL) {
-            let entryEvent: PollEntryEvent | undefined = undefined;
+        } else if (pollRequest.type === SyncType.PARTIAL) {
+            let entryEvent: PollEntryRequest | undefined = undefined;
 
-            for (const e of event.entries ?? []) {
+            for (const e of pollRequest.entries ?? []) {
                 if (e.id === this.info.entryId) {
                     entryEvent = e;
                     break;

@@ -10,15 +10,6 @@ import { mockGetWords } from "@tests/utils/mocks";
 import { test as baseTest } from "../fixtures";
 
 export interface BaseWordEditorFixtures {
-    entryType: EntryType.Language;
-    languageId: Id;
-    wordId: Id;
-    wordType: WordType;
-    wordSpelling: string;
-    wordDefinition: string;
-    wordTranslations: string[];
-    word: WordResponse;
-    words: WordResponse[];
     mockedWord: WordResponse;
     mockedWords: WordResponse[];
     wordEditorService: WordEditorService;
@@ -27,40 +18,6 @@ export interface BaseWordEditorFixtures {
 
 export const test = baseTest
     .extend<BaseWordEditorFixtures>({
-        entryType: EntryType.Language,
-
-        languageId: async ({ entryId }, use) => await use(entryId),
-
-        wordId: "word1",
-        wordType: WordType.Noun,
-        wordSpelling: "alpha",
-        wordDefinition: "first",
-        wordTranslations: ["one", "single"],
-        word: async (
-            {
-                languageId,
-                wordId,
-                wordType,
-                wordSpelling,
-                wordDefinition,
-                wordTranslations,
-            },
-            use,
-        ) => {
-            const word: WordResponse = {
-                id: wordId,
-                languageId,
-                wordType,
-                spelling: wordSpelling,
-                definition: wordDefinition,
-                translations: wordTranslations,
-            };
-            await use(word);
-        },
-        words: async ({ word }, use) => {
-            await use([word]);
-        },
-
         mockedWord: async ({ mockedWords }, use) => {
             await use(mockedWords[0]);
         },
@@ -77,6 +34,7 @@ export const test = baseTest
         },
     })
     .override({
+        entryType: EntryType.Language,
         entryViewType: EntryViewType.WordEditor,
         entryEditorMocks: async (
             { mockedEntryInfo, mockedWord, mockedWords },

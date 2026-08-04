@@ -7,7 +7,7 @@ import type {
     ICentralPanelContentService,
     IComponentService,
     OpenEntryEditorEvent,
-    PollEvent,
+    PollRequest,
     PollResult,
     SyncEvent,
     DataChangeEvent,
@@ -286,25 +286,27 @@ export class CentralPanelManager implements IComponentService {
         }
     }
 
-    collectChanges(event: PollEvent): PollResult {
+    collectChanges(pollRequest: PollRequest): PollResult {
         const results: PollResult = {
-            project: {},
             entries: [],
         };
 
         for (const service of this._panelServices.values()) {
             if (service.type === CentralViewType.EntryEditor) {
                 const entryEditor = service as EntryEditorService;
-                const entryResult = entryEditor.collectChanges(event);
+                const entryResult = entryEditor.collectChanges(pollRequest);
                 if (entryResult === null) continue;
 
                 results.entries!.push(entryResult);
             } else if (service.type === CentralViewType.Home) {
                 const home = service as HomeManager;
-                const projectResult = home.collectChanges(event);
-                if (projectResult === null) continue;
+                const projectChanges = home.collectChanges(pollRequest);
+                if (projectChanges === null) continue;
 
-                results.project = projectResult;
+                results.project = {
+                    ...projectChanges,
+                    id: this._data.loadedProjectId,
+                };
             }
         }
 
