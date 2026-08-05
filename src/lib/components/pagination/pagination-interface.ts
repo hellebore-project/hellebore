@@ -1,5 +1,5 @@
+import type { PaginationService } from "./pagination-service.svelte";
+
 export interface PaginationProps {
-    page: number;
-    pageCount: number;
-    onPageChange: (page: number) => void;
+    service: PaginationService;
 }

@@ -13,7 +13,7 @@ export interface TestMentionData {
     foo: string;
 }
 
-export interface RichTextEditorTestFixtures {
+export interface RichTextEditorFixtures {
     placeholder: string;
     mentionItems: string[];
     text: string;
@@ -22,7 +22,7 @@ export interface RichTextEditorTestFixtures {
     service: RichTextEditorService<TestMentionData>;
 }
 
-export const test = baseTest.extend<RichTextEditorTestFixtures>({
+export const test = baseTest.extend<RichTextEditorFixtures>({
     placeholder: "Enter some text...",
     mentionItems: ["Alpha", "Beta", "Gamma"],
     text: "Hello world",

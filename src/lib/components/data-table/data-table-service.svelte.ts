@@ -1,6 +1,7 @@
 import { SvelteSet } from "svelte/reactivity";
 
 import type { IComponentService } from "@/interface";
+import { PaginationService } from "@/lib/components/pagination";
 
 import type {
     DataColumn,
@@ -34,21 +35,18 @@ export class DataTableService<
     selectOpen: boolean = $state(false);
     editSelectAll = true;
     private _columnFilters: Record<string, string[]> = $state({});
-    page: number = $state(1);
-    pageCount: number = $state(1);
+
+    // SERVICES
+    pagination: PaginationService;
 
     // CALLBACKS
     focusGrid: (() => void) | undefined = undefined;
     private _onFilter:
-        | ((colKey: TColKey, values: string[]) => void)
-        | undefined;
+        ((colKey: TColKey, values: string[]) => void) | undefined;
     private _onCancelEdit:
-        | ((rowKey: string, colKey: TColKey) => void)
-        | undefined;
+        ((rowKey: string, colKey: TColKey) => void) | undefined;
     private _onSetValue:
-        | ((rowKey: string, colKey: TColKey, value: string) => void)
-        | undefined;
-    private _onPageChange: ((page: number) => void) | undefined;
+        ((rowKey: string, colKey: TColKey, value: string) => void) | undefined;
 
     constructor({
         id,
@@ -61,11 +59,16 @@ export class DataTableService<
     }: DataTableServiceArgs<TColKey>) {
         this._id = id;
         this._columns = columns;
-        if (pageCount !== undefined) this.pageCount = pageCount;
+
+        this.pagination = new PaginationService({
+            id: `${id}-pagination`,
+            count: pageCount,
+        });
+        if (onPageChange) this.pagination.onChangePage.subscribe(onPageChange);
+
         this._onFilter = onFilter;
         this._onCancelEdit = onCancelEdit;
         this._onSetValue = onSetValue;
-        this._onPageChange = onPageChange;
     }
 
     // PROPERTIES
@@ -556,13 +559,6 @@ export class DataTableService<
             block: "nearest",
             inline: "nearest",
         });
-    }
-
-    // PAGINATION
-
-    changePage(page: number) {
-        this.page = page;
-        this._onPageChange?.(page);
     }
 
     // CLEAN UP
