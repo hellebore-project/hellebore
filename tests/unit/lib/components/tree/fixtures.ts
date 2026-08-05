@@ -6,14 +6,14 @@ export interface TestTreeNodeData {
     kind: string;
 }
 
-export interface TreeTestFixtures {
+export interface TreeFixtures {
     rootNodeId: string;
     branchNodes: TreeNodeInfo<TestTreeNodeData>[];
     leafNodes: TreeNodeInfo<TestTreeNodeData>[];
     service: TreeService<TestTreeNodeData>;
 }
 
-export const test = baseTest.extend<TreeTestFixtures>({
+export const test = baseTest.extend<TreeFixtures>({
     rootNodeId: "root",
     branchNodes: [],
     leafNodes: [],

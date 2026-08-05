@@ -6,12 +6,12 @@ export enum UserColumnKey {
     Status = "status",
 }
 
-export interface DataTableTestFixtures {
+export interface DataTableFixtures {
     data: DataRow<UserColumnKey>[];
     service: DataTableService<UserColumnKey>;
 }
 
-export const test = baseTest.extend<DataTableTestFixtures>({
+export const test = baseTest.extend<DataTableFixtures>({
     data: [
         {
             key: "1",
