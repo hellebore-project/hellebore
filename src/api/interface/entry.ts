@@ -85,6 +85,4 @@ export interface EntryArticleResponse {
 
 export interface EntrySearch {
     keyword: string;
-    offset?: number | null;
-    limit?: number | null;
 }

@@ -24,7 +24,8 @@ pub struct DiagnosticResponseSchema<D> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PaginationRequestSchema {
+pub struct PaginationRequestSchema<D> {
+    pub data: D,
     /// 0-based index of the first item in the current page
     pub offset: Option<u64>,
     /// maximum number of items per page

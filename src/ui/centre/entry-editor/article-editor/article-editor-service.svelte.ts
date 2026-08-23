@@ -96,7 +96,9 @@ export class ArticleEditorService implements IComponentService {
         const projectId = this._data.loadedProjectId;
 
         const results = await this._domain.entries.search(projectId, {
-            keyword: titleFragment,
+            data: {
+                keyword: titleFragment,
+            },
             limit: 5,
         });
         if (!results) return [];

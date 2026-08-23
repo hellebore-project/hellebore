@@ -123,6 +123,4 @@ pub struct EntryArticleResponseSchema {
 #[serde(rename_all = "camelCase")]
 pub struct EntrySearchSchema {
     pub keyword: String,
-    pub offset: Option<u64>,
-    pub limit: Option<u64>,
 }

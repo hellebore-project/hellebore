@@ -9,12 +9,12 @@ use crate::model::{
     errors::{Error, ErrorBuilder},
     text::TextNode,
 };
-use crate::schema::entry::EntrySearchSchema;
 use crate::schema::{
-    common::DiagnosticResponseSchema,
+    common::{DiagnosticResponseSchema, PaginationRequestSchema},
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema, EntryProperties,
-        EntryPropertyResponseSchema, EntryUpdateResponseSchema, EntryUpdateSchema,
+        EntryPropertyResponseSchema, EntrySearchSchema, EntryUpdateResponseSchema,
+        EntryUpdateSchema,
     },
 };
 use crate::services::{entry_text_service, language_service, person_service, word_service};
@@ -389,9 +389,9 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<EntryInfoRespo
 
 pub async fn search(
     database: &DatabaseConnection,
-    query: EntrySearchSchema,
+    query: PaginationRequestSchema<EntrySearchSchema>,
 ) -> Result<Vec<EntryInfoResponseSchema>, Error> {
-    let entries = entry_manager::search(database, query.keyword, query.offset, query.limit)
+    let entries = entry_manager::search(database, query.data.keyword, query.offset, query.limit)
         .await
         .map_err(|e| {
             ErrorBuilder::new()

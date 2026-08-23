@@ -84,7 +84,7 @@ export class EntrySearchService implements IComponentService {
         const projectId = this._data.loadedProjectId;
 
         const entries = await this._domain.entries.search(projectId, {
-            keyword,
+            data: { keyword },
             limit: 10,
         });
         if (entries)

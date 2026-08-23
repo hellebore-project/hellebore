@@ -24,6 +24,7 @@ import type {
     LanguageProperties,
     PersonProperties,
     BackendEntryCreate,
+    PaginationRequest,
 } from "../interface";
 
 export class EntryManager {
@@ -283,7 +284,7 @@ export class EntryManager {
 
     async search(
         projectId: Id,
-        query: EntrySearch,
+        query: PaginationRequest<EntrySearch>,
     ): Promise<EntryInfoResponse[] | null> {
         let response: EntryInfoResponse[];
         try {
