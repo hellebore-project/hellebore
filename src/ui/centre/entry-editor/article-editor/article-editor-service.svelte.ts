@@ -95,8 +95,7 @@ export class ArticleEditorService implements IComponentService {
     ): Promise<(BaseMentionItemData & EntryMentionItemData)[]> {
         const projectId = this._data.loadedProjectId;
 
-        const results = await this._domain.entries.search({
-            projectId,
+        const results = await this._domain.entries.search(projectId, {
             keyword: titleFragment,
             limit: 5,
         });

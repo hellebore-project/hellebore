@@ -255,7 +255,6 @@ export class ClientManager implements IComponentService {
     async moveFolder({
         id,
         title,
-        sourceParentId,
         destParentId,
         confirm = true,
     }: MoveFolderEvent): Promise<MoveFolderResult> {
@@ -300,11 +299,9 @@ export class ClientManager implements IComponentService {
             }
 
             if (!cancel)
-                updateResponse = await this.domain.folders.update({
-                    projectId,
+                updateResponse = await this.domain.folders.update(projectId, {
                     id,
                     parentId: destParentId,
-                    oldParentId: sourceParentId,
                 });
         }
 

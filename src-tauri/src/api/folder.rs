@@ -15,11 +15,11 @@ use crate::services::{folder_service, project_service};
 pub async fn create_folder(
     state: tauri::State<'_, State>,
     project_id: Uuid,
-    info: FolderCreateSchema,
+    folder: FolderCreateSchema,
 ) -> Result<FolderResponseSchema, Error> {
     let state = state.lock().await;
     let db = project_service::get_database(&state, project_id)?;
-    folder_service::create(db, info).await
+    folder_service::create(db, folder).await
 }
 
 #[tauri::command]
