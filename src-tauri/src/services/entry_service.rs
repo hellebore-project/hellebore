@@ -391,21 +391,15 @@ pub async fn search(
     database: &DatabaseConnection,
     query: EntrySearchSchema,
 ) -> Result<Vec<EntryInfoResponseSchema>, Error> {
-    let entries = entry_manager::search(
-        database,
-        query.keyword,
-        query.before,
-        query.after,
-        query.limit,
-    )
-    .await
-    .map_err(|e| {
-        ErrorBuilder::new()
-            .msg("Failed to query the entry table while searching for entries.")
-            .from_err(e)
-            .db()
-            .query_failed()
-    })?;
+    let entries = entry_manager::search(database, query.keyword, query.offset, query.limit)
+        .await
+        .map_err(|e| {
+            ErrorBuilder::new()
+                .msg("Failed to query the entry table while searching for entries.")
+                .from_err(e)
+                .db()
+                .query_failed()
+        })?;
     let entries = entries.iter().map(generate_info_response).collect();
 
     Ok(entries)

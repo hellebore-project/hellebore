@@ -137,24 +137,17 @@ where
 pub async fn search<C>(
     con: &C,
     keyword: String,
-    before: Option<String>,
-    after: Option<String>,
-    limit: u64,
+    offset: Option<u64>,
+    limit: Option<u64>,
 ) -> Result<Vec<EntityInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
-    let mut cursor = EntryModel::find()
+    let cursor = EntryModel::find()
         .filter(entry::Column::Title.like(format!("%{}%", keyword)))
-        .cursor_by(entry::Column::Title);
-
-    if let Some(before_value) = before {
-        cursor.before(before_value);
-    }
-    if let Some(after_value) = after {
-        cursor.after(after_value);
-    }
-    cursor.first(limit);
+        .cursor_by(entry::Column::Title)
+        .offset(offset)
+        .limit(limit);
 
     cursor.into_partial_model::<EntityInfo>().all(con).await
 }

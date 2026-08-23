@@ -300,7 +300,7 @@ export class EntryManager {
             return null;
         }
 
-        return response.slice(0, query.limit);
+        return response;
     }
 
     async delete(projectId: Id, id: Id): Promise<boolean> {
