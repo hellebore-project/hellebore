@@ -3,9 +3,9 @@ use sea_orm::*;
 use uuid::Uuid;
 
 use crate::{
-    database::{file_manager, utils},
+    database::file_manager,
     types::entity::EntityType,
-    utils::CodedEnum,
+    utils::{CodedEnum, sea_orm as utils},
 };
 
 #[derive(DerivePartialModel, FromQueryResult)]

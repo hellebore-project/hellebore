@@ -4,9 +4,7 @@ use uuid::Uuid;
 use ::entity::{word, word::Entity as WordEntity};
 
 use crate::types::grammar::WordType;
-use crate::utils::CodedEnum;
-
-use super::utils;
+use crate::utils::{CodedEnum, sea_orm as utils};
 
 pub async fn insert<C>(
     con: &C,
