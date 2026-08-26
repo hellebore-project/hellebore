@@ -4,4 +4,4 @@ pub mod project;
 pub mod state;
 pub mod text;
 
-pub use crate::model::errors::Error;
+pub use crate::model::errors::{Error, ErrorBuilder};

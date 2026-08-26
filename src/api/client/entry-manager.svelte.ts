@@ -25,6 +25,7 @@ import type {
     PersonProperties,
     BackendEntryCreate,
     PaginationRequest,
+    PaginationResponse,
 } from "../interface";
 
 export class EntryManager {
@@ -285,10 +286,10 @@ export class EntryManager {
     async search(
         projectId: Id,
         query: PaginationRequest<EntrySearch>,
-    ): Promise<EntryInfoResponse[] | null> {
-        let response: EntryInfoResponse[];
+    ): Promise<PaginationResponse<EntryInfoResponse> | null> {
+        let response: PaginationResponse<EntryInfoResponse>;
         try {
-            response = await invoke<EntryInfoResponse[]>(
+            response = await invoke<PaginationResponse<EntryInfoResponse>>(
                 CommandNames.Entry.Search,
                 {
                     projectId,

@@ -16,8 +16,10 @@ pub fn search_entry_payload() -> PaginationRequestSchema<EntrySearchSchema> {
         data: EntrySearchSchema {
             keyword: "".to_owned(),
         },
+        page_index: 0,
         offset: None,
         limit: None,
+        include_total: true,
     }
 }
 
@@ -43,9 +45,9 @@ async fn test_search_entry_with_exact_title_match(
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
-    assert_eq!(results[0].title, "Rust Programming");
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
+    assert_eq!(results.data[0].title, "Rust Programming");
 }
 
 #[rstest]
@@ -70,8 +72,8 @@ async fn test_search_entry_title_starts_with_keyword(
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
 }
 
 #[rstest]
@@ -96,8 +98,8 @@ async fn test_search_entry_title_ends_with_keyword(
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
 }
 
 #[rstest]
@@ -122,8 +124,8 @@ async fn test_search_entry_title_contains_keyword(
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
 }
 
 #[rstest]
@@ -148,7 +150,7 @@ async fn test_search_entry_title_does_not_contain_keyword(
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 0);
+    assert_eq!(results.data.len(), 0);
 }
 
 #[rstest]
@@ -174,8 +176,8 @@ async fn test_search_entry_title_contains_partial_keyword(
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
 }
 
 #[rstest]
@@ -201,7 +203,7 @@ async fn test_search_entry_title_contains_keyword_with_typo(
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 0);
+    assert_eq!(results.data.len(), 0);
 }
 
 #[rstest]
@@ -225,10 +227,10 @@ async fn test_search_entry_with_limit(
     assert!(results.is_ok());
 
     let results = results.unwrap();
-    assert_eq!(results.len(), 2);
+    assert_eq!(results.data.len(), 2);
 
-    assert_eq!(results[0].title, "Rust A");
-    assert_eq!(results[1].title, "Rust B");
+    assert_eq!(results.data[0].title, "Rust A");
+    assert_eq!(results.data[1].title, "Rust B");
 }
 
 // FIXME: sea-orm doesn't build the SQL query correctly when only the offset is specified
@@ -254,10 +256,10 @@ async fn test_search_entry_with_offset(
     assert!(results.is_ok());
 
     let results = results.unwrap();
-    assert_eq!(results.len(), 2);
+    assert_eq!(results.data.len(), 2);
 
-    assert_eq!(results[0].title, "Rust B");
-    assert_eq!(results[1].title, "Rust C");
+    assert_eq!(results.data[0].title, "Rust B");
+    assert_eq!(results.data[1].title, "Rust C");
 }
 
 #[rstest]
@@ -284,8 +286,8 @@ async fn test_search_entry_with_limit_and_offset(
     assert!(results.is_ok());
 
     let results = results.unwrap();
-    assert_eq!(results.len(), 2);
+    assert_eq!(results.data.len(), 2);
 
-    assert_eq!(results[0].title, "Rust C");
-    assert_eq!(results[1].title, "Rust D");
+    assert_eq!(results.data[0].title, "Rust C");
+    assert_eq!(results.data[1].title, "Rust D");
 }

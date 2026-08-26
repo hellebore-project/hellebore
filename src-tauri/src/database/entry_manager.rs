@@ -136,20 +136,32 @@ where
 
 pub async fn search<C>(
     con: &C,
-    keyword: String,
+    like_title: String,
     offset: Option<u64>,
     limit: Option<u64>,
 ) -> Result<Vec<EntityInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
-    let cursor = EntryModel::find()
-        .filter(entry::Column::Title.like(format!("%{}%", keyword)))
-        .cursor_by(entry::Column::Title)
+    EntryModel::find()
+        .filter(entry::Column::Title.like(format!("%{}%", like_title)))
+        .order_by_asc(entry::Column::Title)
         .offset(offset)
-        .limit(limit);
+        .limit(limit)
+        .into_partial_model::<EntityInfo>()
+        .all(con)
+        .await
+}
 
-    cursor.into_partial_model::<EntityInfo>().all(con).await
+pub async fn count<C>(con: &C, like_title: String) -> Result<u64, DbErr>
+where
+    C: ConnectionTrait,
+{
+    EntryModel::find()
+        .filter(entry::Column::Title.like(format!("%{}%", like_title)))
+        .order_by_asc(entry::Column::Title)
+        .count(con)
+        .await
 }
 
 pub async fn delete<C>(con: &C, id: Uuid) -> Result<DeleteResult, DbErr>

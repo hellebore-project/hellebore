@@ -100,10 +100,11 @@ export class ArticleEditorService implements IComponentService {
                 keyword: titleFragment,
             },
             limit: 5,
+            include_total: false,
         });
         if (!results) return [];
 
-        return results
+        return results.data
             .filter((info) => info.id != this.info.entryId)
             .map((info) => ({
                 label: info.title,

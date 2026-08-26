@@ -5,12 +5,9 @@ use uuid::Uuid;
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
-use crate::model::{
-    errors::{Error, ErrorBuilder},
-    text::TextNode,
-};
+use crate::model::{Error, ErrorBuilder, text::TextNode};
 use crate::schema::{
-    common::{DiagnosticResponseSchema, PaginationRequestSchema},
+    common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema, EntryProperties,
         EntryPropertyResponseSchema, EntrySearchSchema, EntryUpdateResponseSchema,
@@ -390,19 +387,51 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<EntryInfoRespo
 pub async fn search(
     database: &DatabaseConnection,
     query: PaginationRequestSchema<EntrySearchSchema>,
-) -> Result<Vec<EntryInfoResponseSchema>, Error> {
-    let entries = entry_manager::search(database, query.data.keyword, query.offset, query.limit)
-        .await
-        .map_err(|e| {
-            ErrorBuilder::new()
-                .msg("Failed to query the entry table while searching for entries.")
-                .from_err(e)
-                .db()
-                .query_failed()
-        })?;
-    let entries = entries.iter().map(generate_info_response).collect();
+) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
+    let entries = entry_manager::search(
+        database,
+        query.data.keyword.to_owned(),
+        query.offset,
+        query.limit,
+    )
+    .await
+    .map_err(|e| {
+        ErrorBuilder::new()
+            .msg("Failed to query the entry table while searching for entries.")
+            .from_err(e)
+            .db()
+            .query_failed()
+    })?;
 
-    Ok(entries)
+    // converting from usize (4-byte or 8-byte depending on the system) to u64 (8-byte)
+    let item_count = entries.len().try_into().unwrap();
+
+    let total = match query.include_total {
+        true => entry_manager::count(database, query.data.keyword)
+            .await
+            .map(Some)
+            .map_err(|e| {
+                ErrorBuilder::new()
+                    .msg("Failed to compute the count of a query result.")
+                    .from_err(e)
+                    .db()
+                    .query_failed()
+            }),
+        false => Ok(None),
+    }?;
+
+    let entries: Vec<EntryInfoResponseSchema> =
+        entries.iter().map(generate_info_response).collect();
+
+    Ok(PaginationResponseSchema {
+        data: entries,
+        page_index: query.page_index,
+        page_count: None,
+        item_count,
+        total,
+        offset: query.offset,
+        limit: query.limit,
+    })
 }
 
 pub async fn delete(database: &DatabaseConnection, id: Uuid) -> Result<(), Error> {

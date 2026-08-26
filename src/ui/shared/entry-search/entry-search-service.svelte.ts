@@ -83,12 +83,12 @@ export class EntrySearchService implements IComponentService {
 
         const projectId = this._data.loadedProjectId;
 
-        const entries = await this._domain.entries.search(projectId, {
+        const response = await this._domain.entries.search(projectId, {
             data: { keyword },
             limit: 10,
         });
-        if (entries)
-            return entries.map((entry) => ({
+        if (response)
+            return response.data.map((entry) => ({
                 label: entry.title,
                 value: entry.id,
             }));
