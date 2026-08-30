@@ -4,18 +4,10 @@ use uuid::Uuid;
 
 use crate::{
     database::file_manager,
-    types::entity::EntityType,
+    model::entry::EntryInfo,
+    types::EntityType,
     utils::{CodedEnum, sea_orm as utils},
 };
-
-#[derive(DerivePartialModel, FromQueryResult)]
-#[sea_orm(entity = "EntryModel")]
-pub struct EntryInfo {
-    pub id: Uuid,
-    pub folder_id: Option<Uuid>,
-    pub entity_type: i8,
-    pub title: String,
-}
 
 pub async fn insert<C>(
     con: &C,

@@ -1,18 +1,18 @@
 use sea_orm::ConnectionTrait;
 
 use crate::database::entry_manager;
-use crate::model::{Error, ErrorBuilder, Querier, QueryArgs, entry::EntryQueryData};
+use crate::model::{
+    Error, ErrorBuilder, Querier, QueryArgs,
+    entry::{EntryInfo, EntryQueryData},
+};
 
 pub struct EntryQuerier {}
 
 impl Querier for EntryQuerier {
     type O = EntryQueryData;
-    type R = entry_manager::EntryInfo;
+    type R = EntryInfo;
 
-    async fn query<C>(
-        con: &C,
-        query: &QueryArgs<EntryQueryData>,
-    ) -> Result<Vec<entry_manager::EntryInfo>, Error>
+    async fn query<C>(con: &C, query: &QueryArgs<EntryQueryData>) -> Result<Vec<EntryInfo>, Error>
     where
         C: ConnectionTrait,
     {

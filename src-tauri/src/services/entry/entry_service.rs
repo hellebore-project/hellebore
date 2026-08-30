@@ -5,7 +5,11 @@ use uuid::Uuid;
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
-use crate::model::{Error, ErrorBuilder, QueryArgs, entry::EntryQueryData, text::TextNode};
+use crate::model::{
+    Error, ErrorBuilder, QueryArgs,
+    entry::{EntryInfo, EntryQueryData},
+    text::TextNode,
+};
 use crate::schema::{
     common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
     entry::{
@@ -454,7 +458,7 @@ pub fn generate_insert_response(info: &EntryModel) -> EntryInfoResponseSchema {
     }
 }
 
-pub fn generate_info_response(info: &entry_manager::EntryInfo) -> EntryInfoResponseSchema {
+pub fn generate_info_response(info: &EntryInfo) -> EntryInfoResponseSchema {
     EntryInfoResponseSchema {
         id: info.id,
         folder_id: file_manager::convert_null_folder_id_to_root(info.folder_id),
@@ -464,7 +468,7 @@ pub fn generate_info_response(info: &entry_manager::EntryInfo) -> EntryInfoRespo
 }
 
 pub fn generate_property_response(
-    info: &entry_manager::EntryInfo,
+    info: &EntryInfo,
     properties: EntryProperties,
 ) -> EntryPropertyResponseSchema {
     EntryPropertyResponseSchema {
