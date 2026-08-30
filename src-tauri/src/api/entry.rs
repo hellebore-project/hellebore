@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::model::{errors::Error, state::State};
 use crate::schema::{
-    common::DiagnosticResponseSchema,
+    common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
         EntryPropertyResponseSchema, EntrySearchSchema, EntryUpdateResponseSchema,
@@ -103,8 +103,8 @@ pub async fn get_entries(
 pub async fn search_entries(
     state: tauri::State<'_, State>,
     project_id: Uuid,
-    query: EntrySearchSchema,
-) -> Result<Vec<EntryInfoResponseSchema>, Error> {
+    query: PaginationRequestSchema<EntrySearchSchema>,
+) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
     let state = state.lock().await;
     let db = project_service::get_database(&state, project_id)?;
     entry_service::search(db, query).await

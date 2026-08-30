@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::database::language_manager;
 use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::language::LanguageSchema;
-use crate::types::entity::LANGUAGE;
+use crate::types::entity_type::LANGUAGE;
 
 pub async fn create<C>(con: &C, entry_id: Uuid) -> Result<(), Error>
 where

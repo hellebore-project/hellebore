@@ -13,18 +13,17 @@ import type {
     FolderValidateResponse,
 } from "../interface";
 
-export interface FolderUpdateArgs {
-    id: Id;
-    name?: string | null;
-    parentId?: Id | null;
-    oldParentId?: Id | null;
-}
-
 export class FolderManager {
     async create(projectId: Id, name: string, parentId: Id = ROOT_FOLDER_ID) {
         let response: FolderResponse | null;
         try {
-            response = await this._create(projectId, parentId, name);
+            response = await invoke<FolderResponse>(
+                CommandNames.Folder.Create,
+                {
+                    projectId,
+                    folder: { parentId, name },
+                },
+            );
         } catch (error) {
             console.error(error);
             return null;
@@ -41,7 +40,10 @@ export class FolderManager {
     ): Promise<FolderValidateResponse | null> {
         let response: DiagnosticResponse<FolderValidateResponse> | null;
         try {
-            response = await this._validate_name(projectId, id, parentId, name);
+            response = await invoke<DiagnosticResponse<FolderValidateResponse>>(
+                CommandNames.Folder.Validate,
+                { projectId, id, parentId, name },
+            );
         } catch (error) {
             console.error(error);
             return null;
@@ -50,17 +52,19 @@ export class FolderManager {
         return response.data;
     }
 
-    async update({
-        projectId,
-        id,
-        name = null,
-        parentId = null,
-    }: FolderUpdateArgs & {
-        projectId: Id;
-    }): Promise<FolderUpdateResponse | null> {
+    async update(
+        projectId: Id,
+        folder: FolderUpdate,
+    ): Promise<FolderUpdateResponse | null> {
         let response: DiagnosticResponse<FolderBulkUpdateData>;
         try {
-            response = await this._update(projectId, { id, parentId, name });
+            response = await invoke<DiagnosticResponse<FolderBulkUpdateData>>(
+                CommandNames.Folder.Update,
+                {
+                    projectId,
+                    folder,
+                },
+            );
         } catch (error) {
             console.error(error);
             return null;
@@ -68,50 +72,11 @@ export class FolderManager {
 
         return {
             id: response.data.id,
-            parentId,
-            name,
+            parentId: folder.parentId ?? null,
+            name: folder.name ?? null,
             parentChanged: response.data.parentChanged,
             nameChanged: response.data.nameChanged,
         };
-    }
-
-    async get(projectId: Id, id: Id): Promise<FolderResponse | null> {
-        let response: FolderResponse | null;
-        try {
-            response = await this._get(projectId, id);
-        } catch (error) {
-            console.error(error);
-            console.error(`Failed to fetch folder ${id} from the backend.`);
-            return null;
-        }
-
-        return response;
-    }
-
-    async getAll(projectId: Id): Promise<FolderResponse[] | null> {
-        let response: FolderResponse[] | null;
-        try {
-            response = await this._getAll(projectId);
-        } catch (error) {
-            console.error(error);
-            console.error("Failed to fetch all folders from the backend.");
-            return null;
-        }
-
-        return response;
-    }
-
-    async delete(projectId: Id, id: Id): Promise<BulkEntryResponse | null> {
-        let response: BulkEntryResponse;
-        try {
-            response = await this._delete(projectId, id);
-        } catch (error) {
-            console.error(error);
-            console.error(`Failed to delete folder ${id} and/or its contents.`);
-            return null;
-        }
-
-        return response;
     }
 
     async bulkUpdate(
@@ -121,7 +86,9 @@ export class FolderManager {
         let responses: DiagnosticResponse<FolderBulkUpdateData>[];
 
         try {
-            responses = await this._bulkUpdate(projectId, folders);
+            responses = await invoke<
+                DiagnosticResponse<FolderBulkUpdateData>[]
+            >(CommandNames.Folder.BulkUpdate, { projectId, folders });
         } catch (error) {
             console.error(error);
             return null;
@@ -134,69 +101,56 @@ export class FolderManager {
         }));
     }
 
-    async _create(
-        projectId: Id,
-        parentId: Id,
-        name: string,
-    ): Promise<FolderResponse> {
-        return invoke<FolderResponse>(CommandNames.Folder.Create, {
-            projectId,
-            info: { parentId, name },
-        });
-    }
-
-    async _update(
-        projectId: Id,
-        update: FolderUpdate,
-    ): Promise<DiagnosticResponse<FolderBulkUpdateData>> {
-        return invoke<DiagnosticResponse<FolderBulkUpdateData>>(
-            CommandNames.Folder.Update,
-            {
+    async get(projectId: Id, id: Id): Promise<FolderResponse | null> {
+        let response: FolderResponse | null;
+        try {
+            response = await invoke<FolderResponse>(CommandNames.Folder.Get, {
                 projectId,
-                folder: update,
-            },
-        );
+                id,
+            });
+        } catch (error) {
+            console.error(error);
+            console.error(`Failed to fetch folder ${id} from the backend.`);
+            return null;
+        }
+
+        return response;
     }
 
-    async _validate_name(
-        projectId: Id,
-        id: Id | null,
-        parentId: Id,
-        name: string,
-    ): Promise<DiagnosticResponse<FolderValidateResponse>> {
-        return invoke<DiagnosticResponse<FolderValidateResponse>>(
-            CommandNames.Folder.Validate,
-            { projectId, id, parentId, name },
-        );
+    async getAll(projectId: Id): Promise<FolderResponse[] | null> {
+        let response: FolderResponse[] | null;
+        try {
+            response = await invoke<FolderResponse[]>(
+                CommandNames.Folder.GetAll,
+                {
+                    projectId,
+                },
+            );
+        } catch (error) {
+            console.error(error);
+            console.error("Failed to fetch all folders from the backend.");
+            return null;
+        }
+
+        return response;
     }
 
-    async _get(projectId: Id, id: Id) {
-        return invoke<FolderResponse>(CommandNames.Folder.Get, {
-            projectId,
-            id,
-        });
-    }
+    async delete(projectId: Id, id: Id): Promise<BulkEntryResponse | null> {
+        let response: BulkEntryResponse;
+        try {
+            response = await invoke<BulkEntryResponse>(
+                CommandNames.Folder.Delete,
+                {
+                    projectId,
+                    id,
+                },
+            );
+        } catch (error) {
+            console.error(error);
+            console.error(`Failed to delete folder ${id} and/or its contents.`);
+            return null;
+        }
 
-    async _getAll(projectId: Id) {
-        return invoke<FolderResponse[]>(CommandNames.Folder.GetAll, {
-            projectId,
-        });
-    }
-
-    async _delete(projectId: Id, id: Id): Promise<BulkEntryResponse> {
-        return invoke<BulkEntryResponse>(CommandNames.Folder.Delete, {
-            projectId,
-            id,
-        });
-    }
-
-    async _bulkUpdate(
-        projectId: Id,
-        folders: FolderUpdate[],
-    ): Promise<DiagnosticResponse<FolderBulkUpdateData>[]> {
-        return invoke<DiagnosticResponse<FolderBulkUpdateData>[]>(
-            CommandNames.Folder.BulkUpdate,
-            { projectId, folders },
-        );
+        return response;
     }
 }

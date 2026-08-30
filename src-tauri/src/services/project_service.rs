@@ -12,7 +12,7 @@ use crate::model::{
 };
 use crate::schema::project::{ProjectConfigFileSchema, ProjectResponseSchema};
 use crate::services::config_service;
-use crate::types::entity::PROJECT;
+use crate::types::entity_type::PROJECT;
 
 pub async fn create(
     state: &mut MutexGuard<'_, StateData>,

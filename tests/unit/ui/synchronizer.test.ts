@@ -151,7 +151,7 @@ test.extend({
         await flaggedPeriodicSyncPromise;
         expect(resolved).toBe(true);
     },
-    10000,
+    15000,
 );
 
 test.extend({

@@ -10,6 +10,7 @@ import {
     type DiagnosticResponse,
     type WordUpsertResponse,
     type EntrySearch,
+    type PaginationRequest,
 } from "@/api";
 import { Id } from "@/interface";
 import { compareStrings } from "@/utils/string";
@@ -151,10 +152,16 @@ export function mockSearchEntries(
     mockedInvoker: MockedInvoker,
     entries: EntryInfoResponse[],
 ) {
-    const search = async ({ query }: { query: EntrySearch }) => {
+    const search = async ({
+        query,
+    }: {
+        query: PaginationRequest<EntrySearch>;
+    }) => {
         return entries
-            .filter((e) => e.title.includes(query.keyword))
-            .sort((a, b) => compareStrings(a.title, b.title));
+            .filter((e) => e.title.includes(query.data.keyword))
+            .sort((a, b) => compareStrings(a.title, b.title))
+            .slice(query.offset ?? undefined)
+            .slice(0, query.limit ?? undefined);
     };
     mockedInvoker.mockCommand(CommandNames.Entry.Search, search);
 }

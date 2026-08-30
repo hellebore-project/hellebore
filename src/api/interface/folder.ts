@@ -8,8 +8,8 @@ interface FolderProperties {
 export type FolderCreate = FolderProperties;
 
 export interface FolderUpdate extends IdentifiedObject {
-    parentId: Id | null;
-    name: string | null;
+    parentId?: Id | null;
+    name?: string | null;
 }
 
 export interface FolderBulkUpdateData {

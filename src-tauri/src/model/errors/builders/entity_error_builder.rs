@@ -1,11 +1,11 @@
 use crate::{
     model::errors::{
+        Error,
         builders::{
             attribute_error_builder::AttributeErrorBuilder, entry_error_builder::EntryErrorBuilder,
         },
-        error::Error,
     },
-    types::entity::EntityType,
+    types::EntityType,
 };
 
 pub struct EntityErrorBuilder {

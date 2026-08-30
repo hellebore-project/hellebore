@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use hellebore::{
     schema::word::{WordResponseSchema, WordUpsertSchema},
-    types::grammar::WordType,
+    types::grammar_types::WordType,
 };
 
 #[fixture]

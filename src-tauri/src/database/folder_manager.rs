@@ -3,7 +3,8 @@ use uuid::Uuid;
 
 use ::entity::{folder, folder::Entity as FolderModel};
 
-use crate::database::{file_manager, utils};
+use crate::database::file_manager;
+use crate::utils::sea_orm as utils;
 
 pub async fn insert<C>(con: &C, parent_id: Uuid, name: &str) -> Result<folder::Model, DbErr>
 where

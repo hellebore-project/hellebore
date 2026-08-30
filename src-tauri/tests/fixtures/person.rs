@@ -5,7 +5,7 @@ use hellebore::{
         entry::{EntryCreateSchema, EntryProperties},
         person::PersonSchema,
     },
-    types::entity::PERSON,
+    types::entity_type::PERSON,
 };
 
 use crate::fixtures::entry::create_entry_payload;

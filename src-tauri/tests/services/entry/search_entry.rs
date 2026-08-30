@@ -1,4 +1,7 @@
-use hellebore::{schema::entry::EntrySearchSchema, services::entry_service};
+use hellebore::{
+    schema::{common::PaginationRequestSchema, entry::EntrySearchSchema},
+    services::entry_service,
+};
 use rstest::*;
 use uuid::Uuid;
 
@@ -8,12 +11,15 @@ use crate::{
 };
 
 #[fixture]
-pub fn search_entry_payload() -> EntrySearchSchema {
-    EntrySearchSchema {
-        keyword: "".to_owned(),
-        before: None,
-        after: None,
-        limit: 2,
+pub fn search_entry_payload() -> PaginationRequestSchema<EntrySearchSchema> {
+    PaginationRequestSchema {
+        data: EntrySearchSchema {
+            keyword: "".to_owned(),
+        },
+        page_index: 0,
+        offset: None,
+        limit: None,
+        include_total: true,
     }
 }
 
@@ -21,7 +27,7 @@ pub fn search_entry_payload() -> EntrySearchSchema {
 #[tokio::test]
 async fn test_search_entry_with_exact_title_match(
     folder_id: Uuid,
-    mut search_entry_payload: EntrySearchSchema,
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
 ) {
     let database = database().await;
 
@@ -33,22 +39,22 @@ async fn test_search_entry_with_exact_title_match(
     )
     .await;
 
-    search_entry_payload.keyword = "Rust Programming".to_owned();
+    search_entry_payload.data.keyword = "Rust Programming".to_owned();
 
     let results = entry_service::search(&database, search_entry_payload).await;
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
-    assert_eq!(results[0].title, "Rust Programming");
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
+    assert_eq!(results.data[0].title, "Rust Programming");
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_starts_with_keyword(
     folder_id: Uuid,
-    mut search_entry_payload: EntrySearchSchema,
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
 ) {
     let database = database().await;
 
@@ -60,21 +66,21 @@ async fn test_search_entry_title_starts_with_keyword(
     )
     .await;
 
-    search_entry_payload.keyword = "Rust".to_owned();
+    search_entry_payload.data.keyword = "Rust".to_owned();
 
     let results = entry_service::search(&database, search_entry_payload).await;
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_ends_with_keyword(
     folder_id: Uuid,
-    mut search_entry_payload: EntrySearchSchema,
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
 ) {
     let database = database().await;
 
@@ -86,21 +92,21 @@ async fn test_search_entry_title_ends_with_keyword(
     )
     .await;
 
-    search_entry_payload.keyword = "Programming".to_owned();
+    search_entry_payload.data.keyword = "Programming".to_owned();
 
     let results = entry_service::search(&database, search_entry_payload).await;
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_contains_keyword(
     folder_id: Uuid,
-    mut search_entry_payload: EntrySearchSchema,
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
 ) {
     let database = database().await;
 
@@ -112,21 +118,21 @@ async fn test_search_entry_title_contains_keyword(
     )
     .await;
 
-    search_entry_payload.keyword = "Rust".to_owned();
+    search_entry_payload.data.keyword = "Rust".to_owned();
 
     let results = entry_service::search(&database, search_entry_payload).await;
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_does_not_contain_keyword(
     folder_id: Uuid,
-    mut search_entry_payload: EntrySearchSchema,
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
 ) {
     let database = database().await;
 
@@ -138,20 +144,20 @@ async fn test_search_entry_title_does_not_contain_keyword(
     )
     .await;
 
-    search_entry_payload.keyword = "Rust".to_owned();
+    search_entry_payload.data.keyword = "Rust".to_owned();
 
     let results = entry_service::search(&database, search_entry_payload).await;
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 0);
+    assert_eq!(results.data.len(), 0);
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_contains_partial_keyword(
     folder_id: Uuid,
-    mut search_entry_payload: EntrySearchSchema,
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
 ) {
     let database = database().await;
 
@@ -164,21 +170,21 @@ async fn test_search_entry_title_contains_partial_keyword(
     .await;
 
     // Search for "Program" which is a partial match of "Programming"
-    search_entry_payload.keyword = "Program".to_owned();
+    search_entry_payload.data.keyword = "Program".to_owned();
 
     let results = entry_service::search(&database, search_entry_payload).await;
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 1);
-    assert_eq!(results[0].id, entry.id);
+    assert_eq!(results.data.len(), 1);
+    assert_eq!(results.data[0].id, entry.id);
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_search_entry_title_contains_keyword_with_typo(
     folder_id: Uuid,
-    mut search_entry_payload: EntrySearchSchema,
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
 ) {
     let database = database().await;
 
@@ -191,18 +197,20 @@ async fn test_search_entry_title_contains_keyword_with_typo(
     .await;
 
     // keyword is missing a letter
-    search_entry_payload.keyword = "Prgram".to_owned();
+    search_entry_payload.data.keyword = "Prgram".to_owned();
 
     let results = entry_service::search(&database, search_entry_payload).await;
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    assert_eq!(results.len(), 0);
+    assert_eq!(results.data.len(), 0);
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_search_entry_with_limit(mut search_entry_payload: EntrySearchSchema) {
+async fn test_search_entry_with_limit(
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
+) {
     let database = database().await;
 
     let titles = vec![
@@ -212,65 +220,74 @@ async fn test_search_entry_with_limit(mut search_entry_payload: EntrySearchSchem
     ];
     create_generic_entries(&database, titles).await;
 
-    search_entry_payload.keyword = "Rust".to_owned();
-    search_entry_payload.limit = 2;
+    search_entry_payload.data.keyword = "Rust".to_owned();
+    search_entry_payload.limit = Some(2);
 
     let results = entry_service::search(&database, search_entry_payload).await;
     assert!(results.is_ok());
+
     let results = results.unwrap();
-    assert_eq!(results.len(), 2);
+    assert_eq!(results.data.len(), 2);
+
+    assert_eq!(results.data[0].title, "Rust A");
+    assert_eq!(results.data[1].title, "Rust B");
+}
+
+// FIXME: sea-orm doesn't build the SQL query correctly when only the offset is specified
+#[rstest]
+#[should_panic]
+#[tokio::test]
+async fn test_search_entry_with_offset(
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
+) {
+    let database = database().await;
+
+    let titles = vec![
+        "Rust A".to_owned(),
+        "Rust B".to_owned(),
+        "Rust C".to_owned(),
+    ];
+    create_generic_entries(&database, titles).await;
+
+    search_entry_payload.data.keyword = "Rust".to_owned();
+    search_entry_payload.offset = Some(1);
+
+    let results = entry_service::search(&database, search_entry_payload).await;
+    assert!(results.is_ok());
+
+    let results = results.unwrap();
+    assert_eq!(results.data.len(), 2);
+
+    assert_eq!(results.data[0].title, "Rust B");
+    assert_eq!(results.data[1].title, "Rust C");
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_search_entry_with_after_cursor(mut search_entry_payload: EntrySearchSchema) {
+async fn test_search_entry_with_limit_and_offset(
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
+) {
     let database = database().await;
 
     let titles = vec![
-        "Rust C".to_owned(),
         "Rust A".to_owned(),
-        "Rust E".to_owned(),
+        "Rust B".to_owned(),
+        "Rust C".to_owned(),
         "Rust D".to_owned(),
-        "Rust B".to_owned(),
-    ];
-    create_generic_entries(&database, titles).await;
-
-    search_entry_payload.keyword = "Rust".to_owned();
-    search_entry_payload.after = Some("Rust C".to_owned());
-    search_entry_payload.limit = 10;
-
-    let results = entry_service::search(&database, search_entry_payload).await;
-
-    assert!(results.is_ok());
-    let results = results.unwrap();
-    assert_eq!(results.len(), 2);
-    assert_eq!(results[0].title, "Rust D");
-    assert_eq!(results[1].title, "Rust E");
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_search_entry_with_before_cursor(mut search_entry_payload: EntrySearchSchema) {
-    let database = database().await;
-
-    let titles = vec![
-        "Rust C".to_owned(),
-        "Rust A".to_owned(),
         "Rust E".to_owned(),
-        "Rust D".to_owned(),
-        "Rust B".to_owned(),
     ];
     create_generic_entries(&database, titles).await;
 
-    search_entry_payload.keyword = "Rust".to_owned();
-    search_entry_payload.before = Some("Rust C".to_owned());
-    search_entry_payload.limit = 10;
+    search_entry_payload.data.keyword = "Rust".to_owned();
+    search_entry_payload.offset = Some(2);
+    search_entry_payload.limit = Some(2);
 
     let results = entry_service::search(&database, search_entry_payload).await;
-
     assert!(results.is_ok());
+
     let results = results.unwrap();
-    assert_eq!(results.len(), 2);
-    assert_eq!(results[0].title, "Rust A");
-    assert_eq!(results[1].title, "Rust B");
+    assert_eq!(results.data.len(), 2);
+
+    assert_eq!(results.data[0].title, "Rust C");
+    assert_eq!(results.data[1].title, "Rust D");
 }

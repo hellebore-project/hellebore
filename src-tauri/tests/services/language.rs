@@ -8,7 +8,7 @@ use hellebore::{
         word::{WordResponseSchema, WordUpsertSchema},
     },
     services::{entry_service, word_service},
-    types::entity::LANGUAGE,
+    types::entity_type::LANGUAGE,
 };
 
 use crate::{

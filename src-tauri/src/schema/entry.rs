@@ -9,7 +9,7 @@ use crate::{
         person::PersonSchema,
         word::{WordUpsertResponseSchema, WordUpsertSchema},
     },
-    types::entity::EntityType,
+    types::EntityType,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -123,7 +123,4 @@ pub struct EntryArticleResponseSchema {
 #[serde(rename_all = "camelCase")]
 pub struct EntrySearchSchema {
     pub keyword: String,
-    pub before: Option<String>,
-    pub after: Option<String>,
-    pub limit: u64,
 }

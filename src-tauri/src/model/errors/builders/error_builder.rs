@@ -3,7 +3,7 @@ use crate::{
         database_error_builder::DatabaseErrorBuilder, entity_error_builder::EntityErrorBuilder,
         entry_error_builder::EntryErrorBuilder, project_error_builder::ProjectErrorBuilder,
     },
-    types::entity::EntityType,
+    types::EntityType,
 };
 
 pub struct ErrorBuilder {

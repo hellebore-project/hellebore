@@ -5,7 +5,7 @@ use hellebore::{
         entry::{EntryCreateSchema, EntryProperties},
         language::LanguageSchema,
     },
-    types::entity::LANGUAGE,
+    types::entity_type::LANGUAGE,
 };
 
 use crate::fixtures::entry::create_entry_payload;

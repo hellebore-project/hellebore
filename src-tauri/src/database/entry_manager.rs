@@ -3,19 +3,11 @@ use sea_orm::*;
 use uuid::Uuid;
 
 use crate::{
-    database::{file_manager, utils},
-    types::entity::EntityType,
-    utils::CodedEnum,
+    database::file_manager,
+    model::entry::EntryInfo,
+    types::EntityType,
+    utils::{CodedEnum, sea_orm as utils},
 };
-
-#[derive(DerivePartialModel, FromQueryResult)]
-#[sea_orm(entity = "EntryModel")]
-pub struct EntityInfo {
-    pub id: Uuid,
-    pub folder_id: Option<Uuid>,
-    pub entity_type: i8,
-    pub title: String,
-}
 
 pub async fn insert<C>(
     con: &C,
@@ -102,61 +94,73 @@ where
     EntryModel::find_by_id(id).one(con).await
 }
 
-pub async fn get_by_title<C>(con: &C, title: &str) -> Result<Option<EntityInfo>, DbErr>
+pub async fn get_by_title<C>(con: &C, title: &str) -> Result<Option<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
     EntryModel::find()
         .filter(entry::Column::Title.eq(title))
-        .into_partial_model::<EntityInfo>()
+        .into_partial_model::<EntryInfo>()
         .one(con)
         .await
 }
 
-pub async fn get_info<C>(con: &C, id: Uuid) -> Result<Option<EntityInfo>, DbErr>
+pub async fn get_info<C>(con: &C, id: Uuid) -> Result<Option<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
     EntryModel::find_by_id(id)
-        .into_partial_model::<EntityInfo>()
+        .into_partial_model::<EntryInfo>()
         .one(con)
         .await
 }
 
-pub async fn get_all<C>(con: &C) -> Result<Vec<EntityInfo>, DbErr>
+pub async fn get_all<C>(con: &C) -> Result<Vec<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
     EntryModel::find()
         .order_by_asc(entry::Column::Title)
-        .into_partial_model::<EntityInfo>()
+        .into_partial_model::<EntryInfo>()
         .all(con)
         .await
 }
 
 pub async fn search<C>(
     con: &C,
-    keyword: String,
-    before: Option<String>,
-    after: Option<String>,
-    limit: u64,
-) -> Result<Vec<EntityInfo>, DbErr>
+    like_title: String,
+    offset: Option<u64>,
+    limit: Option<u64>,
+) -> Result<Vec<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
-    let mut cursor = EntryModel::find()
-        .filter(entry::Column::Title.like(format!("%{}%", keyword)))
-        .cursor_by(entry::Column::Title);
+    EntryModel::find()
+        .filter(entry::Column::Title.like(format!("%{}%", like_title)))
+        .order_by_asc(entry::Column::Title)
+        .offset(offset)
+        .limit(limit)
+        .into_partial_model::<EntryInfo>()
+        .all(con)
+        .await
+}
 
-    if let Some(before_value) = before {
-        cursor.before(before_value);
-    }
-    if let Some(after_value) = after {
-        cursor.after(after_value);
-    }
-    cursor.first(limit);
-
-    cursor.into_partial_model::<EntityInfo>().all(con).await
+pub async fn count<C>(
+    con: &C,
+    like_title: String,
+    offset: Option<u64>,
+    limit: Option<u64>,
+) -> Result<u64, DbErr>
+where
+    C: ConnectionTrait,
+{
+    EntryModel::find()
+        .filter(entry::Column::Title.like(format!("%{}%", like_title)))
+        .order_by_asc(entry::Column::Title)
+        .offset(offset)
+        .limit(limit)
+        .count(con)
+        .await
 }
 
 pub async fn delete<C>(con: &C, id: Uuid) -> Result<DeleteResult, DbErr>

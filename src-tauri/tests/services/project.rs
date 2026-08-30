@@ -9,7 +9,7 @@ use hellebore::{
     model::{config::AppConfig, errors::Error, state::State},
     schema::project::ProjectConfigFileSchema,
     services::project_service,
-    types::entity::PROJECT,
+    types::entity_type::PROJECT,
 };
 
 use crate::fixtures::project::{

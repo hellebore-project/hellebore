@@ -1,5 +1,4 @@
 pub mod transaction_manager;
-pub mod utils;
 
 pub mod setup;
 

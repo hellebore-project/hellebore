@@ -6,19 +6,23 @@ use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
 use crate::model::{
-    errors::{Error, ErrorBuilder},
+    Error, ErrorBuilder, QueryArgs,
+    entry::{EntryInfo, EntryQueryData},
     text::TextNode,
 };
-use crate::schema::entry::EntrySearchSchema;
 use crate::schema::{
-    common::DiagnosticResponseSchema,
+    common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema, EntryProperties,
-        EntryPropertyResponseSchema, EntryUpdateResponseSchema, EntryUpdateSchema,
+        EntryPropertyResponseSchema, EntrySearchSchema, EntryUpdateResponseSchema,
+        EntryUpdateSchema,
     },
 };
-use crate::services::{entry_text_service, language_service, person_service, word_service};
-use crate::types::entity::{ENTRY, EntityType};
+use crate::services::{
+    entry::entry_querier::EntryQuerier, entry_text_service, language_service, pagination_service,
+    person_service, word_service,
+};
+use crate::types::entity_type::{ENTRY, EntityType};
 
 pub async fn create(
     database: &DatabaseConnection,
@@ -389,26 +393,35 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<EntryInfoRespo
 
 pub async fn search(
     database: &DatabaseConnection,
-    query: EntrySearchSchema,
-) -> Result<Vec<EntryInfoResponseSchema>, Error> {
-    let entries = entry_manager::search(
-        database,
-        query.keyword,
-        query.before,
-        query.after,
-        query.limit,
-    )
-    .await
-    .map_err(|e| {
-        ErrorBuilder::new()
-            .msg("Failed to query the entry table while searching for entries.")
-            .from_err(e)
-            .db()
-            .query_failed()
-    })?;
-    let entries = entries.iter().map(generate_info_response).collect();
+    query: PaginationRequestSchema<EntrySearchSchema>,
+) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
+    let args = QueryArgs {
+        options: EntryQueryData {
+            like_title: query.data.keyword,
+        },
+        offset: query.offset,
+        limit: query.limit,
+    };
 
-    Ok(entries)
+    let page = pagination_service::paginated_query::<EntryQuerier, DatabaseConnection>(
+        database,
+        args,
+        query.include_total,
+    )
+    .await?;
+
+    let entries: Vec<EntryInfoResponseSchema> =
+        page.items.iter().map(generate_info_response).collect();
+
+    Ok(PaginationResponseSchema {
+        data: entries,
+        page_index: page.page_index,
+        page_count: page.page_count,
+        item_count: page.item_count,
+        total: page.total,
+        offset: page.offset,
+        limit: page.limit,
+    })
 }
 
 pub async fn delete(database: &DatabaseConnection, id: Uuid) -> Result<(), Error> {
@@ -445,7 +458,7 @@ pub fn generate_insert_response(info: &EntryModel) -> EntryInfoResponseSchema {
     }
 }
 
-pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoResponseSchema {
+pub fn generate_info_response(info: &EntryInfo) -> EntryInfoResponseSchema {
     EntryInfoResponseSchema {
         id: info.id,
         folder_id: file_manager::convert_null_folder_id_to_root(info.folder_id),
@@ -455,7 +468,7 @@ pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoResp
 }
 
 pub fn generate_property_response(
-    info: &entry_manager::EntityInfo,
+    info: &EntryInfo,
     properties: EntryProperties,
 ) -> EntryPropertyResponseSchema {
     EntryPropertyResponseSchema {

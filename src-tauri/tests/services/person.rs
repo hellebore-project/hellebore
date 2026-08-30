@@ -7,7 +7,7 @@ use hellebore::{
         person::PersonSchema,
     },
     services::{entry_service, person_service},
-    types::entity::PERSON,
+    types::entity_type::PERSON,
 };
 
 use crate::fixtures::{

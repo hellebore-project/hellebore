@@ -6,7 +6,7 @@ use crate::schema::{
     word::{WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
 use crate::services::{project_service, word_service};
-use crate::types::grammar::WordType;
+use crate::types::grammar_types::WordType;
 
 #[tauri::command]
 pub async fn upsert_words(
