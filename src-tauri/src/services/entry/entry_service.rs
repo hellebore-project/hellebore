@@ -22,7 +22,7 @@ use crate::services::{
     entry::entry_querier::EntryQuerier, entry_text_service, language_service, pagination_service,
     person_service, word_service,
 };
-use crate::types::entity::{ENTRY, EntityType};
+use crate::types::entity_type::{ENTRY, EntityType};
 
 pub async fn create(
     database: &DatabaseConnection,

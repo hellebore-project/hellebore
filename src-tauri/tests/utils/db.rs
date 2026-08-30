@@ -5,7 +5,7 @@ use uuid::Uuid;
 use hellebore::database::entry_manager;
 use hellebore::schema::word::WordUpsertSchema;
 use hellebore::services::word_service;
-use hellebore::types::entity::ENTRY;
+use hellebore::types::entity_type::ENTRY;
 
 use ::entity::entry as entry_entity;
 use ::entity::word as word_entity;

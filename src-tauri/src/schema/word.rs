@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{schema::common::UpsertResponseSchema, types::grammar::WordType};
+use crate::{schema::common::UpsertResponseSchema, types::grammar_types::WordType};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

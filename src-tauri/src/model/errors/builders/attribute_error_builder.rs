@@ -1,4 +1,4 @@
-use crate::{model::errors::error::Error, types::entity::EntityType};
+use crate::{model::Error, types::EntityType};
 
 pub struct AttributeErrorBuilder {
     message: String,

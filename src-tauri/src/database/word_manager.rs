@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use ::entity::{word, word::Entity as WordEntity};
 
-use crate::types::grammar::WordType;
+use crate::types::grammar_types::WordType;
 use crate::utils::{CodedEnum, sea_orm as utils};
 
 pub async fn insert<C>(

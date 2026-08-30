@@ -8,7 +8,7 @@ use hellebore::{
         person::PersonSchema,
         word::WordResponseSchema,
     },
-    types::entity::{ENTRY, EntityType},
+    types::entity_type::{ENTRY, EntityType},
     utils::CodedEnum,
 };
 

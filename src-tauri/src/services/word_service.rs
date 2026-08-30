@@ -10,8 +10,8 @@ use crate::schema::{
     common::DiagnosticResponseSchema,
     word::{WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
-use crate::types::entity::WORD;
-use crate::types::grammar::WordType;
+use crate::types::entity_type::WORD;
+use crate::types::grammar_types::WordType;
 
 pub async fn bulk_upsert(
     database: &DatabaseConnection,

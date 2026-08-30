@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::entity::EntityType;
+use crate::types::EntityType;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all_fields = "camelCase")]

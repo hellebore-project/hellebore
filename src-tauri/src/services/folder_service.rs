@@ -15,7 +15,7 @@ use crate::schema::{
     },
 };
 use crate::services::file_service;
-use crate::types::entity::FOLDER;
+use crate::types::entity_type::FOLDER;
 
 pub async fn create(
     database: &DatabaseConnection,

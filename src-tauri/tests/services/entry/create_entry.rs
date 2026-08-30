@@ -1,4 +1,4 @@
-use hellebore::{services::entry_service, types::entity::ENTRY};
+use hellebore::{services::entry_service, types::entity_type::ENTRY};
 use rstest::*;
 use uuid::Uuid;
 

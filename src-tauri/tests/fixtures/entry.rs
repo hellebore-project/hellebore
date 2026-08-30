@@ -4,7 +4,7 @@ use hellebore::{
         entry::{EntryCreateSchema, EntryProperties, EntryUpdateSchema},
         language::LanguageSchema,
     },
-    types::entity::EntityType,
+    types::EntityType,
 };
 use rstest::*;
 use uuid::Uuid;

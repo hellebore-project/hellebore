@@ -6,7 +6,7 @@ use ::entity::person::Model as Person;
 use crate::database::person_manager;
 use crate::model::errors::{Error, ErrorBuilder};
 use crate::schema::person::PersonSchema;
-use crate::types::entity::PERSON;
+use crate::types::entity_type::PERSON;
 
 pub async fn create<C>(con: &C, entry_id: Uuid, properties: &PersonSchema) -> Result<(), Error>
 where

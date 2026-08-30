@@ -6,7 +6,7 @@ use crate::model::{
     errors::{Error, ErrorBuilder},
     text::TextNode,
 };
-use crate::types::entity::ENTRY;
+use crate::types::entity_type::ENTRY;
 
 pub async fn sync_text(
     database: &DatabaseConnection,

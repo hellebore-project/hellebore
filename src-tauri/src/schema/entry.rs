@@ -9,7 +9,7 @@ use crate::{
         person::PersonSchema,
         word::{WordUpsertResponseSchema, WordUpsertSchema},
     },
-    types::entity::EntityType,
+    types::EntityType,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
