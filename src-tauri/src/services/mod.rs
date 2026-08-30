@@ -1,3 +1,5 @@
+pub mod pagination_service;
+
 pub mod config_service;
 
 pub mod project_service;

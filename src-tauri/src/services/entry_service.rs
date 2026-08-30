@@ -5,7 +5,7 @@ use uuid::Uuid;
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, file_manager, transaction_manager};
-use crate::model::{Error, ErrorBuilder, text::TextNode};
+use crate::model::{Error, ErrorBuilder, Querier, QueryArgs, text::TextNode};
 use crate::schema::{
     common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
     entry::{
@@ -14,8 +14,64 @@ use crate::schema::{
         EntryUpdateSchema,
     },
 };
-use crate::services::{entry_text_service, language_service, person_service, word_service};
+use crate::services::{
+    entry_text_service, language_service, pagination_service, person_service, word_service,
+};
 use crate::types::entity::{ENTRY, EntityType};
+
+pub struct EntryQueryData {
+    like_title: String,
+}
+
+pub struct EntryQuerier {}
+
+impl Querier for EntryQuerier {
+    type O = EntryQueryData;
+    type R = entry_manager::EntryInfo;
+
+    async fn query<C>(
+        con: &C,
+        query: &QueryArgs<EntryQueryData>,
+    ) -> Result<Vec<entry_manager::EntryInfo>, Error>
+    where
+        C: ConnectionTrait,
+    {
+        entry_manager::search(
+            con,
+            query.options.like_title.to_owned(),
+            query.offset,
+            query.limit,
+        )
+        .await
+        .map_err(|e| {
+            ErrorBuilder::new()
+                .msg("Failed to query the entry table while searching for entries.")
+                .from_err(e)
+                .db()
+                .query_failed()
+        })
+    }
+
+    async fn count<C>(con: &C, query: &QueryArgs<EntryQueryData>) -> Result<u64, Error>
+    where
+        C: ConnectionTrait,
+    {
+        entry_manager::count(
+            con,
+            query.options.like_title.to_owned(),
+            query.offset,
+            query.limit,
+        )
+        .await
+        .map_err(|e| {
+            ErrorBuilder::new()
+                .msg("Failed to compute the count of all entries.")
+                .from_err(e)
+                .db()
+                .query_failed()
+        })
+    }
+}
 
 pub async fn create(
     database: &DatabaseConnection,
@@ -388,49 +444,32 @@ pub async fn search(
     database: &DatabaseConnection,
     query: PaginationRequestSchema<EntrySearchSchema>,
 ) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
-    let entries = entry_manager::search(
+    let args = QueryArgs {
+        options: EntryQueryData {
+            like_title: query.data.keyword,
+        },
+        offset: query.offset,
+        limit: query.limit,
+    };
+
+    let page = pagination_service::paginated_query::<EntryQuerier, DatabaseConnection>(
         database,
-        query.data.keyword.to_owned(),
-        query.offset,
-        query.limit,
+        args,
+        query.include_total,
     )
-    .await
-    .map_err(|e| {
-        ErrorBuilder::new()
-            .msg("Failed to query the entry table while searching for entries.")
-            .from_err(e)
-            .db()
-            .query_failed()
-    })?;
-
-    // converting from usize (4-byte or 8-byte depending on the system) to u64 (8-byte)
-    let item_count = entries.len().try_into().unwrap();
-
-    let total = match query.include_total {
-        true => entry_manager::count(database, query.data.keyword)
-            .await
-            .map(Some)
-            .map_err(|e| {
-                ErrorBuilder::new()
-                    .msg("Failed to compute the count of a query result.")
-                    .from_err(e)
-                    .db()
-                    .query_failed()
-            }),
-        false => Ok(None),
-    }?;
+    .await?;
 
     let entries: Vec<EntryInfoResponseSchema> =
-        entries.iter().map(generate_info_response).collect();
+        page.items.iter().map(generate_info_response).collect();
 
     Ok(PaginationResponseSchema {
         data: entries,
-        page_index: query.page_index,
-        page_count: None,
-        item_count,
-        total,
-        offset: query.offset,
-        limit: query.limit,
+        page_index: page.page_index,
+        page_count: page.page_count,
+        item_count: page.item_count,
+        total: page.total,
+        offset: page.offset,
+        limit: page.limit,
     })
 }
 

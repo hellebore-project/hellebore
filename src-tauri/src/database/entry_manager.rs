@@ -153,13 +153,20 @@ where
         .await
 }
 
-pub async fn count<C>(con: &C, like_title: String) -> Result<u64, DbErr>
+pub async fn count<C>(
+    con: &C,
+    like_title: String,
+    offset: Option<u64>,
+    limit: Option<u64>,
+) -> Result<u64, DbErr>
 where
     C: ConnectionTrait,
 {
     EntryModel::find()
         .filter(entry::Column::Title.like(format!("%{}%", like_title)))
         .order_by_asc(entry::Column::Title)
+        .offset(offset)
+        .limit(limit)
         .count(con)
         .await
 }
