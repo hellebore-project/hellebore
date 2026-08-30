@@ -26,7 +26,7 @@ import type {
 import {
     DomainManager,
     type EntryType,
-    type BulkEntryResponse,
+    type BulkEntityResponse,
     type FolderUpdateResponse,
     type ProjectResponse,
 } from "@/api";
@@ -261,7 +261,7 @@ export class ClientManager implements IComponentService {
         const projectId = this.data.loadedProjectId;
 
         let cancel = false;
-        let deleteResponse: BulkEntryResponse | null = null;
+        let deleteResponse: BulkEntityResponse | null = null;
         let updateResponse: FolderUpdateResponse | null = null;
 
         const validateResponse = await this.domain.folders.validate(

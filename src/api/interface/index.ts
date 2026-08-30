@@ -2,7 +2,7 @@ export * from "./base-entity";
 
 export * from "./project";
 export * from "./folder";
-export * from "./file";
+export * from "./entity";
 
 export * from "./entry";
 export * from "./language";

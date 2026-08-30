@@ -20,7 +20,7 @@ import type {
 } from "@/interface";
 import type {
     DomainManager,
-    BulkEntryResponse,
+    BulkEntityResponse,
     EntryInfoResponse,
     FolderResponse,
 } from "@/api";
@@ -56,7 +56,7 @@ export class LeftSidebarService implements IComponentService {
     onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
     onDeleteFolder: EventProducer<
         DeleteFolderEvent,
-        Promise<BulkEntryResponse | null>
+        Promise<BulkEntityResponse | null>
     >;
     onDeleteEntry: EventProducer<DeleteEntryEvent, Promise<boolean>>;
     onDataChange: EventProducer<DataChangeEvent, unknown>;

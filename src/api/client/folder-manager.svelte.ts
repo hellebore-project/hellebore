@@ -4,7 +4,7 @@ import type { Id } from "@/interface";
 
 import { CommandNames, ROOT_FOLDER_ID } from "../constants";
 import type {
-    BulkEntryResponse,
+    BulkEntityResponse,
     DiagnosticResponse,
     FolderBulkUpdateData,
     FolderResponse,
@@ -135,10 +135,10 @@ export class FolderManager {
         return response;
     }
 
-    async delete(projectId: Id, id: Id): Promise<BulkEntryResponse | null> {
-        let response: BulkEntryResponse;
+    async delete(projectId: Id, id: Id): Promise<BulkEntityResponse | null> {
+        let response: BulkEntityResponse;
         try {
-            response = await invoke<BulkEntryResponse>(
+            response = await invoke<BulkEntityResponse>(
                 CommandNames.Folder.Delete,
                 {
                     projectId,

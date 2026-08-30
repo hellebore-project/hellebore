@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use ::entity::entry::Model as EntryModel;
 
-use crate::database::{entry_manager, file_manager, transaction_manager};
+use crate::database::{entry_manager, folder_manager, transaction_manager};
 use crate::model::{
     Error, ErrorBuilder, QueryArgs,
     entry::{EntryInfo, EntryQueryData},
@@ -452,7 +452,7 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<Uuid>) -> Resul
 pub fn generate_insert_response(info: &EntryModel) -> EntryInfoResponseSchema {
     EntryInfoResponseSchema {
         id: info.id,
-        folder_id: file_manager::convert_null_folder_id_to_root(info.folder_id),
+        folder_id: folder_manager::convert_null_folder_id_to_root(info.folder_id),
         title: info.title.to_string(),
         entity_type: EntityType::from(info.entity_type),
     }
@@ -461,7 +461,7 @@ pub fn generate_insert_response(info: &EntryModel) -> EntryInfoResponseSchema {
 pub fn generate_info_response(info: &EntryInfo) -> EntryInfoResponseSchema {
     EntryInfoResponseSchema {
         id: info.id,
-        folder_id: file_manager::convert_null_folder_id_to_root(info.folder_id),
+        folder_id: folder_manager::convert_null_folder_id_to_root(info.folder_id),
         title: info.title.to_owned(),
         entity_type: EntityType::from(info.entity_type),
     }
@@ -481,7 +481,7 @@ pub fn generate_text_response(entry: EntryModel, text: TextNode) -> EntryArticle
     EntryArticleResponseSchema {
         info: EntryInfoResponseSchema {
             id: entry.id,
-            folder_id: file_manager::convert_null_folder_id_to_root(entry.folder_id),
+            folder_id: folder_manager::convert_null_folder_id_to_root(entry.folder_id),
             title: entry.title.to_owned(),
             entity_type: EntityType::from(entry.entity_type),
         },

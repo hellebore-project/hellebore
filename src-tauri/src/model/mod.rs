@@ -10,6 +10,8 @@ pub mod query;
 pub mod entry;
 pub mod text;
 
+pub mod entity_node;
+
 pub use errors::{Error, ErrorBuilder};
 pub use page::Page;
 pub use query::{Querier, QueryArgs};

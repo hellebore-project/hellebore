@@ -22,7 +22,7 @@ import type {
 import {
     ROOT_FOLDER_ID,
     DomainManager,
-    type BulkEntryResponse,
+    type BulkEntityResponse,
     type FolderResponse,
     type EntryInfoResponse,
 } from "@/api";
@@ -65,7 +65,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
     onMoveFolder: EventProducer<MoveFolderEvent, Promise<MoveFolderResult>>;
     onDeleteFolder: EventProducer<
         DeleteFolderEvent,
-        Promise<BulkEntryResponse | null>
+        Promise<BulkEntityResponse | null>
     >;
     onOpenEntry: EventProducer<OpenEntryEditorEvent, unknown>;
     onChangeEntry: EventProducer<EntryChangeEvent, unknown>;

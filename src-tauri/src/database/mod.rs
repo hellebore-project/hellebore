@@ -3,7 +3,6 @@ pub mod transaction_manager;
 pub mod setup;
 
 pub mod entry_manager;
-pub mod file_manager;
 pub mod folder_manager;
 
 pub mod language_manager;

@@ -5,7 +5,6 @@ pub mod config_service;
 pub mod project_service;
 
 pub mod entry;
-pub mod file_service;
 pub mod folder_service;
 
 pub mod language_service;
