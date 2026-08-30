@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::model::{errors::Error, state::State};
 use crate::schema::{
     common::DiagnosticResponseSchema,
-    file::BulkFileResponseSchema,
+    entity::BulkEntityResponseSchema,
     folder::{
         FolderCreateSchema, FolderResponseSchema, FolderUpdateResponseSchema, FolderUpdateSchema,
         FolderValidationSchema,
@@ -83,7 +83,7 @@ pub async fn delete_folder(
     state: tauri::State<'_, State>,
     project_id: Uuid,
     id: Uuid,
-) -> Result<BulkFileResponseSchema, Error> {
+) -> Result<BulkEntityResponseSchema, Error> {
     let state = state.lock().await;
     let db = project_service::get_database(&state, project_id)?;
     folder_service::delete(db, id).await

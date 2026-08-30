@@ -1,6 +1,6 @@
 import type { Id } from "@/interface";
 
-export interface BulkEntryResponse {
+export interface BulkEntityResponse {
     entries: Id[];
     folders: Id[];
 }

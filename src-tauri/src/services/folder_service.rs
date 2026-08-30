@@ -4,17 +4,16 @@ use uuid::Uuid;
 
 use ::entity::folder::Model as Folder;
 
-use crate::database::{file_manager, folder_manager};
-use crate::model::errors::{Error, ErrorBuilder};
+use crate::database::folder_manager;
+use crate::model::{Error, ErrorBuilder, entity_node::EntityNode};
 use crate::schema::{
     common::DiagnosticResponseSchema,
-    file::BulkFileResponseSchema,
+    entity::BulkEntityResponseSchema,
     folder::{
         FolderCreateSchema, FolderNameCollisionSchema, FolderResponseSchema,
         FolderUpdateResponseSchema, FolderUpdateSchema, FolderValidationSchema,
     },
 };
-use crate::services::file_service;
 use crate::types::entity_type::FOLDER;
 
 pub async fn create(
@@ -169,8 +168,8 @@ pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponse
 pub async fn delete(
     database: &DatabaseConnection,
     id: Uuid,
-) -> Result<BulkFileResponseSchema, Error> {
-    let contents = file_service::get_folder_contents(database, id).await?;
+) -> Result<BulkEntityResponseSchema, Error> {
+    let contents = _get_folder_contents(database, id).await?;
 
     let _ = folder_manager::delete(database, id).await.map_err(|e| {
         ErrorBuilder::new()
@@ -182,6 +181,23 @@ pub async fn delete(
     })?;
 
     Ok(contents)
+}
+
+pub async fn _get_folder_contents(
+    database: &DatabaseConnection,
+    folder_id: Uuid,
+) -> Result<BulkEntityResponseSchema, Error> {
+    let contents = folder_manager::get_folder_contents(database, folder_id)
+        .await
+        .map_err(|e| {
+            ErrorBuilder::new()
+                .msg("Failed to query the contents of a folder.")
+                .from_err(e)
+                .db()
+                .query_failed()
+        })?;
+
+    Ok(generate_bulk_entity_response(contents))
 }
 
 pub async fn delete_many(database: &DatabaseConnection, ids: Vec<Uuid>) -> Result<(), Error> {
@@ -200,7 +216,22 @@ pub async fn delete_many(database: &DatabaseConnection, ids: Vec<Uuid>) -> Resul
 fn generate_response(folder: &Folder) -> FolderResponseSchema {
     FolderResponseSchema {
         id: folder.id,
-        parent_id: file_manager::convert_null_folder_id_to_root(folder.parent_id),
+        parent_id: folder_manager::convert_null_folder_id_to_root(folder.parent_id),
         name: folder.name.to_string(),
     }
+}
+
+fn generate_bulk_entity_response(file_nodes: Vec<EntityNode>) -> BulkEntityResponseSchema {
+    let mut entries: Vec<Uuid> = Vec::new();
+    let mut folders: Vec<Uuid> = Vec::new();
+
+    for file_node in file_nodes.iter() {
+        if file_node.node_type == "folder" {
+            folders.push(file_node.id);
+        } else {
+            entries.push(file_node.id);
+        }
+    }
+
+    BulkEntityResponseSchema { entries, folders }
 }

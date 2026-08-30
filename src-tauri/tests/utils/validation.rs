@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use hellebore::{
-    database::file_manager,
+    database::folder_manager,
     schema::{
         entry::{EntryInfoResponseSchema, EntryProperties, EntryPropertyResponseSchema},
         language::LanguageSchema,
@@ -26,7 +26,7 @@ pub fn validate_entry_model(
     }
     assert_eq!(
         folder_id,
-        file_manager::convert_null_folder_id_to_root(entry.folder_id)
+        folder_manager::convert_null_folder_id_to_root(entry.folder_id)
     );
     assert_eq!(title, entry.title);
     assert_eq!(text, entry.text);

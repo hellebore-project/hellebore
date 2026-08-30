@@ -3,7 +3,7 @@ use sea_orm::*;
 use uuid::Uuid;
 
 use crate::{
-    database::file_manager,
+    database::folder_manager,
     model::entry::EntryInfo,
     types::EntityType,
     utils::{CodedEnum, sea_orm as utils},
@@ -21,7 +21,7 @@ where
 {
     let new_entity = entry::ActiveModel {
         id: Set(Uuid::new_v4()),
-        folder_id: Set(file_manager::convert_root_folder_id_to_null(folder_id)),
+        folder_id: Set(folder_manager::convert_root_folder_id_to_null(folder_id)),
         title: Set(title),
         entity_type: Set(entity_type.code()),
         text: Set(text),
@@ -47,7 +47,7 @@ where
     };
     let updated_entity = entry::ActiveModel {
         id: Unchanged(existing_entity.id),
-        folder_id: file_manager::set_optional_folder_id(folder_id),
+        folder_id: folder_manager::set_optional_folder_id(folder_id),
         entity_type: NotSet,
         title: utils::set_optional_value(title),
         text: utils::set_optional_value(text),
