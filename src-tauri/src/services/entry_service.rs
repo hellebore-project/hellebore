@@ -468,7 +468,7 @@ pub fn generate_insert_response(info: &EntryModel) -> EntryInfoResponseSchema {
     }
 }
 
-pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoResponseSchema {
+pub fn generate_info_response(info: &entry_manager::EntryInfo) -> EntryInfoResponseSchema {
     EntryInfoResponseSchema {
         id: info.id,
         folder_id: file_manager::convert_null_folder_id_to_root(info.folder_id),
@@ -478,7 +478,7 @@ pub fn generate_info_response(info: &entry_manager::EntityInfo) -> EntryInfoResp
 }
 
 pub fn generate_property_response(
-    info: &entry_manager::EntityInfo,
+    info: &entry_manager::EntryInfo,
     properties: EntryProperties,
 ) -> EntryPropertyResponseSchema {
     EntryPropertyResponseSchema {

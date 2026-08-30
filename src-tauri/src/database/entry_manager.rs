@@ -10,7 +10,7 @@ use crate::{
 
 #[derive(DerivePartialModel, FromQueryResult)]
 #[sea_orm(entity = "EntryModel")]
-pub struct EntityInfo {
+pub struct EntryInfo {
     pub id: Uuid,
     pub folder_id: Option<Uuid>,
     pub entity_type: i8,
@@ -102,34 +102,34 @@ where
     EntryModel::find_by_id(id).one(con).await
 }
 
-pub async fn get_by_title<C>(con: &C, title: &str) -> Result<Option<EntityInfo>, DbErr>
+pub async fn get_by_title<C>(con: &C, title: &str) -> Result<Option<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
     EntryModel::find()
         .filter(entry::Column::Title.eq(title))
-        .into_partial_model::<EntityInfo>()
+        .into_partial_model::<EntryInfo>()
         .one(con)
         .await
 }
 
-pub async fn get_info<C>(con: &C, id: Uuid) -> Result<Option<EntityInfo>, DbErr>
+pub async fn get_info<C>(con: &C, id: Uuid) -> Result<Option<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
     EntryModel::find_by_id(id)
-        .into_partial_model::<EntityInfo>()
+        .into_partial_model::<EntryInfo>()
         .one(con)
         .await
 }
 
-pub async fn get_all<C>(con: &C) -> Result<Vec<EntityInfo>, DbErr>
+pub async fn get_all<C>(con: &C) -> Result<Vec<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
     EntryModel::find()
         .order_by_asc(entry::Column::Title)
-        .into_partial_model::<EntityInfo>()
+        .into_partial_model::<EntryInfo>()
         .all(con)
         .await
 }
@@ -139,7 +139,7 @@ pub async fn search<C>(
     like_title: String,
     offset: Option<u64>,
     limit: Option<u64>,
-) -> Result<Vec<EntityInfo>, DbErr>
+) -> Result<Vec<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -148,7 +148,7 @@ where
         .order_by_asc(entry::Column::Title)
         .offset(offset)
         .limit(limit)
-        .into_partial_model::<EntityInfo>()
+        .into_partial_model::<EntryInfo>()
         .all(con)
         .await
 }
