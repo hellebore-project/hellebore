@@ -208,6 +208,70 @@ async fn test_search_entry_title_contains_keyword_with_typo(
 
 #[rstest]
 #[tokio::test]
+async fn test_search_entry_with_empty_keyword_matches_all_entries(
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
+) {
+    let database = database().await;
+
+    let titles = vec!["Charlie".to_owned(), "Alpha".to_owned(), "Bravo".to_owned()];
+    create_generic_entries(&database, titles).await;
+
+    search_entry_payload.data.keyword = "".to_owned();
+
+    let results = entry_service::search(&database, search_entry_payload).await;
+    assert!(results.is_ok());
+
+    let results = results.unwrap();
+    assert_eq!(results.data.len(), 3);
+    assert_eq!(
+        results
+            .data
+            .iter()
+            .map(|entry| entry.title.as_str())
+            .collect::<Vec<_>>(),
+        vec!["Alpha", "Bravo", "Charlie"]
+    );
+    assert_eq!(results.page_index, 0);
+    assert_eq!(results.page_count, Some(1));
+    assert_eq!(results.item_count, 3);
+    assert_eq!(results.total, Some(3));
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_search_entry_omits_total_when_include_total_is_false(
+    mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
+) {
+    let database = database().await;
+
+    let titles = vec![
+        "Rust A".to_owned(),
+        "Rust B".to_owned(),
+        "Rust C".to_owned(),
+        "Rust D".to_owned(),
+    ];
+    create_generic_entries(&database, titles).await;
+
+    search_entry_payload.data.keyword = "Rust".to_owned();
+    search_entry_payload.offset = Some(1);
+    search_entry_payload.limit = Some(2);
+    search_entry_payload.include_total = false;
+
+    let results = entry_service::search(&database, search_entry_payload).await;
+    assert!(results.is_ok());
+
+    let results = results.unwrap();
+    assert_eq!(results.data.len(), 2);
+    assert_eq!(results.data[0].title, "Rust B");
+    assert_eq!(results.data[1].title, "Rust C");
+    assert_eq!(results.page_index, 1);
+    assert_eq!(results.page_count, None);
+    assert_eq!(results.item_count, 2);
+    assert_eq!(results.total, None);
+}
+
+#[rstest]
+#[tokio::test]
 async fn test_search_entry_with_limit(
     mut search_entry_payload: PaginationRequestSchema<EntrySearchSchema>,
 ) {

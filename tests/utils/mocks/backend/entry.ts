@@ -11,6 +11,7 @@ import {
     type WordUpsertResponse,
     type EntrySearch,
     type PaginationRequest,
+    PaginationResponse,
 } from "@/api";
 import { Id } from "@/interface";
 import { compareStrings } from "@/utils/string";
@@ -157,11 +158,21 @@ export function mockSearchEntries(
     }: {
         query: PaginationRequest<EntrySearch>;
     }) => {
-        return entries
+        entries = entries
             .filter((e) => e.title.includes(query.data.keyword))
             .sort((a, b) => compareStrings(a.title, b.title))
             .slice(query.offset ?? undefined)
             .slice(0, query.limit ?? undefined);
+        const response: PaginationResponse<EntryInfoResponse> = {
+            data: entries,
+            page_index: query.page_index ?? 0,
+            page_count: 1,
+            item_count: entries.length,
+            total: query.include_total ? entries.length : null,
+            offset: query.offset ?? null,
+            limit: query.limit ?? null,
+        };
+        return response;
     };
     mockedInvoker.mockCommand(CommandNames.Entry.Search, search);
 }

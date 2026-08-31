@@ -40,10 +40,10 @@ pub async fn get_entry(database: &DatabaseConnection, id: Uuid) -> Option<entry_
 }
 
 pub async fn upsert_word(db: &DatabaseConnection, word_payload: &WordUpsertSchema) -> Option<Uuid> {
-    let responses = word_service::bulk_upsert(&db, vec![word_payload.clone()])
+    let responses = word_service::bulk_upsert(db, vec![word_payload.clone()])
         .await
         .unwrap();
-    let response = responses.get(0).unwrap();
+    let response = responses.first().unwrap();
     response.data.id
 }
 
