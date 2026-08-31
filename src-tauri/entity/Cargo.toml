@@ -10,10 +10,8 @@ path = "src/lib.rs"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
-sea-query = { version = "0" }
-
-[dependencies.sea-orm]
-version = "^1"
+sea-orm = { version = "^2" }
+sea-query = { version = "1" }
 
 [lints.clippy]
 enum_variant_names = "allow"
