@@ -2,7 +2,7 @@ use ::entity::entry::Entity as EntryModel;
 use sea_orm::*;
 use uuid::Uuid;
 
-#[derive(DerivePartialModel, FromQueryResult)]
+#[derive(DerivePartialModel)]
 #[sea_orm(entity = "EntryModel")]
 pub struct EntryInfo {
     pub id: Uuid,

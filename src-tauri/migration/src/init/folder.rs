@@ -28,9 +28,9 @@ impl MigrationTrait for Migration {
                     // we introduce a generated column that coalesces null parent IDs into
                     // a sentinel value (i.e., Uuid::nil()).
                     .col(string(Folder::ParentIdNotNull).generated(
-                        Func::coalesce([
-                            Expr::col(Folder::ParentId).into(),
-                            Expr::val(ROOT_FOLDER_ID).into(),
+                        Func::coalesce::<[Expr; 2], Expr>([
+                            Expr::col(Folder::ParentId),
+                            Expr::val(ROOT_FOLDER_ID),
                         ]),
                         false,
                     ))

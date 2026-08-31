@@ -32,10 +32,10 @@ pnpm install
 cargo install --path src-tauri
 ```
 
-3. Install the sea-orm cli
+3. Install the sea-orm CLI.
 
 ```sh
-cargo install sea-orm-cli@^1.1.20
+cargo install sea-orm-cli
 ```
 
 4. Configure the development environment via a `.env` file in the project root.
