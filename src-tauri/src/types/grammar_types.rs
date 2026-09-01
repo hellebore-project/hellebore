@@ -59,6 +59,12 @@ impl CodedEnum for WordType {
     }
 }
 
+impl PartialEq for WordType {
+    fn eq(&self, other: &Self) -> bool {
+        self.code() == other.code()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, Serialize_repr, Deserialize_repr)]
 #[repr(i8)]
 #[derive(Default)]

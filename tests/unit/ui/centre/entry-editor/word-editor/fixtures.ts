@@ -5,7 +5,7 @@ import type {
     WordEditorService,
     WordTableService,
 } from "@/ui/centre/entry-editor/word-editor";
-import { mockGetWords } from "@tests/utils/mocks";
+import { mockListWords } from "@tests/utils/mocks";
 
 import { test as baseTest } from "../fixtures";
 
@@ -22,7 +22,7 @@ export const test = baseTest
             await use(mockedWords[0]);
         },
         mockedWords: async ({ mockedInvoker, words }, use) => {
-            mockGetWords(mockedInvoker, words);
+            mockListWords(mockedInvoker, words);
             await use(words);
         },
 

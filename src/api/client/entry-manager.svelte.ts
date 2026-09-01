@@ -266,7 +266,7 @@ export class EntryManager {
 
     async list(
         projectId: Id,
-        query: PaginationRequest<EntryListRequest> | null = null,
+        args: PaginationRequest<EntryListRequest> | null = null,
     ): Promise<PaginationResponse<EntryInfoResponse> | null> {
         let response: PaginationResponse<EntryInfoResponse>;
         try {
@@ -274,7 +274,7 @@ export class EntryManager {
                 CommandNames.Entry.List,
                 {
                     projectId,
-                    query,
+                    args,
                 },
             );
         } catch (error) {

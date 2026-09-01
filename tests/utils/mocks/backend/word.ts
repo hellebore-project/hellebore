@@ -1,6 +1,9 @@
 import { Id } from "@/interface";
 import {
     CommandNames,
+    PaginationRequest,
+    PaginationResponse,
+    WordListRequest,
     WordType,
     type BackendApiError,
     type WordResponse,
@@ -30,27 +33,41 @@ export function mockUpsertWords(
     );
 }
 
-export function mockGetWords(
+export function mockListWords(
     mockedInvoker: MockedInvoker,
     words: WordResponse[] = [],
 ) {
     const command = async ({
-        languageId,
-        wordType,
+        args,
     }: {
-        languageId: Id;
-        wordType: WordType | null;
+        args: PaginationRequest<WordListRequest>;
     }) => {
-        return words.filter(
-            (w) =>
-                w.languageId === languageId &&
-                (wordType === null || w.wordType === wordType),
-        );
+        words = words
+            .filter(
+                (w) =>
+                    (!args.data.languageId ||
+                        w.languageId === args.data.languageId) &&
+                    (!args.data.wordTypes ||
+                        args.data.wordTypes.includes(w.wordType)) &&
+                    (!args.data.keyword ||
+                        w.spelling.includes(args.data.keyword)),
+            )
+            .slice(args.offset ?? 0)
+            .slice(0, args.limit ?? undefined);
+
+        const response: PaginationResponse<WordResponse> = {
+            items: words,
+            page_index: args?.page_index ?? 0,
+            page_count: 1,
+            item_count: words.length,
+            total: args?.include_total ? words.length : null,
+            offset: args?.offset ?? null,
+            limit: args?.limit ?? null,
+        };
+        return response;
     };
-    mockedInvoker.mockCommand(
-        CommandNames.Word.GetMany,
-        command as MockedCommand,
-    );
+
+    mockedInvoker.mockCommand(CommandNames.Word.List, command as MockedCommand);
 }
 
 export function mockDeleteWord(

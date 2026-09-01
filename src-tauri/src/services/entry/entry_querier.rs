@@ -31,7 +31,7 @@ impl Querier for EntryQuerier {
     where
         C: ConnectionTrait,
     {
-        entry_manager::count(con, &query.options.like_title, query.offset, query.limit)
+        entry_manager::count(con, &query.options.like_title)
             .await
             .map_err(|e| {
                 ErrorBuilder::new()

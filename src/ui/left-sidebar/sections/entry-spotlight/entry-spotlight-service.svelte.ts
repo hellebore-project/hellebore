@@ -127,7 +127,7 @@ export class EntrySpotlightService implements ISidebarSectionService {
         const projectId = this._data.loadedProjectId;
 
         const [folders, entries] = await Promise.all([
-            this._domain.folders.getAll(projectId),
+            this._domain.folders.list(projectId),
             this._domain.entries.list(projectId),
         ]);
 
