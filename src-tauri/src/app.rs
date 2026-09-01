@@ -39,10 +39,9 @@ where
         api::entry::update_entries,
         api::entry::validate_entry_title,
         api::entry::get_entry,
-        api::entry::get_entries,
         api::entry::get_entry_properties,
         api::entry::get_entry_text,
-        api::entry::search_entries,
+        api::entry::list_entries,
         api::entry::delete_entry,
         // folder API
         api::folder::create_folder,

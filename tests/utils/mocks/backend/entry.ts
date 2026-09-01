@@ -9,7 +9,7 @@ import {
     type EntryUpdateResponse,
     type DiagnosticResponse,
     type WordUpsertResponse,
-    type EntrySearch,
+    type EntryListRequest,
     type PaginationRequest,
     PaginationResponse,
 } from "@/api";
@@ -149,30 +149,35 @@ export function mockGetEntries(
     mockedInvoker.mockCommand(CommandNames.Entry.GetAll, async () => entries);
 }
 
-export function mockSearchEntries(
+export function mockListEntries(
     mockedInvoker: MockedInvoker,
     entries: EntryInfoResponse[],
 ) {
     const search = async ({
         query,
     }: {
-        query: PaginationRequest<EntrySearch>;
+        query: PaginationRequest<EntryListRequest> | null;
     }) => {
+        if (query?.data.keyword)
+            entries = entries.filter((e) =>
+                e.title.includes(query?.data.keyword),
+            );
+
         entries = entries
-            .filter((e) => e.title.includes(query.data.keyword))
             .sort((a, b) => compareStrings(a.title, b.title))
-            .slice(query.offset ?? undefined)
-            .slice(0, query.limit ?? undefined);
+            .slice(query?.offset ?? undefined)
+            .slice(0, query?.limit ?? undefined);
+
         const response: PaginationResponse<EntryInfoResponse> = {
-            data: entries,
-            page_index: query.page_index ?? 0,
+            items: entries,
+            page_index: query?.page_index ?? 0,
             page_count: 1,
             item_count: entries.length,
-            total: query.include_total ? entries.length : null,
-            offset: query.offset ?? null,
-            limit: query.limit ?? null,
+            total: query?.include_total ? entries.length : null,
+            offset: query?.offset ?? null,
+            limit: query?.limit ?? null,
         };
         return response;
     };
-    mockedInvoker.mockCommand(CommandNames.Entry.Search, search);
+    mockedInvoker.mockCommand(CommandNames.Entry.List, search);
 }

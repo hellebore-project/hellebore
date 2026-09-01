@@ -13,9 +13,9 @@ use crate::model::{
 use crate::schema::{
     common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
     entry::{
-        EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema, EntryProperties,
-        EntryPropertyResponseSchema, EntrySearchSchema, EntryUpdateResponseSchema,
-        EntryUpdateSchema,
+        EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
+        EntryListRequestSchema, EntryProperties, EntryPropertyResponseSchema,
+        EntryUpdateResponseSchema, EntryUpdateSchema,
     },
 };
 use crate::services::{
@@ -378,23 +378,12 @@ pub async fn get_text(
     Ok(diagnostic_response)
 }
 
-pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<EntryInfoResponseSchema>, Error> {
-    let entries = entry_manager::get_all(database).await.map_err(|e| {
-        ErrorBuilder::new()
-            .msg("Failed to query entry table while fetching all entries.")
-            .from_err(e)
-            .db()
-            .query_failed()
-    })?;
-    let entries = entries.iter().map(generate_info_response).collect();
-
-    Ok(entries)
-}
-
-pub async fn search(
+pub async fn list(
     database: &DatabaseConnection,
-    query: PaginationRequestSchema<EntrySearchSchema>,
+    query: Option<PaginationRequestSchema<EntryListRequestSchema>>,
 ) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
+    let query = query.unwrap_or_default();
+
     let args = QueryArgs {
         options: EntryQueryData {
             like_title: query.data.keyword,
@@ -414,7 +403,7 @@ pub async fn search(
         page.items.iter().map(generate_info_response).collect();
 
     Ok(PaginationResponseSchema {
-        data: entries,
+        items: entries,
         page_index: page.page_index,
         page_count: page.page_count,
         item_count: page.item_count,

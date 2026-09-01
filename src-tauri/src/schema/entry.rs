@@ -119,8 +119,8 @@ pub struct EntryArticleResponseSchema {
     pub text: TextNode,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct EntrySearchSchema {
-    pub keyword: String,
+pub struct EntryListRequestSchema {
+    pub keyword: Option<String>,
 }

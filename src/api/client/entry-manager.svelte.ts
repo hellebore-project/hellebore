@@ -17,7 +17,7 @@ import type {
     EntryCreate,
     EntryInfoResponse,
     EntryPropertyResponse,
-    EntrySearch,
+    EntryListRequest,
     EntryUpdate,
     EntryUpdateResponse,
     DiagnosticResponse,
@@ -264,33 +264,14 @@ export class EntryManager {
         return response.data;
     }
 
-    async getAll(projectId: Id): Promise<EntryInfoResponse[] | null> {
-        let response: EntryInfoResponse[] | null;
-
-        try {
-            response = await invoke<EntryInfoResponse[]>(
-                CommandNames.Entry.GetAll,
-                {
-                    projectId,
-                },
-            );
-        } catch (error) {
-            console.error(error);
-            console.error("Failed to fetch all entries.");
-            return null;
-        }
-
-        return response;
-    }
-
-    async search(
+    async list(
         projectId: Id,
-        query: PaginationRequest<EntrySearch>,
+        query: PaginationRequest<EntryListRequest> | null = null,
     ): Promise<PaginationResponse<EntryInfoResponse> | null> {
         let response: PaginationResponse<EntryInfoResponse>;
         try {
             response = await invoke<PaginationResponse<EntryInfoResponse>>(
-                CommandNames.Entry.Search,
+                CommandNames.Entry.List,
                 {
                     projectId,
                     query,

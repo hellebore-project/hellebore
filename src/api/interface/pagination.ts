@@ -7,7 +7,7 @@ export interface PaginationRequest<T> {
 }
 
 export interface PaginationResponse<T> {
-    data: T[];
+    items: T[];
     page_index: number;
     page_count: number;
     item_count: number;

@@ -24,13 +24,12 @@ import {
     MockedInvoker,
     mockBulkUpdateEntries,
     mockBulkUpdateFolders,
-    mockGetEntries,
     mockGetEntryArticle,
     mockGetEntryInfo,
+    mockListEntries,
     mockGetFolder,
     mockGetFolders,
     mockLoadProject,
-    mockSearchEntries,
     mockGetEntryProperties,
 } from "@tests/utils/mocks";
 
@@ -225,11 +224,11 @@ export const test = baseTest.extend<BaseUiFixtures>({
         await use(entryWithProperties);
     },
     mockedEntries: async ({ mockedInvoker, allEntries }, use) => {
-        mockGetEntries(mockedInvoker, allEntries);
+        mockListEntries(mockedInvoker, allEntries);
         await use(allEntries);
     },
     mockedSearchedEntries: async ({ mockedInvoker, allEntries }, use) => {
-        mockSearchEntries(mockedInvoker, allEntries);
+        mockListEntries(mockedInvoker, allEntries);
         use(allEntries);
     },
     mockedBulkEntryUpdate: async ({ mockedInvoker }, use) => {
