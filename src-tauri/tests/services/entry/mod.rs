@@ -1,6 +1,6 @@
-mod create_entry;
-mod delete_entry;
-mod get_entry;
-mod list_entries;
-mod sync_entry_text;
-mod update_entry;
+mod test_create_entry;
+mod test_delete_entry;
+mod test_get_entry;
+mod test_list_entries;
+mod test_sync_entry_text;
+mod test_update_entry;
