@@ -117,7 +117,7 @@ export class FolderManager {
         return response;
     }
 
-    async getAll(projectId: Id): Promise<FolderResponse[] | null> {
+    async list(projectId: Id): Promise<FolderResponse[] | null> {
         let response: FolderResponse[] | null;
         try {
             response = await invoke<FolderResponse[]>(

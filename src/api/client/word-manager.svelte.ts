@@ -47,13 +47,13 @@ export class WordManager {
         }));
     }
 
-    async getAllForLanguage(
+    async list(
         projectId: Id,
         languageId: Id,
         wordType: WordType | null = null,
     ): Promise<WordResponse[] | null> {
         try {
-            return await invoke<WordResponse[]>(CommandNames.Word.GetMany, {
+            return await invoke<WordResponse[]>(CommandNames.Word.List, {
                 projectId,
                 languageId,
                 wordType,

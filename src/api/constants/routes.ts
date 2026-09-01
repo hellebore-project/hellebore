@@ -27,7 +27,7 @@ export const CommandNames = {
     },
     Word: {
         BulkUpsert: "upsert_words",
-        GetMany: "get_words",
+        List: "list_words",
         Delete: "delete_word",
     },
 };

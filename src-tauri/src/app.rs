@@ -54,7 +54,7 @@ where
         // word API
         api::word::upsert_words,
         api::word::get_word,
-        api::word::get_words,
+        api::word::list_words,
         api::word::delete_word,
     ])
 }

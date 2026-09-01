@@ -47,10 +47,7 @@ export function mockGetWords(
                 (wordType === null || w.wordType === wordType),
         );
     };
-    mockedInvoker.mockCommand(
-        CommandNames.Word.GetMany,
-        command as MockedCommand,
-    );
+    mockedInvoker.mockCommand(CommandNames.Word.List, command as MockedCommand);
 }
 
 export function mockDeleteWord(

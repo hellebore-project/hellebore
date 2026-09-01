@@ -32,7 +32,7 @@ pub async fn get_word(
 }
 
 #[tauri::command]
-pub async fn get_words(
+pub async fn list_words(
     state: tauri::State<'_, State>,
     project_id: Uuid,
     language_id: Uuid,
