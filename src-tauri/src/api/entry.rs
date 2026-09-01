@@ -93,11 +93,11 @@ pub async fn get_entry_text(
 pub async fn list_entries(
     state: tauri::State<'_, State>,
     project_id: Uuid,
-    query: Option<PaginationRequestSchema<EntryListRequestSchema>>,
+    args: Option<PaginationRequestSchema<EntryListRequestSchema>>,
 ) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
     let state = state.lock().await;
     let db = project_service::get_database(&state, project_id)?;
-    entry_service::list(db, query).await
+    entry_service::list(db, args).await
 }
 
 #[tauri::command]

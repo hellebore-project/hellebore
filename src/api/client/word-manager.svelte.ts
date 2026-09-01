@@ -2,9 +2,12 @@ import { invoke } from "@tauri-apps/api/core";
 
 import type { Id } from "@/interface/common";
 
-import { CommandNames, WordType } from "../constants";
+import { CommandNames } from "../constants";
 import type {
     DiagnosticResponse,
+    PaginationRequest,
+    PaginationResponse,
+    WordListRequest,
     WordResponse,
     WordUpsert,
     WordUpsertResponse,
@@ -49,15 +52,16 @@ export class WordManager {
 
     async list(
         projectId: Id,
-        languageId: Id,
-        wordType: WordType | null = null,
-    ): Promise<WordResponse[] | null> {
+        args: PaginationRequest<WordListRequest>,
+    ): Promise<PaginationResponse<WordResponse> | null> {
         try {
-            return await invoke<WordResponse[]>(CommandNames.Word.List, {
-                projectId,
-                languageId,
-                wordType,
-            });
+            return await invoke<PaginationResponse<WordResponse>>(
+                CommandNames.Word.List,
+                {
+                    projectId,
+                    args,
+                },
+            );
         } catch (error) {
             console.error(error);
             return null;

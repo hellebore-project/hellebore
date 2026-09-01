@@ -51,10 +51,12 @@ export class WordEditorService implements IComponentService {
     async load(languageId: Id) {
         const projectId = this._data.loadedProjectId;
 
-        const words = await this._domain.words.list(projectId, languageId);
-        if (words) {
-            this.table.load(words, languageId);
-        }
+        const words = await this._domain.words.list(projectId, {
+            data: {
+                languageId,
+            },
+        });
+        if (words) this.table.load(words.items, languageId);
     }
 
     claimModifiedWords(): Word[] {

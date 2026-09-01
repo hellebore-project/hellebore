@@ -37,5 +37,11 @@ export interface WordUpsertResponse {
     };
 }
 
+export interface WordListRequest {
+    languageId?: Id | null;
+    wordTypes?: WordType[] | null;
+    keyword?: string | null;
+}
+
 // Interfaces for fetching words
 export type WordResponse = IdentifiedWordInfo & WordProperties;

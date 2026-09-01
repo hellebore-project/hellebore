@@ -5,11 +5,12 @@ use ::entity::word::Model as Word;
 use serde_json;
 
 use crate::database::word_manager;
-use crate::model::errors::{Error, ErrorBuilder};
+use crate::model::{Error, ErrorBuilder, QueryArgs, word::WordQueryData};
 use crate::schema::{
-    common::DiagnosticResponseSchema,
-    word::{WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
+    common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
+    word::{WordListRequestSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
+use crate::services::{pagination_service, word::word_querier::WordQuerier};
 use crate::types::entity_type::WORD;
 use crate::types::grammar_types::WordType;
 
@@ -202,6 +203,54 @@ pub async fn get_all_for_language(
     }
 
     Ok(word_responses)
+}
+
+pub async fn list(
+    database: &DatabaseConnection,
+    query: Option<PaginationRequestSchema<WordListRequestSchema>>,
+) -> Result<PaginationResponseSchema<WordResponseSchema>, Error> {
+    let query = query.unwrap_or_default();
+
+    let args = QueryArgs {
+        options: WordQueryData {
+            language_id: query.data.language_id,
+            word_types: query.data.word_types,
+            like_spelling: query.data.keyword,
+        },
+        offset: query.offset,
+        limit: query.limit,
+    };
+
+    let page = pagination_service::paginated_query::<WordQuerier, DatabaseConnection>(
+        database,
+        args,
+        query.include_total,
+    )
+    .await?;
+
+    let words: Vec<WordResponseSchema> = page
+        .items
+        .iter()
+        .map(|word| WordResponseSchema {
+            id: word.id,
+            language_id: word.language_id,
+            word_type: WordType::from(word.word_type),
+            spelling: word.spelling.to_owned(),
+            definition: word.definition.to_owned(),
+            translations: _convert_translations_to_vec(word.id, &word.translations)
+                .unwrap_or_default(),
+        })
+        .collect();
+
+    Ok(PaginationResponseSchema {
+        items: words,
+        page_index: page.page_index,
+        page_count: page.page_count,
+        item_count: page.item_count,
+        total: page.total,
+        offset: page.offset,
+        limit: page.limit,
+    })
 }
 
 pub async fn delete(database: &DatabaseConnection, id: Uuid) -> Result<(), Error> {

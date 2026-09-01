@@ -126,8 +126,8 @@ where
 {
     let mut query = EntryModel::find();
 
-    if let Some(arg) = like_title {
-        query = query.filter(entry::Column::Title.like(format!("%{}%", arg)))
+    if let Some(like_title) = like_title {
+        query = query.filter(entry::Column::Title.like(format!("%{}%", like_title)))
     };
 
     query
@@ -139,12 +139,7 @@ where
         .await
 }
 
-pub async fn count<C>(
-    con: &C,
-    like_title: &Option<String>,
-    offset: Option<u64>,
-    limit: Option<u64>,
-) -> Result<u64, DbErr>
+pub async fn count<C>(con: &C, like_title: &Option<String>) -> Result<u64, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -154,12 +149,7 @@ where
         query = query.filter(entry::Column::Title.like(format!("%{}%", arg)))
     };
 
-    query
-        .order_by_asc(entry::Column::Title)
-        .offset(offset)
-        .limit(limit)
-        .count(con)
-        .await
+    query.order_by_asc(entry::Column::Title).count(con).await
 }
 
 pub async fn delete<C>(con: &C, id: Uuid) -> Result<DeleteResult, DbErr>
