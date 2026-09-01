@@ -1,10 +1,10 @@
-mod config;
+mod test_config_service;
 
-mod project;
+mod test_project_service;
 
 mod entry;
-mod folder;
+mod test_folder_service;
 
-mod language;
-mod person;
+mod test_language_service;
+mod test_person_service;
 mod word;
