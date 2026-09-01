@@ -8,7 +8,7 @@ interface EntrySearchFixtures {
 
 export const test = baseTest.extend<EntrySearchFixtures>({
     entrySearchService: async (
-        { domainManager, clientData, mockedSearchedEntries },
+        { domainManager, clientData, mockedEntries },
         use,
     ) => {
         const service = new EntrySearchService(domainManager, clientData);

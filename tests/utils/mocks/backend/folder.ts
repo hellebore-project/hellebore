@@ -2,7 +2,7 @@ import { Id } from "@/interface";
 import {
     CommandNames,
     FolderCreate,
-    type BulkEntryResponse,
+    type BulkEntityResponse,
     type DiagnosticResponse,
     type FolderBulkUpdateData,
     type FolderResponse,
@@ -48,11 +48,11 @@ export function mockGetFolder(
     mockedInvoker.mockCommand(CommandNames.Folder.Get, async () => folder);
 }
 
-export function mockGetFolders(
+export function mockListFolders(
     mockedInvoker: MockedInvoker,
     folders: FolderResponse[],
 ) {
-    mockedInvoker.mockCommand(CommandNames.Folder.GetAll, async () => folders);
+    mockedInvoker.mockCommand(CommandNames.Folder.List, async () => folders);
 }
 
 export function mockDeleteFolder(
@@ -60,7 +60,7 @@ export function mockDeleteFolder(
     folderIds: Id[],
     entryIds: Id[],
 ) {
-    const response: BulkEntryResponse = {
+    const response: BulkEntityResponse = {
         entries: entryIds,
         folders: folderIds,
     };

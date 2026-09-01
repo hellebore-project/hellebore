@@ -142,13 +142,6 @@ export function mockGetEntryArticle(
     );
 }
 
-export function mockGetEntries(
-    mockedInvoker: MockedInvoker,
-    entries: EntryInfoResponse[],
-) {
-    mockedInvoker.mockCommand(CommandNames.Entry.GetAll, async () => entries);
-}
-
 export function mockListEntries(
     mockedInvoker: MockedInvoker,
     entries: EntryInfoResponse[],

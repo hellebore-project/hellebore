@@ -28,7 +28,7 @@ import {
     mockGetEntryInfo,
     mockListEntries,
     mockGetFolder,
-    mockGetFolders,
+    mockListFolders,
     mockLoadProject,
     mockGetEntryProperties,
 } from "@tests/utils/mocks";
@@ -76,7 +76,6 @@ export interface BaseUiFixtures {
     entryProperties: PersonProperties;
     mockedEntryProperties: EntryPropertyResponse;
     mockedEntries: EntryInfoResponse[];
-    mockedSearchedEntries: EntryInfoResponse[];
     mockedBulkEntryUpdate: null;
     mockedBulkFolderUpdate: null;
 
@@ -194,7 +193,7 @@ export const test = baseTest.extend<BaseUiFixtures>({
         await use(folder);
     },
     mockedFolders: async ({ mockedInvoker, allFolders }, use) => {
-        mockGetFolders(mockedInvoker, allFolders);
+        mockListFolders(mockedInvoker, allFolders);
         await use(allFolders);
     },
     mockedEntryInfo: async ({ mockedInvoker, entryInfo }, use) => {
@@ -226,10 +225,6 @@ export const test = baseTest.extend<BaseUiFixtures>({
     mockedEntries: async ({ mockedInvoker, allEntries }, use) => {
         mockListEntries(mockedInvoker, allEntries);
         await use(allEntries);
-    },
-    mockedSearchedEntries: async ({ mockedInvoker, allEntries }, use) => {
-        mockListEntries(mockedInvoker, allEntries);
-        use(allEntries);
     },
     mockedBulkEntryUpdate: async ({ mockedInvoker }, use) => {
         mockBulkUpdateEntries(mockedInvoker);

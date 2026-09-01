@@ -69,13 +69,13 @@ pub async fn get_folder(
 }
 
 #[tauri::command]
-pub async fn get_folders(
+pub async fn list_folders(
     state: tauri::State<'_, State>,
     project_id: Uuid,
 ) -> Result<Vec<FolderResponseSchema>, Error> {
     let state = state.lock().await;
     let db = project_service::get_database(&state, project_id)?;
-    folder_service::get_all(db).await
+    folder_service::list(db).await
 }
 
 #[tauri::command]

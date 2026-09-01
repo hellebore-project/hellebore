@@ -6,7 +6,7 @@ interface HeaderFixtures {
 }
 
 export const test = baseTest.extend<HeaderFixtures>({
-    headerManager: async ({ mockedSearchedEntries, clientManager }, use) => {
+    headerManager: async ({ mockedEntries, clientManager }, use) => {
         use(clientManager.header);
     },
 });

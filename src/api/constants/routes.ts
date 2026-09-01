@@ -11,7 +11,7 @@ export const CommandNames = {
         BulkUpdate: "update_folders",
         Validate: "validate_folder_name",
         Get: "get_folder",
-        GetAll: "get_folders",
+        List: "list_folders",
         Delete: "delete_folder",
     },
     Entry: {
@@ -22,7 +22,6 @@ export const CommandNames = {
         GetInfo: "get_entry",
         GetProperties: "get_entry_properties",
         GetArticle: "get_entry_text",
-        GetAll: "get_entries",
         List: "list_entries",
         Delete: "delete_entry",
     },
