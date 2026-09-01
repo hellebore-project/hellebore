@@ -121,7 +121,7 @@ export class FolderManager {
         let response: FolderResponse[] | null;
         try {
             response = await invoke<FolderResponse[]>(
-                CommandNames.Folder.GetAll,
+                CommandNames.Folder.List,
                 {
                     projectId,
                 },

@@ -456,7 +456,7 @@ async fn test_get_all_folders() {
         .await
         .unwrap();
 
-    let folders = folder_service::get_all(&database).await;
+    let folders = folder_service::list(&database).await;
     assert!(folders.is_ok());
     let folders = folders.unwrap();
 

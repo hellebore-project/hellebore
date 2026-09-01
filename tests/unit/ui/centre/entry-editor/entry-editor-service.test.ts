@@ -10,7 +10,7 @@ test("opening the same entry twice reuses the loaded panel", async ({
     entryId,
     mockedInvoker,
     mockedEntryArticle,
-    mockedSearchedEntries,
+    mockedEntries,
 }) => {
     const firstService = await centralPanelManager.openEntryEditor({
         id: entryId,
@@ -38,7 +38,7 @@ test("switching entry views loads the requested editor once", async ({
     mockedInvoker,
     mockedEntryInfo,
     mockedEntryArticle,
-    mockedSearchedEntries,
+    mockedEntries,
     mockedEntryProperties,
 }) => {
     const service = await centralPanelManager.openEntryEditor({

@@ -153,8 +153,8 @@ pub async fn get(database: &DatabaseConnection, id: Uuid) -> Result<FolderRespon
     }
 }
 
-pub async fn get_all(database: &DatabaseConnection) -> Result<Vec<FolderResponseSchema>, Error> {
-    let folders = folder_manager::get_all(database).await.map_err(|e| {
+pub async fn list(database: &DatabaseConnection) -> Result<Vec<FolderResponseSchema>, Error> {
+    let folders = folder_manager::get_many(database).await.map_err(|e| {
         ErrorBuilder::new()
             .msg("Failed to query the folder table while fetching all folders.")
             .from_err(e)

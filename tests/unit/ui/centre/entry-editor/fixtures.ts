@@ -12,10 +12,7 @@ export interface BaseEntryEditorFixtures {
 
 export const test = baseTest.extend<BaseEntryEditorFixtures>({
     entryViewType: EntryViewType.ArticleEditor,
-    entryEditorMocks: async (
-        { mockedEntryArticle, mockedSearchedEntries },
-        use,
-    ) => {
+    entryEditorMocks: async ({ mockedEntryArticle, mockedEntries }, use) => {
         // inject the required mocks for the entry-editor service to work.
         // by default, use the required article-editor mocks.
         // override as needed.

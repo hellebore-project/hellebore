@@ -49,7 +49,7 @@ where
         api::folder::update_folders,
         api::folder::validate_folder_name,
         api::folder::get_folder,
-        api::folder::get_folders,
+        api::folder::list_folders,
         api::folder::delete_folder,
         // word API
         api::word::upsert_words,

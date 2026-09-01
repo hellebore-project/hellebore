@@ -189,7 +189,7 @@ pub fn query(parent_id: Option<Uuid>, name: Option<String>) -> Select<FolderEnti
     query
 }
 
-pub async fn get_all<C>(con: &C) -> Result<Vec<FolderModel>, DbErr>
+pub async fn get_many<C>(con: &C) -> Result<Vec<FolderModel>, DbErr>
 where
     C: ConnectionTrait,
 {
