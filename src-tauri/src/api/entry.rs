@@ -5,7 +5,7 @@ use crate::schema::{
     common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
-        EntryPropertyResponseSchema, EntrySearchSchema, EntryUpdateResponseSchema,
+        EntryListRequestSchema, EntryPropertyResponseSchema, EntryUpdateResponseSchema,
         EntryUpdateSchema,
     },
 };
@@ -90,24 +90,14 @@ pub async fn get_entry_text(
 }
 
 #[tauri::command]
-pub async fn get_entries(
+pub async fn list_entries(
     state: tauri::State<'_, State>,
     project_id: Uuid,
-) -> Result<Vec<EntryInfoResponseSchema>, Error> {
-    let state = state.lock().await;
-    let db = project_service::get_database(&state, project_id)?;
-    entry_service::get_all(db).await
-}
-
-#[tauri::command]
-pub async fn search_entries(
-    state: tauri::State<'_, State>,
-    project_id: Uuid,
-    query: PaginationRequestSchema<EntrySearchSchema>,
+    query: Option<PaginationRequestSchema<EntryListRequestSchema>>,
 ) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
     let state = state.lock().await;
     let db = project_service::get_database(&state, project_id)?;
-    entry_service::search(db, query).await
+    entry_service::list(db, query).await
 }
 
 #[tauri::command]

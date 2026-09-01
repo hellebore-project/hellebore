@@ -25,7 +25,7 @@ pub struct DiagnosticResponseSchema<D> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PaginationRequestSchema<D> {
+pub struct PaginationRequestSchema<D: Default> {
     pub data: D,
     /// 0-based index of the current page
     #[serde(default = "default_zero")]
@@ -39,11 +39,23 @@ pub struct PaginationRequestSchema<D> {
     pub include_total: bool,
 }
 
+impl<D: Default> Default for PaginationRequestSchema<D> {
+    fn default() -> Self {
+        PaginationRequestSchema {
+            data: D::default(),
+            page_index: 0,
+            offset: None,
+            limit: None,
+            include_total: false,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PaginationResponseSchema<D> {
     /// array of items in the current page
-    pub data: Vec<D>,
+    pub items: Vec<D>,
     /// 0-based index of the current page
     pub page_index: u64,
     /// number of pages

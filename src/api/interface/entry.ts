@@ -83,6 +83,6 @@ export interface EntryArticleResponse {
     text: JSONContent;
 }
 
-export interface EntrySearch {
-    keyword: string;
+export interface EntryListRequest {
+    keyword?: string | null;
 }

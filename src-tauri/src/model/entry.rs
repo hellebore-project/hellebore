@@ -12,5 +12,5 @@ pub struct EntryInfo {
 }
 
 pub struct EntryQueryData {
-    pub like_title: String,
+    pub like_title: Option<String>,
 }

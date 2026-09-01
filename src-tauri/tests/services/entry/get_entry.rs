@@ -74,22 +74,3 @@ async fn test_get_entry_text(
     validate_generic_entry_info_response(&article.info, None, folder_id, &entry_title);
     assert_eq!(article.text, entry_text_node);
 }
-
-#[rstest]
-#[tokio::test]
-async fn test_get_all_entries(folder_id: Uuid, entry_title: String) {
-    let database = database().await;
-    create_generic_entry(&database, folder_id, entry_title.to_owned(), "".to_owned()).await;
-
-    let title_2 = format!("{} 2", entry_title);
-    create_generic_entry(&database, folder_id, title_2.to_owned(), "".to_owned()).await;
-
-    let entries = entry_service::get_all(&database).await;
-
-    assert!(entries.is_ok());
-    let mut entries = entries.unwrap();
-    assert_eq!(2, entries.len());
-    entries.sort_by(|a, b| a.title.cmp(&b.title));
-    validate_generic_entry_info_response(&entries[0], None, folder_id, &entry_title);
-    validate_generic_entry_info_response(&entries[1], None, folder_id, &title_2);
-}

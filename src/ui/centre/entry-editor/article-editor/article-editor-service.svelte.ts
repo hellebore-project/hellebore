@@ -95,7 +95,7 @@ export class ArticleEditorService implements IComponentService {
     ): Promise<(BaseMentionItemData & EntryMentionItemData)[]> {
         const projectId = this._data.loadedProjectId;
 
-        const results = await this._domain.entries.search(projectId, {
+        const results = await this._domain.entries.list(projectId, {
             data: {
                 keyword: titleFragment,
             },
@@ -104,7 +104,7 @@ export class ArticleEditorService implements IComponentService {
         });
         if (!results) return [];
 
-        return results.data
+        return results.items
             .filter((info) => info.id != this.info.entryId)
             .map((info) => ({
                 label: info.title,

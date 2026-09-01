@@ -115,28 +115,22 @@ where
         .await
 }
 
-pub async fn get_all<C>(con: &C) -> Result<Vec<EntryInfo>, DbErr>
-where
-    C: ConnectionTrait,
-{
-    EntryModel::find()
-        .order_by_asc(entry::Column::Title)
-        .into_partial_model::<EntryInfo>()
-        .all(con)
-        .await
-}
-
-pub async fn search<C>(
+pub async fn get_many<C>(
     con: &C,
-    like_title: String,
+    like_title: &Option<String>,
     offset: Option<u64>,
     limit: Option<u64>,
 ) -> Result<Vec<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
-    EntryModel::find()
-        .filter(entry::Column::Title.like(format!("%{}%", like_title)))
+    let mut query = EntryModel::find();
+
+    if let Some(arg) = like_title {
+        query = query.filter(entry::Column::Title.like(format!("%{}%", arg)))
+    };
+
+    query
         .order_by_asc(entry::Column::Title)
         .offset(offset)
         .limit(limit)
@@ -147,15 +141,20 @@ where
 
 pub async fn count<C>(
     con: &C,
-    like_title: String,
+    like_title: &Option<String>,
     offset: Option<u64>,
     limit: Option<u64>,
 ) -> Result<u64, DbErr>
 where
     C: ConnectionTrait,
 {
-    EntryModel::find()
-        .filter(entry::Column::Title.like(format!("%{}%", like_title)))
+    let mut query = EntryModel::find();
+
+    if let Some(arg) = like_title {
+        query = query.filter(entry::Column::Title.like(format!("%{}%", arg)))
+    };
+
+    query
         .order_by_asc(entry::Column::Title)
         .offset(offset)
         .limit(limit)
