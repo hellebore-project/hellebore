@@ -2,7 +2,7 @@ use rstest::*;
 
 use hellebore::{
     schema::{
-        common::PaginationRequestSchema,
+        PaginationRequestSchema,
         entry::EntryCreateSchema,
         word::{WordListRequestSchema, WordUpsertSchema},
     },

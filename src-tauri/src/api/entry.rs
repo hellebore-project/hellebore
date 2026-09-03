@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::model::{errors::Error, state::State};
 use crate::schema::{
-    common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
+    DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema,
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
         EntryListRequestSchema, EntryPropertyResponseSchema, EntryUpdateResponseSchema,

@@ -1,27 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::Error;
 use crate::utils::serde::{default_true, default_zero};
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateResponseSchema {
-    pub updated: bool,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UpsertResponseSchema {
-    pub created: bool,
-    pub updated: bool,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct DiagnosticResponseSchema<D> {
-    pub data: D,
-    pub errors: Vec<Error>,
-}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

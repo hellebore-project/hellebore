@@ -1,5 +1,5 @@
 use hellebore::{
-    schema::{common::PaginationRequestSchema, entry::EntryListRequestSchema},
+    schema::{PaginationRequestSchema, entry::EntryListRequestSchema},
     services::entry_service,
 };
 use rstest::*;

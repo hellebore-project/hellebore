@@ -7,7 +7,7 @@ use serde_json;
 use crate::database::word_manager;
 use crate::model::{Error, ErrorBuilder, QueryArgs, word::WordQueryData};
 use crate::schema::{
-    common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
+    DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema,
     word::{WordListRequestSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
 use crate::services::{pagination_service, word::word_querier::WordQuerier};

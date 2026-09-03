@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::model::{errors::Error, state::State};
 use crate::schema::{
-    common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
+    DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema,
     word::{WordListRequestSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
 use crate::services::{project_service, word_service};

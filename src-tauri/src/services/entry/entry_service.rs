@@ -11,7 +11,7 @@ use crate::model::{
     text::TextNode,
 };
 use crate::schema::{
-    common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
+    DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema,
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
         EntryListRequestSchema, EntryProperties, EntryPropertyResponseSchema,

@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::{
     model::text::TextNode,
     schema::{
-        common::UpdateResponseSchema,
+        UpdateResponseSchema,
         language::LanguageSchema,
         person::PersonSchema,
         word::{WordUpsertResponseSchema, WordUpsertSchema},
