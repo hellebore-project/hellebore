@@ -2,15 +2,18 @@ use sea_orm::ConnectionTrait;
 
 use crate::model::Error;
 
-pub struct QueryArgs<T> {
-    pub options: T,
+pub struct PaginationArgs {
     pub offset: Option<u64>,
     pub limit: Option<u64>,
 }
 
-pub struct QueryResultPage<T> {
+pub struct QueryArgs<T> {
+    pub options: T,
+    pub pagination: PaginationArgs,
+}
+
+pub struct QueryResult<T> {
     pub items: Vec<T>,
-    pub item_count: u64,
     pub page_index: u64,
     pub page_count: Option<u64>,
     pub total: Option<u64>,

@@ -5,6 +5,7 @@ use ::entity::word::Model as Word;
 use serde_json;
 
 use crate::database::word_manager;
+use crate::model::PaginationArgs;
 use crate::model::{Error, ErrorBuilder, QueryArgs, word::WordQueryData};
 use crate::schema::{
     DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
@@ -217,8 +218,10 @@ pub async fn list(
             word_types: query.data.word_types,
             like_spelling: query.data.keyword,
         },
-        offset: query.offset,
-        limit: query.limit,
+        pagination: PaginationArgs {
+            offset: query.pagination.offset,
+            limit: query.pagination.limit,
+        },
     };
 
     let page = query_service::paginated_query::<WordQuerier, DatabaseConnection>(
@@ -246,7 +249,6 @@ pub async fn list(
         items: words,
         page_index: page.page_index,
         page_count: page.page_count,
-        item_count: page.item_count,
         total: page.total,
         offset: page.offset,
         limit: page.limit,

@@ -158,17 +158,17 @@ export function mockListEntries(
 
         entries = entries
             .sort((a, b) => compareStrings(a.title, b.title))
-            .slice(args?.offset ?? undefined)
-            .slice(0, args?.limit ?? undefined);
+            .slice(args?.pagination?.offset ?? undefined)
+            .slice(0, args?.pagination?.limit ?? undefined);
 
         const response: QueryResponse<EntryInfoResponse> = {
             items: entries,
-            page_index: args?.page_index ?? 0,
+            page_index: args?.pagination?.page_index ?? 0,
             page_count: 1,
             item_count: entries.length,
             total: args?.include_total ? entries.length : null,
-            offset: args?.offset ?? null,
-            limit: args?.limit ?? null,
+            offset: args?.pagination?.offset ?? null,
+            limit: args?.pagination?.limit ?? null,
         };
         return response;
     };

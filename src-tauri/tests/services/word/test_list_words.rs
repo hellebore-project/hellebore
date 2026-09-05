@@ -4,6 +4,7 @@ use hellebore::{
     schema::{
         QueryRequestSchema,
         entry::EntryCreateSchema,
+        query::PaginationSchema,
         word::{WordListRequestSchema, WordUpsertSchema},
     },
     services::{entry_service, word_service},
@@ -23,9 +24,11 @@ pub fn list_word_payload() -> QueryRequestSchema<WordListRequestSchema> {
             word_types: None,
             keyword: None,
         },
-        page_index: 0,
-        offset: None,
-        limit: None,
+        pagination: PaginationSchema {
+            page_index: 0,
+            offset: None,
+            limit: None,
+        },
         include_total: true,
     }
 }
@@ -285,8 +288,8 @@ async fn test_list_words_omits_total_when_include_total_is_false(
     list_word_payload.data.language_id = Some(language.id);
     list_word_payload.data.keyword = None;
     list_word_payload.data.word_types = None;
-    list_word_payload.offset = Some(1);
-    list_word_payload.limit = Some(2);
+    list_word_payload.pagination.offset = Some(1);
+    list_word_payload.pagination.limit = Some(2);
     list_word_payload.include_total = false;
 
     let results = word_service::list(&db, Some(list_word_payload)).await;
@@ -295,7 +298,7 @@ async fn test_list_words_omits_total_when_include_total_is_false(
     let results = results.unwrap();
     assert_eq!(results.items.len(), 2);
     assert_eq!(results.page_index, 1);
-    assert_eq!(results.item_count, 2);
+    assert_eq!(results.items.len(), 2);
     assert_eq!(results.total, None);
     assert_eq!(results.page_count, None);
 }
@@ -325,8 +328,8 @@ async fn test_list_words_with_limit_and_offset(
     list_word_payload.data.language_id = Some(language.id);
     list_word_payload.data.keyword = None;
     list_word_payload.data.word_types = None;
-    list_word_payload.offset = Some(2);
-    list_word_payload.limit = Some(2);
+    list_word_payload.pagination.offset = Some(2);
+    list_word_payload.pagination.limit = Some(2);
     list_word_payload.include_total = true;
 
     let results = word_service::list(&db, Some(list_word_payload)).await;
@@ -335,7 +338,7 @@ async fn test_list_words_with_limit_and_offset(
     let results = results.unwrap();
     assert_eq!(results.items.len(), 2);
     assert_eq!(results.page_index, 1);
-    assert_eq!(results.item_count, 2);
+    assert_eq!(results.items.len(), 2);
     assert_eq!(results.total, Some(5));
     assert_eq!(results.page_count, Some(3));
 }

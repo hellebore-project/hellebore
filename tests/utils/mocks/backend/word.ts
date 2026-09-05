@@ -52,17 +52,17 @@ export function mockListWords(
                     (!args.data.keyword ||
                         w.spelling.includes(args.data.keyword)),
             )
-            .slice(args.offset ?? 0)
-            .slice(0, args.limit ?? undefined);
+            .slice(args.pagination?.offset ?? 0)
+            .slice(0, args.pagination?.limit ?? undefined);
 
         const response: QueryResponse<WordResponse> = {
             items: words,
-            page_index: args?.page_index ?? 0,
+            page_index: args?.pagination?.page_index ?? 0,
             page_count: 1,
             item_count: words.length,
             total: args?.include_total ? words.length : null,
-            offset: args?.offset ?? null,
-            limit: args?.limit ?? null,
+            offset: args?.pagination?.offset ?? null,
+            limit: args?.pagination?.limit ?? null,
         };
         return response;
     };

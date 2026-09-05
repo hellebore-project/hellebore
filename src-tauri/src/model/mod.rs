@@ -6,7 +6,7 @@ pub mod project;
 pub mod state;
 
 pub mod query;
-pub use query::{Querier, QueryArgs, QueryResultPage};
+pub use query::{PaginationArgs, Querier, QueryArgs, QueryResult};
 
 pub mod entry;
 pub mod text;

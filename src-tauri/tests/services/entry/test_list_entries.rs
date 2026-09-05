@@ -1,5 +1,5 @@
 use hellebore::{
-    schema::{QueryRequestSchema, entry::EntryListRequestSchema},
+    schema::{QueryRequestSchema, entry::EntryListRequestSchema, query::PaginationSchema},
     services::entry_service,
 };
 use rstest::*;
@@ -17,9 +17,11 @@ pub fn list_entry_payload() -> QueryRequestSchema<EntryListRequestSchema> {
         data: EntryListRequestSchema {
             keyword: Some("".to_owned()),
         },
-        page_index: 0,
-        offset: None,
-        limit: None,
+        pagination: PaginationSchema {
+            page_index: 0,
+            offset: None,
+            limit: None,
+        },
         include_total: true,
     }
 }
@@ -279,7 +281,7 @@ async fn test_list_entries_with_empty_keyword_matches_all_entries(
     );
     assert_eq!(results.page_index, 0);
     assert_eq!(results.page_count, Some(1));
-    assert_eq!(results.item_count, 3);
+    assert_eq!(results.items.len(), 3);
     assert_eq!(results.total, Some(3));
 }
 
@@ -299,8 +301,8 @@ async fn test_list_entries_omits_total_when_include_total_is_false(
     create_generic_entries(&database, titles).await;
 
     list_entry_payload.data.keyword = Some("Rust".to_owned());
-    list_entry_payload.offset = Some(1);
-    list_entry_payload.limit = Some(2);
+    list_entry_payload.pagination.offset = Some(1);
+    list_entry_payload.pagination.limit = Some(2);
     list_entry_payload.include_total = false;
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
@@ -312,7 +314,7 @@ async fn test_list_entries_omits_total_when_include_total_is_false(
     assert_eq!(results.items[1].title, "Rust C");
     assert_eq!(results.page_index, 1);
     assert_eq!(results.page_count, None);
-    assert_eq!(results.item_count, 2);
+    assert_eq!(results.items.len(), 2);
     assert_eq!(results.total, None);
 }
 
@@ -331,7 +333,7 @@ async fn test_list_entries_with_limit(
     create_generic_entries(&database, titles).await;
 
     list_entry_payload.data.keyword = Some("Rust".to_owned());
-    list_entry_payload.limit = Some(2);
+    list_entry_payload.pagination.limit = Some(2);
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
     assert!(results.is_ok());
@@ -360,7 +362,7 @@ async fn test_list_entries_with_offset(
     create_generic_entries(&database, titles).await;
 
     list_entry_payload.data.keyword = Some("Rust".to_owned());
-    list_entry_payload.offset = Some(1);
+    list_entry_payload.pagination.offset = Some(1);
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
     assert!(results.is_ok());
@@ -389,8 +391,8 @@ async fn test_list_entries_with_limit_and_offset(
     create_generic_entries(&database, titles).await;
 
     list_entry_payload.data.keyword = Some("Rust".to_owned());
-    list_entry_payload.offset = Some(2);
-    list_entry_payload.limit = Some(2);
+    list_entry_payload.pagination.offset = Some(2);
+    list_entry_payload.pagination.limit = Some(2);
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
     assert!(results.is_ok());

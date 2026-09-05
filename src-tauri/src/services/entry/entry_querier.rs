@@ -16,15 +16,20 @@ impl Querier for EntryQuerier {
     where
         C: ConnectionTrait,
     {
-        entry_manager::get_many(con, &query.options.like_title, query.offset, query.limit)
-            .await
-            .map_err(|e| {
-                ErrorBuilder::new()
-                    .msg("Failed to query the entry table while searching for entries.")
-                    .from_err(e)
-                    .db()
-                    .query_failed()
-            })
+        entry_manager::get_many(
+            con,
+            &query.options.like_title,
+            query.pagination.offset,
+            query.pagination.limit,
+        )
+        .await
+        .map_err(|e| {
+            ErrorBuilder::new()
+                .msg("Failed to query the entry table while searching for entries.")
+                .from_err(e)
+                .db()
+                .query_failed()
+        })
     }
 
     async fn count<C>(con: &C, query: &QueryArgs<EntryQueryData>) -> Result<u64, Error>
