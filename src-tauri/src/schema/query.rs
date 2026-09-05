@@ -4,7 +4,7 @@ use crate::utils::serde::{default_true, default_zero};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PaginationRequestSchema<D: Default> {
+pub struct QueryRequestSchema<D: Default> {
     pub data: D,
     /// 0-based index of the current page
     #[serde(default = "default_zero")]
@@ -18,9 +18,9 @@ pub struct PaginationRequestSchema<D: Default> {
     pub include_total: bool,
 }
 
-impl<D: Default> Default for PaginationRequestSchema<D> {
+impl<D: Default> Default for QueryRequestSchema<D> {
     fn default() -> Self {
-        PaginationRequestSchema {
+        QueryRequestSchema {
             data: D::default(),
             page_index: 0,
             offset: None,
@@ -32,7 +32,7 @@ impl<D: Default> Default for PaginationRequestSchema<D> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PaginationResponseSchema<D> {
+pub struct QueryResponseSchema<D> {
     /// array of items in the current page
     pub items: Vec<D>,
     /// 0-based index of the current page

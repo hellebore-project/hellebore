@@ -1,8 +1,8 @@
 import { Id } from "@/interface";
 import {
     CommandNames,
-    PaginationRequest,
-    PaginationResponse,
+    QueryRequest,
+    QueryResponse,
     WordListRequest,
     WordType,
     type BackendApiError,
@@ -40,7 +40,7 @@ export function mockListWords(
     const command = async ({
         args,
     }: {
-        args: PaginationRequest<WordListRequest>;
+        args: QueryRequest<WordListRequest>;
     }) => {
         words = words
             .filter(
@@ -55,7 +55,7 @@ export function mockListWords(
             .slice(args.offset ?? 0)
             .slice(0, args.limit ?? undefined);
 
-        const response: PaginationResponse<WordResponse> = {
+        const response: QueryResponse<WordResponse> = {
             items: words,
             page_index: args?.page_index ?? 0,
             page_count: 1,

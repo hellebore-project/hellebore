@@ -1,4 +1,4 @@
-export interface PaginationRequest<T> {
+export interface QueryRequest<T> {
     data: T;
     page_index?: number;
     offset?: number | null;
@@ -6,7 +6,7 @@ export interface PaginationRequest<T> {
     include_total?: boolean;
 }
 
-export interface PaginationResponse<T> {
+export interface QueryResponse<T> {
     items: T[];
     page_index: number;
     page_count: number;

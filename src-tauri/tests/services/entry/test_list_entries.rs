@@ -1,5 +1,5 @@
 use hellebore::{
-    schema::{PaginationRequestSchema, entry::EntryListRequestSchema},
+    schema::{QueryRequestSchema, entry::EntryListRequestSchema},
     services::entry_service,
 };
 use rstest::*;
@@ -12,8 +12,8 @@ use crate::utils::{
 };
 
 #[fixture]
-pub fn list_entry_payload() -> PaginationRequestSchema<EntryListRequestSchema> {
-    PaginationRequestSchema {
+pub fn list_entry_payload() -> QueryRequestSchema<EntryListRequestSchema> {
+    QueryRequestSchema {
         data: EntryListRequestSchema {
             keyword: Some("".to_owned()),
         },
@@ -48,7 +48,7 @@ async fn test_list_all_entries(folder_id: Uuid) {
 #[tokio::test]
 async fn test_list_entries_without_title_filter(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -73,7 +73,7 @@ async fn test_list_entries_without_title_filter(
 #[tokio::test]
 async fn test_list_entries_with_exact_title_match(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -100,7 +100,7 @@ async fn test_list_entries_with_exact_title_match(
 #[tokio::test]
 async fn test_list_entries_title_starts_with_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -126,7 +126,7 @@ async fn test_list_entries_title_starts_with_keyword(
 #[tokio::test]
 async fn test_list_entries_title_ends_with_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -152,7 +152,7 @@ async fn test_list_entries_title_ends_with_keyword(
 #[tokio::test]
 async fn test_list_entries_title_contains_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -178,7 +178,7 @@ async fn test_list_entries_title_contains_keyword(
 #[tokio::test]
 async fn test_list_entries_title_does_not_contain_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -203,7 +203,7 @@ async fn test_list_entries_title_does_not_contain_keyword(
 #[tokio::test]
 async fn test_list_entries_title_contains_partial_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -230,7 +230,7 @@ async fn test_list_entries_title_contains_partial_keyword(
 #[tokio::test]
 async fn test_list_entries_title_contains_keyword_with_typo(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -255,7 +255,7 @@ async fn test_list_entries_title_contains_keyword_with_typo(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_with_empty_keyword_matches_all_entries(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -286,7 +286,7 @@ async fn test_list_entries_with_empty_keyword_matches_all_entries(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_omits_total_when_include_total_is_false(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -319,7 +319,7 @@ async fn test_list_entries_omits_total_when_include_total_is_false(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_with_limit(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -348,7 +348,7 @@ async fn test_list_entries_with_limit(
 #[should_panic]
 #[tokio::test]
 async fn test_list_entries_with_offset(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -375,7 +375,7 @@ async fn test_list_entries_with_offset(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_with_limit_and_offset(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 

@@ -7,10 +7,10 @@ use serde_json;
 use crate::database::word_manager;
 use crate::model::{Error, ErrorBuilder, QueryArgs, word::WordQueryData};
 use crate::schema::{
-    DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema,
+    DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
     word::{WordListRequestSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
-use crate::services::{pagination_service, word::word_querier::WordQuerier};
+use crate::services::{query_service, word::word_querier::WordQuerier};
 use crate::types::entity_type::WORD;
 use crate::types::grammar_types::WordType;
 
@@ -207,9 +207,9 @@ pub async fn get_all_for_language(
 
 pub async fn list(
     database: &DatabaseConnection,
-    query: Option<PaginationRequestSchema<WordListRequestSchema>>,
-) -> Result<PaginationResponseSchema<WordResponseSchema>, Error> {
-    let query = query.unwrap_or_default();
+    query_request: Option<QueryRequestSchema<WordListRequestSchema>>,
+) -> Result<QueryResponseSchema<WordResponseSchema>, Error> {
+    let query = query_request.unwrap_or_default();
 
     let args = QueryArgs {
         options: WordQueryData {
@@ -221,7 +221,7 @@ pub async fn list(
         limit: query.limit,
     };
 
-    let page = pagination_service::paginated_query::<WordQuerier, DatabaseConnection>(
+    let page = query_service::paginated_query::<WordQuerier, DatabaseConnection>(
         database,
         args,
         query.include_total,
@@ -242,7 +242,7 @@ pub async fn list(
         })
         .collect();
 
-    Ok(PaginationResponseSchema {
+    Ok(QueryResponseSchema {
         items: words,
         page_index: page.page_index,
         page_count: page.page_count,

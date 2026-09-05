@@ -1,11 +1,11 @@
-use crate::model::{Error, Page, Querier, QueryArgs};
+use crate::model::{Error, Querier, QueryArgs, QueryResultPage};
 use sea_orm::ConnectionTrait;
 
 pub async fn paginated_query<Q: Querier, C: ConnectionTrait>(
     con: &C,
     args: QueryArgs<Q::O>,
     include_total: bool,
-) -> Result<Page<Q::R>, Error> {
+) -> Result<QueryResultPage<Q::R>, Error> {
     let items = Q::query(con, &args).await?;
 
     let total = match include_total {
@@ -20,7 +20,7 @@ pub async fn paginated_query<Q: Querier, C: ConnectionTrait>(
 
     let page_index = compute_page_index(args.offset, args.limit);
 
-    let page = Page {
+    let page = QueryResultPage {
         items,
         item_count,
         page_index,

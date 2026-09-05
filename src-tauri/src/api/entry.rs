@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::model::{errors::Error, state::State};
 use crate::schema::{
-    DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema,
+    DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
         EntryListRequestSchema, EntryPropertyResponseSchema, EntryUpdateResponseSchema,
@@ -93,8 +93,8 @@ pub async fn get_entry_text(
 pub async fn list_entries(
     state: tauri::State<'_, State>,
     project_id: Uuid,
-    args: Option<PaginationRequestSchema<EntryListRequestSchema>>,
-) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
+    args: Option<QueryRequestSchema<EntryListRequestSchema>>,
+) -> Result<QueryResponseSchema<EntryInfoResponseSchema>, Error> {
     let state = state.lock().await;
     let db = project_service::get_database(&state, project_id)?;
     entry_service::list(db, args).await

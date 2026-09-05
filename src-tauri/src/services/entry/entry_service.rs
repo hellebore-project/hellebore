@@ -11,7 +11,7 @@ use crate::model::{
     text::TextNode,
 };
 use crate::schema::{
-    DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema,
+    DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
         EntryListRequestSchema, EntryProperties, EntryPropertyResponseSchema,
@@ -19,8 +19,8 @@ use crate::schema::{
     },
 };
 use crate::services::{
-    entry::entry_querier::EntryQuerier, entry_text_service, language_service, pagination_service,
-    person_service, word_service,
+    entry::entry_querier::EntryQuerier, entry_text_service, language_service, person_service,
+    query_service, word_service,
 };
 use crate::types::entity_type::{ENTRY, EntityType};
 
@@ -380,9 +380,9 @@ pub async fn get_text(
 
 pub async fn list(
     database: &DatabaseConnection,
-    query: Option<PaginationRequestSchema<EntryListRequestSchema>>,
-) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
-    let query = query.unwrap_or_default();
+    query_request: Option<QueryRequestSchema<EntryListRequestSchema>>,
+) -> Result<QueryResponseSchema<EntryInfoResponseSchema>, Error> {
+    let query = query_request.unwrap_or_default();
 
     let args = QueryArgs {
         options: EntryQueryData {
@@ -392,7 +392,7 @@ pub async fn list(
         limit: query.limit,
     };
 
-    let page = pagination_service::paginated_query::<EntryQuerier, DatabaseConnection>(
+    let page = query_service::paginated_query::<EntryQuerier, DatabaseConnection>(
         database,
         args,
         query.include_total,
@@ -402,7 +402,7 @@ pub async fn list(
     let entries: Vec<EntryInfoResponseSchema> =
         page.items.iter().map(generate_info_response).collect();
 
-    Ok(PaginationResponseSchema {
+    Ok(QueryResponseSchema {
         items: entries,
         page_index: page.page_index,
         page_count: page.page_count,

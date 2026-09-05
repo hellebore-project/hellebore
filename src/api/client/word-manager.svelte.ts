@@ -5,8 +5,8 @@ import type { Id } from "@/interface/common";
 import { CommandNames } from "../constants";
 import type {
     DiagnosticResponse,
-    PaginationRequest,
-    PaginationResponse,
+    QueryRequest,
+    QueryResponse,
     WordListRequest,
     WordResponse,
     WordUpsert,
@@ -52,10 +52,10 @@ export class WordManager {
 
     async list(
         projectId: Id,
-        args: PaginationRequest<WordListRequest>,
-    ): Promise<PaginationResponse<WordResponse> | null> {
+        args: QueryRequest<WordListRequest>,
+    ): Promise<QueryResponse<WordResponse> | null> {
         try {
-            return await invoke<PaginationResponse<WordResponse>>(
+            return await invoke<QueryResponse<WordResponse>>(
                 CommandNames.Word.List,
                 {
                     projectId,

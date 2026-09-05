@@ -4,8 +4,8 @@ pub use diagnostic::DiagnosticResponseSchema;
 pub mod update;
 pub use update::{UpdateResponseSchema, UpsertResponseSchema};
 
-pub mod pagination;
-pub use pagination::{PaginationRequestSchema, PaginationResponseSchema};
+pub mod query;
+pub use query::{QueryRequestSchema, QueryResponseSchema};
 
 pub mod config;
 pub mod entity;
