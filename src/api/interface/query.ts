@@ -1,5 +1,5 @@
 export interface Pagination {
-    page_index?: number;
+    pageIndex?: number;
     offset?: number | null;
     limit?: number | null;
 }
@@ -7,13 +7,13 @@ export interface Pagination {
 export interface QueryRequest<T> {
     data: T;
     pagination?: Pagination;
-    include_total?: boolean;
+    includeTotal?: boolean;
 }
 
 export interface QueryResponse<T> {
     items: T[];
-    page_index: number;
-    page_count: number;
+    pageIndex: number;
+    pageCount: number;
     total: number | null;
     offset: number | null;
     limit: number | null;

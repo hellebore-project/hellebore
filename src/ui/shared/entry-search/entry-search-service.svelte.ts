@@ -88,7 +88,7 @@ export class EntrySearchService implements IComponentService {
             pagination: {
                 limit: 10,
             },
-            include_total: false,
+            includeTotal: false,
         });
         if (response)
             return response.items.map((entry) => ({

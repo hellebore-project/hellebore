@@ -57,9 +57,9 @@ export function mockListWords(
 
         const response: QueryResponse<WordResponse> = {
             items: words,
-            page_index: args?.pagination?.page_index ?? 0,
-            page_count: 1,
-            total: args?.include_total ? words.length : null,
+            pageIndex: args?.pagination?.pageIndex ?? 0,
+            pageCount: 1,
+            total: args?.includeTotal ? words.length : null,
             offset: args?.pagination?.offset ?? null,
             limit: args?.pagination?.limit ?? null,
         };

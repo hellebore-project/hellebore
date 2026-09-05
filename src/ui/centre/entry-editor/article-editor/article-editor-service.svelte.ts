@@ -102,7 +102,7 @@ export class ArticleEditorService implements IComponentService {
             pagination: {
                 limit: 5,
             },
-            include_total: false,
+            includeTotal: false,
         });
         if (!results) return [];
 
