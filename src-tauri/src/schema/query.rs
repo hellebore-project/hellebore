@@ -1,51 +1,40 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::Error;
-use crate::utils::serde::{default_true, default_zero};
+use crate::utils::serde::default_true;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateResponseSchema {
-    pub updated: bool,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UpsertResponseSchema {
-    pub created: bool,
-    pub updated: bool,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct DiagnosticResponseSchema<D> {
-    pub data: D,
-    pub errors: Vec<Error>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PaginationRequestSchema<D: Default> {
-    pub data: D,
+#[derive(Default)]
+pub struct PaginationSchema {
     /// 0-based index of the current page
-    #[serde(default = "default_zero")]
+    #[serde(default)]
     pub page_index: u64,
     /// 0-based index of the first item in the current page
     pub offset: Option<u64>,
     /// maximum number of items per page
     pub limit: Option<u64>,
-    /// return the item total in the response
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryRequestSchema<D: Default> {
+    pub data: D,
+    #[serde(default)]
+    pub pagination: PaginationSchema,
+    /// return the total number of items in the response
     #[serde(default = "default_true")]
     pub include_total: bool,
 }
 
-impl<D: Default> Default for PaginationRequestSchema<D> {
+impl<D: Default> Default for QueryRequestSchema<D> {
     fn default() -> Self {
-        PaginationRequestSchema {
+        QueryRequestSchema {
             data: D::default(),
-            page_index: 0,
-            offset: None,
-            limit: None,
+            pagination: PaginationSchema {
+                page_index: 0,
+                offset: None,
+                limit: None,
+            },
             include_total: false,
         }
     }
@@ -53,15 +42,13 @@ impl<D: Default> Default for PaginationRequestSchema<D> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PaginationResponseSchema<D> {
+pub struct QueryResponseSchema<D> {
     /// array of items in the current page
     pub items: Vec<D>,
     /// 0-based index of the current page
     pub page_index: u64,
     /// number of pages
     pub page_count: Option<u64>,
-    /// number of items in the current page
-    pub item_count: u64,
     /// total number of items across all pages
     pub total: Option<u64>,
     /// 0-based index of the first item in the current page

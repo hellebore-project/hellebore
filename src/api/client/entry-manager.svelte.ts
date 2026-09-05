@@ -24,8 +24,8 @@ import type {
     LanguageProperties,
     PersonProperties,
     BackendEntryCreate,
-    PaginationRequest,
-    PaginationResponse,
+    QueryRequest,
+    QueryResponse,
 } from "../interface";
 
 export class EntryManager {
@@ -266,11 +266,11 @@ export class EntryManager {
 
     async list(
         projectId: Id,
-        args: PaginationRequest<EntryListRequest> | null = null,
-    ): Promise<PaginationResponse<EntryInfoResponse> | null> {
-        let response: PaginationResponse<EntryInfoResponse>;
+        args: QueryRequest<EntryListRequest> | null = null,
+    ): Promise<QueryResponse<EntryInfoResponse> | null> {
+        let response: QueryResponse<EntryInfoResponse>;
         try {
-            response = await invoke<PaginationResponse<EntryInfoResponse>>(
+            response = await invoke<QueryResponse<EntryInfoResponse>>(
                 CommandNames.Entry.List,
                 {
                     projectId,

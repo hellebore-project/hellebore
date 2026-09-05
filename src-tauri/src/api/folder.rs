@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::model::{errors::Error, state::State};
 use crate::schema::{
-    common::DiagnosticResponseSchema,
+    DiagnosticResponseSchema,
     entity::BulkEntityResponseSchema,
     folder::{
         FolderCreateSchema, FolderResponseSchema, FolderUpdateResponseSchema, FolderUpdateSchema,

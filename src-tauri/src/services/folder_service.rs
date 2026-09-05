@@ -7,7 +7,7 @@ use ::entity::folder::Model as Folder;
 use crate::database::folder_manager;
 use crate::model::{Error, ErrorBuilder, entity_node::EntityNode};
 use crate::schema::{
-    common::DiagnosticResponseSchema,
+    DiagnosticResponseSchema,
     entity::BulkEntityResponseSchema,
     folder::{
         FolderCreateSchema, FolderNameCollisionSchema, FolderResponseSchema,

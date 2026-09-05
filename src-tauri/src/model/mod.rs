@@ -5,11 +5,8 @@ pub mod config;
 pub mod project;
 pub mod state;
 
-pub mod page;
-pub use page::Page;
-
 pub mod query;
-pub use query::{Querier, QueryArgs};
+pub use query::{PaginationArgs, Querier, QueryArgs, QueryResult};
 
 pub mod entry;
 pub mod text;

@@ -10,8 +10,8 @@ import {
     type DiagnosticResponse,
     type WordUpsertResponse,
     type EntryListRequest,
-    type PaginationRequest,
-    PaginationResponse,
+    type QueryRequest,
+    QueryResponse,
 } from "@/api";
 import { Id } from "@/interface";
 import { compareStrings } from "@/utils/string";
@@ -149,7 +149,7 @@ export function mockListEntries(
     const search = async ({
         args,
     }: {
-        args: PaginationRequest<EntryListRequest> | null;
+        args: QueryRequest<EntryListRequest> | null;
     }) => {
         if (args?.data.keyword)
             entries = entries.filter((e) =>
@@ -158,17 +158,16 @@ export function mockListEntries(
 
         entries = entries
             .sort((a, b) => compareStrings(a.title, b.title))
-            .slice(args?.offset ?? undefined)
-            .slice(0, args?.limit ?? undefined);
+            .slice(args?.pagination?.offset ?? undefined)
+            .slice(0, args?.pagination?.limit ?? undefined);
 
-        const response: PaginationResponse<EntryInfoResponse> = {
+        const response: QueryResponse<EntryInfoResponse> = {
             items: entries,
-            page_index: args?.page_index ?? 0,
-            page_count: 1,
-            item_count: entries.length,
-            total: args?.include_total ? entries.length : null,
-            offset: args?.offset ?? null,
-            limit: args?.limit ?? null,
+            pageIndex: args?.pagination?.pageIndex ?? 0,
+            pageCount: 1,
+            total: args?.includeTotal ? entries.length : null,
+            offset: args?.pagination?.offset ?? null,
+            limit: args?.pagination?.limit ?? null,
         };
         return response;
     };

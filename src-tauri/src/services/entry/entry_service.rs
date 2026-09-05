@@ -5,13 +5,14 @@ use uuid::Uuid;
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, folder_manager, transaction_manager};
+use crate::model::PaginationArgs;
 use crate::model::{
     Error, ErrorBuilder, QueryArgs,
     entry::{EntryInfo, EntryQueryData},
     text::TextNode,
 };
 use crate::schema::{
-    common::{DiagnosticResponseSchema, PaginationRequestSchema, PaginationResponseSchema},
+    DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
         EntryListRequestSchema, EntryProperties, EntryPropertyResponseSchema,
@@ -19,8 +20,8 @@ use crate::schema::{
     },
 };
 use crate::services::{
-    entry::entry_querier::EntryQuerier, entry_text_service, language_service, pagination_service,
-    person_service, word_service,
+    entry::entry_querier::EntryQuerier, entry_text_service, language_service, person_service,
+    query_service, word_service,
 };
 use crate::types::entity_type::{ENTRY, EntityType};
 
@@ -380,33 +381,34 @@ pub async fn get_text(
 
 pub async fn list(
     database: &DatabaseConnection,
-    query: Option<PaginationRequestSchema<EntryListRequestSchema>>,
-) -> Result<PaginationResponseSchema<EntryInfoResponseSchema>, Error> {
-    let query = query.unwrap_or_default();
+    query_request: Option<QueryRequestSchema<EntryListRequestSchema>>,
+) -> Result<QueryResponseSchema<EntryInfoResponseSchema>, Error> {
+    let query_request = query_request.unwrap_or_default();
 
     let args = QueryArgs {
         options: EntryQueryData {
-            like_title: query.data.keyword,
+            like_title: query_request.data.keyword,
         },
-        offset: query.offset,
-        limit: query.limit,
+        pagination: PaginationArgs {
+            offset: query_request.pagination.offset,
+            limit: query_request.pagination.limit,
+        },
     };
 
-    let page = pagination_service::paginated_query::<EntryQuerier, DatabaseConnection>(
+    let page = query_service::paginated_query::<EntryQuerier, DatabaseConnection>(
         database,
         args,
-        query.include_total,
+        query_request.include_total,
     )
     .await?;
 
     let entries: Vec<EntryInfoResponseSchema> =
         page.items.iter().map(generate_info_response).collect();
 
-    Ok(PaginationResponseSchema {
+    Ok(QueryResponseSchema {
         items: entries,
         page_index: page.page_index,
         page_count: page.page_count,
-        item_count: page.item_count,
         total: page.total,
         offset: page.offset,
         limit: page.limit,

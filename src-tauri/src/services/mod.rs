@@ -1,4 +1,4 @@
-pub mod pagination_service;
+pub mod query_service;
 
 pub mod config_service;
 

@@ -1,5 +1,5 @@
 use hellebore::{
-    schema::{common::PaginationRequestSchema, entry::EntryListRequestSchema},
+    schema::{QueryRequestSchema, entry::EntryListRequestSchema, query::PaginationSchema},
     services::entry_service,
 };
 use rstest::*;
@@ -12,14 +12,16 @@ use crate::utils::{
 };
 
 #[fixture]
-pub fn list_entry_payload() -> PaginationRequestSchema<EntryListRequestSchema> {
-    PaginationRequestSchema {
+pub fn list_entry_payload() -> QueryRequestSchema<EntryListRequestSchema> {
+    QueryRequestSchema {
         data: EntryListRequestSchema {
             keyword: Some("".to_owned()),
         },
-        page_index: 0,
-        offset: None,
-        limit: None,
+        pagination: PaginationSchema {
+            page_index: 0,
+            offset: None,
+            limit: None,
+        },
         include_total: true,
     }
 }
@@ -48,7 +50,7 @@ async fn test_list_all_entries(folder_id: Uuid) {
 #[tokio::test]
 async fn test_list_entries_without_title_filter(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -73,7 +75,7 @@ async fn test_list_entries_without_title_filter(
 #[tokio::test]
 async fn test_list_entries_with_exact_title_match(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -100,7 +102,7 @@ async fn test_list_entries_with_exact_title_match(
 #[tokio::test]
 async fn test_list_entries_title_starts_with_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -126,7 +128,7 @@ async fn test_list_entries_title_starts_with_keyword(
 #[tokio::test]
 async fn test_list_entries_title_ends_with_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -152,7 +154,7 @@ async fn test_list_entries_title_ends_with_keyword(
 #[tokio::test]
 async fn test_list_entries_title_contains_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -178,7 +180,7 @@ async fn test_list_entries_title_contains_keyword(
 #[tokio::test]
 async fn test_list_entries_title_does_not_contain_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -203,7 +205,7 @@ async fn test_list_entries_title_does_not_contain_keyword(
 #[tokio::test]
 async fn test_list_entries_title_contains_partial_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -230,7 +232,7 @@ async fn test_list_entries_title_contains_partial_keyword(
 #[tokio::test]
 async fn test_list_entries_title_contains_keyword_with_typo(
     folder_id: Uuid,
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -255,7 +257,7 @@ async fn test_list_entries_title_contains_keyword_with_typo(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_with_empty_keyword_matches_all_entries(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -279,14 +281,14 @@ async fn test_list_entries_with_empty_keyword_matches_all_entries(
     );
     assert_eq!(results.page_index, 0);
     assert_eq!(results.page_count, Some(1));
-    assert_eq!(results.item_count, 3);
+    assert_eq!(results.items.len(), 3);
     assert_eq!(results.total, Some(3));
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_omits_total_when_include_total_is_false(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -299,8 +301,8 @@ async fn test_list_entries_omits_total_when_include_total_is_false(
     create_generic_entries(&database, titles).await;
 
     list_entry_payload.data.keyword = Some("Rust".to_owned());
-    list_entry_payload.offset = Some(1);
-    list_entry_payload.limit = Some(2);
+    list_entry_payload.pagination.offset = Some(1);
+    list_entry_payload.pagination.limit = Some(2);
     list_entry_payload.include_total = false;
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
@@ -312,14 +314,14 @@ async fn test_list_entries_omits_total_when_include_total_is_false(
     assert_eq!(results.items[1].title, "Rust C");
     assert_eq!(results.page_index, 1);
     assert_eq!(results.page_count, None);
-    assert_eq!(results.item_count, 2);
+    assert_eq!(results.items.len(), 2);
     assert_eq!(results.total, None);
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_with_limit(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -331,7 +333,7 @@ async fn test_list_entries_with_limit(
     create_generic_entries(&database, titles).await;
 
     list_entry_payload.data.keyword = Some("Rust".to_owned());
-    list_entry_payload.limit = Some(2);
+    list_entry_payload.pagination.limit = Some(2);
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
     assert!(results.is_ok());
@@ -348,7 +350,7 @@ async fn test_list_entries_with_limit(
 #[should_panic]
 #[tokio::test]
 async fn test_list_entries_with_offset(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -360,7 +362,7 @@ async fn test_list_entries_with_offset(
     create_generic_entries(&database, titles).await;
 
     list_entry_payload.data.keyword = Some("Rust".to_owned());
-    list_entry_payload.offset = Some(1);
+    list_entry_payload.pagination.offset = Some(1);
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
     assert!(results.is_ok());
@@ -375,7 +377,7 @@ async fn test_list_entries_with_offset(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_with_limit_and_offset(
-    mut list_entry_payload: PaginationRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
 ) {
     let database = database().await;
 
@@ -389,8 +391,8 @@ async fn test_list_entries_with_limit_and_offset(
     create_generic_entries(&database, titles).await;
 
     list_entry_payload.data.keyword = Some("Rust".to_owned());
-    list_entry_payload.offset = Some(2);
-    list_entry_payload.limit = Some(2);
+    list_entry_payload.pagination.offset = Some(2);
+    list_entry_payload.pagination.limit = Some(2);
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
     assert!(results.is_ok());

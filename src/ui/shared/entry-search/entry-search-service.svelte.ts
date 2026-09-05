@@ -85,8 +85,10 @@ export class EntrySearchService implements IComponentService {
 
         const response = await this._domain.entries.list(projectId, {
             data: { keyword },
-            limit: 10,
-            include_total: false,
+            pagination: {
+                limit: 10,
+            },
+            includeTotal: false,
         });
         if (response)
             return response.items.map((entry) => ({

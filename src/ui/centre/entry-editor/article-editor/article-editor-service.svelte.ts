@@ -99,8 +99,10 @@ export class ArticleEditorService implements IComponentService {
             data: {
                 keyword: titleFragment,
             },
-            limit: 5,
-            include_total: false,
+            pagination: {
+                limit: 5,
+            },
+            includeTotal: false,
         });
         if (!results) return [];
 

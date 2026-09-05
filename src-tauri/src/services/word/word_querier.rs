@@ -21,8 +21,8 @@ impl Querier for WordQuerier {
             query.options.language_id,
             query.options.word_types.clone(),
             &query.options.like_spelling,
-            query.offset,
-            query.limit,
+            query.pagination.offset,
+            query.pagination.limit,
         )
         .await
         .map_err(|e| {
