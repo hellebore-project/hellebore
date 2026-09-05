@@ -165,7 +165,6 @@ export function mockListEntries(
             items: entries,
             page_index: args?.pagination?.page_index ?? 0,
             page_count: 1,
-            item_count: entries.length,
             total: args?.include_total ? entries.length : null,
             offset: args?.pagination?.offset ?? null,
             limit: args?.pagination?.limit ?? null,

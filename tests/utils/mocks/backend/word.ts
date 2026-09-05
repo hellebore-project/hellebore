@@ -59,7 +59,6 @@ export function mockListWords(
             items: words,
             page_index: args?.pagination?.page_index ?? 0,
             page_count: 1,
-            item_count: words.length,
             total: args?.include_total ? words.length : null,
             offset: args?.pagination?.offset ?? null,
             limit: args?.pagination?.limit ?? null,

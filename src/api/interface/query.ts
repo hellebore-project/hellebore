@@ -14,7 +14,6 @@ export interface QueryResponse<T> {
     items: T[];
     page_index: number;
     page_count: number;
-    item_count: number;
     total: number | null;
     offset: number | null;
     limit: number | null;
