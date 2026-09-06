@@ -1,6 +1,11 @@
 use hellebore::{
-    schema::{QueryRequestSchema, entry::EntryListRequestSchema, query::PaginationSchema},
+    schema::{
+        QueryRequestSchema,
+        entry::EntryListRequestSchema,
+        query::{PaginationSchema, SortItemSchema},
+    },
     services::entry_service,
+    types::SortOrder,
 };
 use rstest::*;
 use uuid::Uuid;
@@ -14,13 +19,17 @@ use crate::utils::{
 #[fixture]
 pub fn list_entry_payload() -> QueryRequestSchema<EntryListRequestSchema> {
     QueryRequestSchema {
-        data: EntryListRequestSchema {
-            keyword: Some("".to_owned()),
-        },
         pagination: PaginationSchema {
             page_index: 0,
             offset: None,
             limit: None,
+        },
+        sortation: vec![SortItemSchema {
+            field: "title".to_owned(),
+            order: SortOrder::Asc,
+        }],
+        data: EntryListRequestSchema {
+            keyword: Some("".to_owned()),
         },
         include_total: true,
     }
@@ -44,6 +53,64 @@ async fn test_list_all_entries(folder_id: Uuid) {
     entries.sort_by(|a, b| a.title.cmp(&b.title));
     validate_generic_entry_info_response(&entries[0], None, folder_id, "A");
     validate_generic_entry_info_response(&entries[1], None, folder_id, "B");
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_list_entries_sorts_titles_ascending(
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+) {
+    let database = database().await;
+
+    create_generic_entries(
+        &database,
+        vec!["Charlie".to_owned(), "Alpha".to_owned(), "Bravo".to_owned()],
+    )
+    .await;
+
+    list_entry_payload.sortation[0].order = SortOrder::Asc;
+
+    let results = entry_service::list(&database, Some(list_entry_payload)).await;
+    assert!(results.is_ok());
+
+    let results = results.unwrap();
+    assert_eq!(
+        results
+            .items
+            .iter()
+            .map(|entry| entry.title.as_str())
+            .collect::<Vec<_>>(),
+        vec!["Alpha", "Bravo", "Charlie"]
+    );
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_list_entries_sorts_titles_descending(
+    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+) {
+    let database = database().await;
+
+    create_generic_entries(
+        &database,
+        vec!["Alpha".to_owned(), "Charlie".to_owned(), "Bravo".to_owned()],
+    )
+    .await;
+
+    list_entry_payload.sortation[0].order = SortOrder::Desc;
+
+    let results = entry_service::list(&database, Some(list_entry_payload)).await;
+    assert!(results.is_ok());
+
+    let results = results.unwrap();
+    assert_eq!(
+        results
+            .items
+            .iter()
+            .map(|entry| entry.title.as_str())
+            .collect::<Vec<_>>(),
+        vec!["Charlie", "Bravo", "Alpha"]
+    );
 }
 
 #[rstest]

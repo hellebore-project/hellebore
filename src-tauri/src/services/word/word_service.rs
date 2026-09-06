@@ -5,15 +5,13 @@ use ::entity::word::Model as Word;
 use serde_json;
 
 use crate::database::word_manager;
-use crate::model::PaginationArgs;
-use crate::model::{Error, ErrorBuilder, QueryArgs, word::WordQueryData};
+use crate::model::{Error, ErrorBuilder, PaginationModel, Query, SortItem, word::WordQueryData};
 use crate::schema::{
     DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
     word::{WordListRequestSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
 use crate::services::{query_service, word::word_querier::WordQuerier};
-use crate::types::entity_type::WORD;
-use crate::types::grammar_types::WordType;
+use crate::types::{entity_type::WORD, grammar_types::WordType};
 
 pub async fn bulk_upsert(
     database: &DatabaseConnection,
@@ -210,24 +208,29 @@ pub async fn list(
     database: &DatabaseConnection,
     query_request: Option<QueryRequestSchema<WordListRequestSchema>>,
 ) -> Result<QueryResponseSchema<WordResponseSchema>, Error> {
-    let query = query_request.unwrap_or_default();
+    let query_request = query_request.unwrap_or_default();
 
-    let args = QueryArgs {
-        options: WordQueryData {
-            language_id: query.data.language_id,
-            word_types: query.data.word_types,
-            like_spelling: query.data.keyword,
+    let query = Query {
+        pagination: PaginationModel {
+            offset: query_request.pagination.offset,
+            limit: query_request.pagination.limit,
         },
-        pagination: PaginationArgs {
-            offset: query.pagination.offset,
-            limit: query.pagination.limit,
+        sortation: query_request
+            .sortation
+            .into_iter()
+            .map(|sort_item| SortItem::new(sort_item.field, sort_item.order))
+            .collect(),
+        options: WordQueryData {
+            language_id: query_request.data.language_id,
+            word_types: query_request.data.word_types,
+            like_spelling: query_request.data.keyword,
         },
     };
 
     let page = query_service::paginated_query::<WordQuerier, DatabaseConnection>(
         database,
-        args,
-        query.include_total,
+        query,
+        query_request.include_total,
     )
     .await?;
 

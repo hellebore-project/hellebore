@@ -1,13 +1,17 @@
-use ::entity::{entry, entry::Entity as EntryModel};
+use ::entity::entry::{
+    ActiveModel as EntryActiveModel, Column as EntryColumn, Entity as EntryEntity,
+    Model as EntryModel,
+};
 use sea_orm::*;
 use uuid::Uuid;
 
-use crate::{
-    database::folder_manager,
-    model::entry::EntryInfo,
-    types::EntityType,
-    utils::{CodedEnum, sea_orm as utils},
+use crate::database::folder_manager;
+use crate::model::{
+    PaginationModel, Query, SortItem,
+    entry::{EntryInfo, EntryQueryData},
 };
+use crate::types::{EntityType, SortOrder};
+use crate::utils::{CodedEnum, sea_orm as utils};
 
 pub async fn insert<C>(
     con: &C,
@@ -15,11 +19,11 @@ pub async fn insert<C>(
     folder_id: Uuid,
     title: String,
     text: String,
-) -> Result<entry::Model, DbErr>
+) -> Result<EntryModel, DbErr>
 where
     C: ConnectionTrait,
 {
-    let new_entity = entry::ActiveModel {
+    let new_entity = EntryActiveModel {
         id: Set(Uuid::new_v4()),
         folder_id: Set(folder_manager::convert_root_folder_id_to_null(folder_id)),
         title: Set(title),
@@ -38,14 +42,14 @@ pub async fn update<C>(
     folder_id: Option<Uuid>,
     title: Option<String>,
     text: Option<String>,
-) -> Result<entry::Model, DbErr>
+) -> Result<EntryModel, DbErr>
 where
     C: ConnectionTrait,
 {
     let Some(existing_entity) = get_info(con, id).await? else {
         return Err(DbErr::RecordNotFound("Entity not found.".to_owned()));
     };
-    let updated_entity = entry::ActiveModel {
+    let updated_entity = EntryActiveModel {
         id: Unchanged(existing_entity.id),
         folder_id: folder_manager::set_optional_folder_id(folder_id),
         entity_type: NotSet,
@@ -87,19 +91,19 @@ where
     }
 }
 
-pub async fn get<C>(con: &C, id: Uuid) -> Result<Option<entry::Model>, DbErr>
+pub async fn get<C>(con: &C, id: Uuid) -> Result<Option<EntryModel>, DbErr>
 where
     C: ConnectionTrait,
 {
-    EntryModel::find_by_id(id).one(con).await
+    EntryEntity::find_by_id(id).one(con).await
 }
 
 pub async fn get_by_title<C>(con: &C, title: &str) -> Result<Option<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
-    EntryModel::find()
-        .filter(entry::Column::Title.eq(title))
+    EntryEntity::find()
+        .filter(EntryColumn::Title.eq(title))
         .into_partial_model::<EntryInfo>()
         .one(con)
         .await
@@ -109,62 +113,87 @@ pub async fn get_info<C>(con: &C, id: Uuid) -> Result<Option<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
-    EntryModel::find_by_id(id)
+    EntryEntity::find_by_id(id)
         .into_partial_model::<EntryInfo>()
         .one(con)
         .await
 }
 
-pub async fn get_many<C>(
-    con: &C,
-    like_title: &Option<String>,
-    offset: Option<u64>,
-    limit: Option<u64>,
-) -> Result<Vec<EntryInfo>, DbErr>
+pub async fn get_many<C>(con: &C, query: &Query<EntryQueryData>) -> Result<Vec<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
-    let mut query = EntryModel::find();
+    let mut select = EntryEntity::find();
 
-    if let Some(like_title) = like_title {
-        query = query.filter(entry::Column::Title.like(format!("%{}%", like_title)))
+    if let Some(like_title) = &query.options.like_title {
+        select = select.filter(EntryColumn::Title.like(format!("%{}%", like_title)))
     };
 
-    query
-        .order_by_asc(entry::Column::Title)
-        .offset(offset)
-        .limit(limit)
-        .into_partial_model::<EntryInfo>()
-        .all(con)
-        .await
+    select = _apply_sortation(select, &query.sortation);
+    select = _apply_pagination(select, &query.pagination);
+
+    select.into_partial_model::<EntryInfo>().all(con).await
 }
 
-pub async fn count<C>(con: &C, like_title: &Option<String>) -> Result<u64, DbErr>
+pub async fn count<C>(con: &C, query: &Query<EntryQueryData>) -> Result<u64, DbErr>
 where
     C: ConnectionTrait,
 {
-    let mut query = EntryModel::find();
+    let mut select = EntryEntity::find();
 
-    if let Some(arg) = like_title {
-        query = query.filter(entry::Column::Title.like(format!("%{}%", arg)))
+    if let Some(arg) = &query.options.like_title {
+        select = select.filter(EntryColumn::Title.like(format!("%{}%", arg)))
     };
 
-    query.order_by_asc(entry::Column::Title).count(con).await
+    select = _apply_sortation(select, &query.sortation);
+
+    select.count(con).await
 }
 
 pub async fn delete<C>(con: &C, id: Uuid) -> Result<DeleteResult, DbErr>
 where
     C: ConnectionTrait,
 {
-    EntryModel::delete_by_id(id).exec(con).await
+    EntryEntity::delete_by_id(id).exec(con).await
 }
 
 pub async fn delete_many<C>(con: &C, ids: Vec<Uuid>) -> Result<DeleteResult, DbErr>
 where
     C: ConnectionTrait,
 {
-    EntryModel::delete_many()
-        .filter(entry::Column::Id.is_in(ids))
+    EntryEntity::delete_many()
+        .filter(EntryColumn::Id.is_in(ids))
         .exec(con)
         .await
+}
+
+fn _apply_pagination(
+    select: Select<EntryEntity>,
+    pagination: &PaginationModel,
+) -> Select<EntryEntity> {
+    select.offset(pagination.offset).limit(pagination.limit)
+}
+
+fn _apply_sortation(select: Select<EntryEntity>, sortation: &Vec<SortItem>) -> Select<EntryEntity> {
+    let mut select = select;
+    for sort_item in sortation {
+        match sort_item.field.as_str() {
+            "entity_type" => {
+                if sort_item.order == SortOrder::Asc {
+                    select = select.order_by_asc(EntryColumn::EntityType);
+                } else {
+                    select = select.order_by_desc(EntryColumn::EntityType);
+                }
+            }
+            "title" => {
+                if sort_item.order == SortOrder::Asc {
+                    select = select.order_by_asc(EntryColumn::Title);
+                } else {
+                    select = select.order_by_desc(EntryColumn::Title);
+                }
+            }
+            _ => {}
+        }
+    }
+    select
 }

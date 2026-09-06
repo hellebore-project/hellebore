@@ -1,9 +1,8 @@
 use std::convert::From;
 
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
-
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::utils::CodedEnum;
 

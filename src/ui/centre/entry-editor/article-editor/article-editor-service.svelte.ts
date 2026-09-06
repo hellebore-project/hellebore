@@ -5,7 +5,7 @@ import type {
     IComponentService,
     OpenEntryEditorEvent,
 } from "@/interface";
-import { DomainManager } from "@/api";
+import { DomainManager, SortOrder } from "@/api";
 import { ClientData } from "@/models";
 import { RichTextEditorService } from "@/lib/components/rich-text-editor";
 import type { BaseMentionItemData } from "@/lib/components/rich-text-editor/mention";
@@ -102,6 +102,12 @@ export class ArticleEditorService implements IComponentService {
             pagination: {
                 limit: 5,
             },
+            sortation: [
+                {
+                    field: "title",
+                    order: SortOrder.Asc,
+                },
+            ],
             includeTotal: false,
         });
         if (!results) return [];
