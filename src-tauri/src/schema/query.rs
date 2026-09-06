@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::utils::serde::default_true;
+use crate::{types::SortOrder, utils::serde::default_true};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -17,10 +17,20 @@ pub struct PaginationSchema {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
+pub struct SortItemSchema {
+    pub field: String,
+    pub order: SortOrder,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryRequestSchema<D: Default> {
     pub data: D,
     #[serde(default)]
     pub pagination: PaginationSchema,
+    #[serde(default)]
+    pub sortation: Vec<SortItemSchema>,
     /// return the total number of items in the response
     #[serde(default = "default_true")]
     pub include_total: bool,
@@ -35,6 +45,7 @@ impl<D: Default> Default for QueryRequestSchema<D> {
                 offset: None,
                 limit: None,
             },
+            sortation: Vec::new(),
             include_total: false,
         }
     }

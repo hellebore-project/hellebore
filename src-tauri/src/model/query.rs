@@ -1,15 +1,27 @@
 use sea_orm::ConnectionTrait;
 
-use crate::model::Error;
+use crate::{model::Error, types::SortOrder};
 
-pub struct PaginationArgs {
+pub struct PaginationModel {
     pub offset: Option<u64>,
     pub limit: Option<u64>,
 }
 
-pub struct QueryArgs<T> {
+pub struct SortItem {
+    pub field: String,
+    pub order: SortOrder,
+}
+
+impl SortItem {
+    pub fn new(field: String, order: SortOrder) -> Self {
+        Self { field, order }
+    }
+}
+
+pub struct Query<T> {
+    pub pagination: PaginationModel,
+    pub sortation: Vec<SortItem>,
     pub options: T,
-    pub pagination: PaginationArgs,
 }
 
 pub struct QueryResult<T> {
@@ -29,8 +41,8 @@ pub trait Querier {
     #[allow(async_fn_in_trait)]
     async fn query<C: ConnectionTrait>(
         con: &C,
-        args: &QueryArgs<Self::O>,
+        args: &Query<Self::O>,
     ) -> Result<Vec<Self::R>, Error>;
     #[allow(async_fn_in_trait)]
-    async fn count<C: ConnectionTrait>(con: &C, args: &QueryArgs<Self::O>) -> Result<u64, Error>;
+    async fn count<C: ConnectionTrait>(con: &C, args: &Query<Self::O>) -> Result<u64, Error>;
 }

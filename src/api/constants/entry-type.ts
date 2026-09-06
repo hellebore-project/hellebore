@@ -1,6 +1,6 @@
 import { NIL as NIL_UUID } from "uuid";
 
-import { EntityType } from "./entity";
+import { EntityType } from "./entity-type";
 
 export const ENTRY_ID_SENTINEL = NIL_UUID;
 

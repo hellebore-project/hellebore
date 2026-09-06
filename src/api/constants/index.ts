@@ -1,7 +1,14 @@
-export * from "./routes";
-export * from "./entity";
-export * from "./entry";
-export * from "./folder";
-export * from "./person";
-export * from "./word";
 export * from "./error";
+
+export * from "./query-types";
+
+export * from "./entity-type";
+
+export * from "./folder";
+export * from "./entry-type";
+
+export * from "./person-property";
+
+export * from "./grammar-types";
+
+export * from "./routes";

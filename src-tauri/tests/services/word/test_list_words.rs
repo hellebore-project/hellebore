@@ -4,11 +4,11 @@ use hellebore::{
     schema::{
         QueryRequestSchema,
         entry::EntryCreateSchema,
-        query::PaginationSchema,
+        query::{PaginationSchema, SortItemSchema},
         word::{WordListRequestSchema, WordUpsertSchema},
     },
     services::{entry_service, word_service},
-    types::grammar_types::WordType,
+    types::{SortOrder, grammar_types::WordType},
 };
 
 use crate::{
@@ -19,18 +19,104 @@ use crate::{
 #[fixture]
 pub fn list_word_payload() -> QueryRequestSchema<WordListRequestSchema> {
     QueryRequestSchema {
-        data: WordListRequestSchema {
-            language_id: None,
-            word_types: None,
-            keyword: None,
-        },
         pagination: PaginationSchema {
             page_index: 0,
             offset: None,
             limit: None,
         },
+        sortation: vec![SortItemSchema {
+            field: "spelling".to_owned(),
+            order: SortOrder::Asc,
+        }],
+        data: WordListRequestSchema {
+            language_id: None,
+            word_types: None,
+            keyword: None,
+        },
         include_total: true,
     }
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_list_words_sorts_spellings_ascending(
+    create_language_payload: EntryCreateSchema,
+    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+) {
+    let db = database().await;
+    let language = entry_service::create(&db, create_language_payload)
+        .await
+        .unwrap();
+
+    for spelling in ["Charlie", "Alpha", "Bravo"] {
+        let word = WordUpsertSchema {
+            language_id: Some(language.id),
+            word_type: Some(WordType::Noun),
+            spelling: Some(spelling.to_owned()),
+            translations: Some(vec![spelling.to_owned()]),
+            ..Default::default()
+        };
+        upsert_word(&db, &word).await.unwrap();
+    }
+
+    list_word_payload.data.language_id = Some(language.id);
+    list_word_payload.data.keyword = None;
+    list_word_payload.data.word_types = None;
+    list_word_payload.sortation[0].order = SortOrder::Asc;
+
+    let results = word_service::list(&db, Some(list_word_payload)).await;
+    assert!(results.is_ok());
+
+    let results = results.unwrap();
+    assert_eq!(
+        results
+            .items
+            .iter()
+            .map(|word| word.spelling.as_str())
+            .collect::<Vec<_>>(),
+        vec!["Alpha", "Bravo", "Charlie"]
+    );
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_list_words_sorts_spellings_descending(
+    create_language_payload: EntryCreateSchema,
+    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+) {
+    let db = database().await;
+    let language = entry_service::create(&db, create_language_payload)
+        .await
+        .unwrap();
+
+    for spelling in ["Alpha", "Charlie", "Bravo"] {
+        let word = WordUpsertSchema {
+            language_id: Some(language.id),
+            word_type: Some(WordType::Noun),
+            spelling: Some(spelling.to_owned()),
+            translations: Some(vec![spelling.to_owned()]),
+            ..Default::default()
+        };
+        upsert_word(&db, &word).await.unwrap();
+    }
+
+    list_word_payload.data.language_id = Some(language.id);
+    list_word_payload.data.keyword = None;
+    list_word_payload.data.word_types = None;
+    list_word_payload.sortation[0].order = SortOrder::Desc;
+
+    let results = word_service::list(&db, Some(list_word_payload)).await;
+    assert!(results.is_ok());
+
+    let results = results.unwrap();
+    assert_eq!(
+        results
+            .items
+            .iter()
+            .map(|word| word.spelling.as_str())
+            .collect::<Vec<_>>(),
+        vec!["Charlie", "Bravo", "Alpha"]
+    );
 }
 
 #[rstest]

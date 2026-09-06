@@ -5,9 +5,8 @@ use uuid::Uuid;
 use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, folder_manager, transaction_manager};
-use crate::model::PaginationArgs;
 use crate::model::{
-    Error, ErrorBuilder, QueryArgs,
+    Error, ErrorBuilder, PaginationModel, Query, SortItem,
     entry::{EntryInfo, EntryQueryData},
     text::TextNode,
 };
@@ -385,19 +384,24 @@ pub async fn list(
 ) -> Result<QueryResponseSchema<EntryInfoResponseSchema>, Error> {
     let query_request = query_request.unwrap_or_default();
 
-    let args = QueryArgs {
-        options: EntryQueryData {
-            like_title: query_request.data.keyword,
-        },
-        pagination: PaginationArgs {
+    let query = Query {
+        pagination: PaginationModel {
             offset: query_request.pagination.offset,
             limit: query_request.pagination.limit,
+        },
+        sortation: query_request
+            .sortation
+            .into_iter()
+            .map(|sort_item| SortItem::new(sort_item.field, sort_item.order))
+            .collect(),
+        options: EntryQueryData {
+            like_title: query_request.data.keyword,
         },
     };
 
     let page = query_service::paginated_query::<EntryQuerier, DatabaseConnection>(
         database,
-        args,
+        query,
         query_request.include_total,
     )
     .await?;

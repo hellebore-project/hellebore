@@ -1,9 +1,9 @@
-use crate::model::{Error, Querier, QueryArgs, QueryResult};
+use crate::model::{Error, Querier, Query, QueryResult};
 use sea_orm::ConnectionTrait;
 
 pub async fn paginated_query<Q: Querier, C: ConnectionTrait>(
     con: &C,
-    args: QueryArgs<Q::O>,
+    args: Query<Q::O>,
     include_total: bool,
 ) -> Result<QueryResult<Q::R>, Error> {
     let items = Q::query(con, &args).await?;

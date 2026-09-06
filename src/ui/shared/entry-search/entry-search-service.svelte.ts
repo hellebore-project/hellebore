@@ -4,7 +4,7 @@ import type {
     OpenEntryEditorEvent,
     OptionData,
 } from "@/interface";
-import { DomainManager } from "@/api";
+import { DomainManager, SortOrder } from "@/api";
 import { ClientData } from "@/models";
 import { MultiEventProducer } from "@/utils/event-producer";
 
@@ -88,6 +88,12 @@ export class EntrySearchService implements IComponentService {
             pagination: {
                 limit: 10,
             },
+            sortation: [
+                {
+                    field: "title",
+                    order: SortOrder.Asc,
+                },
+            ],
             includeTotal: false,
         });
         if (response)
