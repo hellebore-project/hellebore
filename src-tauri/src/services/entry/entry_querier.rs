@@ -5,14 +5,19 @@ use crate::model::{
     Error, ErrorBuilder, Querier, Query,
     entry::{EntryInfo, EntryQueryData},
 };
+use crate::types::queryable_properties::QueryableEntryProperties;
 
 pub struct EntryQuerier {}
 
 impl Querier for EntryQuerier {
+    type P = QueryableEntryProperties;
     type O = EntryQueryData;
     type R = EntryInfo;
 
-    async fn query<C>(con: &C, query: &Query<EntryQueryData>) -> Result<Vec<EntryInfo>, Error>
+    async fn query<C>(
+        con: &C,
+        query: &Query<QueryableEntryProperties, EntryQueryData>,
+    ) -> Result<Vec<EntryInfo>, Error>
     where
         C: ConnectionTrait,
     {
@@ -25,7 +30,10 @@ impl Querier for EntryQuerier {
         })
     }
 
-    async fn count<C>(con: &C, query: &Query<EntryQueryData>) -> Result<u64, Error>
+    async fn count<C>(
+        con: &C,
+        query: &Query<QueryableEntryProperties, EntryQueryData>,
+    ) -> Result<u64, Error>
     where
         C: ConnectionTrait,
     {

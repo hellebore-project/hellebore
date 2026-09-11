@@ -5,15 +5,13 @@ use ::entity::word::{
     ActiveModel as WordActiveModel, Column as WordColumn, Entity as WordEntity, Model as WordModel,
 };
 
-use crate::types::grammar_types::WordType;
-use crate::utils::{CodedEnum, sea_orm as utils};
-use crate::{
-    model::{
-        PaginationModel, Query, SortItem,
-        word::{Word, WordQueryData},
-    },
-    types::SortOrder,
+use crate::model::FilterItemType;
+use crate::model::{
+    Query, SortItem,
+    word::{Word, WordQueryData},
 };
+use crate::types::{grammar_types::WordType, queryable_properties::QueryableWordProperties};
+use crate::utils::{CodedEnum, sea_orm as utils};
 
 pub async fn insert<C>(
     con: &C,
@@ -92,7 +90,10 @@ where
     query.all(con).await
 }
 
-pub async fn get_many<C>(con: &C, query: &Query<WordQueryData>) -> Result<Vec<Word>, DbErr>
+pub async fn get_many<C>(
+    con: &C,
+    query: &Query<QueryableWordProperties, WordQueryData>,
+) -> Result<Vec<Word>, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -119,13 +120,16 @@ where
         select = select.filter(WordColumn::Spelling.like(format!("%{}%", arg)));
     }
 
-    select = _apply_pagination(select, &query.pagination);
+    select = utils::add_pagination_clauses(select, &query.pagination);
     select = _apply_sortation(select, &query.sortation);
 
     select.into_partial_model::<Word>().all(con).await
 }
 
-pub async fn count<C>(con: &C, query: &Query<WordQueryData>) -> Result<u64, DbErr>
+pub async fn count<C>(
+    con: &C,
+    query: &Query<QueryableWordProperties, WordQueryData>,
+) -> Result<u64, DbErr>
 where
     C: ConnectionTrait,
 {
@@ -167,39 +171,66 @@ where
     return existing_entity.delete(con).await;
 }
 
-fn _apply_pagination(
+fn _apply_sortation(
     select: Select<WordEntity>,
-    pagination: &PaginationModel,
+    sortation: &Vec<SortItem<QueryableWordProperties>>,
 ) -> Select<WordEntity> {
-    select.offset(pagination.offset).limit(pagination.limit)
-}
-
-fn _apply_sortation(select: Select<WordEntity>, sortation: &Vec<SortItem>) -> Select<WordEntity> {
     let mut select = select;
     for sort_item in sortation {
-        match sort_item.field.as_str() {
-            "word_type" => {
-                if sort_item.order == SortOrder::Asc {
-                    select = select.order_by_asc(WordColumn::WordType);
-                } else {
-                    select = select.order_by_desc(WordColumn::WordType);
+        let column = match sort_item.field {
+            QueryableWordProperties::WordType => Some(WordColumn::WordType),
+            QueryableWordProperties::Spelling => Some(WordColumn::Spelling),
+            QueryableWordProperties::Definition => Some(WordColumn::Definition),
+            _ => None,
+        };
+        if let Some(c) = column {
+            select = utils::add_order_clause(select, c, sort_item.order);
+        }
+    }
+    select
+}
+
+fn _apply_filters(
+    select: Select<WordEntity>,
+    filters: &Vec<FilterItemType<QueryableWordProperties>>,
+) -> Select<WordEntity> {
+    let mut select = select;
+    for filter in filters {
+        match filter {
+            FilterItemType::Integer(filter_item) => {
+                let column = match filter_item.field {
+                    QueryableWordProperties::WordType => Some(WordColumn::WordType),
+                    _ => None,
+                };
+                if let Some(c) = column {
+                    select =
+                        utils::add_integer_filter_clauses(select, c, filter_item.predicate.clone());
                 }
             }
-            "spelling" => {
-                if sort_item.order == SortOrder::Asc {
-                    select = select.order_by_asc(WordColumn::Spelling);
-                } else {
-                    select = select.order_by_desc(WordColumn::Spelling);
+
+            FilterItemType::String(filter_item) => {
+                let column = match filter_item.field {
+                    QueryableWordProperties::Spelling => Some(WordColumn::Spelling),
+                    QueryableWordProperties::Definition => Some(WordColumn::Definition),
+                    _ => None,
+                };
+                if let Some(c) = column {
+                    select =
+                        utils::add_string_filter_clauses(select, c, filter_item.predicate.clone());
                 }
             }
-            "definition" => {
-                if sort_item.order == SortOrder::Asc {
-                    select = select.order_by_asc(WordColumn::Definition);
-                } else {
-                    select = select.order_by_desc(WordColumn::Definition);
+
+            FilterItemType::Uuid(filter_item) => {
+                let column = match filter_item.field {
+                    QueryableWordProperties::Id => Some(WordColumn::Id),
+                    QueryableWordProperties::LanguageId => Some(WordColumn::LanguageId),
+                    _ => None,
+                };
+                if let Some(c) = column {
+                    select =
+                        utils::add_uuid_filter_clauses(select, c, filter_item.predicate.clone());
                 }
             }
-            _ => {}
         }
     }
     select

@@ -5,13 +5,15 @@ use ::entity::word::Model as Word;
 use serde_json;
 
 use crate::database::word_manager;
-use crate::model::{Error, ErrorBuilder, PaginationModel, Query, SortItem, word::WordQueryData};
+use crate::model::{Error, ErrorBuilder, Query, word::WordQueryData};
 use crate::schema::{
     DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
     word::{WordListRequestSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
 };
 use crate::services::{query_service, word::word_querier::WordQuerier};
-use crate::types::{entity_type::WORD, grammar_types::WordType};
+use crate::types::{
+    entity_type::WORD, grammar_types::WordType, queryable_properties::QueryableWordProperties,
+};
 
 pub async fn bulk_upsert(
     database: &DatabaseConnection,
@@ -206,20 +208,14 @@ pub async fn get_all_for_language(
 
 pub async fn list(
     database: &DatabaseConnection,
-    query_request: Option<QueryRequestSchema<WordListRequestSchema>>,
+    query_request: Option<QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>>,
 ) -> Result<QueryResponseSchema<WordResponseSchema>, Error> {
     let query_request = query_request.unwrap_or_default();
 
     let query = Query {
-        pagination: PaginationModel {
-            offset: query_request.pagination.offset,
-            limit: query_request.pagination.limit,
-        },
-        sortation: query_request
-            .sortation
-            .into_iter()
-            .map(|sort_item| SortItem::new(sort_item.field, sort_item.order))
-            .collect(),
+        pagination: query_service::create_pagination_model(&query_request),
+        sortation: query_service::create_sortation_model(&query_request),
+        filters: query_service::create_filter_model(&query_request),
         options: WordQueryData {
             language_id: query_request.data.language_id,
             word_types: query_request.data.word_types,

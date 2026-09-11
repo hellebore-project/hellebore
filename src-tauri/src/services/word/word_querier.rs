@@ -5,14 +5,19 @@ use crate::model::{
     Error, ErrorBuilder, Querier, Query,
     word::{Word, WordQueryData},
 };
+use crate::types::queryable_properties::QueryableWordProperties;
 
 pub struct WordQuerier {}
 
 impl Querier for WordQuerier {
+    type P = QueryableWordProperties;
     type O = WordQueryData;
     type R = Word;
 
-    async fn query<C>(con: &C, query: &Query<WordQueryData>) -> Result<Vec<Word>, Error>
+    async fn query<C>(
+        con: &C,
+        query: &Query<QueryableWordProperties, WordQueryData>,
+    ) -> Result<Vec<Word>, Error>
     where
         C: ConnectionTrait,
     {
@@ -25,7 +30,10 @@ impl Querier for WordQuerier {
         })
     }
 
-    async fn count<C>(con: &C, query: &Query<WordQueryData>) -> Result<u64, Error>
+    async fn count<C>(
+        con: &C,
+        query: &Query<QueryableWordProperties, WordQueryData>,
+    ) -> Result<u64, Error>
     where
         C: ConnectionTrait,
     {

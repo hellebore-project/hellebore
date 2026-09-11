@@ -8,7 +8,7 @@ use hellebore::{
         word::{WordListRequestSchema, WordUpsertSchema},
     },
     services::{entry_service, word_service},
-    types::{SortOrder, grammar_types::WordType},
+    types::{SortOrder, grammar_types::WordType, queryable_properties::QueryableWordProperties},
 };
 
 use crate::{
@@ -17,7 +17,7 @@ use crate::{
 };
 
 #[fixture]
-pub fn list_word_payload() -> QueryRequestSchema<WordListRequestSchema> {
+pub fn list_word_payload() -> QueryRequestSchema<QueryableWordProperties, WordListRequestSchema> {
     QueryRequestSchema {
         pagination: PaginationSchema {
             page_index: 0,
@@ -25,9 +25,10 @@ pub fn list_word_payload() -> QueryRequestSchema<WordListRequestSchema> {
             limit: None,
         },
         sortation: vec![SortItemSchema {
-            field: "spelling".to_owned(),
+            field: QueryableWordProperties::Spelling,
             order: SortOrder::Asc,
         }],
+        filters: vec![],
         data: WordListRequestSchema {
             language_id: None,
             word_types: None,
@@ -41,7 +42,7 @@ pub fn list_word_payload() -> QueryRequestSchema<WordListRequestSchema> {
 #[tokio::test]
 async fn test_list_words_sorts_spellings_ascending(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -82,7 +83,7 @@ async fn test_list_words_sorts_spellings_ascending(
 #[tokio::test]
 async fn test_list_words_sorts_spellings_descending(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -123,7 +124,7 @@ async fn test_list_words_sorts_spellings_descending(
 #[tokio::test]
 async fn test_get_all_words_for_a_language(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -174,7 +175,7 @@ async fn test_get_all_words_for_a_language(
 #[tokio::test]
 async fn test_list_words_without_filters(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -226,7 +227,7 @@ async fn test_list_words_without_filters(
 #[tokio::test]
 async fn test_list_words_with_exact_spelling_match(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -259,7 +260,7 @@ async fn test_list_words_with_exact_spelling_match(
 #[tokio::test]
 async fn test_list_words_with_word_type_filter(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -301,7 +302,7 @@ async fn test_list_words_with_word_type_filter(
 #[tokio::test]
 async fn test_list_words_with_empty_keyword_matches_all_entries(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -353,7 +354,7 @@ async fn test_list_words_with_empty_keyword_matches_all_entries(
 #[tokio::test]
 async fn test_list_words_omits_total_when_include_total_is_false(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -393,7 +394,7 @@ async fn test_list_words_omits_total_when_include_total_is_false(
 #[tokio::test]
 async fn test_list_words_with_limit_and_offset(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
