@@ -5,7 +5,13 @@ import type {
     IComponentService,
     OpenEntryEditorEvent,
 } from "@/interface";
-import { DomainManager, SortOrder } from "@/api";
+import {
+    DataType,
+    DomainManager,
+    EntryProperty,
+    PredicateType,
+    SortOrder,
+} from "@/api";
 import { ClientData } from "@/models";
 import { RichTextEditorService } from "@/lib/components/rich-text-editor";
 import type { BaseMentionItemData } from "@/lib/components/rich-text-editor/mention";
@@ -93,21 +99,31 @@ export class ArticleEditorService implements IComponentService {
     async _queryByTitle(
         titleFragment: string,
     ): Promise<(BaseMentionItemData & EntryMentionItemData)[]> {
+        if (!titleFragment) return [];
+
         const projectId = this._data.loadedProjectId;
 
         const results = await this._domain.entries.list(projectId, {
-            data: {
-                keyword: titleFragment,
-            },
             pagination: {
                 limit: 5,
             },
             sortation: [
                 {
-                    field: "title",
+                    field: EntryProperty.Title,
                     order: SortOrder.Asc,
                 },
             ],
+            filters: [
+                {
+                    type: DataType.String,
+                    field: EntryProperty.Title,
+                    predicate: {
+                        type: PredicateType.Like,
+                        value: titleFragment,
+                    },
+                },
+            ],
+            options: {},
             includeTotal: false,
         });
         if (!results) return [];

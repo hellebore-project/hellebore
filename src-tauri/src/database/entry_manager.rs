@@ -6,11 +6,12 @@ use sea_orm::*;
 use uuid::Uuid;
 
 use crate::database::folder_manager;
+use crate::model::FilterItemType;
 use crate::model::{
-    PaginationModel, Query, SortItem,
-    entry::{EntryInfo, EntryQueryData},
+    Query, SortItem,
+    entry::{EntryInfo, EntryQueryOptions},
 };
-use crate::types::{EntityType, SortOrder};
+use crate::types::{EntityType, queryable_properties::QueryableEntryProperties};
 use crate::utils::{CodedEnum, sea_orm as utils};
 
 pub async fn insert<C>(
@@ -119,32 +120,32 @@ where
         .await
 }
 
-pub async fn get_many<C>(con: &C, query: &Query<EntryQueryData>) -> Result<Vec<EntryInfo>, DbErr>
+pub async fn get_many<C>(
+    con: &C,
+    query: &Query<QueryableEntryProperties, EntryQueryOptions>,
+) -> Result<Vec<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
     let mut select = EntryEntity::find();
 
-    if let Some(like_title) = &query.options.like_title {
-        select = select.filter(EntryColumn::Title.like(format!("%{}%", like_title)))
-    };
-
+    select = _apply_filters(select, &query.filters);
     select = _apply_sortation(select, &query.sortation);
-    select = _apply_pagination(select, &query.pagination);
+    select = utils::add_pagination_clauses(select, &query.pagination);
 
     select.into_partial_model::<EntryInfo>().all(con).await
 }
 
-pub async fn count<C>(con: &C, query: &Query<EntryQueryData>) -> Result<u64, DbErr>
+pub async fn count<C>(
+    con: &C,
+    query: &Query<QueryableEntryProperties, EntryQueryOptions>,
+) -> Result<u64, DbErr>
 where
     C: ConnectionTrait,
 {
     let mut select = EntryEntity::find();
 
-    if let Some(arg) = &query.options.like_title {
-        select = select.filter(EntryColumn::Title.like(format!("%{}%", arg)))
-    };
-
+    select = _apply_filters(select, &query.filters);
     select = _apply_sortation(select, &query.sortation);
 
     select.count(con).await
@@ -167,32 +168,66 @@ where
         .await
 }
 
-fn _apply_pagination(
+fn _apply_sortation(
     select: Select<EntryEntity>,
-    pagination: &PaginationModel,
+    sortation: &Vec<SortItem<QueryableEntryProperties>>,
 ) -> Select<EntryEntity> {
-    select.offset(pagination.offset).limit(pagination.limit)
-}
-
-fn _apply_sortation(select: Select<EntryEntity>, sortation: &Vec<SortItem>) -> Select<EntryEntity> {
     let mut select = select;
     for sort_item in sortation {
-        match sort_item.field.as_str() {
-            "entity_type" => {
-                if sort_item.order == SortOrder::Asc {
-                    select = select.order_by_asc(EntryColumn::EntityType);
-                } else {
-                    select = select.order_by_desc(EntryColumn::EntityType);
+        let column = match sort_item.field {
+            QueryableEntryProperties::Id => Some(EntryColumn::Id),
+            QueryableEntryProperties::FolderId => Some(EntryColumn::FolderId),
+            QueryableEntryProperties::EntityType => Some(EntryColumn::EntityType),
+            QueryableEntryProperties::Title => Some(EntryColumn::Title),
+            _ => None,
+        };
+        if let Some(c) = column {
+            select = utils::add_order_clause(select, c, sort_item.order);
+        }
+    }
+    select
+}
+
+fn _apply_filters(
+    select: Select<EntryEntity>,
+    filters: &Vec<FilterItemType<QueryableEntryProperties>>,
+) -> Select<EntryEntity> {
+    let mut select = select;
+    for filter in filters {
+        match filter {
+            FilterItemType::Integer(filter_item) => {
+                let column = match filter_item.field {
+                    QueryableEntryProperties::EntityType => Some(EntryColumn::EntityType),
+                    _ => None,
+                };
+                if let Some(c) = column {
+                    select =
+                        utils::add_integer_filter_clauses(select, c, filter_item.predicate.clone());
                 }
             }
-            "title" => {
-                if sort_item.order == SortOrder::Asc {
-                    select = select.order_by_asc(EntryColumn::Title);
-                } else {
-                    select = select.order_by_desc(EntryColumn::Title);
+
+            FilterItemType::String(filter_item) => {
+                let column = match filter_item.field {
+                    QueryableEntryProperties::Title => Some(EntryColumn::Title),
+                    _ => None,
+                };
+                if let Some(c) = column {
+                    select =
+                        utils::add_string_filter_clauses(select, c, filter_item.predicate.clone());
                 }
             }
-            _ => {}
+
+            FilterItemType::Uuid(filter_item) => {
+                let column = match filter_item.field {
+                    QueryableEntryProperties::Id => Some(EntryColumn::Id),
+                    QueryableEntryProperties::FolderId => Some(EntryColumn::FolderId),
+                    _ => None,
+                };
+                if let Some(c) = column {
+                    select =
+                        utils::add_uuid_filter_clauses(select, c, filter_item.predicate.clone());
+                }
+            }
         }
     }
     select

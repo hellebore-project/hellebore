@@ -5,15 +5,13 @@ use ::entity::word::{
     ActiveModel as WordActiveModel, Column as WordColumn, Entity as WordEntity, Model as WordModel,
 };
 
-use crate::types::grammar_types::WordType;
-use crate::utils::{CodedEnum, sea_orm as utils};
-use crate::{
-    model::{
-        PaginationModel, Query, SortItem,
-        word::{Word, WordQueryData},
-    },
-    types::SortOrder,
+use crate::model::FilterItemType;
+use crate::model::{
+    Query, SortItem,
+    word::{Word, WordQueryOptions},
 };
+use crate::types::{grammar_types::WordType, queryable_properties::QueryableWordProperties};
+use crate::utils::{CodedEnum, sea_orm as utils};
 
 pub async fn insert<C>(
     con: &C,
@@ -92,67 +90,33 @@ where
     query.all(con).await
 }
 
-pub async fn get_many<C>(con: &C, query: &Query<WordQueryData>) -> Result<Vec<Word>, DbErr>
+pub async fn get_many<C>(
+    con: &C,
+    query: &Query<QueryableWordProperties, WordQueryOptions>,
+) -> Result<Vec<Word>, DbErr>
 where
     C: ConnectionTrait,
 {
     let mut select = WordEntity::find();
 
-    if let Some(language_id) = query.options.language_id {
-        select = select.filter(WordColumn::LanguageId.eq(language_id));
-    }
-
-    if let Some(word_types) = query
-        .options
-        .word_types
-        .clone()
-        .filter(|types| !types.is_empty())
-    {
-        let codes: Vec<i8> = word_types
-            .iter()
-            .map(|word_type| word_type.code())
-            .collect();
-        select = select.filter(WordColumn::WordType.is_in(codes));
-    }
-
-    if let Some(arg) = &query.options.like_spelling {
-        select = select.filter(WordColumn::Spelling.like(format!("%{}%", arg)));
-    }
-
-    select = _apply_pagination(select, &query.pagination);
+    select = utils::add_pagination_clauses(select, &query.pagination);
     select = _apply_sortation(select, &query.sortation);
+    select = _apply_filters(select, &query.filters);
 
     select.into_partial_model::<Word>().all(con).await
 }
 
-pub async fn count<C>(con: &C, query: &Query<WordQueryData>) -> Result<u64, DbErr>
+pub async fn count<C>(
+    con: &C,
+    query: &Query<QueryableWordProperties, WordQueryOptions>,
+) -> Result<u64, DbErr>
 where
     C: ConnectionTrait,
 {
     let mut select = WordEntity::find();
 
-    if let Some(language_id) = query.options.language_id {
-        select = select.filter(WordColumn::LanguageId.eq(language_id));
-    }
-
-    if let Some(word_types) = &query
-        .options
-        .word_types
-        .clone()
-        .filter(|types| !types.is_empty())
-    {
-        let codes: Vec<i8> = word_types
-            .iter()
-            .map(|word_type| word_type.code())
-            .collect();
-        select = select.filter(WordColumn::WordType.is_in(codes));
-    }
-
-    if let Some(arg) = &query.options.like_spelling {
-        select = select.filter(WordColumn::Spelling.like(format!("%{}%", arg)));
-    }
-
     select = _apply_sortation(select, &query.sortation);
+    select = _apply_filters(select, &query.filters);
 
     select.count(con).await
 }
@@ -167,39 +131,66 @@ where
     return existing_entity.delete(con).await;
 }
 
-fn _apply_pagination(
+fn _apply_sortation(
     select: Select<WordEntity>,
-    pagination: &PaginationModel,
+    sortation: &Vec<SortItem<QueryableWordProperties>>,
 ) -> Select<WordEntity> {
-    select.offset(pagination.offset).limit(pagination.limit)
-}
-
-fn _apply_sortation(select: Select<WordEntity>, sortation: &Vec<SortItem>) -> Select<WordEntity> {
     let mut select = select;
     for sort_item in sortation {
-        match sort_item.field.as_str() {
-            "word_type" => {
-                if sort_item.order == SortOrder::Asc {
-                    select = select.order_by_asc(WordColumn::WordType);
-                } else {
-                    select = select.order_by_desc(WordColumn::WordType);
+        let column = match sort_item.field {
+            QueryableWordProperties::WordType => Some(WordColumn::WordType),
+            QueryableWordProperties::Spelling => Some(WordColumn::Spelling),
+            QueryableWordProperties::Definition => Some(WordColumn::Definition),
+            _ => None,
+        };
+        if let Some(c) = column {
+            select = utils::add_order_clause(select, c, sort_item.order);
+        }
+    }
+    select
+}
+
+fn _apply_filters(
+    select: Select<WordEntity>,
+    filters: &Vec<FilterItemType<QueryableWordProperties>>,
+) -> Select<WordEntity> {
+    let mut select = select;
+    for filter in filters {
+        match filter {
+            FilterItemType::Integer(filter_item) => {
+                let column = match filter_item.field {
+                    QueryableWordProperties::WordType => Some(WordColumn::WordType),
+                    _ => None,
+                };
+                if let Some(c) = column {
+                    select =
+                        utils::add_integer_filter_clauses(select, c, filter_item.predicate.clone());
                 }
             }
-            "spelling" => {
-                if sort_item.order == SortOrder::Asc {
-                    select = select.order_by_asc(WordColumn::Spelling);
-                } else {
-                    select = select.order_by_desc(WordColumn::Spelling);
+
+            FilterItemType::String(filter_item) => {
+                let column = match filter_item.field {
+                    QueryableWordProperties::Spelling => Some(WordColumn::Spelling),
+                    QueryableWordProperties::Definition => Some(WordColumn::Definition),
+                    _ => None,
+                };
+                if let Some(c) = column {
+                    select =
+                        utils::add_string_filter_clauses(select, c, filter_item.predicate.clone());
                 }
             }
-            "definition" => {
-                if sort_item.order == SortOrder::Asc {
-                    select = select.order_by_asc(WordColumn::Definition);
-                } else {
-                    select = select.order_by_desc(WordColumn::Definition);
+
+            FilterItemType::Uuid(filter_item) => {
+                let column = match filter_item.field {
+                    QueryableWordProperties::Id => Some(WordColumn::Id),
+                    QueryableWordProperties::LanguageId => Some(WordColumn::LanguageId),
+                    _ => None,
+                };
+                if let Some(c) = column {
+                    select =
+                        utils::add_uuid_filter_clauses(select, c, filter_item.predicate.clone());
                 }
             }
-            _ => {}
         }
     }
     select

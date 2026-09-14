@@ -1,11 +1,14 @@
 use hellebore::{
     schema::{
         QueryRequestSchema,
-        entry::EntryListRequestSchema,
-        query::{PaginationSchema, SortItemSchema},
+        entry::EntryQueryOptionsSchema,
+        query::{
+            FilterItemSchema, FilterItemUnionSchema, PaginationSchema, PredicateUnionSchema,
+            SortItemSchema,
+        },
     },
     services::entry_service,
-    types::SortOrder,
+    types::{SortOrder, queryable_properties::QueryableEntryProperties},
 };
 use rstest::*;
 use uuid::Uuid;
@@ -16,8 +19,18 @@ use crate::utils::{
     validation::validate_generic_entry_info_response,
 };
 
+fn title_filter(keyword: &str) -> FilterItemUnionSchema<QueryableEntryProperties> {
+    FilterItemUnionSchema::String(FilterItemSchema {
+        field: QueryableEntryProperties::Title,
+        predicate: PredicateUnionSchema::Like {
+            value: keyword.to_owned(),
+        },
+    })
+}
+
 #[fixture]
-pub fn list_entry_payload() -> QueryRequestSchema<EntryListRequestSchema> {
+pub fn list_entry_payload() -> QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>
+{
     QueryRequestSchema {
         pagination: PaginationSchema {
             page_index: 0,
@@ -25,12 +38,11 @@ pub fn list_entry_payload() -> QueryRequestSchema<EntryListRequestSchema> {
             limit: None,
         },
         sortation: vec![SortItemSchema {
-            field: "title".to_owned(),
+            field: QueryableEntryProperties::Title,
             order: SortOrder::Asc,
         }],
-        data: EntryListRequestSchema {
-            keyword: Some("".to_owned()),
-        },
+        filters: vec![],
+        options: EntryQueryOptionsSchema {},
         include_total: true,
     }
 }
@@ -58,7 +70,7 @@ async fn test_list_all_entries(folder_id: Uuid) {
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_sorts_titles_ascending(
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -87,7 +99,7 @@ async fn test_list_entries_sorts_titles_ascending(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_sorts_titles_descending(
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -117,14 +129,14 @@ async fn test_list_entries_sorts_titles_descending(
 #[tokio::test]
 async fn test_list_entries_without_title_filter(
     folder_id: Uuid,
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
     create_generic_entry(&database, folder_id, "A".to_owned(), "".to_owned()).await;
     create_generic_entry(&database, folder_id, "B".to_owned(), "".to_owned()).await;
 
-    list_entry_payload.data.keyword = None;
+    list_entry_payload.filters.clear();
 
     let response = entry_service::list(&database, Some(list_entry_payload)).await;
 
@@ -142,7 +154,7 @@ async fn test_list_entries_without_title_filter(
 #[tokio::test]
 async fn test_list_entries_with_exact_title_match(
     folder_id: Uuid,
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -154,7 +166,7 @@ async fn test_list_entries_with_exact_title_match(
     )
     .await;
 
-    list_entry_payload.data.keyword = Some("Rust Programming".to_owned());
+    list_entry_payload.filters = vec![title_filter("Rust Programming")];
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
 
@@ -169,7 +181,7 @@ async fn test_list_entries_with_exact_title_match(
 #[tokio::test]
 async fn test_list_entries_title_starts_with_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -181,7 +193,7 @@ async fn test_list_entries_title_starts_with_keyword(
     )
     .await;
 
-    list_entry_payload.data.keyword = Some("Rust".to_owned());
+    list_entry_payload.filters = vec![title_filter("Rust")];
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
 
@@ -195,7 +207,7 @@ async fn test_list_entries_title_starts_with_keyword(
 #[tokio::test]
 async fn test_list_entries_title_ends_with_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -207,7 +219,7 @@ async fn test_list_entries_title_ends_with_keyword(
     )
     .await;
 
-    list_entry_payload.data.keyword = Some("Programming".to_owned());
+    list_entry_payload.filters = vec![title_filter("Programming")];
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
 
@@ -221,7 +233,7 @@ async fn test_list_entries_title_ends_with_keyword(
 #[tokio::test]
 async fn test_list_entries_title_contains_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -233,7 +245,7 @@ async fn test_list_entries_title_contains_keyword(
     )
     .await;
 
-    list_entry_payload.data.keyword = Some("Rust".to_owned());
+    list_entry_payload.filters = vec![title_filter("Rust")];
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
 
@@ -247,7 +259,7 @@ async fn test_list_entries_title_contains_keyword(
 #[tokio::test]
 async fn test_list_entries_title_does_not_contain_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -259,7 +271,7 @@ async fn test_list_entries_title_does_not_contain_keyword(
     )
     .await;
 
-    list_entry_payload.data.keyword = Some("Rust".to_owned());
+    list_entry_payload.filters = vec![title_filter("Rust")];
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
 
@@ -272,7 +284,7 @@ async fn test_list_entries_title_does_not_contain_keyword(
 #[tokio::test]
 async fn test_list_entries_title_contains_partial_keyword(
     folder_id: Uuid,
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -285,7 +297,7 @@ async fn test_list_entries_title_contains_partial_keyword(
     .await;
 
     // Search for "Program" which is a partial match of "Programming"
-    list_entry_payload.data.keyword = Some("Program".to_owned());
+    list_entry_payload.filters = vec![title_filter("Program")];
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
 
@@ -299,7 +311,7 @@ async fn test_list_entries_title_contains_partial_keyword(
 #[tokio::test]
 async fn test_list_entries_title_contains_keyword_with_typo(
     folder_id: Uuid,
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -312,7 +324,7 @@ async fn test_list_entries_title_contains_keyword_with_typo(
     .await;
 
     // keyword is missing a letter
-    list_entry_payload.data.keyword = Some("Prgram".to_owned());
+    list_entry_payload.filters = vec![title_filter("Prgram")];
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
 
@@ -324,14 +336,14 @@ async fn test_list_entries_title_contains_keyword_with_typo(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_with_empty_keyword_matches_all_entries(
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
     let titles = vec!["Charlie".to_owned(), "Alpha".to_owned(), "Bravo".to_owned()];
     create_generic_entries(&database, titles).await;
 
-    list_entry_payload.data.keyword = Some("".to_owned());
+    list_entry_payload.filters = vec![title_filter("")];
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
     assert!(results.is_ok());
@@ -355,7 +367,7 @@ async fn test_list_entries_with_empty_keyword_matches_all_entries(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_omits_total_when_include_total_is_false(
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -367,7 +379,7 @@ async fn test_list_entries_omits_total_when_include_total_is_false(
     ];
     create_generic_entries(&database, titles).await;
 
-    list_entry_payload.data.keyword = Some("Rust".to_owned());
+    list_entry_payload.filters = vec![title_filter("Rust")];
     list_entry_payload.pagination.offset = Some(1);
     list_entry_payload.pagination.limit = Some(2);
     list_entry_payload.include_total = false;
@@ -388,7 +400,7 @@ async fn test_list_entries_omits_total_when_include_total_is_false(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_with_limit(
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -399,7 +411,7 @@ async fn test_list_entries_with_limit(
     ];
     create_generic_entries(&database, titles).await;
 
-    list_entry_payload.data.keyword = Some("Rust".to_owned());
+    list_entry_payload.filters = vec![title_filter("Rust")];
     list_entry_payload.pagination.limit = Some(2);
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
@@ -417,7 +429,7 @@ async fn test_list_entries_with_limit(
 #[should_panic]
 #[tokio::test]
 async fn test_list_entries_with_offset(
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -428,7 +440,7 @@ async fn test_list_entries_with_offset(
     ];
     create_generic_entries(&database, titles).await;
 
-    list_entry_payload.data.keyword = Some("Rust".to_owned());
+    list_entry_payload.filters = vec![title_filter("Rust")];
     list_entry_payload.pagination.offset = Some(1);
 
     let results = entry_service::list(&database, Some(list_entry_payload)).await;
@@ -444,7 +456,7 @@ async fn test_list_entries_with_offset(
 #[rstest]
 #[tokio::test]
 async fn test_list_entries_with_limit_and_offset(
-    mut list_entry_payload: QueryRequestSchema<EntryListRequestSchema>,
+    mut list_entry_payload: QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>,
 ) {
     let database = database().await;
 
@@ -457,7 +469,7 @@ async fn test_list_entries_with_limit_and_offset(
     ];
     create_generic_entries(&database, titles).await;
 
-    list_entry_payload.data.keyword = Some("Rust".to_owned());
+    list_entry_payload.filters = vec![title_filter("Rust")];
     list_entry_payload.pagination.offset = Some(2);
     list_entry_payload.pagination.limit = Some(2);
 

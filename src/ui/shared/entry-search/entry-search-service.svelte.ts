@@ -4,7 +4,13 @@ import type {
     OpenEntryEditorEvent,
     OptionData,
 } from "@/interface";
-import { DomainManager, SortOrder } from "@/api";
+import {
+    DataType,
+    DomainManager,
+    EntryProperty,
+    PredicateType,
+    SortOrder,
+} from "@/api";
 import { ClientData } from "@/models";
 import { MultiEventProducer } from "@/utils/event-producer";
 
@@ -84,16 +90,26 @@ export class EntrySearchService implements IComponentService {
         const projectId = this._data.loadedProjectId;
 
         const response = await this._domain.entries.list(projectId, {
-            data: { keyword },
             pagination: {
                 limit: 10,
             },
             sortation: [
                 {
-                    field: "title",
+                    field: EntryProperty.Title,
                     order: SortOrder.Asc,
                 },
             ],
+            filters: [
+                {
+                    type: DataType.String,
+                    field: EntryProperty.Title,
+                    predicate: {
+                        type: PredicateType.Like,
+                        value: keyword,
+                    },
+                },
+            ],
+            options: {},
             includeTotal: false,
         });
         if (response)

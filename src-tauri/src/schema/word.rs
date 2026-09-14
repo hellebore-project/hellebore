@@ -59,8 +59,4 @@ pub struct WordResponseSchema {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct WordListRequestSchema {
-    pub language_id: Option<Uuid>,
-    pub word_types: Option<Vec<WordType>>,
-    pub keyword: Option<String>,
-}
+pub struct WordQueryOptionsSchema {}

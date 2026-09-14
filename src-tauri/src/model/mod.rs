@@ -6,7 +6,9 @@ pub mod project;
 pub mod state;
 
 pub mod query;
-pub use query::{PaginationModel, Querier, Query, QueryResult, SortItem};
+pub use query::{
+    FilterItem, FilterItemType, PaginationModel, Predicate, Querier, Query, QueryResult, SortItem,
+};
 
 pub mod entry;
 pub mod text;

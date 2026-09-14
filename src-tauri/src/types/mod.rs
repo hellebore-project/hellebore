@@ -5,3 +5,4 @@ pub mod grammar_types;
 
 pub mod query_types;
 pub use query_types::SortOrder;
+pub mod queryable_properties;

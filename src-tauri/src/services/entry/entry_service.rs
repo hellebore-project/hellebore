@@ -6,23 +6,26 @@ use ::entity::entry::Model as EntryModel;
 
 use crate::database::{entry_manager, folder_manager, transaction_manager};
 use crate::model::{
-    Error, ErrorBuilder, PaginationModel, Query, SortItem,
-    entry::{EntryInfo, EntryQueryData},
+    Error, ErrorBuilder, Query,
+    entry::{EntryInfo, EntryQueryOptions},
     text::TextNode,
 };
 use crate::schema::{
     DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
     entry::{
-        EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
-        EntryListRequestSchema, EntryProperties, EntryPropertyResponseSchema,
-        EntryUpdateResponseSchema, EntryUpdateSchema,
+        EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema, EntryProperties,
+        EntryPropertyResponseSchema, EntryQueryOptionsSchema, EntryUpdateResponseSchema,
+        EntryUpdateSchema,
     },
 };
 use crate::services::{
     entry::entry_querier::EntryQuerier, entry_text_service, language_service, person_service,
     query_service, word_service,
 };
-use crate::types::entity_type::{ENTRY, EntityType};
+use crate::types::{
+    entity_type::{ENTRY, EntityType},
+    queryable_properties::QueryableEntryProperties,
+};
 
 pub async fn create(
     database: &DatabaseConnection,
@@ -380,23 +383,15 @@ pub async fn get_text(
 
 pub async fn list(
     database: &DatabaseConnection,
-    query_request: Option<QueryRequestSchema<EntryListRequestSchema>>,
+    query_request: Option<QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>>,
 ) -> Result<QueryResponseSchema<EntryInfoResponseSchema>, Error> {
     let query_request = query_request.unwrap_or_default();
 
     let query = Query {
-        pagination: PaginationModel {
-            offset: query_request.pagination.offset,
-            limit: query_request.pagination.limit,
-        },
-        sortation: query_request
-            .sortation
-            .into_iter()
-            .map(|sort_item| SortItem::new(sort_item.field, sort_item.order))
-            .collect(),
-        options: EntryQueryData {
-            like_title: query_request.data.keyword,
-        },
+        pagination: query_service::create_pagination_model(&query_request),
+        sortation: query_service::create_sortation_model(&query_request),
+        filters: query_service::create_filter_model(&query_request),
+        options: EntryQueryOptions {},
     };
 
     let page = query_service::paginated_query::<EntryQuerier, DatabaseConnection>(

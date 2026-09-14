@@ -1,3 +1,3 @@
-pub trait CodedEnum {
+pub trait CodedEnum: Copy {
     fn code(&self) -> i8;
 }
