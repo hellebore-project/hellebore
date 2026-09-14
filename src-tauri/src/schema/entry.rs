@@ -13,7 +13,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all_fields = "camelCase")]
+#[serde(rename_all_fields = "camelCase", tag = "type")]
 pub enum EntryProperties {
     Language(LanguageSchema),
     Person(PersonSchema),

@@ -50,7 +50,7 @@ pub struct FilterItemSchema<P: CodedEnum, T> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(rename_all_fields = "camelCase", tag = "type")]
 pub enum FilterItemUnionSchema<P: CodedEnum> {
     Integer(FilterItemSchema<P, i32>),
     String(FilterItemSchema<P, String>),

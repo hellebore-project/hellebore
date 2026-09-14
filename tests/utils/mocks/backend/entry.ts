@@ -13,6 +13,9 @@ import {
     type QueryRequest,
     QueryResponse,
     EntryProperty,
+    BaseEntity,
+    EntryTypeLabel,
+    ENTRY_TYPE_LABEL_MAPPING,
 } from "@/api";
 import { Id } from "@/interface";
 import { compareStrings } from "@/utils/string";
@@ -116,10 +119,12 @@ export function mockGetEntryProperties(
     entry: EntryPropertyResponse,
 ) {
     const entryType = entry.info.entityType;
+    const entryTypeLabel = ENTRY_TYPE_LABEL_MAPPING[entryType];
     const rawResponse: BackendEntryPropertyResponse = {
         info: entry.info,
         properties: {
-            [entryType]: entry.properties,
+            type: entryTypeLabel,
+            ...entry.properties,
         },
     };
     mockedInvoker.mockCommand(

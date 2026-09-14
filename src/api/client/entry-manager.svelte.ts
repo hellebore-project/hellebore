@@ -7,7 +7,6 @@ import {
     ENTRY_TYPE_LABEL_MAPPING,
     EntryProperty,
     EntryType,
-    EntryTypeLabel,
     ROOT_FOLDER_ID,
 } from "../constants";
 import type {
@@ -27,6 +26,7 @@ import type {
     BackendEntryCreate,
     QueryRequest,
     QueryResponse,
+    TaggedEntryProperties,
 } from "../interface";
 
 export class EntryManager {
@@ -97,7 +97,7 @@ export class EntryManager {
         properties,
     }: EntryCreate<E> & { projectId: Id }): Promise<EntryInfoResponse> {
         const entryTypeLabel = ENTRY_TYPE_LABEL_MAPPING[entryType];
-        const mappedProperties = { [entryTypeLabel]: properties };
+        const taggedProperties = { type: entryTypeLabel, ...properties };
 
         const payload: BackendEntryCreate = {
             projectId,
@@ -105,7 +105,7 @@ export class EntryManager {
                 folderId,
                 entityType: entryType,
                 title,
-                properties: mappedProperties,
+                properties: taggedProperties,
             },
         };
 
@@ -147,7 +147,7 @@ export class EntryManager {
         text = null,
         words = null,
     }: EntryUpdate<E>): BackendEntryUpdate {
-        let mappedProperties: Partial<Record<EntryTypeLabel, E>> | null = null;
+        let taggedProperties: TaggedEntryProperties<E> | null = null;
         if (properties) {
             if (entryType === null || entryType === undefined)
                 throw (
@@ -156,14 +156,17 @@ export class EntryManager {
                 );
 
             const entryTypeLabel = ENTRY_TYPE_LABEL_MAPPING[entryType];
-            mappedProperties = { [entryTypeLabel]: properties };
+            taggedProperties = {
+                type: entryTypeLabel,
+                ...properties,
+            };
         }
 
         return {
             id,
             folderId,
             title,
-            properties: mappedProperties,
+            properties: taggedProperties,
             text,
             words,
         };
@@ -220,14 +223,8 @@ export class EntryManager {
             return null;
         }
 
-        const keys = Object.keys(response.properties) as EntryTypeLabel[];
-        if (keys.length === 0) {
-            console.error(`Entry property response is malformed.`);
-            return null;
-        }
-
-        const key = keys[0];
-        const properties = response.properties[key];
+        // eslint-disable-next-line
+        const { type, ...properties } = response.properties;
         if (properties === undefined) {
             console.error(`Entry properties not returned in the response.`);
             return null;

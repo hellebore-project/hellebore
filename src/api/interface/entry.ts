@@ -6,7 +6,9 @@ import { EntryType, EntryTypeLabel } from "../constants";
 import type { BaseEntity } from "./base-entity";
 import type { WordUpsert, WordUpsertResponse } from "./word";
 
-export type EntryPropertyMapping = Partial<Record<EntryTypeLabel, BaseEntity>>;
+export type TaggedEntryProperties<E extends BaseEntity> = E & {
+    type: EntryTypeLabel;
+};
 
 export interface BaseEntryInfo extends IdentifiedObject {
     entityType: EntryType;
@@ -19,13 +21,13 @@ export interface EntryCreate<E extends BaseEntity> {
     properties: E;
 }
 
-export interface BackendEntryCreate {
+export interface BackendEntryCreate<E extends BaseEntity = BaseEntity> {
     projectId: Id;
     entry: {
         folderId: Id;
         entityType: EntryType;
         title: string;
-        properties: EntryPropertyMapping;
+        properties: TaggedEntryProperties<E>;
     };
 }
 
@@ -38,10 +40,12 @@ export interface EntryUpdate<E extends BaseEntity> extends IdentifiedObject {
     words?: WordUpsert[] | null;
 }
 
-export interface BackendEntryUpdate extends IdentifiedObject {
+export interface BackendEntryUpdate<
+    E extends BaseEntity = BaseEntity,
+> extends IdentifiedObject {
     folderId: Id | null;
     title: string | null;
-    properties: EntryPropertyMapping | null;
+    properties: TaggedEntryProperties<E> | null;
     text: string | null;
     words: WordUpsert[] | null;
 }
@@ -73,9 +77,11 @@ export interface EntryPropertyResponse {
     properties: BaseEntity;
 }
 
-export interface BackendEntryPropertyResponse {
+export interface BackendEntryPropertyResponse<
+    E extends BaseEntity = BaseEntity,
+> {
     info: EntryInfoResponse;
-    properties: EntryPropertyMapping;
+    properties: TaggedEntryProperties<E>;
 }
 
 export interface EntryArticleResponse {
