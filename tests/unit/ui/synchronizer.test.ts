@@ -264,7 +264,7 @@ test.extend({
                     id: entryInfo.id,
                     folderId: entryInfo.folderId,
                     title: entryInfo.title,
-                    properties: { [entryTypeLabel]: {} },
+                    properties: { type: entryTypeLabel },
                     text: entryArticleText,
                     words: wordPollResults,
                 },
