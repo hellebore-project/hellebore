@@ -9,7 +9,7 @@ use crate::database::folder_manager;
 use crate::model::FilterItemType;
 use crate::model::{
     Query, SortItem,
-    entry::{EntryInfo, EntryQueryData},
+    entry::{EntryInfo, EntryQueryOptions},
 };
 use crate::types::{EntityType, queryable_properties::QueryableEntryProperties};
 use crate::utils::{CodedEnum, sea_orm as utils};
@@ -122,16 +122,12 @@ where
 
 pub async fn get_many<C>(
     con: &C,
-    query: &Query<QueryableEntryProperties, EntryQueryData>,
+    query: &Query<QueryableEntryProperties, EntryQueryOptions>,
 ) -> Result<Vec<EntryInfo>, DbErr>
 where
     C: ConnectionTrait,
 {
     let mut select = EntryEntity::find();
-
-    if let Some(like_title) = &query.options.like_title {
-        select = select.filter(EntryColumn::Title.like(format!("%{}%", like_title)))
-    };
 
     select = _apply_filters(select, &query.filters);
     select = _apply_sortation(select, &query.sortation);
@@ -142,16 +138,12 @@ where
 
 pub async fn count<C>(
     con: &C,
-    query: &Query<QueryableEntryProperties, EntryQueryData>,
+    query: &Query<QueryableEntryProperties, EntryQueryOptions>,
 ) -> Result<u64, DbErr>
 where
     C: ConnectionTrait,
 {
     let mut select = EntryEntity::find();
-
-    if let Some(arg) = &query.options.like_title {
-        select = select.filter(EntryColumn::Title.like(format!("%{}%", arg)))
-    };
 
     select = _apply_filters(select, &query.filters);
     select = _apply_sortation(select, &query.sortation);

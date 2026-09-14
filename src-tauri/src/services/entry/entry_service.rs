@@ -7,15 +7,15 @@ use ::entity::entry::Model as EntryModel;
 use crate::database::{entry_manager, folder_manager, transaction_manager};
 use crate::model::{
     Error, ErrorBuilder, Query,
-    entry::{EntryInfo, EntryQueryData},
+    entry::{EntryInfo, EntryQueryOptions},
     text::TextNode,
 };
 use crate::schema::{
     DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
     entry::{
-        EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
-        EntryListRequestSchema, EntryProperties, EntryPropertyResponseSchema,
-        EntryUpdateResponseSchema, EntryUpdateSchema,
+        EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema, EntryProperties,
+        EntryPropertyResponseSchema, EntryQueryOptionsSchema, EntryUpdateResponseSchema,
+        EntryUpdateSchema,
     },
 };
 use crate::services::{
@@ -383,7 +383,7 @@ pub async fn get_text(
 
 pub async fn list(
     database: &DatabaseConnection,
-    query_request: Option<QueryRequestSchema<QueryableEntryProperties, EntryListRequestSchema>>,
+    query_request: Option<QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>>,
 ) -> Result<QueryResponseSchema<EntryInfoResponseSchema>, Error> {
     let query_request = query_request.unwrap_or_default();
 
@@ -391,9 +391,7 @@ pub async fn list(
         pagination: query_service::create_pagination_model(&query_request),
         sortation: query_service::create_sortation_model(&query_request),
         filters: query_service::create_filter_model(&query_request),
-        options: EntryQueryData {
-            like_title: query_request.data.keyword,
-        },
+        options: EntryQueryOptions {},
     };
 
     let page = query_service::paginated_query::<EntryQuerier, DatabaseConnection>(

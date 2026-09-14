@@ -3,7 +3,7 @@ use sea_orm::ConnectionTrait;
 use crate::database::entry_manager;
 use crate::model::{
     Error, ErrorBuilder, Querier, Query,
-    entry::{EntryInfo, EntryQueryData},
+    entry::{EntryInfo, EntryQueryOptions},
 };
 use crate::types::queryable_properties::QueryableEntryProperties;
 
@@ -11,12 +11,12 @@ pub struct EntryQuerier {}
 
 impl Querier for EntryQuerier {
     type P = QueryableEntryProperties;
-    type O = EntryQueryData;
+    type O = EntryQueryOptions;
     type R = EntryInfo;
 
     async fn query<C>(
         con: &C,
-        query: &Query<QueryableEntryProperties, EntryQueryData>,
+        query: &Query<QueryableEntryProperties, EntryQueryOptions>,
     ) -> Result<Vec<EntryInfo>, Error>
     where
         C: ConnectionTrait,
@@ -32,7 +32,7 @@ impl Querier for EntryQuerier {
 
     async fn count<C>(
         con: &C,
-        query: &Query<QueryableEntryProperties, EntryQueryData>,
+        query: &Query<QueryableEntryProperties, EntryQueryOptions>,
     ) -> Result<u64, Error>
     where
         C: ConnectionTrait,

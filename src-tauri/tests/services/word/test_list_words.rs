@@ -1,11 +1,15 @@
 use rstest::*;
+use uuid::Uuid;
 
 use hellebore::{
     schema::{
         QueryRequestSchema,
         entry::EntryCreateSchema,
-        query::{PaginationSchema, SortItemSchema},
-        word::{WordListRequestSchema, WordUpsertSchema},
+        query::{
+            FilterItemSchema, FilterItemUnionSchema, PaginationSchema, PredicateUnionSchema,
+            SortItemSchema,
+        },
+        word::{WordQueryOptionsSchema, WordUpsertSchema},
     },
     services::{entry_service, word_service},
     types::{SortOrder, grammar_types::WordType, queryable_properties::QueryableWordProperties},
@@ -16,8 +20,33 @@ use crate::{
     utils::{db::upsert_word, validation::validate_word_response},
 };
 
+fn language_filter(language_id: Uuid) -> FilterItemUnionSchema<QueryableWordProperties> {
+    FilterItemUnionSchema::Uuid(FilterItemSchema {
+        field: QueryableWordProperties::LanguageId,
+        predicate: PredicateUnionSchema::Equal { value: language_id },
+    })
+}
+
+fn spelling_filter(spelling: &str) -> FilterItemUnionSchema<QueryableWordProperties> {
+    FilterItemUnionSchema::String(FilterItemSchema {
+        field: QueryableWordProperties::Spelling,
+        predicate: PredicateUnionSchema::Like {
+            values: spelling.to_owned(),
+        },
+    })
+}
+
+fn word_type_filter(word_type: WordType) -> FilterItemUnionSchema<QueryableWordProperties> {
+    FilterItemUnionSchema::Integer(FilterItemSchema {
+        field: QueryableWordProperties::WordType,
+        predicate: PredicateUnionSchema::In {
+            values: vec![word_type as i32],
+        },
+    })
+}
+
 #[fixture]
-pub fn list_word_payload() -> QueryRequestSchema<QueryableWordProperties, WordListRequestSchema> {
+pub fn list_word_payload() -> QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema> {
     QueryRequestSchema {
         pagination: PaginationSchema {
             page_index: 0,
@@ -29,11 +58,7 @@ pub fn list_word_payload() -> QueryRequestSchema<QueryableWordProperties, WordLi
             order: SortOrder::Asc,
         }],
         filters: vec![],
-        data: WordListRequestSchema {
-            language_id: None,
-            word_types: None,
-            keyword: None,
-        },
+        options: WordQueryOptionsSchema {},
         include_total: true,
     }
 }
@@ -42,7 +67,7 @@ pub fn list_word_payload() -> QueryRequestSchema<QueryableWordProperties, WordLi
 #[tokio::test]
 async fn test_list_words_sorts_spellings_ascending(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -60,9 +85,7 @@ async fn test_list_words_sorts_spellings_ascending(
         upsert_word(&db, &word).await.unwrap();
     }
 
-    list_word_payload.data.language_id = Some(language.id);
-    list_word_payload.data.keyword = None;
-    list_word_payload.data.word_types = None;
+    list_word_payload.filters.push(language_filter(language.id));
     list_word_payload.sortation[0].order = SortOrder::Asc;
 
     let results = word_service::list(&db, Some(list_word_payload)).await;
@@ -83,7 +106,7 @@ async fn test_list_words_sorts_spellings_ascending(
 #[tokio::test]
 async fn test_list_words_sorts_spellings_descending(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -101,9 +124,7 @@ async fn test_list_words_sorts_spellings_descending(
         upsert_word(&db, &word).await.unwrap();
     }
 
-    list_word_payload.data.language_id = Some(language.id);
-    list_word_payload.data.keyword = None;
-    list_word_payload.data.word_types = None;
+    list_word_payload.filters.push(language_filter(language.id));
     list_word_payload.sortation[0].order = SortOrder::Desc;
 
     let results = word_service::list(&db, Some(list_word_payload)).await;
@@ -124,7 +145,7 @@ async fn test_list_words_sorts_spellings_descending(
 #[tokio::test]
 async fn test_get_all_words_for_a_language(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -149,7 +170,7 @@ async fn test_get_all_words_for_a_language(
     };
     let id_2 = upsert_word(&db, &create_payload_2).await.unwrap();
 
-    list_word_payload.data.language_id = Some(language.id);
+    list_word_payload.filters.push(language_filter(language.id));
 
     let response = word_service::list(&db, Some(list_word_payload)).await;
 
@@ -175,7 +196,7 @@ async fn test_get_all_words_for_a_language(
 #[tokio::test]
 async fn test_list_words_without_filters(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -200,9 +221,7 @@ async fn test_list_words_without_filters(
     };
     let id_2 = upsert_word(&db, &create_payload_2).await.unwrap();
 
-    list_word_payload.data.language_id = Some(language.id);
-    list_word_payload.data.word_types = None;
-    list_word_payload.data.keyword = None;
+    list_word_payload.filters.push(language_filter(language.id));
 
     let response = word_service::list(&db, Some(list_word_payload)).await;
     assert!(response.is_ok());
@@ -227,7 +246,7 @@ async fn test_list_words_without_filters(
 #[tokio::test]
 async fn test_list_words_with_exact_spelling_match(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -243,9 +262,8 @@ async fn test_list_words_with_exact_spelling_match(
     };
     let id = upsert_word(&db, &create_payload).await.unwrap();
 
-    list_word_payload.data.language_id = Some(language.id);
-    list_word_payload.data.keyword = Some("conduire".to_owned());
-    list_word_payload.data.word_types = None;
+    list_word_payload.filters.push(language_filter(language.id));
+    list_word_payload.filters.push(spelling_filter("conduire"));
 
     let results = word_service::list(&db, Some(list_word_payload)).await;
     assert!(results.is_ok());
@@ -260,7 +278,7 @@ async fn test_list_words_with_exact_spelling_match(
 #[tokio::test]
 async fn test_list_words_with_word_type_filter(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -285,9 +303,10 @@ async fn test_list_words_with_word_type_filter(
     };
     let id = upsert_word(&db, &verb).await.unwrap();
 
-    list_word_payload.data.language_id = Some(language.id);
-    list_word_payload.data.word_types = Some(vec![WordType::Verb]);
-    list_word_payload.data.keyword = None;
+    list_word_payload.filters.push(language_filter(language.id));
+    list_word_payload
+        .filters
+        .push(word_type_filter(WordType::Verb));
 
     let results = word_service::list(&db, Some(list_word_payload)).await;
     assert!(results.is_ok());
@@ -302,7 +321,7 @@ async fn test_list_words_with_word_type_filter(
 #[tokio::test]
 async fn test_list_words_with_empty_keyword_matches_all_entries(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -337,9 +356,8 @@ async fn test_list_words_with_empty_keyword_matches_all_entries(
         upsert_word(&db, &word).await.unwrap();
     }
 
-    list_word_payload.data.language_id = Some(language.id);
-    list_word_payload.data.keyword = Some("".to_owned());
-    list_word_payload.data.word_types = None;
+    list_word_payload.filters.push(language_filter(language.id));
+    list_word_payload.filters.push(spelling_filter(""));
 
     let results = word_service::list(&db, Some(list_word_payload)).await;
     assert!(results.is_ok());
@@ -354,7 +372,7 @@ async fn test_list_words_with_empty_keyword_matches_all_entries(
 #[tokio::test]
 async fn test_list_words_omits_total_when_include_total_is_false(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -372,9 +390,7 @@ async fn test_list_words_omits_total_when_include_total_is_false(
         upsert_word(&db, &word).await.unwrap();
     }
 
-    list_word_payload.data.language_id = Some(language.id);
-    list_word_payload.data.keyword = None;
-    list_word_payload.data.word_types = None;
+    list_word_payload.filters.push(language_filter(language.id));
     list_word_payload.pagination.offset = Some(1);
     list_word_payload.pagination.limit = Some(2);
     list_word_payload.include_total = false;
@@ -394,7 +410,7 @@ async fn test_list_words_omits_total_when_include_total_is_false(
 #[tokio::test]
 async fn test_list_words_with_limit_and_offset(
     create_language_payload: EntryCreateSchema,
-    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>,
+    mut list_word_payload: QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>,
 ) {
     let db = database().await;
     let language = entry_service::create(&db, create_language_payload)
@@ -412,9 +428,7 @@ async fn test_list_words_with_limit_and_offset(
         upsert_word(&db, &word).await.unwrap();
     }
 
-    list_word_payload.data.language_id = Some(language.id);
-    list_word_payload.data.keyword = None;
-    list_word_payload.data.word_types = None;
+    list_word_payload.filters.push(language_filter(language.id));
     list_word_payload.pagination.offset = Some(2);
     list_word_payload.pagination.limit = Some(2);
     list_word_payload.include_total = true;

@@ -8,7 +8,7 @@ use ::entity::word::{
 use crate::model::FilterItemType;
 use crate::model::{
     Query, SortItem,
-    word::{Word, WordQueryData},
+    word::{Word, WordQueryOptions},
 };
 use crate::types::{grammar_types::WordType, queryable_properties::QueryableWordProperties};
 use crate::utils::{CodedEnum, sea_orm as utils};
@@ -92,71 +92,31 @@ where
 
 pub async fn get_many<C>(
     con: &C,
-    query: &Query<QueryableWordProperties, WordQueryData>,
+    query: &Query<QueryableWordProperties, WordQueryOptions>,
 ) -> Result<Vec<Word>, DbErr>
 where
     C: ConnectionTrait,
 {
     let mut select = WordEntity::find();
 
-    if let Some(language_id) = query.options.language_id {
-        select = select.filter(WordColumn::LanguageId.eq(language_id));
-    }
-
-    if let Some(word_types) = query
-        .options
-        .word_types
-        .clone()
-        .filter(|types| !types.is_empty())
-    {
-        let codes: Vec<i8> = word_types
-            .iter()
-            .map(|word_type| word_type.code())
-            .collect();
-        select = select.filter(WordColumn::WordType.is_in(codes));
-    }
-
-    if let Some(arg) = &query.options.like_spelling {
-        select = select.filter(WordColumn::Spelling.like(format!("%{}%", arg)));
-    }
-
     select = utils::add_pagination_clauses(select, &query.pagination);
     select = _apply_sortation(select, &query.sortation);
+    select = _apply_filters(select, &query.filters);
 
     select.into_partial_model::<Word>().all(con).await
 }
 
 pub async fn count<C>(
     con: &C,
-    query: &Query<QueryableWordProperties, WordQueryData>,
+    query: &Query<QueryableWordProperties, WordQueryOptions>,
 ) -> Result<u64, DbErr>
 where
     C: ConnectionTrait,
 {
     let mut select = WordEntity::find();
 
-    if let Some(language_id) = query.options.language_id {
-        select = select.filter(WordColumn::LanguageId.eq(language_id));
-    }
-
-    if let Some(word_types) = &query
-        .options
-        .word_types
-        .clone()
-        .filter(|types| !types.is_empty())
-    {
-        let codes: Vec<i8> = word_types
-            .iter()
-            .map(|word_type| word_type.code())
-            .collect();
-        select = select.filter(WordColumn::WordType.is_in(codes));
-    }
-
-    if let Some(arg) = &query.options.like_spelling {
-        select = select.filter(WordColumn::Spelling.like(format!("%{}%", arg)));
-    }
-
     select = _apply_sortation(select, &query.sortation);
+    select = _apply_filters(select, &query.filters);
 
     select.count(con).await
 }

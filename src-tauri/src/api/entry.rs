@@ -5,7 +5,7 @@ use crate::schema::{
     DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
     entry::{
         EntryArticleResponseSchema, EntryCreateSchema, EntryInfoResponseSchema,
-        EntryListRequestSchema, EntryPropertyResponseSchema, EntryUpdateResponseSchema,
+        EntryPropertyResponseSchema, EntryQueryOptionsSchema, EntryUpdateResponseSchema,
         EntryUpdateSchema,
     },
 };
@@ -94,7 +94,7 @@ pub async fn get_entry_text(
 pub async fn list_entries(
     state: tauri::State<'_, State>,
     project_id: Uuid,
-    args: Option<QueryRequestSchema<QueryableEntryProperties, EntryListRequestSchema>>,
+    args: Option<QueryRequestSchema<QueryableEntryProperties, EntryQueryOptionsSchema>>,
 ) -> Result<QueryResponseSchema<EntryInfoResponseSchema>, Error> {
     let state = state.lock().await;
     let db = project_service::get_database(&state, project_id)?;

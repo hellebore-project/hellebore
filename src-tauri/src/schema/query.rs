@@ -59,23 +59,24 @@ pub enum FilterItemUnionSchema<P: CodedEnum> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct QueryRequestSchema<P: CodedEnum, D: Default> {
-    pub data: D,
+pub struct QueryRequestSchema<P: CodedEnum, O: Default> {
     #[serde(default)]
     pub pagination: PaginationSchema,
     #[serde(default)]
     pub sortation: Vec<SortItemSchema<P>>,
     #[serde(default)]
     pub filters: Vec<FilterItemUnionSchema<P>>,
+    #[serde(default)]
+    pub options: O,
     /// return the total number of items in the response
     #[serde(default = "default_true")]
     pub include_total: bool,
 }
 
-impl<P: CodedEnum, D: Default> Default for QueryRequestSchema<P, D> {
+impl<P: CodedEnum, O: Default> Default for QueryRequestSchema<P, O> {
     fn default() -> Self {
         QueryRequestSchema {
-            data: D::default(),
+            options: O::default(),
             pagination: PaginationSchema {
                 page_index: 0,
                 offset: None,

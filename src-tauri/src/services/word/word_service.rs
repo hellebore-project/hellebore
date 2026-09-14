@@ -5,10 +5,12 @@ use ::entity::word::Model as Word;
 use serde_json;
 
 use crate::database::word_manager;
-use crate::model::{Error, ErrorBuilder, Query, word::WordQueryData};
+use crate::model::{Error, ErrorBuilder, Query, word::WordQueryOptions};
 use crate::schema::{
     DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
-    word::{WordListRequestSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
+    word::{
+        WordQueryOptionsSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema,
+    },
 };
 use crate::services::{query_service, word::word_querier::WordQuerier};
 use crate::types::{
@@ -208,7 +210,7 @@ pub async fn get_all_for_language(
 
 pub async fn list(
     database: &DatabaseConnection,
-    query_request: Option<QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>>,
+    query_request: Option<QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>>,
 ) -> Result<QueryResponseSchema<WordResponseSchema>, Error> {
     let query_request = query_request.unwrap_or_default();
 
@@ -216,11 +218,7 @@ pub async fn list(
         pagination: query_service::create_pagination_model(&query_request),
         sortation: query_service::create_sortation_model(&query_request),
         filters: query_service::create_filter_model(&query_request),
-        options: WordQueryData {
-            language_id: query_request.data.language_id,
-            word_types: query_request.data.word_types,
-            like_spelling: query_request.data.keyword,
-        },
+        options: WordQueryOptions {},
     };
 
     let page = query_service::paginated_query::<WordQuerier, DatabaseConnection>(

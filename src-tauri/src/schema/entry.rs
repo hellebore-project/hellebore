@@ -121,6 +121,4 @@ pub struct EntryArticleResponseSchema {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct EntryListRequestSchema {
-    pub keyword: Option<String>,
-}
+pub struct EntryQueryOptionsSchema {}

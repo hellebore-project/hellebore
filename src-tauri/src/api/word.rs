@@ -3,7 +3,9 @@ use uuid::Uuid;
 use crate::model::{errors::Error, state::State};
 use crate::schema::{
     DiagnosticResponseSchema, QueryRequestSchema, QueryResponseSchema,
-    word::{WordListRequestSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema},
+    word::{
+        WordQueryOptionsSchema, WordResponseSchema, WordUpsertResponseSchema, WordUpsertSchema,
+    },
 };
 use crate::services::{project_service, word_service};
 use crate::types::queryable_properties::QueryableWordProperties;
@@ -35,7 +37,7 @@ pub async fn get_word(
 pub async fn list_words(
     state: tauri::State<'_, State>,
     project_id: Uuid,
-    args: Option<QueryRequestSchema<QueryableWordProperties, WordListRequestSchema>>,
+    args: Option<QueryRequestSchema<QueryableWordProperties, WordQueryOptionsSchema>>,
 ) -> Result<QueryResponseSchema<WordResponseSchema>, Error> {
     let state = state.lock().await;
     let db = project_service::get_database(&state, project_id)?;
