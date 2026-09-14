@@ -83,6 +83,4 @@ export interface EntryArticleResponse {
     text: JSONContent;
 }
 
-export interface EntryListRequest {
-    keyword?: string | null;
-}
+export type EntryQueryOptions = object;

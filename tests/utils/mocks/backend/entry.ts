@@ -9,15 +9,17 @@ import {
     type EntryUpdateResponse,
     type DiagnosticResponse,
     type WordUpsertResponse,
-    type EntryListRequest,
+    type EntryQueryOptions,
     type QueryRequest,
     QueryResponse,
+    EntryProperty,
 } from "@/api";
 import { Id } from "@/interface";
 import { compareStrings } from "@/utils/string";
 
 import { MockedCommand, MockedInvoker } from "./invoker";
 import { AddMockedCommandArgs } from "./interface";
+import { query } from "./query";
 
 export function mockCreateEntry({
     mockedInvoker,
@@ -146,30 +148,23 @@ export function mockListEntries(
     mockedInvoker: MockedInvoker,
     entries: EntryInfoResponse[],
 ) {
+    const PROPERTY_MAPPING: Partial<Record<EntryProperty, string>> = {
+        [EntryProperty.Id]: "id",
+        [EntryProperty.FolderId]: "folderId",
+        [EntryProperty.EntityType]: "entityType",
+        [EntryProperty.Title]: "title",
+    };
+
     const search = async ({
         args,
     }: {
-        args: QueryRequest<EntryListRequest> | null;
+        args: QueryRequest<EntryProperty, EntryQueryOptions> | null;
     }) => {
-        if (args?.data.keyword)
-            entries = entries.filter((e) =>
-                e.title.includes(args?.data.keyword),
-            );
-
-        entries = entries
-            .sort((a, b) => compareStrings(a.title, b.title))
-            .slice(args?.pagination?.offset ?? undefined)
-            .slice(0, args?.pagination?.limit ?? undefined);
-
-        const response: QueryResponse<EntryInfoResponse> = {
+        return query({
             items: entries,
-            pageIndex: args?.pagination?.pageIndex ?? 0,
-            pageCount: 1,
-            total: args?.includeTotal ? entries.length : null,
-            offset: args?.pagination?.offset ?? null,
-            limit: args?.pagination?.limit ?? null,
-        };
-        return response;
+            args,
+            propertyMapping: PROPERTY_MAPPING,
+        });
     };
     mockedInvoker.mockCommand(CommandNames.Entry.List, search);
 }

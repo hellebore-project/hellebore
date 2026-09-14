@@ -38,8 +38,8 @@ pub enum PredicateUnionSchema<T> {
     LessThanOrEqual { value: T },
     In { values: Vec<T> },
     NotIn { values: Vec<T> },
-    Like { values: T },
-    NotLike { values: T },
+    Like { value: T },
+    NotLike { value: T },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -23,7 +23,7 @@ fn title_filter(keyword: &str) -> FilterItemUnionSchema<QueryableEntryProperties
     FilterItemUnionSchema::String(FilterItemSchema {
         field: QueryableEntryProperties::Title,
         predicate: PredicateUnionSchema::Like {
-            values: keyword.to_owned(),
+            value: keyword.to_owned(),
         },
     })
 }

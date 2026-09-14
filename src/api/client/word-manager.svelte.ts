@@ -2,12 +2,12 @@ import { invoke } from "@tauri-apps/api/core";
 
 import type { Id } from "@/interface/common";
 
-import { CommandNames } from "../constants";
+import { CommandNames, WordProperty } from "../constants";
 import type {
     DiagnosticResponse,
     QueryRequest,
     QueryResponse,
-    WordListRequest,
+    WordQueryOptions,
     WordResponse,
     WordUpsert,
     WordUpsertResponse,
@@ -52,7 +52,7 @@ export class WordManager {
 
     async list(
         projectId: Id,
-        args: QueryRequest<WordListRequest>,
+        args: QueryRequest<WordProperty, WordQueryOptions>,
     ): Promise<QueryResponse<WordResponse> | null> {
         try {
             return await invoke<QueryResponse<WordResponse>>(

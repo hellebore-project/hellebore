@@ -3,7 +3,8 @@ import {
     CommandNames,
     QueryRequest,
     QueryResponse,
-    WordListRequest,
+    WordQueryOptions,
+    WordProperty,
     WordType,
     type BackendApiError,
     type WordResponse,
@@ -11,6 +12,7 @@ import {
 } from "@/api";
 
 import { MockedCommand, MockedInvoker } from "./invoker";
+import { query } from "./query";
 
 export function mockUpsertWords(
     mockedInvoker: MockedInvoker,
@@ -37,33 +39,25 @@ export function mockListWords(
     mockedInvoker: MockedInvoker,
     words: WordResponse[] = [],
 ) {
+    const PROPERTY_MAPPING: Partial<Record<WordProperty, string>> = {
+        [WordProperty.Id]: "id",
+        [WordProperty.LanguageId]: "languageId",
+        [WordProperty.WordType]: "wordType",
+        [WordProperty.Spelling]: "spelling",
+        [WordProperty.Definition]: "definition",
+        [WordProperty.Translations]: "translations",
+    };
+
     const command = async ({
         args,
     }: {
-        args: QueryRequest<WordListRequest>;
+        args: QueryRequest<WordProperty, WordQueryOptions>;
     }) => {
-        words = words
-            .filter(
-                (w) =>
-                    (!args.data.languageId ||
-                        w.languageId === args.data.languageId) &&
-                    (!args.data.wordTypes ||
-                        args.data.wordTypes.includes(w.wordType)) &&
-                    (!args.data.keyword ||
-                        w.spelling.includes(args.data.keyword)),
-            )
-            .slice(args.pagination?.offset ?? 0)
-            .slice(0, args.pagination?.limit ?? undefined);
-
-        const response: QueryResponse<WordResponse> = {
+        return query({
             items: words,
-            pageIndex: args?.pagination?.pageIndex ?? 0,
-            pageCount: 1,
-            total: args?.includeTotal ? words.length : null,
-            offset: args?.pagination?.offset ?? null,
-            limit: args?.pagination?.limit ?? null,
-        };
-        return response;
+            args,
+            propertyMapping: PROPERTY_MAPPING,
+        });
     };
 
     mockedInvoker.mockCommand(CommandNames.Word.List, command as MockedCommand);

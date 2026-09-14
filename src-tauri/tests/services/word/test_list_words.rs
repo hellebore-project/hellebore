@@ -31,7 +31,7 @@ fn spelling_filter(spelling: &str) -> FilterItemUnionSchema<QueryableWordPropert
     FilterItemUnionSchema::String(FilterItemSchema {
         field: QueryableWordProperties::Spelling,
         predicate: PredicateUnionSchema::Like {
-            values: spelling.to_owned(),
+            value: spelling.to_owned(),
         },
     })
 }

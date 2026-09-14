@@ -1,5 +1,5 @@
 import { PropertyFieldType } from "@/constants";
-import { PersonProperty, type PersonProperties } from "@/api";
+import { PersonPropertyLabel, type PersonProperties } from "@/api";
 import type {
     PropertyChangeEvent,
     PropertyFieldData,
@@ -23,7 +23,7 @@ export class Person implements PersonProperties {
 
     set name(value: string) {
         this._name = value;
-        this.onChange.produce({ property: PersonProperty.NAME, value });
+        this.onChange.produce({ property: PersonPropertyLabel.NAME, value });
     }
 
     toJSON(): PersonProperties {
@@ -33,7 +33,7 @@ export class Person implements PersonProperties {
     buildFieldData(): PropertyFieldData[] {
         const fields: TextPropertyFieldData[] = [
             {
-                property: PersonProperty.NAME,
+                property: PersonPropertyLabel.NAME,
                 label: "Full Name",
                 type: PropertyFieldType.Text,
                 getValue: () => this._name,

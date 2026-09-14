@@ -5,6 +5,7 @@ import type { Id } from "@/interface";
 import {
     CommandNames,
     ENTRY_TYPE_LABEL_MAPPING,
+    EntryProperty,
     EntryType,
     EntryTypeLabel,
     ROOT_FOLDER_ID,
@@ -17,7 +18,7 @@ import type {
     EntryCreate,
     EntryInfoResponse,
     EntryPropertyResponse,
-    EntryListRequest,
+    EntryQueryOptions,
     EntryUpdate,
     EntryUpdateResponse,
     DiagnosticResponse,
@@ -266,7 +267,7 @@ export class EntryManager {
 
     async list(
         projectId: Id,
-        args: QueryRequest<EntryListRequest> | null = null,
+        args: QueryRequest<EntryProperty, EntryQueryOptions> | null = null,
     ): Promise<QueryResponse<EntryInfoResponse> | null> {
         let response: QueryResponse<EntryInfoResponse>;
         try {

@@ -1,3 +1,3 @@
-export enum PersonProperty {
+export enum PersonPropertyLabel {
     NAME = "name",
 }

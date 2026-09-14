@@ -94,11 +94,11 @@ pub fn create_predicate<T: Clone>(predicate_schema: &PredicateUnionSchema<T>) ->
         PredicateUnionSchema::NotIn { values } => Predicate::NotIn {
             values: values.clone(),
         },
-        PredicateUnionSchema::Like { values } => Predicate::Like {
-            value: values.clone(),
+        PredicateUnionSchema::Like { value } => Predicate::Like {
+            value: value.clone(),
         },
-        PredicateUnionSchema::NotLike { values } => Predicate::NotLike {
-            value: values.clone(),
+        PredicateUnionSchema::NotLike { value } => Predicate::NotLike {
+            value: value.clone(),
         },
     }
 }
