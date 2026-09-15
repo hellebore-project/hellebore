@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::Path;
 
+use log::LevelFilter;
 use rstest::*;
 use uuid::Uuid;
 
@@ -19,6 +20,7 @@ use crate::fixtures::project::{
 fn create_state() -> State {
     State::new(AppConfig {
         recent_project_paths: vec![],
+        log_level: LevelFilter::Info,
     })
 }
 

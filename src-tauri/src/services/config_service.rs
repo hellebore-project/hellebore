@@ -40,23 +40,20 @@ pub fn load_app_config() -> Result<AppConfig, Error> {
 
     let config_file = _read_app_config_from_file(&config_file_path);
 
-    let config = match config_file {
-        Ok(config_file) => AppConfig {
+    match config_file {
+        Ok(config_file) => Ok(AppConfig {
             recent_project_paths: config_file.recent_projects,
-        },
-        Err(_) => AppConfig::default(),
-    };
-
-    Ok(config)
+            log_level: config_file.log_level,
+        }),
+        Err(e) => Err(e),
+    }
 }
 
 fn _read_app_config_from_file(config_file_path: &str) -> Result<AppConfigFileSchema, Error> {
     let exists = fs::metadata(config_file_path).is_ok();
 
     if !exists {
-        return Ok(AppConfigFileSchema {
-            recent_projects: Vec::new(),
-        });
+        return Ok(AppConfigFileSchema::default());
     }
 
     let config_text = match fs::read_to_string(config_file_path) {
@@ -83,6 +80,7 @@ pub fn save_app_config(config: &AppConfig) -> Result<(), Error> {
 
     let config_file = AppConfigFileSchema {
         recent_projects: config.recent_project_paths.clone(),
+        log_level: config.log_level,
     };
 
     _write_app_config_to_file(&config_file, &config_file_path)

@@ -20,7 +20,7 @@ pub async fn create(
     folder_path: &str,
     in_memory: bool,
 ) -> Result<ProjectResponseSchema, Error> {
-    println!("Initializing project");
+    log::debug!("Creating new project `{name}` at `{folder_path}`");
 
     std::fs::create_dir_all(folder_path).map_err(|e| {
         ErrorBuilder::new()
@@ -60,13 +60,20 @@ pub async fn load(
     state: &mut MutexGuard<'_, StateData>,
     folder_path: &Option<String>,
 ) -> Result<ProjectResponseSchema, Error> {
+    log::info!("{}", state.config.recent_project_paths.len());
+
     let folder_path = match folder_path {
         Some(path) => path.to_owned(),
         None => match state.config.recent_project_paths.first() {
-            Some(path) => path.to_owned(),
+            Some(path) => {
+                log::debug!("Use most recent project at `{}`", path);
+                path.to_owned()
+            }
             None => String::new(),
         },
     };
+
+    log::debug!("Loading project at `{:?}`", folder_path);
 
     if folder_path.is_empty() {
         return Err(ErrorBuilder::new()
