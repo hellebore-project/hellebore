@@ -1,3 +1,4 @@
+use log::LevelFilter;
 use rstest::*;
 use sea_orm::DatabaseConnection;
 
@@ -19,6 +20,7 @@ pub mod word;
 pub fn default_app_config() -> AppConfig {
     AppConfig {
         recent_project_paths: vec![],
+        log_level: LevelFilter::Info,
     }
 }
 

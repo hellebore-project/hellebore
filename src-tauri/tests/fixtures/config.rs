@@ -1,6 +1,7 @@
 use std::env;
 use std::fs;
 
+use log::LevelFilter;
 use rstest::*;
 use uuid::Uuid;
 
@@ -39,6 +40,7 @@ pub fn app_config() -> AppConfig {
             "/tmp/hellebore-project-a".to_string(),
             "/tmp/hellebore-project-b".to_string(),
         ],
+        log_level: LevelFilter::Info,
     }
 }
 
@@ -49,5 +51,6 @@ pub fn app_config_file_schema() -> AppConfigFileSchema {
             "/tmp/hellebore-project-a".to_string(),
             "/tmp/hellebore-project-b".to_string(),
         ],
+        log_level: LevelFilter::Info,
     }
 }
