@@ -49,9 +49,9 @@
         </Tooltip.Content>
     </Tooltip.Root>
 
-    <span class="px-2 text-sm text-muted-foreground"
-        >Page {service.page + 1} of {service.count}</span
-    >
+    <span class="px-2 text-sm text-muted-foreground">
+        {service.label}
+    </span>
 
     <Tooltip.Root>
         <Tooltip.Trigger>

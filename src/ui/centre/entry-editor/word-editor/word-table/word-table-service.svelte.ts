@@ -60,12 +60,19 @@ export class WordTableService implements IComponentService {
         this._id = id;
         this._domain = domain;
         this._data = data;
+
         this.table = new DataTableService({
             id: `${this._id}-data-table`,
             columns: WORD_COLUMNS,
-            onFilter: (colKey, values) => this._onFilter(colKey, values),
-            onSetValue: (rowKey) => this._onSetValue(rowKey),
+            pageCount: 1,
         });
+        this.table.onFilter.subscribe(({ colKey, values }) =>
+            this._onFilter(colKey, values),
+        );
+        this.table.onSetValue.subscribe(({ rowKey }) =>
+            this._onSetValue(rowKey),
+        );
+
         this.onChange = new MultiEventProducer();
     }
 
@@ -170,8 +177,7 @@ export class WordTableService implements IComponentService {
         if (values.length === 0) return;
 
         const sentinel = this.table.findRow(this._sentinelKey) as
-            | WordRow
-            | undefined;
+            WordRow | undefined;
         if (!sentinel) return;
 
         if (

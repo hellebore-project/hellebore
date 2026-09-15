@@ -1,4 +1,9 @@
-import { EntryViewType, SidebarSectionType, ViewAction } from "@/constants";
+import {
+    ChangePageAction,
+    EntryViewType,
+    SidebarSectionType,
+    ViewAction,
+} from "@/constants";
 import type { EntryType } from "@/api";
 import type { Consumer } from "@/utils/event-producer";
 
@@ -46,4 +51,9 @@ export interface AddEntryEditorNavigatorEvent extends AddSidebarSectionEvent {
 export interface ReleaseSidebarSectionEvent {
     ownerId: string;
     type: SidebarSectionType;
+}
+
+export interface ChangePageEvent {
+    action: ChangePageAction;
+    pageIndex: number;
 }

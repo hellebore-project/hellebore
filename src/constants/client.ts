@@ -20,6 +20,13 @@ export enum ViewAction {
     Close = "CLOSE",
 }
 
+export enum ChangePageAction {
+    PreviousPage,
+    NextPage,
+    FirstPage,
+    LastPage,
+}
+
 export enum CentralViewType {
     Home = "HOME",
     Settings = "SETTINGS",
