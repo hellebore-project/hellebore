@@ -4,6 +4,22 @@ import type { DataTableService } from "./data-table-service.svelte";
 
 export type PositionKey = string;
 
+export interface FilterColumnEvent<TColKey> {
+    colKey: TColKey;
+    values: string[];
+}
+
+export interface CellEvent<TColKey> {
+    rowKey: string;
+    colKey: TColKey;
+}
+
+export interface CellValueEvent<TColKey> {
+    rowKey: string;
+    colKey: TColKey;
+    value: string;
+}
+
 export interface DataCell {
     value: string;
     oldValue?: string;

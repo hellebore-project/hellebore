@@ -4,20 +4,20 @@ import type { IComponentService } from "@/interface";
 import { PaginationService } from "@/lib/components/pagination";
 
 import type {
+    CellEvent,
+    CellValueEvent,
     DataColumn,
     DataRow,
+    FilterColumnEvent,
     PositionKey,
     SelectionAnchor,
 } from "./data-table-interface";
+import { EventProducer } from "@/utils/event-producer";
 
 export interface DataTableServiceArgs<TColKey extends string> {
     id: string;
     columns: DataColumn<TColKey>[];
     pageCount?: number;
-    onFilter?: (colKey: TColKey, values: string[]) => void;
-    onCancelEdit?: (rowKey: string, colKey: TColKey) => void;
-    onSetValue?: (rowKey: string, colKey: TColKey, value: string) => void;
-    onPageChange?: (page: number) => void;
 }
 
 export class DataTableService<
@@ -39,24 +39,15 @@ export class DataTableService<
     // SERVICES
     pagination: PaginationService;
 
-    // CALLBACKS
+    // REFERENCES
     focusGrid: (() => void) | undefined = undefined;
-    private _onFilter:
-        ((colKey: TColKey, values: string[]) => void) | undefined;
-    private _onCancelEdit:
-        ((rowKey: string, colKey: TColKey) => void) | undefined;
-    private _onSetValue:
-        ((rowKey: string, colKey: TColKey, value: string) => void) | undefined;
 
-    constructor({
-        id,
-        columns,
-        pageCount,
-        onFilter,
-        onCancelEdit,
-        onSetValue,
-        onPageChange,
-    }: DataTableServiceArgs<TColKey>) {
+    // EVENTS
+    onFilter: EventProducer<FilterColumnEvent<TColKey>, unknown>;
+    onCancelEdit: EventProducer<CellEvent<TColKey>, unknown>;
+    onSetValue: EventProducer<CellValueEvent<TColKey>, unknown>;
+
+    constructor({ id, columns, pageCount }: DataTableServiceArgs<TColKey>) {
         this._id = id;
         this._columns = columns;
 
@@ -64,11 +55,10 @@ export class DataTableService<
             id: `${id}-pagination`,
             count: pageCount,
         });
-        if (onPageChange) this.pagination.onChangePage.subscribe(onPageChange);
 
-        this._onFilter = onFilter;
-        this._onCancelEdit = onCancelEdit;
-        this._onSetValue = onSetValue;
+        this.onFilter = new EventProducer();
+        this.onCancelEdit = new EventProducer();
+        this.onSetValue = new EventProducer();
     }
 
     // PROPERTIES
@@ -141,7 +131,7 @@ export class DataTableService<
         this.selectedCells.clear();
         this.editCell = null;
         this._selectionAnchor = null;
-        this._onFilter?.(colKey, []);
+        this.onFilter?.produce({ colKey, values: [] }, true);
     }
 
     toggleColumnFilter(colKey: TColKey, value: string) {
@@ -167,7 +157,7 @@ export class DataTableService<
         this.selectedCells.clear();
         this.editCell = null;
         this._selectionAnchor = null;
-        this._onFilter?.(colKey, values);
+        this.onFilter?.produce({ colKey, values }, true);
     }
 
     get activeCell(): { rowKey: string; colKey: TColKey } | null {
@@ -190,7 +180,7 @@ export class DataTableService<
         if (!row) return;
         row.cells[colKey].value = value;
         this.modifiedKeys.add(rowKey);
-        this._onSetValue?.(rowKey, colKey, value);
+        this.onSetValue?.produce({ rowKey, colKey, value }, true);
     }
 
     findRow(rowKey: string): DataRow<TColKey> | undefined {
@@ -370,7 +360,7 @@ export class DataTableService<
             row.cells[colKey].value = row.cells[colKey].oldValue!;
             row.cells[colKey].oldValue = undefined;
         }
-        this._onCancelEdit?.(rowKey, colKey);
+        this.onCancelEdit?.produce({ rowKey, colKey }, true);
         this.editCell = null;
     }
 

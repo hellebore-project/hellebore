@@ -28,10 +28,11 @@ export class EventProducer<I, O> {
         this._consumer = null;
     }
 
-    produce(arg: I): O {
+    produce(arg: I, allowNoOp = false): O {
         if (this._consumer !== null) return this._consumer(arg);
         else if (this._broker) return this._broker.produce(arg);
-        throw "EventProducer has not been set.";
+        if (!allowNoOp) throw "EventProducer has not been set.";
+        return null as O;
     }
 }
 

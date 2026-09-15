@@ -1,20 +1,21 @@
-import type { IComponentService } from "@/interface";
+import { ChangePageAction } from "@/constants";
+import type { ChangePageEvent, IComponentService } from "@/interface";
 import { MultiEventProducer } from "@/utils/event-producer";
 
 export interface PaginationServiceArgs {
     id: string;
     page?: number;
-    count?: number;
+    count?: number | null;
 }
 
 export class PaginationService implements IComponentService {
     private _id: string;
     private _page: number = $state(0); // 0-based index
-    private _count: number = $state(1); // total number of pages
+    private _count: number | null = $state(null); // total number of pages
 
-    onChangePage: MultiEventProducer<number, unknown>;
+    onChangePage: MultiEventProducer<ChangePageEvent, unknown>;
 
-    constructor({ id, page = 0, count = 1 }: PaginationServiceArgs) {
+    constructor({ id, page = 0, count = null }: PaginationServiceArgs) {
         this._id = id;
         this._page = page;
         this._count = count;
@@ -29,18 +30,12 @@ export class PaginationService implements IComponentService {
         return this._page;
     }
 
-    set page(value: number) {
-        if (value !== this._page) {
-            this._page = value;
-            this.onChangePage.produce(value);
-        }
-    }
-
     get isFirstPage() {
         return this._page === 0;
     }
 
     get isLastPage() {
+        if (this._count === null) return false;
         return this._page === this._count - 1;
     }
 
@@ -48,23 +43,37 @@ export class PaginationService implements IComponentService {
         return this._count;
     }
 
-    set count(count: number) {
-        this._count = count;
+    get label() {
+        if (this._count) return `Page ${this.page + 1} of ${this.count}`;
+        return `Page ${this.page + 1}`;
     }
 
     goToFirstPage() {
-        this.page = 0;
+        this.changePage(ChangePageAction.FirstPage, 0);
     }
 
     goToLastPage() {
-        this.page = this._count - 1;
+        if (this._count === null) return;
+        this.changePage(ChangePageAction.LastPage, this._count - 1);
     }
 
     goToNextPage() {
-        if (this._page < this._count - 1) this.page = this._page + 1;
+        if (this._count === null || this._page >= this._count - 1) return;
+        this.changePage(ChangePageAction.NextPage, this._page + 1);
     }
 
     goToPreviousPage() {
-        if (this._page > 0) this.page = this._page - 1;
+        if (this._page > 0)
+            this.changePage(ChangePageAction.PreviousPage, this._page - 1);
+    }
+
+    changePage(action: ChangePageAction, pageIndex: number) {
+        if (pageIndex == this._page) return;
+        this._page = pageIndex;
+        this.onChangePage.produce({ action, pageIndex });
+    }
+
+    changeCount(value: number | null) {
+        this._count = value;
     }
 }
