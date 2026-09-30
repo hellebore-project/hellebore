@@ -7,22 +7,23 @@
     import type { DataTableService } from "./data-table-service.svelte";
     import { ReadOnlyCell, TextCell, SelectCell } from "./cells";
 
-    export interface DataRowProps<TColKey extends string> {
+    export interface DataRowProps<TColKey extends string, TColMetaData> {
         row: { key: string; cells: Record<TColKey, { value: string }> };
-        service: DataTableService<TColKey>;
+        service: DataTableService<TColKey, TColMetaData>;
         rowActions?: Snippet<[string]>;
     }
 </script>
 
-<script lang="ts" generics="TColKey extends string">
-    const { row, service, rowActions }: DataRowProps<TColKey> = $props();
+<script lang="ts" generics="TColKey extends string, TColMetaData">
+    const { row, service, rowActions }: DataRowProps<TColKey, TColMetaData> =
+        $props();
 </script>
 
 <Table.Row class="group">
     {#each service.columns as col (col.key)}
         {@const posKey = `${row.key}-${col.key}`}
         {@const isSelected = service.selectedCells.has(posKey)}
-        {@const isEditing = service.isEditable(row.key, col.key)}
+        {@const isEditing = service.isCellEditable(row.key, col.key)}
         {@const cellValue = row.cells[col.key].value}
         <Table.Cell
             id="cell-{posKey}"
@@ -34,12 +35,12 @@
             data-selected={isSelected}
             onmousedown={(e) =>
                 service.handleCellMouseDown(e, row.key, col.key)}
-            ondblclick={() => service.startEdit(row.key, col.key)}
+            ondblclick={() => service.startCellEdit(row.key, col.key)}
             onmouseenter={(e) => {
                 if (e.buttons === 1) service.dragTo(row.key, col.key);
             }}
         >
-            {#if col.type === "select"}
+            {#if col.fieldType === "select"}
                 {@const displayValue =
                     col.items.find((i) => i.value === cellValue)?.label ?? ""}
                 {#if isEditing}
@@ -48,7 +49,7 @@
                         items={col.items}
                         {service}
                         onValueChange={(v) =>
-                            service.setValue(row.key, col.key, v)}
+                            service.setCellValue(row.key, col.key, v)}
                     />
                 {:else}
                     <ReadOnlyCell value={displayValue} />
@@ -59,7 +60,8 @@
                 {#if isEditing}
                     <TextCell
                         value={cellValue}
-                        oninput={(v) => service.setValue(row.key, col.key, v)}
+                        oninput={(v) =>
+                            service.setCellValue(row.key, col.key, v)}
                         selectAll={service.editSelectAll}
                     />
                 {:else}

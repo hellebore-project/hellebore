@@ -1,30 +1,6 @@
-// IDENTIFIERS
-
-export const SHARED_PORTAL_ID = "shared-portal";
-export const SHARED_PORTAL_SELECTOR = `#${SHARED_PORTAL_ID}`;
-
-// UI
-
 export enum PropertyFieldType {
     Text = "TEXT",
     Select = "SELECT",
-}
-
-export enum ViewAction {
-    Create = "CREATE",
-    Show = "SHOW",
-    // Open is a combination of Create and Show;
-    // since both of those actions are already enumerated,
-    // we don't need one for Open.
-    Hide = "HIDE",
-    Close = "CLOSE",
-}
-
-export enum ChangePageAction {
-    PreviousPage,
-    NextPage,
-    FirstPage,
-    LastPage,
 }
 
 export enum CentralViewType {
@@ -65,15 +41,4 @@ export enum SidebarSectionType {
 export enum ModalType {
     ProjectCreator = "PROJECT_CREATOR",
     EntryCreator = "ENTRY_CREATOR",
-}
-
-export enum ContextMenuType {
-    NavBarFolderNode = "NAV_BAR_FOLDER_NODE",
-    NavBarEntityNode = "NAV_BAR_ENTITY_NODE",
-}
-
-export enum SyncType {
-    NONE = 0,
-    PARTIAL = 1,
-    FULL = 2,
 }

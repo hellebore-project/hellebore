@@ -1,40 +1,57 @@
-import { SvelteSet } from "svelte/reactivity";
+import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
-import type { IComponentService } from "@/interface";
+import { PredicateType, type FilterPredicate } from "@/api";
+import { ChangePageAction } from "@/constants";
+import type { ChangePageEvent, IComponentService } from "@/interface";
 import { PaginationService } from "@/lib/components/pagination";
+import { EventProducer, MultiEventProducer } from "@/utils/event-producer";
 
 import type {
-    CellEvent,
-    CellValueEvent,
+    DataCellEvent,
+    DataCellEditEvent,
     DataColumn,
     DataRow,
-    FilterColumnEvent,
     PositionKey,
     SelectionAnchor,
+    DataCellKey,
+    DataTableQueryRequest,
+    DataTableFilterItem,
+    DataTableQueryResult,
+    DataTableQueryEvent,
+    //DataTableSortItem,
 } from "./data-table-interface";
-import { EventProducer } from "@/utils/event-producer";
 
-export interface DataTableServiceArgs<TColKey extends string> {
+export interface DataTableServiceArgs<TColKey extends string, TColMetaData> {
     id: string;
-    columns: DataColumn<TColKey>[];
+    columns: DataColumn<TColKey, TColMetaData>[];
     pageCount?: number;
 }
 
 export class DataTableService<
     TColKey extends string,
+    TColMetaData,
 > implements IComponentService {
     // STATE VARIABLES
+
     private _id: string;
-    rows: DataRow<TColKey>[] = $state([]);
-    private _columns: DataColumn<TColKey>[];
+
+    private _rows: DataRow<TColKey>[] = $state([]);
+    private _columns: DataColumn<TColKey, TColMetaData>[];
     modifiedKeys = new SvelteSet<string>();
+
     selectedCells = new SvelteSet<PositionKey>();
     private _selectionAnchor: SelectionAnchor<TColKey> | null = null;
     private _isDragging = false;
-    editCell: { rowKey: string; colKey: TColKey } | null = $state(null);
+
+    editableCellKey: DataCellKey<TColKey> | null = $state(null);
     selectOpen: boolean = $state(false);
     editSelectAll = true;
-    private _columnFilters: Record<string, string[]> = $state({});
+
+    private _columnFilters: SvelteMap<
+        TColKey,
+        FilterPredicate<number | string>
+    > = $state(new SvelteMap());
+    //private _columnSortOrders: DataTableSortItem<TColKey>[] = $state([]);
 
     // SERVICES
     pagination: PaginationService;
@@ -43,11 +60,18 @@ export class DataTableService<
     focusGrid: (() => void) | undefined = undefined;
 
     // EVENTS
-    onFilter: EventProducer<FilterColumnEvent<TColKey>, unknown>;
-    onCancelEdit: EventProducer<CellEvent<TColKey>, unknown>;
-    onSetValue: EventProducer<CellValueEvent<TColKey>, unknown>;
+    onQueryData: EventProducer<
+        DataTableQueryRequest<TColKey>,
+        Promise<DataTableQueryResult<DataRow<TColKey>> | null>
+    >;
+    onCancelEdit: MultiEventProducer<DataCellEvent<TColKey>, unknown>;
+    onSetValue: MultiEventProducer<DataCellEditEvent<TColKey>, unknown>;
 
-    constructor({ id, columns, pageCount }: DataTableServiceArgs<TColKey>) {
+    constructor({
+        id,
+        columns,
+        pageCount,
+    }: DataTableServiceArgs<TColKey, TColMetaData>) {
         this._id = id;
         this._columns = columns;
 
@@ -55,13 +79,16 @@ export class DataTableService<
             id: `${id}-pagination`,
             count: pageCount,
         });
+        this.pagination.onChangePage.subscribe((event) =>
+            this._onChangePage(event),
+        );
 
-        this.onFilter = new EventProducer();
-        this.onCancelEdit = new EventProducer();
-        this.onSetValue = new EventProducer();
+        this.onQueryData = new EventProducer();
+        this.onCancelEdit = new MultiEventProducer();
+        this.onSetValue = new MultiEventProducer();
     }
 
-    // PROPERTIES
+    // IDENTIFIERS
 
     get id() {
         return this._id;
@@ -71,94 +98,99 @@ export class DataTableService<
         return `${this._id}-header`;
     }
 
-    get columns(): DataColumn<TColKey>[] {
-        return this._columns;
+    // LOADING
+
+    async load(rows?: DataRow<TColKey>[] | null) {
+        this.reset();
+
+        if (rows) {
+            this._rows = rows;
+            this.pagination.setCount(1);
+        } else
+            await this._queryData({
+                pagination: {
+                    action: ChangePageAction.FirstPage,
+                },
+            });
+    }
+
+    private async _queryData({
+        pagination = { action: ChangePageAction.FirstPage },
+    }: DataTableQueryEvent) {
+        pagination.newPageIndex =
+            pagination.newPageIndex ?? this.pagination.page;
+
+        const filters: Partial<Record<TColKey, DataTableFilterItem>> = {};
+        for (const [colKey, predicate] of this._columnFilters.entries())
+            filters[colKey] = { predicate };
+
+        const result = await this.onQueryData.produce({
+            pagination: {
+                action: pagination.action,
+                pageIndex: pagination.newPageIndex,
+            },
+            sortation: [], // TODO
+            filters,
+        });
+
+        if (!result) {
+            this._rows = [];
+            this.pagination.reset();
+            console.error(`${this.id} failed to fetch data.`);
+            return;
+        }
+
+        this._rows = result.items;
+        this.pagination.setPage(
+            result.pagination?.pageIndex ?? pagination.newPageIndex,
+        );
+        this.pagination.setCount(result.pagination?.pageCount ?? null);
+    }
+
+    // ROWS
+
+    get rows(): DataRow<TColKey>[] {
+        return this._rows;
     }
 
     get visibleRows(): DataRow<TColKey>[] {
-        return this.rows.filter((row) => {
-            if (row.filterable === false) return true;
-            for (const [colKey, values] of Object.entries(
-                this._columnFilters,
-            )) {
-                const col = this.findColumn(colKey as TColKey);
-                const cellValue = row.cells[colKey as TColKey].value;
-                if (col?.type === "text") {
-                    if (
-                        !cellValue
-                            .toLowerCase()
-                            .includes(values[0].toLowerCase())
-                    ) {
-                        return false;
-                    }
-                } else {
-                    if (!values.includes(cellValue)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        });
+        return this.rows;
     }
 
-    getColumnFilter(colKey: TColKey): string[] {
-        return this._columnFilters[colKey] ?? [];
+    findRow(rowKey: string): DataRow<TColKey> | undefined {
+        return this._rows.find((r) => r.key === rowKey);
     }
 
-    getTextColumnFilter(colKey: TColKey): string {
-        return this._columnFilters[colKey]?.[0] ?? "";
+    addRow(row: DataRow<TColKey>) {
+        this._rows.push(row);
     }
 
-    setTextColumnFilter(colKey: TColKey, value: string) {
-        if (value === "") {
-            this.clearColumnFilter(colKey);
-        } else {
-            this.setColumnFilter(colKey, [value]);
-        }
-    }
-
-    isColumnFiltered(colKey: TColKey): boolean {
-        return colKey in this._columnFilters;
-    }
-
-    isColumnFilterChecked(colKey: TColKey, value: string): boolean {
-        if (!(colKey in this._columnFilters)) return true;
-        return this._columnFilters[colKey].includes(value);
-    }
-
-    clearColumnFilter(colKey: TColKey) {
-        delete this._columnFilters[colKey];
+    removeRow(rowKey: string) {
+        const idx = this._rows.findIndex((r) => r.key === rowKey);
+        if (idx < 0) return;
+        this._rows.splice(idx, 1);
+        this.modifiedKeys.delete(rowKey);
+        const prefix = `${rowKey}-`;
+        const entries = [...this.selectedCells];
         this.selectedCells.clear();
-        this.editCell = null;
-        this._selectionAnchor = null;
-        this.onFilter?.produce({ colKey, values: [] }, true);
-    }
-
-    toggleColumnFilter(colKey: TColKey, value: string) {
-        const col = this.findColumn(colKey);
-        if (!col || col.type !== "select") return;
-        const allValues = col.items.map((i) => i.value);
-        const current =
-            colKey in this._columnFilters
-                ? [...this._columnFilters[colKey]]
-                : [...allValues];
-        const next = current.includes(value)
-            ? current.filter((v) => v !== value)
-            : [...current, value];
-        if (next.length === allValues.length) {
-            this.clearColumnFilter(colKey);
-        } else {
-            this.setColumnFilter(colKey, next);
+        for (const posKey of entries) {
+            if (!posKey.startsWith(prefix)) this.selectedCells.add(posKey);
         }
+        if (this.editableCellKey?.rowKey === rowKey)
+            this.editableCellKey = null;
     }
 
-    setColumnFilter(colKey: TColKey, values: string[]) {
-        this._columnFilters[colKey] = values;
-        this.selectedCells.clear();
-        this.editCell = null;
-        this._selectionAnchor = null;
-        this.onFilter?.produce({ colKey, values }, true);
+    // COLUMNS
+
+    get columns(): DataColumn<TColKey, TColMetaData>[] {
+        return this._columns;
     }
+
+    findColumn(colKey: TColKey): DataColumn<TColKey, TColMetaData> | undefined {
+        return this._columns.find((c) => c.key === colKey);
+    }
+
+    // SELECTION
 
     get activeCell(): { rowKey: string; colKey: TColKey } | null {
         if (!this._selectionAnchor) return null;
@@ -167,49 +199,6 @@ export class DataTableService<
         if (idx < 0 || idx >= rowKeys.length) return null;
         return { rowKey: rowKeys[idx], colKey: this._selectionAnchor.colKey };
     }
-
-    // DATA
-
-    load(rows: DataRow<TColKey>[]) {
-        this.rows = rows;
-        this.reset();
-    }
-
-    setValue(rowKey: string, colKey: TColKey, value: string) {
-        const row = this.findRow(rowKey);
-        if (!row) return;
-        row.cells[colKey].value = value;
-        this.modifiedKeys.add(rowKey);
-        this.onSetValue?.produce({ rowKey, colKey, value }, true);
-    }
-
-    findRow(rowKey: string): DataRow<TColKey> | undefined {
-        return this.rows.find((r) => r.key === rowKey);
-    }
-
-    addRow(row: DataRow<TColKey>) {
-        this.rows.push(row);
-    }
-
-    removeRow(rowKey: string) {
-        const idx = this.rows.findIndex((r) => r.key === rowKey);
-        if (idx < 0) return;
-        this.rows.splice(idx, 1);
-        this.modifiedKeys.delete(rowKey);
-        const prefix = `${rowKey}-`;
-        const entries = [...this.selectedCells];
-        this.selectedCells.clear();
-        for (const posKey of entries) {
-            if (!posKey.startsWith(prefix)) this.selectedCells.add(posKey);
-        }
-        if (this.editCell?.rowKey === rowKey) this.editCell = null;
-    }
-
-    findColumn(colKey: TColKey): DataColumn<TColKey> | undefined {
-        return this._columns.find((c) => c.key === colKey);
-    }
-
-    // SELECTION
 
     private _moveSelection(
         rowKey: string,
@@ -318,57 +307,176 @@ export class DataTableService<
         );
     }
 
-    // EDITING
-
-    get isEditing() {
-        return this.editCell !== null;
+    clearSelection() {
+        this.selectedCells.clear();
+        this._selectionAnchor = null;
     }
 
-    isEditable(rowKey: string, colKey: TColKey): boolean {
+    // PAGINATION
+
+    _onChangePage({ action, newPageIndex }: ChangePageEvent) {
+        this._queryData({ pagination: { action, newPageIndex } });
+    }
+
+    // FILTERING
+
+    isColumnFiltered(colKey: TColKey): boolean {
+        return this._columnFilters.has(colKey);
+    }
+
+    getColumnFilter(colKey: TColKey) {
+        return this._columnFilters.get(colKey) ?? null;
+    }
+
+    setColumnFilter(
+        colKey: TColKey,
+        predicate: FilterPredicate<string | number>,
+    ) {
+        this.clearSelection();
+
+        const col = this.findColumn(colKey);
+        if (!col) {
+            this._columnFilters.delete(colKey);
+            return;
+        }
+
+        if (col.fieldType == "select" && predicate.type == PredicateType.In) {
+            const allValues = col.items.map((i) => i.value);
+            if (allValues.length == predicate.values.length)
+                // special case: if all possible options are filtered in,
+                // then we can clear the filter
+                this._columnFilters.delete(colKey);
+            else this._columnFilters.set(colKey, predicate);
+        } else this._columnFilters.set(colKey, predicate);
+
+        this._onChangeFilter();
+    }
+
+    clearColumnFilter(colKey: TColKey) {
+        this.clearSelection();
+        this._columnFilters.delete(colKey);
+        this._onChangeFilter();
+    }
+
+    getTextColumnFilter(colKey: TColKey): number | string | null {
+        const predicate = this.getColumnFilter(colKey);
+        if (!predicate) return null;
+
+        // NOTE: text columns only support LIKE operations
+        if (predicate.type != PredicateType.Like) return null;
+
+        return predicate.value;
+    }
+
+    setTextColumnFilter(colKey: TColKey, value: string) {
+        if (value === "") this.clearColumnFilter(colKey);
+        else this.setColumnFilter(colKey, { type: PredicateType.Like, value });
+    }
+
+    isSelectColumnFilterChecked(colKey: TColKey, value: string): boolean {
+        const values = this.getSelectColumnFilter(colKey);
+        if (values === null)
+            // if no filter is applied, then the option in question must be checked
+            return true;
+        return values.includes(value);
+    }
+
+    getSelectColumnFilter(colKey: TColKey): (number | string)[] | null {
+        const predicate = this.getColumnFilter(colKey);
+        if (!predicate) return null;
+
+        // NOTE: select columns only support IN operations
+        if (predicate.type != PredicateType.In) return null;
+
+        return predicate.values;
+    }
+
+    toggleSelectColumnFilterOption(
+        colKey: TColKey,
+        value: string,
+        include: boolean,
+    ) {
+        const col = this.findColumn(colKey);
+        if (!col || col.fieldType !== "select") return;
+
+        let predicate = this.getColumnFilter(colKey);
+        if (!predicate || predicate.type != PredicateType.In) {
+            predicate = { type: PredicateType.In, values: [] };
+        }
+
+        const alreadyIncluded = predicate.values.includes(value);
+
+        if (alreadyIncluded && !include)
+            predicate.values = predicate.values.filter((v) => v != value);
+        else if (!alreadyIncluded && include) predicate.values.push(value);
+
+        this.setColumnFilter(colKey, predicate);
+    }
+
+    private _onChangeFilter() {
+        this._queryData({});
+    }
+
+    // EDITING
+
+    get isEditingCell() {
+        return this.editableCellKey !== null;
+    }
+
+    setCellValue(rowKey: string, colKey: TColKey, value: string) {
+        const row = this.findRow(rowKey);
+        if (!row) return;
+        row.cells[colKey].value = value;
+        this.modifiedKeys.add(rowKey);
+        this.onSetValue?.produce({ rowKey, colKey, value });
+    }
+
+    isCellEditable(rowKey: string, colKey: TColKey): boolean {
         return (
-            this.editCell?.rowKey === rowKey && this.editCell?.colKey === colKey
+            this.editableCellKey?.rowKey === rowKey &&
+            this.editableCellKey?.colKey === colKey
         );
     }
 
-    startEdit(rowKey: string, colKey: TColKey) {
+    startCellEdit(rowKey: string, colKey: TColKey) {
         const row = this.findRow(rowKey);
         if (row) row.cells[colKey].oldValue = row.cells[colKey].value;
         this.editSelectAll = true;
-        this.editCell = { rowKey, colKey };
+        this.editableCellKey = { rowKey, colKey };
         this.selectSingle(rowKey, colKey);
     }
 
-    startEditWithChar(rowKey: string, colKey: TColKey, char: string) {
-        this.startEdit(rowKey, colKey);
+    startCellEditWithChar(rowKey: string, colKey: TColKey, char: string) {
+        this.startCellEdit(rowKey, colKey);
         this.editSelectAll = false;
-        this.setValue(rowKey, colKey, char);
+        this.setCellValue(rowKey, colKey, char);
     }
 
-    commitEdit() {
-        if (!this.editCell) return;
-        const { rowKey, colKey } = this.editCell;
+    commitCellEdit() {
+        if (!this.editableCellKey) return;
+        const { rowKey, colKey } = this.editableCellKey;
         const row = this.findRow(rowKey);
         if (row) row.cells[colKey].oldValue = undefined;
-        this.editCell = null;
+        this.editableCellKey = null;
     }
 
-    cancelEdit() {
-        if (!this.editCell) return;
-        const { rowKey, colKey } = this.editCell;
+    cancelCellEdit() {
+        if (!this.editableCellKey) return;
+        const { rowKey, colKey } = this.editableCellKey;
         const row = this.findRow(rowKey);
         if (row && row.cells[colKey].oldValue !== undefined) {
             row.cells[colKey].value = row.cells[colKey].oldValue!;
             row.cells[colKey].oldValue = undefined;
         }
-        this.onCancelEdit?.produce({ rowKey, colKey }, true);
-        this.editCell = null;
+        this.onCancelEdit?.produce({ rowKey, colKey });
+        this.editableCellKey = null;
     }
 
     // MOUSE
 
     handleCellMouseDown(e: MouseEvent, rowKey: string, colKey: TColKey) {
-        if (this.isEditable(rowKey, colKey)) return;
-        if (this.isEditing) this.commitEdit();
+        if (this.isCellEditable(rowKey, colKey)) return;
+        if (this.isEditingCell) this.commitCellEdit();
 
         if (e.shiftKey) {
             e.preventDefault();
@@ -391,15 +499,15 @@ export class DataTableService<
 
         if (this._handleSelectDropdownKeyDown(e, rowKey, colKey)) return;
 
-        const wasEditing = this.isEditing;
+        const wasEditing = this.isEditingCell;
 
-        if (this.isEditable(rowKey, colKey)) {
+        if (this.isCellEditable(rowKey, colKey)) {
             this._handleKeyDownEditing(e, rowKey, colKey);
         } else {
             this._handleKeyDownNavigating(e, rowKey, colKey);
         }
 
-        if (wasEditing && !this.isEditing) this.focusGrid?.();
+        if (wasEditing && !this.isEditingCell) this.focusGrid?.();
     }
 
     private _handleSelectDropdownKeyDown(
@@ -410,8 +518,12 @@ export class DataTableService<
         // When a select cell's dropdown is open, bits-ui handles ArrowUp/Down/Enter natively.
         // We only intercept lateral navigation to commit and leave the cell.
 
-        const isSelect = this.findColumn(colKey)?.type === "select";
-        if (!isSelect || !this.isEditable(rowKey, colKey) || !this.selectOpen)
+        const isSelect = this.findColumn(colKey)?.fieldType === "select";
+        if (
+            !isSelect ||
+            !this.isCellEditable(rowKey, colKey) ||
+            !this.selectOpen
+        )
             return false;
 
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return true;
@@ -422,7 +534,7 @@ export class DataTableService<
         e.preventDefault();
         e.stopPropagation();
 
-        this.commitEdit();
+        this.commitCellEdit();
         this._moveSelection(rowKey, colKey, 0, dc);
         this.focusGrid?.();
 
@@ -434,7 +546,7 @@ export class DataTableService<
         rowKey: string,
         colKey: TColKey,
     ) {
-        const isSelect = this.findColumn(colKey)?.type === "select";
+        const isSelect = this.findColumn(colKey)?.fieldType === "select";
 
         switch (e.key) {
             case "ArrowDown":
@@ -459,7 +571,7 @@ export class DataTableService<
                 break;
             case "Enter":
                 e.preventDefault();
-                this.startEdit(rowKey, colKey);
+                this.startCellEdit(rowKey, colKey);
                 break;
             default:
                 if (
@@ -470,7 +582,7 @@ export class DataTableService<
                     !isSelect
                 ) {
                     e.preventDefault();
-                    this.startEditWithChar(rowKey, colKey, e.key);
+                    this.startCellEditWithChar(rowKey, colKey, e.key);
                 }
                 break;
         }
@@ -481,49 +593,49 @@ export class DataTableService<
         rowKey: string,
         colKey: TColKey,
     ) {
-        const isSelect = this.findColumn(colKey)?.type === "select";
+        const isSelect = this.findColumn(colKey)?.fieldType === "select";
 
         switch (e.key) {
             case "Enter":
                 e.preventDefault();
                 if (isSelect) e.stopPropagation();
-                this.commitEdit();
+                this.commitCellEdit();
                 if (!isSelect) this._moveSelection(rowKey, colKey, 1, 0);
                 break;
             case "Escape":
                 e.preventDefault();
                 if (isSelect) e.stopPropagation();
-                this.cancelEdit();
+                this.cancelCellEdit();
                 break;
             case "ArrowDown":
                 if (isSelect) break;
                 e.preventDefault();
-                this.commitEdit();
+                this.commitCellEdit();
                 this._moveSelection(rowKey, colKey, 1, 0);
                 break;
             case "ArrowUp":
                 if (isSelect) break;
                 e.preventDefault();
-                this.commitEdit();
+                this.commitCellEdit();
                 this._moveSelection(rowKey, colKey, -1, 0);
                 break;
             case "ArrowLeft":
                 if (!isSelect) break;
                 if (!this.canMove(rowKey, colKey, 0, -1)) break;
                 e.preventDefault();
-                this.commitEdit();
+                this.commitCellEdit();
                 this._moveSelection(rowKey, colKey, 0, -1);
                 break;
             case "ArrowRight":
                 if (!isSelect) break;
                 if (!this.canMove(rowKey, colKey, 0, 1)) break;
                 e.preventDefault();
-                this.commitEdit();
+                this.commitCellEdit();
                 this._moveSelection(rowKey, colKey, 0, 1);
                 break;
             case "Tab":
                 e.preventDefault();
-                this.commitEdit();
+                this.commitCellEdit();
                 if (e.shiftKey) {
                     this._moveSelection(rowKey, colKey, 0, -1);
                 } else {
@@ -554,10 +666,15 @@ export class DataTableService<
     // CLEAN UP
 
     reset() {
-        this.selectedCells.clear();
-        this.editCell = null;
-        this._selectionAnchor = null;
+        this._rows = [];
+
+        this.pagination.reset();
+
+        this.clearSelection();
         this._isDragging = false;
+
+        this.editableCellKey = null;
+
         this.modifiedKeys.clear();
     }
 }

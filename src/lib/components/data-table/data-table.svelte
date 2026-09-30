@@ -1,4 +1,4 @@
-<script lang="ts" generics="TColKey extends string">
+<script lang="ts" generics="TColKey extends string, TColMetaData">
     import * as Pagination from "@/lib/components/pagination";
     import * as Table from "@/lib/components/table";
 
@@ -6,7 +6,8 @@
     import DataRow from "./data-row.svelte";
     import type { DataTableProps } from "./data-table-interface";
 
-    const { service, rowActions }: DataTableProps<TColKey> = $props();
+    const { service, rowActions }: DataTableProps<TColKey, TColMetaData> =
+        $props();
 
     let gridEl: HTMLDivElement;
 
@@ -27,7 +28,7 @@
     $effect(() => {
         function handleKeyDown(e: KeyboardEvent) {
             const isInGrid = e.composedPath().includes(gridEl);
-            if (!isInGrid && !(service?.isEditing && service?.selectOpen))
+            if (!isInGrid && !(service?.isEditingCell && service?.selectOpen))
                 return;
             service?.handleKeyDown(e);
         }
@@ -49,7 +50,7 @@
                         el.dataset.tableId === service?.id,
                 );
         if (isOutside) {
-            if (service?.editCell) service?.commitEdit();
+            if (service?.editableCellKey) service?.commitCellEdit();
             service?.selectedCells.clear();
         }
     }}

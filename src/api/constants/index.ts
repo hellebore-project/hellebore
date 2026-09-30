@@ -2,7 +2,8 @@ export * from "./data-type";
 
 export * from "./error";
 
-export * from "./query-types";
+export * from "./sort-order";
+export * from "./predicate-type";
 
 export * from "./entity-type";
 

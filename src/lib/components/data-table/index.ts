@@ -1,7 +1,15 @@
 export type {
-    DataCell as CellState,
-    DataColumn as ColumnDef,
+    DataColumnFetchEvent as DataColumnFilterEvent,
+    DataCellEvent,
+    DataCellEditEvent,
+    DataCell,
+    DataColumn,
     DataRow,
+    DataTableFilterItem,
+    DataTableProps,
+    DataTableQueryRequest,
+    DataTableQueryResult,
+    DataTableSortItem,
     PositionKey,
     SelectionAnchor,
 } from "./data-table-interface";

@@ -1,4 +1,4 @@
-import type { DataType, SortOrder } from "../constants";
+import type { DataType, PredicateType, SortOrder } from "../constants";
 
 export interface Pagination {
     pageIndex?: number;
@@ -6,51 +6,38 @@ export interface Pagination {
     limit?: number | null;
 }
 
-export interface SortItem<P> {
-    field: P;
+export interface SortItem<TPropKey> {
+    field: TPropKey;
     order: SortOrder;
 }
 
-export enum PredicateType {
-    Equal = "Equal",
-    NotEqual = "NotEqual",
-    GreaterThan = "GreaterThan",
-    GreaterThanOrEqual = "GreaterThanOrEqual",
-    LessThan = "LessThan",
-    LessThanOrEqual = "LessThanOrEqual",
-    In = "In",
-    NotIn = "NotIn",
-    Like = "Like",
-    NotLike = "NotLike",
+export type FilterPredicate<TVal> =
+    | { type: PredicateType.Equal; value: TVal }
+    | { type: PredicateType.NotEqual; value: TVal }
+    | { type: PredicateType.GreaterThan; value: TVal }
+    | { type: PredicateType.GreaterThanOrEqual; value: TVal }
+    | { type: PredicateType.LessThan; value: TVal }
+    | { type: PredicateType.LessThanOrEqual; value: TVal }
+    | { type: PredicateType.In; values: TVal[] }
+    | { type: PredicateType.NotIn; values: TVal[] }
+    | { type: PredicateType.Like; value: TVal }
+    | { type: PredicateType.NotLike; value: TVal };
+
+export interface FilterItem<TPropKey, TVal> {
+    field: TPropKey;
+    predicate: FilterPredicate<TVal>;
 }
 
-export type Predicate<T> =
-    | { type: PredicateType.Equal; value: T }
-    | { type: PredicateType.NotEqual; value: T }
-    | { type: PredicateType.GreaterThan; value: T }
-    | { type: PredicateType.GreaterThanOrEqual; value: T }
-    | { type: PredicateType.LessThan; value: T }
-    | { type: PredicateType.LessThanOrEqual; value: T }
-    | { type: PredicateType.In; values: T[] }
-    | { type: PredicateType.NotIn; values: T[] }
-    | { type: PredicateType.Like; value: T }
-    | { type: PredicateType.NotLike; value: T };
+export type FilterItemUnion<TPropKey> =
+    | ({ type: DataType.Number } & FilterItem<TPropKey, number>)
+    | ({ type: DataType.String } & FilterItem<TPropKey, string>)
+    | ({ type: DataType.Uuid } & FilterItem<TPropKey, string>);
 
-export interface FilterItem<P, T> {
-    field: P;
-    predicate: Predicate<T>;
-}
-
-export type FilterItemUnion<P> =
-    | ({ type: DataType.Number } & FilterItem<P, number>)
-    | ({ type: DataType.String } & FilterItem<P, string>)
-    | ({ type: DataType.Uuid } & FilterItem<P, string>);
-
-export interface QueryRequest<P, O> {
+export interface QueryRequest<TPropKey, TOptions> {
     pagination?: Pagination;
-    sortation?: SortItem<P>[];
-    filters?: FilterItemUnion<P>[];
-    options: O;
+    sortation?: SortItem<TPropKey>[];
+    filters?: FilterItemUnion<TPropKey>[];
+    options: TOptions;
     includeTotal?: boolean;
 }
 

@@ -4,7 +4,7 @@ import type {
     Id,
     Word,
 } from "@/interface";
-import { DataType, DomainManager, PredicateType, WordProperty } from "@/api";
+import { DomainManager } from "@/api";
 import { ClientData } from "@/models";
 import { MultiEventProducer } from "@/utils/event-producer";
 
@@ -49,22 +49,7 @@ export class WordEditorService implements IComponentService {
     }
 
     async load(languageId: Id) {
-        const projectId = this._data.loadedProjectId;
-
-        const words = await this._domain.words.list(projectId, {
-            filters: [
-                {
-                    field: WordProperty.LanguageId,
-                    type: DataType.Uuid,
-                    predicate: {
-                        type: PredicateType.Equal,
-                        value: languageId,
-                    },
-                },
-            ],
-            options: {},
-        });
-        if (words) this.table.load(words.items, languageId);
+        await this.table.load(languageId);
     }
 
     claimModifiedWords(): Word[] {

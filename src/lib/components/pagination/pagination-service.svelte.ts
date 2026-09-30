@@ -1,6 +1,6 @@
 import { ChangePageAction } from "@/constants";
 import type { ChangePageEvent, IComponentService } from "@/interface";
-import { MultiEventProducer } from "@/utils/event-producer";
+import { EventProducer } from "@/utils/event-producer";
 
 export interface PaginationServiceArgs {
     id: string;
@@ -13,13 +13,13 @@ export class PaginationService implements IComponentService {
     private _page: number = $state(0); // 0-based index
     private _count: number | null = $state(null); // total number of pages
 
-    onChangePage: MultiEventProducer<ChangePageEvent, unknown>;
+    onChangePage: EventProducer<ChangePageEvent, unknown>;
 
     constructor({ id, page = 0, count = null }: PaginationServiceArgs) {
         this._id = id;
         this._page = page;
         this._count = count;
-        this.onChangePage = new MultiEventProducer();
+        this.onChangePage = new EventProducer();
     }
 
     get id() {
@@ -67,13 +67,29 @@ export class PaginationService implements IComponentService {
             this.changePage(ChangePageAction.PreviousPage, this._page - 1);
     }
 
-    changePage(action: ChangePageAction, pageIndex: number) {
-        if (pageIndex == this._page) return;
+    setPage(pageIndex: number) {
         this._page = pageIndex;
-        this.onChangePage.produce({ action, pageIndex });
     }
 
-    changeCount(value: number | null) {
+    changePage(action: ChangePageAction, pageIndex: number) {
+        if (pageIndex == this._page) return;
+        // we don't want to update the page index until the event producer returns a result
+        this.onChangePage.produce(
+            {
+                action,
+                oldPageIndex: this._page,
+                newPageIndex: pageIndex,
+            },
+            true,
+        );
+    }
+
+    setCount(value: number | null) {
         this._count = value;
+    }
+
+    reset() {
+        this._page = 0;
+        this._count = null;
     }
 }
