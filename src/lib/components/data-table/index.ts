@@ -1,5 +1,4 @@
 export type {
-    DataColumnFetchEvent as DataColumnFilterEvent,
     DataCellEvent,
     DataCellEditEvent,
     DataCell,
@@ -10,7 +9,7 @@ export type {
     DataTableQueryRequest,
     DataTableQueryResult,
     DataTableSortItem,
-    PositionKey,
+    DataCellKeyString,
     SelectionAnchor,
 } from "./data-table-interface";
 export { DataTableService } from "./data-table-service.svelte";
@@ -18,4 +17,8 @@ export type { DataTableServiceArgs as TableServiceConfig } from "./data-table-se
 export { default as DataTable } from "./data-table.svelte";
 export { ReadOnlyCell, TextCell, SelectCell } from "./cells";
 export { AddRowButton } from "./placeholders";
-export { DeleteRowButton } from "./row-actions";
+export {
+    InsertRowAboveButton,
+    InsertRowBelowButton,
+    DeleteRowButton,
+} from "./row-actions";

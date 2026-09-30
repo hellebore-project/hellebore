@@ -11,7 +11,7 @@ import type {
     DataCellEditEvent,
     DataColumn,
     DataRow,
-    PositionKey,
+    DataCellKeyString,
     SelectionAnchor,
     DataCellKey,
     DataTableQueryRequest,
@@ -39,7 +39,7 @@ export class DataTableService<
     private _columns: DataColumn<TColKey, TColMetaData>[];
     modifiedKeys = new SvelteSet<string>();
 
-    selectedCells = new SvelteSet<PositionKey>();
+    selectedCells = new SvelteSet<DataCellKeyString>();
     private _selectionAnchor: SelectionAnchor<TColKey> | null = null;
     private _isDragging = false;
 
@@ -162,8 +162,19 @@ export class DataTableService<
         return this._rows.find((r) => r.key === rowKey);
     }
 
-    addRow(row: DataRow<TColKey>) {
+    appendRow(row: DataRow<TColKey>) {
         this._rows.push(row);
+    }
+
+    insertRow(index: number, row: DataRow<TColKey>) {
+        const boundedIndex = Math.max(0, Math.min(index, this._rows.length));
+        this._rows.splice(boundedIndex, 0, row);
+
+        if (
+            this._selectionAnchor &&
+            boundedIndex <= this._selectionAnchor.rowIndex
+        )
+            this._selectionAnchor.rowIndex++;
     }
 
     removeRow(rowKey: string) {

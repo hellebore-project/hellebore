@@ -69,15 +69,17 @@ test("appends new rows with unique keys and the default word type", ({
     wordTableService,
 }) => {
     const initialRowCount = wordTableService.table.rows.length;
+    const addRow = vi.spyOn(wordTableService.table, "appendRow");
 
-    const firstKey = wordTableService.addRow();
-    const secondKey = wordTableService.addRow();
+    const firstKey = wordTableService.appendRow();
+    const secondKey = wordTableService.appendRow();
     const firstRow = wordTableService.table.findRow(firstKey) as
         WordRow | undefined;
     const secondRow = wordTableService.table.findRow(secondKey) as
         WordRow | undefined;
 
     expect(firstKey).not.toBe(secondKey);
+    expect(addRow).toHaveBeenCalledTimes(2);
     expect(wordTableService.table.rows).toHaveLength(initialRowCount + 2);
     expect(wordTableService.table.rows.at(-2)?.key).toBe(firstKey);
     expect(wordTableService.table.rows.at(-1)?.key).toBe(secondKey);
@@ -88,6 +90,29 @@ test("appends new rows with unique keys and the default word type", ({
     expect(firstRow?.cells.definition.value).toBe("");
     expect(firstRow?.cells.translations.value).toBe("");
     expect(wordTableService.table.modifiedKeys.has(firstKey)).toBe(true);
+});
+
+test("inserts new rows above and below a target row", ({
+    wordId,
+    wordTableService,
+}) => {
+    const originalKeys = wordTableService.table.rows.map((row) => row.key);
+
+    wordTableService.insertRowAbove(wordId);
+    const aboveKey = wordTableService.table.rows[0].key;
+
+    wordTableService.insertRowBelow(wordId);
+    const rows = wordTableService.table.rows;
+    const targetIndex = rows.findIndex((row) => row.key === wordId);
+    const belowKey = rows[targetIndex + 1].key;
+
+    expect(rows[targetIndex - 1].key).toBe(aboveKey);
+    expect(rows[targetIndex + 1].key).toBe(belowKey);
+    expect(originalKeys).not.toContain(aboveKey);
+    expect(originalKeys).not.toContain(belowKey);
+    expect(aboveKey).not.toBe(belowKey);
+    expect(wordTableService.table.modifiedKeys.has(aboveKey)).toBe(true);
+    expect(wordTableService.table.modifiedKeys.has(belowKey)).toBe(true);
 });
 
 test("claims modified rows as domain words with parsed translations and clears changed tracking", ({

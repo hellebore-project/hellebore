@@ -4,9 +4,9 @@ import type { DataTableService } from "./data-table-service.svelte";
 import type { DataType, FilterPredicate, SortOrder } from "@/api";
 import type { ChangePageAction } from "@/constants";
 
-export type PositionKey = string;
-
 // CELL
+
+export type DataCellKeyString = string;
 
 export interface DataCellKey<TColKey> {
     rowKey: string;

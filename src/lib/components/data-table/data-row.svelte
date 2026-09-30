@@ -71,7 +71,7 @@
         </Table.Cell>
     {/each}
     {#if rowActions}
-        <Table.Cell class="w-10 p-1">
+        <Table.Cell class="w-28 p-1">
             {@render rowActions(row.key)}
         </Table.Cell>
     {/if}

@@ -88,7 +88,7 @@
                             </Table.Head>
                         {/each}
                         {#if rowActions}
-                            <Table.Head class="w-10" />
+                            <Table.Head class="w-28" />
                         {/if}
                     </Table.Row>
                 </Table.Header>

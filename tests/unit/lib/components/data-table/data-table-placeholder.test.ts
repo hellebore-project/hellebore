@@ -24,7 +24,7 @@ test("clicking the add-row placeholder adds a new row", async ({
 }) => {
     service.load([]);
     const onAddRow = () =>
-        service.addRow({
+        service.appendRow({
             key: "new-row",
             cells: {
                 name: {

@@ -130,9 +130,34 @@ export class WordTableService implements IComponentService {
 
     // ROWS
 
-    addRow(): WordKey {
+    appendRow(): WordKey {
         const rowKey = this._nextKey();
-        const row: WordRow = {
+        this.table.appendRow(this._createRow(rowKey));
+        this._trackAddedRow(rowKey);
+        return rowKey;
+    }
+
+    insertRowAbove(rowKey: WordKey) {
+        const index = this.table.rows.findIndex((row) => row.key === rowKey);
+        if (index < 0) return;
+        this._insertRowAt(index);
+    }
+
+    insertRowBelow(rowKey: WordKey) {
+        const index = this.table.rows.findIndex((row) => row.key === rowKey);
+        if (index < 0) return;
+        this._insertRowAt(index + 1);
+    }
+
+    private _insertRowAt(index: number): WordKey {
+        const rowKey = this._nextKey();
+        this.table.insertRow(index, this._createRow(rowKey));
+        this._trackAddedRow(rowKey);
+        return rowKey;
+    }
+
+    private _createRow(rowKey: WordKey): WordRow {
+        return {
             key: rowKey,
             languageId: this._languageId,
             id: null,
@@ -143,11 +168,11 @@ export class WordTableService implements IComponentService {
                 translations: { value: "" },
             },
         };
+    }
 
-        this.table.addRow(row);
+    private _trackAddedRow(rowKey: WordKey) {
         this.table.modifiedKeys.add(rowKey);
         this.onChange.produce();
-        return rowKey;
     }
 
     async removeRow(key: WordKey) {
