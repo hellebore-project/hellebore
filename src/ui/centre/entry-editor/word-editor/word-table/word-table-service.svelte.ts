@@ -10,8 +10,9 @@ import {
 } from "@/api";
 import { ClientData } from "@/models";
 import {
-    type DataCellEditEvent, DataTableService, type DataTableQueryRequest,
-    type DataTableQueryResult
+    DataTableService,
+    type DataTableQueryRequest,
+    type DataTableQueryResult,
 } from "@/lib/components/data-table";
 import { MultiEventProducer } from "@/utils/event-producer";
 
@@ -21,7 +22,6 @@ import type { WordColumnMetaData, WordRow } from "./word-table-interface";
 export class WordTableService implements IComponentService {
     // STATE VARIABLES
     private _id: string;
-    private _sentinelKey: WordKey = $state("");
     private _languageId: Id = $state(ENTRY_ID_SENTINEL);
     private _keyCounter = 0;
     private _defaultWordType = WordType.RootWord;
@@ -45,7 +45,7 @@ export class WordTableService implements IComponentService {
             pageCount: 1,
         });
         this.table.onQueryData.subscribe((event) => this._fetchData(event));
-        this.table.onSetValue.subscribe((event) => this._onSetValue(event));
+        this.table.onSetValue.subscribe(() => this._onSetValue());
 
         this.onChange = new MultiEventProducer();
     }
@@ -60,21 +60,17 @@ export class WordTableService implements IComponentService {
         return this.table.modifiedKeys.size > 0;
     }
 
-    get sentinelKey(): WordKey {
-        return this._sentinelKey;
-    }
-
     // LOADING
 
     async load(languageId: Id) {
         this._languageId = languageId;
-        this._keyCounter = 0;
         const result = await this._fetchData();
         this.table.load(result?.items ?? []);
-        this._addNewRow();
     }
 
-    private async _fetchData(request?: DataTableQueryRequest<WordColumnKey>): Promise<DataTableQueryResult<WordRow> | null> {
+    private async _fetchData(
+        request?: DataTableQueryRequest<WordColumnKey>,
+    ): Promise<DataTableQueryResult<WordRow> | null> {
         const filters: FilterItemUnion<WordProperty>[] = [
             {
                 field: WordProperty.LanguageId,
@@ -87,7 +83,9 @@ export class WordTableService implements IComponentService {
         ];
 
         if (request) {
-            for (const [colKey, filterItem] of Object.entries(request.filters)) {
+            for (const [colKey, filterItem] of Object.entries(
+                request.filters,
+            )) {
                 const col = this.table.findColumn(colKey as WordColumnKey);
                 if (!col) continue;
 
@@ -98,13 +96,13 @@ export class WordTableService implements IComponentService {
                 } as FilterItemUnion<WordProperty>);
             }
         }
-        
+
         const response = await this._domain.words.list(
             this._data.loadedProjectId,
             {
                 filters,
                 options: {},
-            }
+            },
         );
         if (!response) return null;
 
@@ -126,36 +124,33 @@ export class WordTableService implements IComponentService {
                 pageIndex: response.pageIndex,
                 pageCount: response.pageCount,
                 total: response.total,
-            }
+            },
         };
     }
 
-    // ROW EDITING
+    // ROWS
 
-    private _nextKey(): WordKey {
-        return `N${this._keyCounter++}`;
-    }
-
-    private _addNewRow() {
-        this._sentinelKey = this._nextKey();
-        const sentinelRow: WordRow = {
-            key: this._sentinelKey,
-            filterable: false,
+    addRow(): WordKey {
+        const rowKey = this._nextKey();
+        const row: WordRow = {
+            key: rowKey,
             languageId: this._languageId,
             id: null,
             cells: {
-                wordType: { value: "" },
+                wordType: { value: String(this._defaultWordType) },
                 spelling: { value: "" },
                 definition: { value: "" },
                 translations: { value: "" },
             },
         };
-        this.table.addRow(sentinelRow);
+
+        this.table.addRow(row);
+        this.table.modifiedKeys.add(rowKey);
+        this.onChange.produce();
+        return rowKey;
     }
 
     async removeRow(key: WordKey) {
-        if (key === this._sentinelKey) return;
-
         const row = this.table.findRow(key) as WordRow | undefined;
         if (!row) return;
 
@@ -170,23 +165,17 @@ export class WordTableService implements IComponentService {
         this.table.removeRow(key);
     }
 
+    private _nextKey(): WordKey {
+        let rowKey: WordKey;
+        do {
+            rowKey = `N${this._keyCounter++}`;
+        } while (this.table.findRow(rowKey));
+        return rowKey;
+    }
+
     // CELL EDITING
 
-    private _onSetValue({ rowKey }: DataCellEditEvent<WordColumnKey>) {
-        if (rowKey === this._sentinelKey) {
-            const row = this.table.findRow(rowKey) as WordRow | undefined;
-
-            if (row) {
-                row.filterable = true;
-
-                if (row.cells.wordType.value === "")
-                    // word type is a mandatory property, so try to pick a reasonable value if the user hasn't set it
-                    row.cells.wordType.value = String(this._defaultWordType);
-            }
-
-            this._addNewRow();
-        }
-
+    private _onSetValue() {
         this.onChange.produce();
     }
 

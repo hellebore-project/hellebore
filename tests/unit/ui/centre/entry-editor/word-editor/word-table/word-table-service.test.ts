@@ -24,11 +24,11 @@ test.extend({
         ]);
     },
 })(
-    "initializes identity and loads rows with transformed cell values plus a sentinel",
-    ({ languageId, wordId, wordTableService }) => {
+    "initializes identity and loads rows with transformed cell values",
+    ({ wordId, wordTableService }) => {
         expect(wordTableService.id).toBe("word-editor-entry-word-table");
         expect(wordTableService.changed).toBe(false);
-        expect(wordTableService.table.rows).toHaveLength(3);
+        expect(wordTableService.table.rows).toHaveLength(2);
 
         const row1 = wordTableService.table.findRow(wordId);
         expect(row1).toBeDefined();
@@ -39,63 +39,63 @@ test.extend({
 
         const row2 = wordTableService.table.findRow("word2");
         expect(row2?.cells.translations.value).toBe("two, double");
-
-        const sentinel = wordTableService.table.findRow(
-            wordTableService.sentinelKey,
-        ) as WordRow | undefined;
-        expect(sentinel).toBeDefined();
-        expect(sentinel?.id).toBeNull();
-        expect(sentinel?.languageId).toBe(languageId);
-        expect(sentinel?.filterable).toBe(false);
-        expect(sentinel?.cells.wordType.value).toBe("");
-        expect(sentinel?.cells.spelling.value).toBe("");
     },
 );
 
-test.extend({
-    words: [],
-})(
-    "promotes sentinel row on first edit, applies first active type filter, emits change, and appends a new sentinel",
-    ({ wordTableService }) => {
-        const onChange = vi.fn();
-        wordTableService.onChange.subscribe(onChange);
+test("editing a row emits change without appending another row", ({
+    wordId,
+    wordTableService,
+}) => {
+    const onChange = vi.fn();
+    wordTableService.onChange.subscribe(onChange);
+    const initialRowCount = wordTableService.table.rows.length;
 
-        const firstSentinel = wordTableService.sentinelKey;
+    wordTableService.table.setCellValue(
+        wordId,
+        WordColumnKey.Spelling,
+        "updated alpha",
+    );
 
-        wordTableService.table.setColumnFilter(WordColumnKey.WordType, [
-            String(WordType.Verb),
-            String(WordType.Noun),
-        ]);
-        wordTableService.table.setValue(
-            firstSentinel,
-            WordColumnKey.Spelling,
-            "run",
-        );
+    expect(wordTableService.table.rows).toHaveLength(initialRowCount);
+    expect(wordTableService.table.findRow(wordId)?.cells.spelling.value).toBe(
+        "updated alpha",
+    );
+    expect(onChange).toHaveBeenCalledOnce();
+    expect(wordTableService.changed).toBe(true);
+});
 
-        const promotedRow = wordTableService.table.findRow(firstSentinel);
-        expect(promotedRow).toBeDefined();
-        expect(promotedRow?.filterable).toBe(true);
-        expect(promotedRow?.cells.spelling.value).toBe("run");
-        expect(promotedRow?.cells.wordType.value).toBe(String(WordType.Verb));
+test("appends new rows with unique keys and the default word type", ({
+    languageId,
+    wordTableService,
+}) => {
+    const initialRowCount = wordTableService.table.rows.length;
 
-        expect(wordTableService.sentinelKey).not.toBe(firstSentinel);
-        const nextSentinel = wordTableService.table.findRow(
-            wordTableService.sentinelKey,
-        );
-        expect(nextSentinel?.filterable).toBe(false);
-        expect(nextSentinel?.cells.wordType.value).toBe("");
+    const firstKey = wordTableService.addRow();
+    const secondKey = wordTableService.addRow();
+    const firstRow = wordTableService.table.findRow(firstKey) as
+        WordRow | undefined;
+    const secondRow = wordTableService.table.findRow(secondKey) as
+        WordRow | undefined;
 
-        expect(onChange).toHaveBeenCalledOnce();
-        expect(wordTableService.changed).toBe(true);
-    },
-);
+    expect(firstKey).not.toBe(secondKey);
+    expect(wordTableService.table.rows).toHaveLength(initialRowCount + 2);
+    expect(wordTableService.table.rows.at(-2)?.key).toBe(firstKey);
+    expect(wordTableService.table.rows.at(-1)?.key).toBe(secondKey);
+    expect(firstRow?.languageId).toBe(languageId);
+    expect(firstRow?.id).toBeNull();
+    expect(firstRow?.cells.wordType.value).toBe(String(WordType.RootWord));
+    expect(firstRow?.cells.spelling.value).toBe("");
+    expect(firstRow?.cells.definition.value).toBe("");
+    expect(firstRow?.cells.translations.value).toBe("");
+    expect(wordTableService.table.modifiedKeys.has(firstKey)).toBe(true);
+});
 
 test("claims modified rows as domain words with parsed translations and clears changed tracking", ({
     languageId,
     wordId,
     wordTableService,
 }) => {
-    wordTableService.table.setValue(
+    wordTableService.table.setCellValue(
         wordId,
         WordColumnKey.Translations,
         " alpha, beta ; gamma ;; , ",
@@ -120,36 +120,30 @@ test("claims modified rows as domain words with parsed translations and clears c
     expect(wordTableService.table.modifiedKeys.size).toBe(0);
 });
 
-test.extend({
-    words: [],
-})(
-    "synchronizes backend ids into existing table rows by key",
-    ({ wordTableService }) => {
-        const createdKey = wordTableService.sentinelKey;
-        wordTableService.table.setValue(
-            createdKey,
-            WordColumnKey.Spelling,
-            "gamma",
-        );
+test("synchronizes backend ids into existing table rows by key", ({
+    wordId,
+    wordTableService,
+}) => {
+    wordTableService.table.setCellValue(
+        wordId,
+        WordColumnKey.Spelling,
+        "updated alpha",
+    );
 
-        const [claimed] = wordTableService.claimModifiedWords();
-        expect(claimed.id).toBeNull();
+    const [changedWord] = wordTableService.claimModifiedWords();
+    wordTableService.handleSynchronization([
+        {
+            ...changedWord,
+            id: "word999",
+        },
+    ]);
 
-        wordTableService.handleSynchronization([
-            {
-                ...claimed,
-                id: "word999",
-            },
-        ]);
+    const updatedRow = wordTableService.table.findRow(wordId) as
+        WordRow | undefined;
+    expect(updatedRow?.id).toBe("word999");
+});
 
-        const createdRow = wordTableService.table.findRow(createdKey) as
-            | WordRow
-            | undefined;
-        expect(createdRow?.id).toBe("word999");
-    },
-);
-
-test("removes transient rows locally and persisted rows via domain delete", async ({
+test("removes persisted rows via domain delete", async ({
     mockedInvoker,
     wordId,
     wordTableService,
@@ -175,17 +169,21 @@ test("keeps persisted row when domain delete fails", async ({
 
 test("clean up table", ({ wordId, wordTableService }) => {
     wordTableService.table.selectSingle(wordId, WordColumnKey.Spelling);
-    wordTableService.table.startEdit(wordId, WordColumnKey.Spelling);
-    wordTableService.table.setValue(wordId, WordColumnKey.Spelling, "updated");
+    wordTableService.table.startCellEdit(wordId, WordColumnKey.Spelling);
+    wordTableService.table.setCellValue(
+        wordId,
+        WordColumnKey.Spelling,
+        "updated",
+    );
 
     expect(wordTableService.changed).toBe(true);
     expect(wordTableService.table.selectedCells.size).toBe(1);
-    expect(wordTableService.table.editCell).not.toBeNull();
+    expect(wordTableService.table.editableCellKey).not.toBeNull();
 
     wordTableService.cleanUp();
 
     expect(wordTableService.changed).toBe(false);
     expect(wordTableService.table.modifiedKeys.size).toBe(0);
     expect(wordTableService.table.selectedCells.size).toBe(0);
-    expect(wordTableService.table.editCell).toBeNull();
+    expect(wordTableService.table.editableCellKey).toBeNull();
 });

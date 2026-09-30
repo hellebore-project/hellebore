@@ -97,7 +97,8 @@
                         {#if placeholder}
                             <Table.Row>
                                 <Table.Cell
-                                    colspan={service.columns.length}
+                                    colspan={service.columns.length +
+                                        (rowActions ? 1 : 0)}
                                     class="py-6 text-center"
                                 >
                                     {@render placeholder()}

@@ -1,5 +1,9 @@
 <script lang="ts">
-    import { DataTable, DeleteRowButton } from "@/lib/components/data-table";
+    import {
+        AddRowButton,
+        DataTable,
+        DeleteRowButton,
+    } from "@/lib/components/data-table";
 
     import type { WordTableProps } from "./word-table-interface";
 
@@ -7,12 +11,13 @@
 </script>
 
 {#if service}
-{#snippet rowActions(rowKey: string)}
-    <DeleteRowButton
-        onclick={() => service?.removeRow(rowKey)}
-        deletable={rowKey !== service?.sentinelKey}
-    />
-{/snippet}
+    {#snippet placeholder()}
+        <AddRowButton onclick={() => service.addRow()} />
+    {/snippet}
 
-<DataTable service={service?.table ?? null} {rowActions} />
+    {#snippet rowActions(rowKey: string)}
+        <DeleteRowButton onclick={() => service.removeRow(rowKey)} />
+    {/snippet}
+
+    <DataTable service={service.table} {rowActions} {placeholder} />
 {/if}
