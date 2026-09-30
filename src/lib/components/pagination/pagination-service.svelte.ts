@@ -6,20 +6,31 @@ export interface PaginationServiceArgs {
     id: string;
     page?: number;
     count?: number | null;
+    controlled?: boolean;
 }
 
 export class PaginationService implements IComponentService {
+    // CONFIG
+    private _controlled = false;
+
+    // STATE VARIABLES
     private _id: string;
     private _page: number = $state(0); // 0-based index
     private _count: number | null = $state(null); // total number of pages
 
     onChangePage: EventProducer<ChangePageEvent, unknown>;
 
-    constructor({ id, page = 0, count = null }: PaginationServiceArgs) {
+    constructor({
+        id,
+        page = 0,
+        count = null,
+        controlled = false,
+    }: PaginationServiceArgs) {
         this._id = id;
         this._page = page;
         this._count = count;
         this.onChangePage = new EventProducer();
+        this._controlled = controlled;
     }
 
     get id() {
@@ -73,7 +84,7 @@ export class PaginationService implements IComponentService {
 
     changePage(action: ChangePageAction, pageIndex: number) {
         if (pageIndex == this._page) return;
-        // we don't want to update the page index until the event producer returns a result
+        if (!this._controlled) this._page = pageIndex;
         this.onChangePage.produce(
             {
                 action,

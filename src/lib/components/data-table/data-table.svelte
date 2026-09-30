@@ -6,8 +6,11 @@
     import DataRow from "./data-row.svelte";
     import type { DataTableProps } from "./data-table-interface";
 
-    const { service, rowActions }: DataTableProps<TColKey, TColMetaData> =
-        $props();
+    const {
+        service,
+        rowActions,
+        placeholder,
+    }: DataTableProps<TColKey, TColMetaData> = $props();
 
     let gridEl: HTMLDivElement;
 
@@ -90,9 +93,22 @@
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {#each service.visibleRows as row (row.key)}
-                        <DataRow {row} {service} {rowActions} />
-                    {/each}
+                    {#if service.visibleRows.length === 0}
+                        {#if placeholder}
+                            <Table.Row>
+                                <Table.Cell
+                                    colspan={service.columns.length}
+                                    class="py-6 text-center"
+                                >
+                                    {@render placeholder()}
+                                </Table.Cell>
+                            </Table.Row>
+                        {/if}
+                    {:else}
+                        {#each service.visibleRows as row (row.key)}
+                            <DataRow {row} {service} {rowActions} />
+                        {/each}
+                    {/if}
                 </Table.Body>
             </Table.Root>
         </div>

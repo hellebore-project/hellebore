@@ -1,11 +1,18 @@
 <script lang="ts">
     import {
+        AddRowButton,
         DataTable,
         DeleteRowButton,
         DataTableService,
     } from "@/lib/components/data-table";
 
-    const { service }: { service: DataTableService<any> } = $props();
+    const {
+        service,
+        onAddRow,
+    }: {
+        service: DataTableService<any>;
+        onAddRow: () => void;
+    } = $props();
 </script>
 
 {#if service}
@@ -16,5 +23,9 @@
         />
     {/snippet}
 
-    <DataTable service={service ?? null} {rowActions} />
+    {#snippet placeholder()}
+        <AddRowButton onclick={onAddRow} />
+    {/snippet}
+
+    <DataTable {service} {rowActions} {placeholder} />
 {/if}

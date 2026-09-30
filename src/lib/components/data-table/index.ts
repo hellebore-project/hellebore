@@ -17,4 +17,5 @@ export { DataTableService } from "./data-table-service.svelte";
 export type { DataTableServiceArgs as TableServiceConfig } from "./data-table-service.svelte";
 export { default as DataTable } from "./data-table.svelte";
 export { ReadOnlyCell, TextCell, SelectCell } from "./cells";
+export { AddRowButton } from "./placeholders";
 export { DeleteRowButton } from "./row-actions";

@@ -123,6 +123,7 @@ export interface DataTableProps<
 > {
     service: DataTableService<TColKey, TColMetaData> | null;
     rowActions?: Snippet<[string]>;
+    placeholder?: Snippet;
 }
 
 // EVENTS

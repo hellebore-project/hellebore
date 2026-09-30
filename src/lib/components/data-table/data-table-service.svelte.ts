@@ -29,7 +29,7 @@ export interface DataTableServiceArgs<TColKey extends string, TColMetaData> {
 
 export class DataTableService<
     TColKey extends string,
-    TColMetaData,
+    TColMetaData = object,
 > implements IComponentService {
     // STATE VARIABLES
 
@@ -78,6 +78,7 @@ export class DataTableService<
         this.pagination = new PaginationService({
             id: `${id}-pagination`,
             count: pageCount,
+            controlled: true,
         });
         this.pagination.onChangePage.subscribe((event) =>
             this._onChangePage(event),
