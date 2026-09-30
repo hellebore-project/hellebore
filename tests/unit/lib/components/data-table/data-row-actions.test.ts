@@ -4,7 +4,7 @@ import { expect } from "vitest";
 import { render } from "@tests/utils/render";
 
 import { test } from "./fixtures";
-import DataTableWithDeleteButton from "./data-table-with-delete-button.svelte";
+import DataTableWithDeleteButton from "./data-table-with-plugins.svelte";
 
 test("can delete a row", async ({ user, service }) => {
     render(DataTableWithDeleteButton, { props: { service } });

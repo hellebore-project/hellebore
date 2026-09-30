@@ -67,6 +67,6 @@ describe("filtering columns", () => {
         await user.click(menuItem);
 
         expect(screen.queryByText("Alice")).toBeNull();
-        screen.getByText("John");
+        expect(screen.queryByText("John")).toBeNull();
     });
 });
