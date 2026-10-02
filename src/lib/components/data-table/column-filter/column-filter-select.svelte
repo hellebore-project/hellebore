@@ -1,12 +1,19 @@
-<script lang="ts" generics="TColKey extends string">
+<script
+    lang="ts"
+    generics="TColKey extends string, TRowMetaData = object, TColMetaData = object"
+>
     import FilterIcon from "@lucide/svelte/icons/filter";
 
     import * as DropdownMenu from "@/lib/components/dropdown-menu";
     import { cn } from "@/lib/utils";
 
     import type { ColumnSelectFilterProps } from "./column-filter-interface";
+    import { PredicateType } from "@/api";
 
-    const { service, column }: ColumnSelectFilterProps<TColKey> = $props();
+    const {
+        service,
+        column,
+    }: ColumnSelectFilterProps<TColKey, TRowMetaData, TColMetaData> = $props();
 </script>
 
 <DropdownMenu.Root>
@@ -30,18 +37,29 @@
         <DropdownMenu.Item
             inset
             disabled={service.isColumnFiltered(column.key) &&
-                service.getColumnFilter(column.key).length === 0}
-            onSelect={() => service.setColumnFilter(column.key, [])}
+                service.getColumnFilter(column.key) === null}
+            onSelect={() =>
+                service.setColumnFilter(column.key, {
+                    type: PredicateType.In,
+                    values: [],
+                })}
         >
             Clear All
         </DropdownMenu.Item>
         <DropdownMenu.Separator />
         {#each column.items as item (item.value)}
             <DropdownMenu.CheckboxItem
-                checked={service.isColumnFilterChecked(column.key, item.value)}
+                checked={service.isSelectColumnFilterChecked(
+                    column.key,
+                    item.value,
+                )}
                 closeOnSelect={false}
-                onCheckedChange={() =>
-                    service.toggleColumnFilter(column.key, item.value)}
+                onCheckedChange={(checked) =>
+                    service.toggleSelectColumnFilterOption(
+                        column.key,
+                        item.value,
+                        checked,
+                    )}
             >
                 {item.label}
             </DropdownMenu.CheckboxItem>

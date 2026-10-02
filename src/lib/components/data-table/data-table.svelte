@@ -1,4 +1,4 @@
-<script lang="ts" generics="TColKey extends string">
+<script lang="ts" generics="TColKey extends string, TRowMetaData, TColMetaData">
     import * as Pagination from "@/lib/components/pagination";
     import * as Table from "@/lib/components/table";
 
@@ -6,7 +6,11 @@
     import DataRow from "./data-row.svelte";
     import type { DataTableProps } from "./data-table-interface";
 
-    const { service, rowActions }: DataTableProps<TColKey> = $props();
+    const {
+        service,
+        rowActions,
+        placeholder,
+    }: DataTableProps<TColKey, TRowMetaData, TColMetaData> = $props();
 
     let gridEl: HTMLDivElement;
 
@@ -27,7 +31,7 @@
     $effect(() => {
         function handleKeyDown(e: KeyboardEvent) {
             const isInGrid = e.composedPath().includes(gridEl);
-            if (!isInGrid && !(service?.isEditing && service?.selectOpen))
+            if (!isInGrid && !(service?.isEditingCell && service?.selectOpen))
                 return;
             service?.handleKeyDown(e);
         }
@@ -49,7 +53,7 @@
                         el.dataset.tableId === service?.id,
                 );
         if (isOutside) {
-            if (service?.editCell) service?.commitEdit();
+            if (service?.editableCellKey) service?.commitCellEdit();
             service?.selectedCells.clear();
         }
     }}
@@ -84,14 +88,28 @@
                             </Table.Head>
                         {/each}
                         {#if rowActions}
-                            <Table.Head class="w-10" />
+                            <Table.Head class="w-28" />
                         {/if}
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {#each service.visibleRows as row (row.key)}
-                        <DataRow {row} {service} {rowActions} />
-                    {/each}
+                    {#if service.visibleRows.length === 0}
+                        {#if placeholder}
+                            <Table.Row>
+                                <Table.Cell
+                                    colspan={service.columns.length +
+                                        (rowActions ? 1 : 0)}
+                                    class="py-6 text-center"
+                                >
+                                    {@render placeholder()}
+                                </Table.Cell>
+                            </Table.Row>
+                        {/if}
+                    {:else}
+                        {#each service.visibleRows as row (row.key)}
+                            <DataRow {row} {service} {rowActions} />
+                        {/each}
+                    {/if}
                 </Table.Body>
             </Table.Root>
         </div>

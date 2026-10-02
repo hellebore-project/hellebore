@@ -1,4 +1,7 @@
-<script lang="ts" generics="TColKey extends string">
+<script
+    lang="ts"
+    generics="TColKey extends string, TRowMetaData = object, TColMetaData = object"
+>
     import * as Select from "@/lib/components/select";
 
     import type { SelectCellProps } from "../data-table-interface";
@@ -9,7 +12,7 @@
         service,
         onValueChange,
         placeholder = "",
-    }: SelectCellProps<TColKey> = $props();
+    }: SelectCellProps<TColKey, TRowMetaData, TColMetaData> = $props();
 
     let label = $derived(
         items.find((i) => i.value === value)?.label ?? placeholder,
@@ -42,12 +45,12 @@
     {value}
     onValueChange={(v) => {
         onValueChange(v);
-        service.commitEdit();
+        service.commitCellEdit();
         service.focusGrid?.();
     }}
     onOpenChange={(isOpen) => {
-        if (!isOpen && service.editCell !== null) {
-            service.cancelEdit();
+        if (!isOpen && service.editableCellKey !== null) {
+            service.cancelCellEdit();
             service.focusGrid?.();
         }
     }}

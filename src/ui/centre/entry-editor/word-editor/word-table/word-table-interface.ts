@@ -1,16 +1,31 @@
-import type { Id, WordKey } from "@/interface";
-import type { CellState } from "@/lib/components/data-table";
+import type { Id } from "@/interface";
+import { type DataRow } from "@/lib/components/data-table";
 
 import type { WordTableService } from "./word-table-service.svelte";
 import type { WordColumnKey } from "./word-table-constants";
+import type { WordProperty, WordType } from "@/api";
 
-// TODO: collapse this into DataRow
-export interface WordRow {
+export interface WordTypeItem {
+    value: WordType;
+    label: string;
+}
+
+export interface WordTypeSelectItem {
+    value: string;
+    label: string;
+}
+
+export interface WordRowMetaData {
     id: Id | null;
-    key: WordKey;
     languageId: Id;
-    filterable?: boolean;
-    cells: Record<WordColumnKey, CellState>;
+    // positional index of the row in the server-managed result set
+    index?: number | null;
+}
+
+export type WordRow = DataRow<WordColumnKey, WordRowMetaData>;
+
+export interface WordColumnMetaData {
+    property: WordProperty;
 }
 
 export interface WordTableProps {

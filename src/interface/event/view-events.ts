@@ -55,5 +55,6 @@ export interface ReleaseSidebarSectionEvent {
 
 export interface ChangePageEvent {
     action: ChangePageAction;
-    pageIndex: number;
+    oldPageIndex: number;
+    newPageIndex: number;
 }
