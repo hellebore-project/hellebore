@@ -1,22 +1,18 @@
-<script lang="ts" module>
-    import type { Snippet } from "svelte";
-
+<script
+    lang="ts"
+    generics="TColKey extends string, TRowMetaData = object, TColMetaData = object"
+>
     import { cn } from "@/lib/utils";
     import * as Table from "@/lib/components/table";
 
-    import type { DataTableService } from "./data-table-service.svelte";
     import { ReadOnlyCell, TextCell, SelectCell } from "./cells";
+    import type { DataRowProps } from "./data-table-interface";
 
-    export interface DataRowProps<TColKey extends string, TColMetaData> {
-        row: { key: string; cells: Record<TColKey, { value: string }> };
-        service: DataTableService<TColKey, TColMetaData>;
-        rowActions?: Snippet<[string]>;
-    }
-</script>
-
-<script lang="ts" generics="TColKey extends string, TColMetaData">
-    const { row, service, rowActions }: DataRowProps<TColKey, TColMetaData> =
-        $props();
+    const {
+        row,
+        service,
+        rowActions,
+    }: DataRowProps<TColKey, TRowMetaData, TColMetaData> = $props();
 </script>
 
 <Table.Row class="group">

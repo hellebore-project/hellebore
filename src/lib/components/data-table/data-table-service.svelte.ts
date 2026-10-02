@@ -21,23 +21,32 @@ import type {
     //DataTableSortItem,
 } from "./data-table-interface";
 
-export interface DataTableServiceArgs<TColKey extends string, TColMetaData> {
+export interface DataTableServiceArgs<
+    TColKey extends string,
+    TColMetaData = object,
+> {
     id: string;
     columns: DataColumn<TColKey, TColMetaData>[];
     pageCount?: number;
+    rowPerPageCount?: number;
 }
 
 export class DataTableService<
     TColKey extends string,
+    TRowMetaData = object,
     TColMetaData = object,
 > implements IComponentService {
     // STATE VARIABLES
 
     private _id: string;
 
-    private _rows: DataRow<TColKey>[] = $state([]);
+    private _rows: DataRow<TColKey, TRowMetaData>[] = $state([]);
     private _columns: DataColumn<TColKey, TColMetaData>[];
+
     modifiedKeys = new SvelteSet<string>();
+
+    private _offset: number | null = null;
+    private _limit: number = $state(10);
 
     selectedCells = new SvelteSet<DataCellKeyString>();
     private _selectionAnchor: SelectionAnchor<TColKey> | null = null;
@@ -62,7 +71,7 @@ export class DataTableService<
     // EVENTS
     onQueryData: EventProducer<
         DataTableQueryRequest<TColKey>,
-        Promise<DataTableQueryResult<DataRow<TColKey>> | null>
+        Promise<DataTableQueryResult<DataRow<TColKey, TRowMetaData>> | null>
     >;
     onCancelEdit: MultiEventProducer<DataCellEvent<TColKey>, unknown>;
     onSetValue: MultiEventProducer<DataCellEditEvent<TColKey>, unknown>;
@@ -71,9 +80,12 @@ export class DataTableService<
         id,
         columns,
         pageCount,
+        rowPerPageCount = 10,
     }: DataTableServiceArgs<TColKey, TColMetaData>) {
         this._id = id;
         this._columns = columns;
+
+        this._limit = rowPerPageCount;
 
         this.pagination = new PaginationService({
             id: `${id}-pagination`,
@@ -101,25 +113,26 @@ export class DataTableService<
 
     // LOADING
 
-    async load(rows?: DataRow<TColKey>[] | null) {
+    async load(rows?: DataRow<TColKey, TRowMetaData>[] | null) {
         this.reset();
 
         if (rows) {
             this._rows = rows;
+            this._offset = 0;
             this.pagination.setCount(1);
         } else
             await this._queryData({
-                pagination: {
-                    action: ChangePageAction.FirstPage,
-                },
+                pageAction: ChangePageAction.FirstPage,
             });
     }
 
     private async _queryData({
-        pagination = { action: ChangePageAction.FirstPage },
+        pageAction = ChangePageAction.FirstPage,
+        oldPageIndex = null,
+        newPageIndex = null,
     }: DataTableQueryEvent) {
-        pagination.newPageIndex =
-            pagination.newPageIndex ?? this.pagination.page;
+        oldPageIndex = oldPageIndex ?? this.pagination.page;
+        newPageIndex = newPageIndex ?? this.pagination.page;
 
         const filters: Partial<Record<TColKey, DataTableFilterItem>> = {};
         for (const [colKey, predicate] of this._columnFilters.entries())
@@ -127,8 +140,12 @@ export class DataTableService<
 
         const result = await this.onQueryData.produce({
             pagination: {
-                action: pagination.action,
-                pageIndex: pagination.newPageIndex,
+                action: pageAction,
+                oldPageIndex,
+                newPageIndex,
+                pageCount: this.pagination.count,
+                oldOffset: this._offset,
+                limit: this._limit,
             },
             sortation: [], // TODO
             filters,
@@ -136,37 +153,37 @@ export class DataTableService<
 
         if (!result) {
             this._rows = [];
+            this._offset = null;
             this.pagination.reset();
             console.error(`${this.id} failed to fetch data.`);
             return;
         }
 
         this._rows = result.items;
-        this.pagination.setPage(
-            result.pagination?.pageIndex ?? pagination.newPageIndex,
-        );
+        this._offset = result.pagination?.offset ?? null;
+        this.pagination.setPage(result.pagination?.pageIndex ?? newPageIndex);
         this.pagination.setCount(result.pagination?.pageCount ?? null);
     }
 
     // ROWS
 
-    get rows(): DataRow<TColKey>[] {
+    get rows(): DataRow<TColKey, TRowMetaData>[] {
         return this._rows;
     }
 
-    get visibleRows(): DataRow<TColKey>[] {
+    get visibleRows(): DataRow<TColKey, TRowMetaData>[] {
         return this.rows;
     }
 
-    findRow(rowKey: string): DataRow<TColKey> | undefined {
+    findRow(rowKey: string): DataRow<TColKey, TRowMetaData> | undefined {
         return this._rows.find((r) => r.key === rowKey);
     }
 
-    appendRow(row: DataRow<TColKey>) {
+    appendRow(row: DataRow<TColKey, TRowMetaData>) {
         this._rows.push(row);
     }
 
-    insertRow(index: number, row: DataRow<TColKey>) {
+    insertRow(index: number, row: DataRow<TColKey, TRowMetaData>) {
         const boundedIndex = Math.max(0, Math.min(index, this._rows.length));
         this._rows.splice(boundedIndex, 0, row);
 
@@ -326,8 +343,12 @@ export class DataTableService<
 
     // PAGINATION
 
+    get rowPerPageCount() {
+        return this._limit;
+    }
+
     _onChangePage({ action, newPageIndex }: ChangePageEvent) {
-        this._queryData({ pagination: { action, newPageIndex } });
+        this._queryData({ pageAction: action, newPageIndex });
     }
 
     // FILTERING

@@ -1,4 +1,4 @@
-<script lang="ts" generics="TColKey extends string, TColMetaData">
+<script lang="ts" generics="TColKey extends string, TRowMetaData, TColMetaData">
     import * as Pagination from "@/lib/components/pagination";
     import * as Table from "@/lib/components/table";
 
@@ -10,7 +10,7 @@
         service,
         rowActions,
         placeholder,
-    }: DataTableProps<TColKey, TColMetaData> = $props();
+    }: DataTableProps<TColKey, TRowMetaData, TColMetaData> = $props();
 
     let gridEl: HTMLDivElement;
 

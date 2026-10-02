@@ -20,15 +20,16 @@ export interface DataCell {
 
 // ROW
 
-export interface DataRow<TColKey extends string> {
+export interface DataRow<TColKey extends string, TMetaData = object> {
     key: string;
     filterable?: boolean;
     cells: Record<TColKey, DataCell>;
+    metaData: TMetaData;
 }
 
 // COLUMN
 
-interface BaseColumn<TColKey extends string = string, TMetaData = object> {
+interface BaseDataColumn<TColKey extends string = string, TMetaData = object> {
     key: TColKey;
     label: string;
     dataType: Exclude<DataType, DataType.None>;
@@ -40,7 +41,7 @@ interface BaseColumn<TColKey extends string = string, TMetaData = object> {
 export interface TextColumn<
     TColKey extends string = string,
     TMetaData = object,
-> extends BaseColumn<TColKey, TMetaData> {
+> extends BaseDataColumn<TColKey, TMetaData> {
     fieldType: "text";
     getLabel?: (rowKey: string, value: string) => string;
 }
@@ -53,7 +54,7 @@ export interface SelectColumnItem {
 export interface SelectColumn<
     TColKey extends string = string,
     TMetaData = object,
-> extends BaseColumn<TColKey, TMetaData> {
+> extends BaseDataColumn<TColKey, TMetaData> {
     fieldType: "select";
     items: SelectColumnItem[];
 }
@@ -82,7 +83,11 @@ export interface DataTableFilterItem {
 export interface DataTableQueryRequest<TColKey extends string> {
     pagination: {
         action: ChangePageAction;
-        pageIndex: number;
+        oldPageIndex: number;
+        newPageIndex?: number;
+        pageCount?: number | null;
+        oldOffset?: number | null;
+        limit: number;
     };
     // the sort items have to be stored as a sequence because
     // the order in which each sort is applied matters
@@ -98,6 +103,7 @@ export interface DataTableQueryResult<I> {
         pageIndex: number;
         pageCount?: number | null;
         total?: number | null;
+        offset?: number | null;
     };
 }
 
@@ -109,19 +115,34 @@ export interface TextCellProps {
     selectAll?: boolean;
 }
 
-export interface SelectCellProps<TColKey extends string, TColMetaData> {
+export interface SelectCellProps<
+    TColKey extends string,
+    TRowMetaData = object,
+    TColMetaData = object,
+> {
     value: string;
     items: SelectColumnItem[];
-    service: DataTableService<TColKey, TColMetaData>;
+    service: DataTableService<TColKey, TRowMetaData, TColMetaData>;
     onValueChange: (value: string) => void;
     placeholder?: string;
 }
 
-export interface DataTableProps<
-    TColKey extends string = string,
+export interface DataRowProps<
+    TColKey extends string,
+    TRowMetaData = object,
     TColMetaData = object,
 > {
-    service: DataTableService<TColKey, TColMetaData> | null;
+    row: { key: string; cells: Record<TColKey, { value: string }> };
+    service: DataTableService<TColKey, TRowMetaData, TColMetaData>;
+    rowActions?: Snippet<[string]>;
+}
+
+export interface DataTableProps<
+    TColKey extends string = string,
+    TRowMetaData = object,
+    TColMetaData = object,
+> {
+    service: DataTableService<TColKey, TRowMetaData, TColMetaData> | null;
     rowActions?: Snippet<[string]>;
     placeholder?: Snippet;
 }
@@ -140,9 +161,7 @@ export interface DataCellEditEvent<TColKey> {
 }
 
 export interface DataTableQueryEvent {
-    pagination?: {
-        action: ChangePageAction;
-        oldPageIndex?: number;
-        newPageIndex?: number;
-    };
+    pageAction?: ChangePageAction;
+    oldPageIndex?: number | null;
+    newPageIndex?: number | null;
 }

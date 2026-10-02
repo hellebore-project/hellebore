@@ -60,8 +60,6 @@ pub async fn load(
     state: &mut MutexGuard<'_, StateData>,
     folder_path: &Option<String>,
 ) -> Result<ProjectResponseSchema, Error> {
-    log::info!("{}", state.config.recent_project_paths.len());
-
     let folder_path = match folder_path {
         Some(path) => path.to_owned(),
         None => match state.config.recent_project_paths.first() {

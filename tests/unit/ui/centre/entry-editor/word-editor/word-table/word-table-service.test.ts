@@ -83,8 +83,8 @@ test("appends new rows with unique keys and the default word type", ({
     expect(wordTableService.table.rows).toHaveLength(initialRowCount + 2);
     expect(wordTableService.table.rows.at(-2)?.key).toBe(firstKey);
     expect(wordTableService.table.rows.at(-1)?.key).toBe(secondKey);
-    expect(firstRow?.languageId).toBe(languageId);
-    expect(firstRow?.id).toBeNull();
+    expect(firstRow?.metaData.languageId).toBe(languageId);
+    expect(firstRow?.metaData.id).toBeNull();
     expect(firstRow?.cells.wordType.value).toBe(String(WordType.RootWord));
     expect(firstRow?.cells.spelling.value).toBe("");
     expect(firstRow?.cells.definition.value).toBe("");
@@ -165,7 +165,7 @@ test("synchronizes backend ids into existing table rows by key", ({
 
     const updatedRow = wordTableService.table.findRow(wordId) as
         WordRow | undefined;
-    expect(updatedRow?.id).toBe("word999");
+    expect(updatedRow?.metaData.id).toBe("word999");
 });
 
 test("removes persisted rows via domain delete", async ({

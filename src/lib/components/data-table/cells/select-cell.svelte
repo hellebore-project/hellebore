@@ -1,4 +1,7 @@
-<script lang="ts" generics="TColKey extends string, TColMetaData">
+<script
+    lang="ts"
+    generics="TColKey extends string, TRowMetaData = object, TColMetaData = object"
+>
     import * as Select from "@/lib/components/select";
 
     import type { SelectCellProps } from "../data-table-interface";
@@ -9,7 +12,7 @@
         service,
         onValueChange,
         placeholder = "",
-    }: SelectCellProps<TColKey, TColMetaData> = $props();
+    }: SelectCellProps<TColKey, TRowMetaData, TColMetaData> = $props();
 
     let label = $derived(
         items.find((i) => i.value === value)?.label ?? placeholder,

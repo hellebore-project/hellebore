@@ -29,15 +29,15 @@ export const WORD_COLUMN_LABELS: Record<WordColumnKey, string> = {
 };
 
 export const WORD_TYPE_ITEMS: WordTypeItem[] = [
-    { value: WordType.RootWord, label: "Root Words" },
-    { value: WordType.Determiner, label: "Determiners" },
-    { value: WordType.Preposition, label: "Prepositions" },
-    { value: WordType.Conjunction, label: "Conjunctions" },
-    { value: WordType.Pronoun, label: "Pronouns" },
-    { value: WordType.Noun, label: "Nouns" },
-    { value: WordType.Adjective, label: "Adjectives" },
-    { value: WordType.Adverb, label: "Adverbs" },
-    { value: WordType.Verb, label: "Verbs" },
+    { value: WordType.RootWord, label: "Root Word" },
+    { value: WordType.Determiner, label: "Determiner" },
+    { value: WordType.Preposition, label: "Preposition" },
+    { value: WordType.Conjunction, label: "Conjunction" },
+    { value: WordType.Pronoun, label: "Pronoun" },
+    { value: WordType.Noun, label: "Noun" },
+    { value: WordType.Adjective, label: "Adjective" },
+    { value: WordType.Adverb, label: "Adverb" },
+    { value: WordType.Verb, label: "Verb" },
 ];
 
 export const WORD_TYPE_ITEM_MAP: Partial<Record<WordType, WordTypeItem>> =

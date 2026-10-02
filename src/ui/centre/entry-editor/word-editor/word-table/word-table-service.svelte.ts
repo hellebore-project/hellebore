@@ -7,6 +7,7 @@ import {
     DataType,
     PredicateType,
     type FilterItemUnion,
+    type Pagination,
 } from "@/api";
 import { ClientData } from "@/models";
 import {
@@ -17,7 +18,12 @@ import {
 import { MultiEventProducer } from "@/utils/event-producer";
 
 import { WordColumnKey, WORD_COLUMNS } from "./word-table-constants";
-import type { WordColumnMetaData, WordRow } from "./word-table-interface";
+import type {
+    WordColumnMetaData,
+    WordRow,
+    WordRowMetaData,
+} from "./word-table-interface";
+import { ChangePageAction } from "@/constants";
 
 export class WordTableService implements IComponentService {
     // STATE VARIABLES
@@ -29,7 +35,7 @@ export class WordTableService implements IComponentService {
 
     // SERVICES
     private _domain: DomainManager;
-    table: DataTableService<WordColumnKey, WordColumnMetaData>;
+    table: DataTableService<WordColumnKey, WordRowMetaData, WordColumnMetaData>;
 
     // EVENTS
     onChange: MultiEventProducer<void, unknown>;
@@ -42,7 +48,7 @@ export class WordTableService implements IComponentService {
         this.table = new DataTableService({
             id: `${this._id}-data-table`,
             columns: WORD_COLUMNS,
-            pageCount: 1,
+            rowPerPageCount: 10,
         });
         this.table.onQueryData.subscribe((event) => this._fetchData(event));
         this.table.onSetValue.subscribe(() => this._onSetValue());
@@ -64,13 +70,20 @@ export class WordTableService implements IComponentService {
 
     async load(languageId: Id) {
         this._languageId = languageId;
-        const result = await this._fetchData();
-        this.table.load(result?.items ?? []);
+        await this.table.load();
     }
 
     private async _fetchData(
         request?: DataTableQueryRequest<WordColumnKey>,
     ): Promise<DataTableQueryResult<WordRow> | null> {
+        let oldPageIndex = 0;
+
+        const pagination: Pagination = {
+            pageIndex: 0,
+            offset: 0,
+            limit: 10,
+        };
+
         const filters: FilterItemUnion<WordProperty>[] = [
             {
                 field: WordProperty.LanguageId,
@@ -83,6 +96,44 @@ export class WordTableService implements IComponentService {
         ];
 
         if (request) {
+            oldPageIndex = request.pagination.oldPageIndex;
+
+            if (request.pagination.newPageIndex !== undefined)
+                pagination.pageIndex = request.pagination.newPageIndex;
+            else {
+                switch (request.pagination.action) {
+                    case ChangePageAction.FirstPage:
+                        pagination.pageIndex = 0;
+                        break;
+
+                    case ChangePageAction.LastPage:
+                        if (
+                            request.pagination.pageCount !== null &&
+                            request.pagination.pageCount !== undefined
+                        )
+                            pagination.pageIndex =
+                                request.pagination.pageCount - 1;
+                        break;
+
+                    case ChangePageAction.PreviousPage:
+                        pagination.pageIndex = Math.max(oldPageIndex - 1, 0);
+                        break;
+
+                    case ChangePageAction.NextPage:
+                        pagination.pageIndex = oldPageIndex + 1;
+                        break;
+                }
+            }
+
+            if (
+                request.pagination.oldOffset !== null &&
+                request.pagination.oldOffset !== undefined
+            )
+                pagination.offset =
+                    request.pagination.oldOffset +
+                    request.pagination.limit *
+                        ((pagination.pageIndex ?? 0) - oldPageIndex);
+
             for (const [colKey, filterItem] of Object.entries(
                 request.filters,
             )) {
@@ -100,21 +151,28 @@ export class WordTableService implements IComponentService {
         const response = await this._domain.words.list(
             this._data.loadedProjectId,
             {
+                pagination,
                 filters,
                 options: {},
+                includeTotal: true,
             },
         );
+
         if (!response) return null;
 
-        const items: WordRow[] = response.items.map((w) => ({
-            key: String(w.id),
-            languageId: w.languageId,
-            id: w.id,
+        const items: WordRow[] = response.items.map((word, index) => ({
+            key: String(word.id),
             cells: {
-                wordType: { value: String(w.wordType) },
-                spelling: { value: w.spelling },
-                definition: { value: w.definition },
-                translations: { value: w.translations.join(", ") },
+                wordType: { value: String(word.wordType) },
+                spelling: { value: word.spelling },
+                definition: { value: word.definition },
+                translations: { value: word.translations.join(", ") },
+            },
+            metaData: {
+                id: word.id,
+                languageId: word.languageId,
+                index:
+                    response.offset !== null ? response.offset + index : null,
             },
         }));
 
@@ -124,6 +182,7 @@ export class WordTableService implements IComponentService {
                 pageIndex: response.pageIndex,
                 pageCount: response.pageCount,
                 total: response.total,
+                offset: response.offset,
             },
         };
     }
@@ -159,13 +218,18 @@ export class WordTableService implements IComponentService {
     private _createRow(rowKey: WordKey): WordRow {
         return {
             key: rowKey,
-            languageId: this._languageId,
-            id: null,
             cells: {
                 wordType: { value: String(this._defaultWordType) },
                 spelling: { value: "" },
                 definition: { value: "" },
                 translations: { value: "" },
+            },
+            metaData: {
+                id: null,
+                languageId: this._languageId,
+                // NOTE: we deliberately omit the index here because
+                // we have no way of knowing the row's true position
+                // in the server-side result set
             },
         };
     }
@@ -180,10 +244,13 @@ export class WordTableService implements IComponentService {
         if (!row) return;
 
         // a row will only have an id if it corresponds to an existing word in the backend
-        if (row.id !== null) {
+        if (row.metaData.id !== null) {
             const projectId = this._data.loadedProjectId;
 
-            const success = await this._domain.words.delete(projectId, row.id);
+            const success = await this._domain.words.delete(
+                projectId,
+                row.metaData.id,
+            );
             if (!success) return;
         }
 
@@ -213,9 +280,9 @@ export class WordTableService implements IComponentService {
             if (!row) continue;
             result.push({
                 key,
-                id: row.id,
+                id: row.metaData.id,
                 wordType: Number(row.cells.wordType.value) as WordType,
-                languageId: row.languageId,
+                languageId: row.metaData.languageId,
                 spelling: row.cells.spelling.value,
                 definition: row.cells.definition.value,
                 translations: row.cells.translations.value
@@ -233,7 +300,7 @@ export class WordTableService implements IComponentService {
     handleSynchronization(words: Word[]) {
         for (const word of words) {
             const row = this.table.findRow(word.key) as WordRow | undefined;
-            if (row) row.id = word.id;
+            if (row) row.metaData.id = word.id;
         }
     }
 

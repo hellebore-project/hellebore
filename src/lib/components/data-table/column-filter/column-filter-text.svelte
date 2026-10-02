@@ -1,4 +1,7 @@
-<script lang="ts" generics="TColKey extends string, TColMetaData">
+<script
+    lang="ts"
+    generics="TColKey extends string, TRowMetaData = object, TColMetaData = object"
+>
     import FilterIcon from "@lucide/svelte/icons/filter";
 
     import * as Popover from "@/lib/components/popover";
@@ -7,8 +10,10 @@
 
     import type { ColumnTextFilterProps } from "./column-filter-interface";
 
-    const { colKey, service }: ColumnTextFilterProps<TColKey, TColMetaData> =
-        $props();
+    const {
+        colKey,
+        service,
+    }: ColumnTextFilterProps<TColKey, TRowMetaData, TColMetaData> = $props();
 </script>
 
 <Popover.Root>

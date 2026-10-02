@@ -15,10 +15,14 @@ export interface WordTypeSelectItem {
     label: string;
 }
 
-export interface WordRow extends DataRow<WordColumnKey> {
+export interface WordRowMetaData {
     id: Id | null;
     languageId: Id;
+    // positional index of the row in the server-managed result set
+    index?: number | null;
 }
+
+export type WordRow = DataRow<WordColumnKey, WordRowMetaData>;
 
 export interface WordColumnMetaData {
     property: WordProperty;

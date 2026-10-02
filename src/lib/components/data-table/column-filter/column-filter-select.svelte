@@ -1,4 +1,7 @@
-<script lang="ts" generics="TColKey extends string, TColMetaData">
+<script
+    lang="ts"
+    generics="TColKey extends string, TRowMetaData = object, TColMetaData = object"
+>
     import FilterIcon from "@lucide/svelte/icons/filter";
 
     import * as DropdownMenu from "@/lib/components/dropdown-menu";
@@ -7,8 +10,10 @@
     import type { ColumnSelectFilterProps } from "./column-filter-interface";
     import { PredicateType } from "@/api";
 
-    const { service, column }: ColumnSelectFilterProps<TColKey, TColMetaData> =
-        $props();
+    const {
+        service,
+        column,
+    }: ColumnSelectFilterProps<TColKey, TRowMetaData, TColMetaData> = $props();
 </script>
 
 <DropdownMenu.Root>
